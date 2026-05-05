@@ -2,7 +2,7 @@
 <html lang="en">
 <!--
   ═══════════════════════════════════════════════════════
-  HIGH ELM STUDIO — CHAT DEMO TEMPLATE
+  HIGH ELM STUDIO — CHAT DEMO TEMPLATE v2
   ═══════════════════════════════════════════════════════
 
   Fill every [PLACEHOLDER] before deploying.
@@ -19,6 +19,7 @@
   [INPUT_PLACEHOLDER]     Chat input hint text
   [TOPBAR_DESCRIPTOR]     e.g. "Alpine Property Intelligence · Demo"
   [OPENING_MESSAGE]       AI's first message verbatim
+  [PROPERTY_MATCH_OPENING] Opening message for property match mode (include [PROPERTY_NAME])
   [FROM_EMAIL]            Verified Resend sender address
   [NOTIFY_EMAIL]          Team inbox for lead notifications
   [EMAIL_SUBJECT]         e.g. "Your Bramble Ski property shortlist"
@@ -33,12 +34,17 @@
   --gold-dark     Accent hover variant
   --sand          Page background (warm off-white)
 
-  JAVASCRIPT ARRAYS:
-  ───────────────────
-  const L         Property/listing inventory (8–12 items)
-  const SYS       Full system prompt
-  const BUDGET    Budget slider config
-  const profile   Profile panel fields (must match [PROFILE:] tags)
+  JAVASCRIPT CONFIGS (update per client):
+  ────────────────────────────────────────
+  const L              Property/listing inventory (8–12 items)
+  const SYS            Full system prompt
+  const BUDGET         Legacy budget slider config (for [BUDGET] tag)
+  const GROUP_OPTIONS  Group type cards (leave as-is unless adding group types)
+  const WHEN_MONTHS    Months for the "Approximate" date picker
+  const WHEN_SEASONS   Seasons for the "Flexible" date picker
+  const WHERE_DESTINATIONS  Destination cards for Step 3
+  const BUDGET_BANDS   Budget band cards for Step 5
+  const BUDGET_SLIDER  Slider format function for Step 5
   ═══════════════════════════════════════════════════════
 -->
 <head>
@@ -145,7 +151,7 @@ body {
 .ms-chip.on { background: var(--navy); color: #fff; border-color: var(--navy); }
 .ms-confirm { padding: 7px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
 .ms-confirm:hover { background: var(--navy-dark); }
-/* Budget slider */
+/* Budget slider (legacy [BUDGET] tag) */
 .budget-wrap { margin-top: 10px; padding: 14px; background: var(--sand); border-radius: 10px; }
 .budget-display { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--navy); margin-bottom: 10px; }
 .budget-wrap input[type=range] { width: 100%; accent-color: var(--navy); cursor: pointer; margin-bottom: 4px; }
@@ -176,12 +182,6 @@ body {
 .collect-row input { flex: 1; margin-bottom: 0; }
 .collect-submit { padding: 10px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
 .collect-submit:hover { background: var(--navy-dark); }
-/* Contact form (inline in bubble) */
-.contact-form { margin-top: 12px; }
-.contact-form input { display: block; width: 100%; margin-bottom: 7px; padding: 9px 12px; border: 1px solid rgba(27,58,92,0.15); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
-.contact-form input:focus { border-color: var(--gold); }
-.contact-form button { padding: 8px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-.contact-form button:hover { background: var(--gold); }
 /* Layout */
 .wrapper { width: 100%; max-width: 1100px; position: relative; z-index: 1; }
 .chat-row { display: flex; gap: 16px; align-items: flex-start; }
@@ -236,6 +236,62 @@ html.embedded .profile-panel { height: calc(100vh - 24px); }
 .splash-contact a { display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: 'League Spartan', sans-serif; color: rgba(44,62,53,0.45); text-decoration: none; }
 .splash-contact a:hover { color: rgba(44,62,53,0.7); }
 .splash-contact-divider { width: 1px; height: 14px; background: rgba(44,62,53,0.2); }
+
+/* ── v2: Step cards (GROUP, WHEN, WHERE, BUDGET bands) ── */
+.step-cards { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.step-card { flex: 1 1 calc(20% - 7px); min-width: 70px; padding: 12px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--white); cursor: pointer; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--navy); transition: all 0.15s; animation: up 0.22s ease; user-select: none; }
+.step-card:hover { border-color: var(--navy); background: var(--sand); }
+.step-card.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+.step-card-label { font-weight: 500; }
+/* ── v2: Steppers (+/- counters) ── */
+.stepper-wrap { display: none; margin-top: 10px; padding: 10px 0 2px; border-top: 1px solid var(--border-light); }
+.stepper-wrap.open { display: block; animation: up 0.2s ease; }
+.stepper-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--text); }
+.stepper-label { color: var(--muted); }
+.stepper-controls { display: flex; align-items: center; gap: 10px; }
+.stepper-btn { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 50%; background: var(--white); cursor: pointer; font-size: 16px; line-height: 1; color: var(--navy); display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+.stepper-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+.stepper-val { min-width: 24px; text-align: center; font-weight: 600; font-size: 14px; color: var(--navy); }
+/* ── v2: Picker panes (WHEN date/month/season) ── */
+.picker-pane { display: none; margin-top: 10px; padding: 10px 0 2px; }
+.picker-pane.open { display: block; animation: up 0.2s ease; }
+.picker-pane label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: 'Montserrat', sans-serif; margin-bottom: 4px; margin-top: 10px; }
+.picker-pane label:first-child { margin-top: 0; }
+.picker-pane input[type=date], .picker-pane select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; }
+.picker-pane input[type=date]:focus, .picker-pane select:focus { border-color: var(--gold); }
+.picker-duration { margin-top: 10px; }
+.picker-duration .budget-display { font-size: 18px; margin-bottom: 6px; }
+.picker-duration input[type=range] { width: 100%; accent-color: var(--navy); cursor: pointer; }
+/* ── v2: WHERE multi-select cards ── */
+.where-cards { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.where-card { padding: 8px 14px; border: 1px solid var(--border); border-radius: 20px; background: var(--white); cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--muted); transition: all 0.12s; user-select: none; }
+.where-card:hover { border-color: var(--navy); color: var(--navy); }
+.where-card.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+/* ── v2: Budget two-stage ── */
+.stage2-wrap { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+.stage2-wrap.open { display: block; animation: up 0.2s ease; }
+.stage2-exact-link { display: inline-block; margin-top: 6px; font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; font-family: 'Montserrat', sans-serif; background: none; border: none; padding: 0; }
+.stage2-exact-input { display: none; width: 100%; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; }
+.stage2-exact-input.open { display: block; animation: up 0.15s ease; }
+.stage2-exact-input:focus { border-color: var(--gold); }
+/* ── v2: Notes field ── */
+.notes-wrap { margin-top: 10px; animation: up 0.22s ease; }
+.notes-field { width: 100%; min-height: 80px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--sand); resize: vertical; outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+.notes-field:focus { border-color: var(--gold); background: var(--white); }
+.notes-actions { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.notes-send { padding: 8px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.notes-send:hover { background: var(--navy-dark); }
+.notes-skip { font-size: 11px; color: var(--muted); cursor: pointer; background: none; border: none; font-family: 'Montserrat', sans-serif; text-decoration: underline; }
+.notes-skip:hover { color: var(--text); }
+/* ── v2: Continue button (shared) ── */
+.step-continue { display: none; margin-top: 10px; padding: 8px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.step-continue:hover { background: var(--navy-dark); }
+.step-continue.visible { display: block; animation: up 0.2s ease; }
+/* ── v2: Chips bar ── */
+.chips-bar { max-height: 0; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; background: var(--white); transition: max-height 0.3s ease, padding 0.3s ease; }
+.chips-bar.has-chips { max-height: 60px; padding: 8px 16px; border-top: 1px solid var(--border-light); }
+.summary-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--sand); font-size: 11px; font-family: 'Montserrat', sans-serif; color: var(--navy); cursor: pointer; transition: all 0.12s; white-space: nowrap; animation: up 0.2s ease; }
+.summary-chip:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
 </style>
 </head>
 <body>
@@ -297,6 +353,8 @@ html.embedded .profile-panel { height: calc(100vh - 24px); }
         </div>
       </div>
       <div class="msgs" id="msgs"></div>
+      <!-- v2: chips bar — appears between messages and input -->
+      <div class="chips-bar" id="chipsBar"></div>
       <div class="ibar">
         <!-- TEMPLATE: update input placeholder -->
         <input id="inp" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')send()"/>
@@ -338,9 +396,58 @@ html.embedded .profile-panel { height: calc(100vh - 24px); }
   });
 })();
 
+/* ── v2 Config ── */
+const GROUP_OPTIONS = [
+  { key: 'solo',       label: 'Solo',         steppers: [] },
+  { key: 'couple',     label: 'Couple',        steppers: [] },
+  { key: 'friends',    label: 'Friends',       steppers: [{ key: 'count',  label: 'How many?', min: 3,  max: 12 }] },
+  { key: 'family',     label: 'Family',        steppers: [
+    { key: 'adults', label: 'Adults', min: 1, max: 6 },
+    { key: 'kids',   label: 'Kids',   min: 0, max: 6 }
+  ]},
+  { key: 'family_dog', label: 'Family + Dog',  steppers: [
+    { key: 'adults', label: 'Adults', min: 1, max: 6 },
+    { key: 'kids',   label: 'Kids',   min: 0, max: 6 },
+    { key: 'dogs',   label: 'Dogs',   min: 1, max: 3 }
+  ]}
+];
+
+// TEMPLATE: update months to match the client's travel window
+const WHEN_MONTHS = ['December', 'January', 'February', 'March', 'April'];
+// TEMPLATE: update seasons to match the client's season vocabulary
+const WHEN_SEASONS = ['Winter 25/26', 'Summer 26'];
+const WHEN_DURATION_RANGE = { min: 3, max: 21, default: 7 };
+
+// TEMPLATE: add destination objects { key: 'verbier', label: 'Verbier' } for the client
+const WHERE_DESTINATIONS = [];
+
+// TEMPLATE: update budget bands, min/max values, and slider format per client
+const BUDGET_BANDS = [
+  { key: 'low',  label: 'Up to £20k',  min: 0,      max: 20000  },
+  { key: 'mid',  label: '£20k–£50k',   min: 20000,  max: 50000  },
+  { key: 'high', label: '£50k+',       min: 50000,  max: 250000 }
+];
+const BUDGET_SLIDER = {
+  step: 1000,
+  format: (n) => '£' + (n / 1000).toFixed(0) + 'k'
+};
+
+// TEMPLATE: set PROPERTY_MATCH_ENABLED = true per client and add URL patterns
+const PROPERTY_MATCH_ENABLED = false;
+const PROPERTY_MATCH_URLS = {}; // { 'url-pattern': propertyId }
+
+function detectMode() {
+  if (!PROPERTY_MATCH_ENABLED) return 'enquiry';
+  const referrer = document.referrer || window.location.href;
+  for (const [pattern, propertyId] of Object.entries(PROPERTY_MATCH_URLS)) {
+    if (referrer.includes(pattern)) return { mode: 'property_match', propertyId };
+  }
+  return 'enquiry';
+}
+
 /* ── Inventory ── */
 // TEMPLATE: paste property/listing objects here, each with:
-// { id: Number, name: String, location: String, price: String, beds: String, size: String, tag: String, desc: String, url: String }
+// { id: Number, name: String, location: String, location_key: String, price: String, beds: String, size: String, tag: String, desc: String, url: String }
 const L = [
 
 ];
@@ -354,24 +461,19 @@ let currentLang = 'en';
 let langInstruction = '';
 
 // TEMPLATE: add more language entries below if multi-language is needed
-// Each entry needs: placeholder, panelTitle, panelEyebrow, badge, and labels for each profile key
 const UI_STRINGS = {
   en: {
-    placeholder: 'Ask anything…', // TEMPLATE: update with context-specific placeholder e.g. "Ask about our properties…"
+    placeholder: 'Ask anything…',
     panelTitle: 'Profile',
     panelEyebrow: 'Building as we talk',
     badge: 'AI Concierge',
     labels: {
-      // TEMPLATE: update these labels to match profile fields used in the system prompt
-      motivation: 'Motivation',
-      dream: 'Dream outcome',
-      location: 'Location',
-      type: 'Type',
-      budget: 'Budget',
-      use: 'Intended use',
-      timeline: 'Timeline',
-      nationality: 'Origin / base',
-      concerns: 'Concerns',
+      who:        'Who',
+      when:       'When',
+      where:      'Where',
+      priorities: 'Priorities',
+      budget:     'Budget',
+      notes:      'Notes',
     }
   },
 };
@@ -399,14 +501,59 @@ let capturedEmail = null, capturedName = null;
 let emailSent = false, sendBeaconFired = false;
 let propertiesShown = [];
 
-// TEMPLATE: update profile keys to match what the system prompt emits in [PROFILE:key=value] tags
-const profile = { motivation: '', dream: '', location: '', type: '', budget: '', use: '', timeline: '', nationality: '', concerns: '' };
+/* ── Profile (v2 — 6-key structured object) ── */
+let profile = {
+  who:        { type: null, adults: null, kids: [], dogs: 0 },
+  when:       { mode: null, exactStart: null, exactEnd: null, month: null, season: null, duration: null, flexibility: null },
+  where:      { destinations: [], openToSuggestions: false },
+  priorities: [],
+  budget:     { range: null, exact: null },
+  notes:      ''
+};
 let emailSectionShown = false;
 
-/* ── Profile panel ── */
-// TEMPLATE: update PROFILE_LABELS keys + text to match profile keys above
-const PROFILE_LABELS = { motivation: 'Motivation', dream: 'Dream outcome', location: 'Location', type: 'Type', budget: 'Budget', use: 'Intended use', timeline: 'Timeline', nationality: 'Origin / base', concerns: 'Concerns' };
-const PROFILE_ORDER = ['motivation', 'dream', 'location', 'type', 'budget', 'use', 'timeline', 'nationality', 'concerns'];
+const PROFILE_LABELS = { who: 'Who', when: 'When', where: 'Where', priorities: 'Priorities', budget: 'Budget', notes: 'Notes' };
+const PROFILE_ORDER  = ['who', 'when', 'where', 'priorities', 'budget', 'notes'];
+
+/* ── Profile summary helpers ── */
+function summariseWho(w) {
+  if (!w || !w.type) return null;
+  const opt = GROUP_OPTIONS.find(o => o.key === w.type);
+  const label = opt ? opt.label : w.type;
+  if (w.type === 'solo' || w.type === 'couple') return label;
+  const adults = w.adults || 0;
+  const kids = Array.isArray(w.kids) ? w.kids.length : (w.kids || 0);
+  const total = adults + kids;
+  let s = label + (total ? ' of ' + total : '');
+  if (w.dogs) s += ' + ' + (w.dogs > 1 ? w.dogs + ' dogs' : 'dog');
+  return s;
+}
+function summariseWhen(w) {
+  if (!w || !w.mode) return null;
+  if (w.mode === 'exact' && w.exactStart) return w.exactStart + (w.exactEnd ? ' – ' + w.exactEnd : '');
+  if (w.mode === 'approximate' && w.month) return w.month + (w.duration ? ' · ' + w.duration + ' nights' : '');
+  if (w.mode === 'flexible' && w.season) return w.season + (w.duration ? ' · ' + w.duration + ' nights' : '');
+  return w.mode;
+}
+function summariseWhere(w) {
+  if (!w) return null;
+  const dests = (w.destinations || []).slice(0, 2).map(k => {
+    const d = WHERE_DESTINATIONS.find(x => x.key === k);
+    return d ? d.label : k;
+  });
+  if (w.openToSuggestions) dests.push('open');
+  return dests.length ? dests.join(' + ') : null;
+}
+function summarisePriorities(arr) {
+  if (!arr || !arr.length) return null;
+  return arr.slice(0, 2).join(' · ') + (arr.length > 2 ? ' +' + (arr.length - 2) : '');
+}
+function summariseBudget(b) {
+  if (!b) return null;
+  if (b.exact) return BUDGET_SLIDER.format(b.exact);
+  if (b.range) { const band = BUDGET_BANDS.find(x => x.key === b.range); return band ? band.label : b.range; }
+  return null;
+}
 
 /* ── Helpers ── */
 function aiAv() {
@@ -451,7 +598,7 @@ async function submitContact(uid, btn) {
   if (sec) sec.classList.remove('pp-email-visible');
 }
 
-/* ── Multi-select ── */
+/* ── Multi-select (legacy [MULTISELECT:] tag) ── */
 function renderMultiSelect(opts, parent) {
   const wrap = document.createElement('div'); wrap.className = 'ms-wrap';
   const hint = document.createElement('div'); hint.className = 'ms-hint'; hint.textContent = 'You can select more than one';
@@ -466,6 +613,9 @@ function renderMultiSelect(opts, parent) {
   btn.onclick = () => {
     const sel = [...chips.querySelectorAll('.ms-chip.on')].map(c => c.textContent);
     if (!sel.length) return;
+    profile.priorities = sel;
+    updateProfile();
+    emitChip('priorities', summarisePriorities(sel) || 'Priorities ✓');
     const msg = sel.join(', ');
     wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${msg}</span>`;
     qs(msg);
@@ -474,7 +624,7 @@ function renderMultiSelect(opts, parent) {
   parent.appendChild(wrap);
 }
 
-/* ── Budget slider ── */
+/* ── Budget slider (legacy [BUDGET] tag) ── */
 // TEMPLATE: update min, max, step, default, format, and ticks to match prospect's price range
 const BUDGET = {
   min: 500000, max: 30000000, step: 250000, default: 3000000,
@@ -507,19 +657,472 @@ function renderBudget(parent) {
 function updateProfile() {
   const body = document.getElementById('ppBody');
   if (!body) return;
-  const s = UI_STRINGS[currentLang] || UI_STRINGS.en;
-  const hasAny = PROFILE_ORDER.some(k => profile[k]);
+  const summaries = {
+    who:        summariseWho(profile.who),
+    when:       summariseWhen(profile.when),
+    where:      summariseWhere(profile.where),
+    priorities: summarisePriorities(profile.priorities),
+    budget:     summariseBudget(profile.budget),
+    notes:      profile.notes || null
+  };
+  const hasAny = Object.values(summaries).some(Boolean);
   if (!hasAny) {
     body.innerHTML = '<div class="pp-empty">Fields will appear as the conversation unfolds</div>';
     return;
   }
   body.innerHTML = PROFILE_ORDER.map(k => {
-    const label = (s.labels && s.labels[k]) || PROFILE_LABELS[k] || k;
-    const val = profile[k];
+    const label = PROFILE_LABELS[k];
+    const val = summaries[k];
     return `<div class="pp-row${val ? ' flash' : ''}"><div class="pp-label">${label}</div><div class="pp-value${val ? '' : ' empty'}">${val || '—'}</div></div>`;
   }).join('');
 }
 updateProfile();
+
+/* ── Chips ── */
+const chipsState = {}; // key → { el, scrollTop, rerender }
+
+function emitChip(key, summary, rerenderFn) {
+  const bar = document.getElementById('chipsBar');
+  if (!bar) return;
+  bar.classList.add('has-chips');
+  if (chipsState[key] && chipsState[key].el) {
+    chipsState[key].el.textContent = summary;
+  } else {
+    const el = document.createElement('div');
+    el.className = 'summary-chip';
+    el.textContent = summary;
+    el.onclick = () => {
+      const msgs = document.getElementById('msgs');
+      if (chipsState[key].scrollTop !== undefined) msgs.scrollTop = chipsState[key].scrollTop;
+      if (chipsState[key].rerender) chipsState[key].rerender();
+    };
+    bar.appendChild(el);
+    chipsState[key] = { el };
+  }
+  if (rerenderFn) chipsState[key].rerender = rerenderFn;
+  const msgs = document.getElementById('msgs');
+  if (msgs) chipsState[key].scrollTop = msgs.scrollTop;
+}
+
+/* ── v2 Components ── */
+
+function renderGroupCards(parent) {
+  const wrap = document.createElement('div');
+  let selectedKey = null;
+  const stepVals = {};
+
+  const cards = document.createElement('div');
+  cards.className = 'step-cards';
+
+  GROUP_OPTIONS.forEach(opt => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `<div class="step-card-label">${opt.label}</div>`;
+    card.onclick = () => {
+      cards.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedKey = opt.key;
+      stepVals[opt.key] = stepVals[opt.key] || {};
+      opt.steppers.forEach(s => { if (!stepVals[opt.key][s.key]) stepVals[opt.key][s.key] = s.min; });
+      renderSteppers();
+      continueBtn.className = 'step-continue visible';
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  const stepperWrap = document.createElement('div');
+  stepperWrap.className = 'stepper-wrap';
+  wrap.appendChild(stepperWrap);
+
+  function renderSteppers() {
+    stepperWrap.innerHTML = '';
+    const opt = GROUP_OPTIONS.find(o => o.key === selectedKey);
+    if (!opt || !opt.steppers.length) { stepperWrap.classList.remove('open'); return; }
+    stepperWrap.classList.add('open');
+    opt.steppers.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'stepper-row';
+      const current = () => stepVals[selectedKey][s.key] ?? s.min;
+      const valEl = document.createElement('span');
+      valEl.className = 'stepper-val';
+      valEl.textContent = current();
+      const minus = document.createElement('button');
+      minus.className = 'stepper-btn';
+      minus.textContent = '−';
+      minus.onclick = () => { if (current() > s.min) { stepVals[selectedKey][s.key] = current() - 1; valEl.textContent = current(); } };
+      const plus = document.createElement('button');
+      plus.className = 'stepper-btn';
+      plus.textContent = '+';
+      plus.onclick = () => { if (current() < s.max) { stepVals[selectedKey][s.key] = current() + 1; valEl.textContent = current(); } };
+      const controls = document.createElement('div');
+      controls.className = 'stepper-controls';
+      controls.appendChild(minus); controls.appendChild(valEl); controls.appendChild(plus);
+      const label = document.createElement('span');
+      label.className = 'stepper-label';
+      label.textContent = s.label;
+      row.appendChild(label); row.appendChild(controls);
+      stepperWrap.appendChild(row);
+    });
+  }
+
+  const continueBtn = document.createElement('button');
+  continueBtn.className = 'step-continue';
+  continueBtn.textContent = 'Continue →';
+  continueBtn.onclick = () => {
+    const opt = GROUP_OPTIONS.find(o => o.key === selectedKey);
+    if (!opt) return;
+    const vals = stepVals[selectedKey] || {};
+    if (selectedKey === 'solo') {
+      profile.who = { type: 'solo', adults: 1, kids: [], dogs: 0 };
+    } else if (selectedKey === 'couple') {
+      profile.who = { type: 'couple', adults: 2, kids: [], dogs: 0 };
+    } else if (selectedKey === 'friends') {
+      const count = vals.count || 3;
+      profile.who = { type: 'friends', adults: count, kids: [], dogs: 0 };
+    } else if (selectedKey === 'family') {
+      const adults = vals.adults || 2;
+      const kids = vals.kids || 0;
+      profile.who = { type: 'family', adults, kids: Array(kids).fill(0), dogs: 0 };
+    } else if (selectedKey === 'family_dog') {
+      const adults = vals.adults || 2;
+      const kids = vals.kids || 0;
+      const dogs = vals.dogs || 1;
+      profile.who = { type: 'family_dog', adults, kids: Array(kids).fill(0), dogs };
+    }
+    updateProfile();
+    const summary = summariseWho(profile.who) || opt.label;
+    emitChip('who', summary + ' ✓', () => {
+      wrap.innerHTML = '';
+      wrap.appendChild(buildGroupUI());
+    });
+    const synMsg = buildWhoMessage(profile.who, opt);
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${summary}</span>`;
+    qs(synMsg);
+  };
+  wrap.appendChild(continueBtn);
+
+  function buildWhoMessage(who, opt) {
+    if (who.type === 'solo') return 'Just me — travelling solo';
+    if (who.type === 'couple') return 'The two of us — travelling as a couple';
+    if (who.type === 'friends') return `A group of ${who.adults} friends`;
+    const kids = Array.isArray(who.kids) ? who.kids.length : 0;
+    let msg = `Family of ${who.adults + kids} — ${who.adults} adult${who.adults > 1 ? 's' : ''}`;
+    if (kids) msg += `, ${kids} kid${kids > 1 ? 's' : ''}`;
+    if (who.dogs) msg += `, ${who.dogs} dog${who.dogs > 1 ? 's' : ''}`;
+    return msg;
+  }
+
+  function buildGroupUI() {
+    const inner = document.createElement('div');
+    inner.appendChild(cards);
+    inner.appendChild(stepperWrap);
+    inner.appendChild(continueBtn);
+    return inner;
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderWhenModeCards(parent) {
+  const wrap = document.createElement('div');
+  const modes = [
+    { key: 'exact',       label: 'Exact dates' },
+    { key: 'approximate', label: 'Approximate' },
+    { key: 'flexible',    label: 'Flexible' }
+  ];
+  let selectedMode = null;
+
+  const cards = document.createElement('div');
+  cards.className = 'step-cards';
+  modes.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `<div class="step-card-label">${m.label}</div>`;
+    card.onclick = () => {
+      cards.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedMode = m.key;
+      wrap.querySelectorAll('.picker-pane').forEach(p => p.classList.remove('open'));
+      wrap.querySelector('.picker-pane[data-mode="' + m.key + '"]').classList.add('open');
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  function makeDurationSlider(defaultVal) {
+    const d = document.createElement('div');
+    d.className = 'picker-duration';
+    const disp = document.createElement('div');
+    disp.className = 'budget-display';
+    disp.textContent = defaultVal + ' nights';
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = WHEN_DURATION_RANGE.min;
+    slider.max = WHEN_DURATION_RANGE.max;
+    slider.value = defaultVal;
+    slider.oninput = () => { disp.textContent = slider.value + ' nights'; };
+    d.appendChild(disp); d.appendChild(slider);
+    return { el: d, get value() { return Number(slider.value); } };
+  }
+
+  // Exact dates picker
+  const exactPane = document.createElement('div');
+  exactPane.className = 'picker-pane';
+  exactPane.dataset.mode = 'exact';
+  exactPane.innerHTML = '<label>Start date</label>';
+  const startInput = document.createElement('input');
+  startInput.type = 'date';
+  exactPane.appendChild(startInput);
+  exactPane.insertAdjacentHTML('beforeend', '<label>End date</label>');
+  const endInput = document.createElement('input');
+  endInput.type = 'date';
+  exactPane.appendChild(endInput);
+  const exactContinue = document.createElement('button');
+  exactContinue.className = 'step-continue visible';
+  exactContinue.textContent = 'Continue →';
+  exactContinue.style.marginTop = '12px';
+  exactContinue.onclick = () => {
+    profile.when = { mode: 'exact', exactStart: startInput.value, exactEnd: endInput.value, month: null, season: null, duration: null, flexibility: null };
+    finishWhen(wrap, startInput.value + (endInput.value ? ' – ' + endInput.value : ''));
+  };
+  exactPane.appendChild(exactContinue);
+  wrap.appendChild(exactPane);
+
+  // Approximate picker
+  const approxPane = document.createElement('div');
+  approxPane.className = 'picker-pane';
+  approxPane.dataset.mode = 'approximate';
+  approxPane.insertAdjacentHTML('beforeend', '<label>Month</label>');
+  const monthSelect = document.createElement('select');
+  WHEN_MONTHS.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; monthSelect.appendChild(o); });
+  approxPane.appendChild(monthSelect);
+  const approxDur = makeDurationSlider(WHEN_DURATION_RANGE.default);
+  approxPane.insertAdjacentHTML('beforeend', '<label>Duration</label>');
+  approxPane.appendChild(approxDur.el);
+  const approxContinue = document.createElement('button');
+  approxContinue.className = 'step-continue visible';
+  approxContinue.textContent = 'Continue →';
+  approxContinue.style.marginTop = '12px';
+  approxContinue.onclick = () => {
+    profile.when = { mode: 'approximate', month: monthSelect.value, duration: approxDur.value, exactStart: null, exactEnd: null, season: null, flexibility: null };
+    finishWhen(wrap, monthSelect.value + ' · ' + approxDur.value + ' nights');
+  };
+  approxPane.appendChild(approxContinue);
+  wrap.appendChild(approxPane);
+
+  // Flexible picker
+  const flexPane = document.createElement('div');
+  flexPane.className = 'picker-pane';
+  flexPane.dataset.mode = 'flexible';
+  flexPane.insertAdjacentHTML('beforeend', '<label>Season</label>');
+  const seasonSelect = document.createElement('select');
+  WHEN_SEASONS.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; seasonSelect.appendChild(o); });
+  flexPane.appendChild(seasonSelect);
+  const flexDur = makeDurationSlider(WHEN_DURATION_RANGE.default);
+  flexPane.insertAdjacentHTML('beforeend', '<label>Approximate duration</label>');
+  flexPane.appendChild(flexDur.el);
+  const flexContinue = document.createElement('button');
+  flexContinue.className = 'step-continue visible';
+  flexContinue.textContent = 'Continue →';
+  flexContinue.style.marginTop = '12px';
+  flexContinue.onclick = () => {
+    profile.when = { mode: 'flexible', season: seasonSelect.value, duration: flexDur.value, exactStart: null, exactEnd: null, month: null, flexibility: null };
+    finishWhen(wrap, seasonSelect.value + ' · ' + flexDur.value + ' nights');
+  };
+  flexPane.appendChild(flexContinue);
+  wrap.appendChild(flexPane);
+
+  function finishWhen(wrap, label) {
+    updateProfile();
+    emitChip('when', label + ' ✓');
+    const synMsg = buildWhenMessage(profile.when);
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+    qs(synMsg);
+  }
+
+  function buildWhenMessage(w) {
+    if (w.mode === 'exact') return 'Exact dates: ' + (w.exactStart || '') + (w.exactEnd ? ' to ' + w.exactEnd : '');
+    if (w.mode === 'approximate') return 'Around ' + w.month + ', roughly ' + w.duration + ' nights';
+    return 'Flexible — ' + w.season + ', around ' + w.duration + ' nights';
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderWhereCards(parent) {
+  const wrap = document.createElement('div');
+  const selected = new Set();
+
+  const allDests = [...WHERE_DESTINATIONS, { key: 'open', label: 'Open to suggestions' }];
+
+  if (!allDests.length || (allDests.length === 1 && allDests[0].key === 'open')) {
+    // No destinations configured — show a helpful placeholder
+    wrap.innerHTML = '<span style="font-size:12px;color:var(--muted);font-style:italic">No destinations configured — add to WHERE_DESTINATIONS in chat.html</span>';
+    parent.appendChild(wrap);
+    return;
+  }
+
+  const cards = document.createElement('div');
+  cards.className = 'where-cards';
+  allDests.forEach(dest => {
+    const card = document.createElement('div');
+    card.className = 'where-card';
+    card.textContent = dest.label;
+    card.onclick = () => {
+      if (selected.has(dest.key)) {
+        selected.delete(dest.key);
+        card.classList.remove('selected');
+      } else {
+        selected.add(dest.key);
+        card.classList.add('selected');
+      }
+      continueBtn.className = selected.size > 0 ? 'step-continue visible' : 'step-continue';
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  const continueBtn = document.createElement('button');
+  continueBtn.className = 'step-continue';
+  continueBtn.textContent = 'Continue →';
+  continueBtn.onclick = () => {
+    const destinations = [...selected].filter(k => k !== 'open');
+    const openToSuggestions = selected.has('open');
+    profile.where = { destinations, openToSuggestions };
+    updateProfile();
+    const label = summariseWhere(profile.where) || 'Destinations ✓';
+    emitChip('where', label + ' ✓');
+    const destLabels = destinations.map(k => { const d = WHERE_DESTINATIONS.find(x => x.key === k); return d ? d.label : k; });
+    let synMsg = destLabels.length ? "I'm interested in: " + destLabels.join(', ') : '';
+    if (openToSuggestions) synMsg += (synMsg ? ', and I' : 'I') + '\'m open to suggestions';
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+    qs(synMsg || 'Open to suggestions');
+  };
+  wrap.appendChild(continueBtn);
+  parent.appendChild(wrap);
+}
+
+function renderBudgetTwoStage(parent) {
+  const wrap = document.createElement('div');
+  let selectedBand = null;
+
+  const stage1 = document.createElement('div');
+  stage1.className = 'step-cards';
+  BUDGET_BANDS.forEach(band => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.style.flex = '1 1 calc(33% - 6px)';
+    card.innerHTML = `<div class="step-card-label">${band.label}</div>`;
+    card.onclick = () => {
+      stage1.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedBand = band;
+      renderStage2(band);
+    };
+    stage1.appendChild(card);
+  });
+  wrap.appendChild(stage1);
+
+  const stage2 = document.createElement('div');
+  stage2.className = 'stage2-wrap';
+  wrap.appendChild(stage2);
+
+  let sliderRef = null;
+  let exactRef = null;
+
+  function renderStage2(band) {
+    stage2.innerHTML = '';
+    stage2.classList.add('open');
+
+    const disp = document.createElement('div');
+    disp.className = 'budget-display';
+    disp.style.fontSize = '22px';
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = band.min; slider.max = band.max; slider.step = BUDGET_SLIDER.step;
+    slider.value = Math.round((band.min + band.max) / 2 / BUDGET_SLIDER.step) * BUDGET_SLIDER.step;
+    sliderRef = slider;
+    disp.textContent = BUDGET_SLIDER.format(Number(slider.value));
+    slider.oninput = () => { disp.textContent = BUDGET_SLIDER.format(Number(slider.value)); if (exactRef) exactRef.value = ''; };
+    stage2.appendChild(disp);
+    stage2.appendChild(slider);
+
+    const exactLink = document.createElement('button');
+    exactLink.className = 'stage2-exact-link';
+    exactLink.textContent = 'Or enter exact figure';
+    const exactInput = document.createElement('input');
+    exactInput.type = 'number';
+    exactInput.className = 'stage2-exact-input';
+    exactInput.placeholder = 'e.g. 35000';
+    exactRef = exactInput;
+    exactLink.onclick = () => {
+      exactInput.classList.toggle('open');
+      if (exactInput.classList.contains('open')) exactInput.focus();
+    };
+    stage2.appendChild(exactLink);
+    stage2.appendChild(exactInput);
+
+    const continueBtn = document.createElement('button');
+    continueBtn.className = 'step-continue visible';
+    continueBtn.textContent = 'Continue →';
+    continueBtn.onclick = () => {
+      const exactVal = exactInput.value ? Number(exactInput.value) : null;
+      const sliderVal = Number(slider.value);
+      profile.budget = { range: band.key, exact: exactVal || sliderVal };
+      updateProfile();
+      const label = summariseBudget(profile.budget) || band.label;
+      emitChip('budget', label + ' ✓');
+      wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+      qs('My budget is around ' + BUDGET_SLIDER.format(exactVal || sliderVal));
+    };
+    stage2.appendChild(continueBtn);
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderNotesField(placeholder, parent) {
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-wrap';
+
+  const ta = document.createElement('textarea');
+  ta.className = 'notes-field';
+  ta.placeholder = placeholder || "Anything else you'd like us to know…";
+
+  const actions = document.createElement('div');
+  actions.className = 'notes-actions';
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'notes-send';
+  sendBtn.textContent = 'Send →';
+  sendBtn.onclick = () => {
+    const text = ta.value.trim();
+    if (!text) { skipFn(); return; }
+    profile.notes = text;
+    updateProfile();
+    emitChip('notes', 'Notes ✓');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${text}</span>`;
+    qs(text);
+  };
+
+  const skipBtn = document.createElement('button');
+  skipBtn.className = 'notes-skip';
+  skipBtn.textContent = 'Skip';
+  skipBtn.onclick = skipFn;
+
+  function skipFn() {
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted);font-style:italic">Skipped</span>`;
+    qs('(no additional notes)');
+  }
+
+  actions.appendChild(sendBtn);
+  actions.appendChild(skipBtn);
+  wrap.appendChild(ta);
+  wrap.appendChild(actions);
+  parent.appendChild(wrap);
+}
 
 /* ── Panel email capture ── */
 function checkEmailSection() {
@@ -557,7 +1160,13 @@ async function sendSummaryEmail() {
     const res = await fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: capturedEmail, name: capturedName, conversationHistory: hist, propertiesShown })
+      body: JSON.stringify({
+        email: capturedEmail,
+        name: capturedName,
+        conversationHistory: hist,
+        propertiesShown,
+        profile: JSON.parse(JSON.stringify(profile))
+      })
     });
     if (!res.ok) { emailSent = false; return false; }
     return true;
@@ -565,7 +1174,7 @@ async function sendSummaryEmail() {
 }
 
 /* ── Core chat ── */
-function addMsg(role, text, ids = [], choices = [], book = false, collect = false, multiSelect = null, budget = false) {
+function addMsg(role, text, ids=[], choices=[], book=false, collect=false, multiSelect=null, budget=false, group=false, when=false, where=false, budgetNew=false, notesPlaceholder=null) {
   const msgs = document.getElementById('msgs');
   const row = document.createElement('div'); row.className = 'msg ' + role;
   const av = role === 'ai' ? aiAv() : document.createElement('div');
@@ -582,9 +1191,14 @@ function addMsg(role, text, ids = [], choices = [], book = false, collect = fals
     b.appendChild(cd);
   }
   if (multiSelect) renderMultiSelect(multiSelect, b);
-  if (budget) renderBudget(b);
-  if (collect) b.appendChild(mkCollectForm());
-  if (book) b.appendChild(mkBookCta());
+  if (budget)      renderBudget(b);
+  if (group)       renderGroupCards(b);
+  if (when)        renderWhenModeCards(b);
+  if (where)       renderWhereCards(b);
+  if (budgetNew)   renderBudgetTwoStage(b);
+  if (notesPlaceholder !== null) renderNotesField(notesPlaceholder, b);
+  if (collect)     b.appendChild(mkCollectForm());
+  if (book)        b.appendChild(mkBookCta());
   msgs.scrollTop = msgs.scrollHeight;
 }
 
@@ -599,44 +1213,54 @@ function showT() {
 function hideT() { const t = document.getElementById('TY'); if (t) t.remove(); }
 
 function parse(text) {
-  let clean = text.trim(), ids = [], choices = [], book = false, collect = false, multiSelect = null, budget = false;
+  let clean = text.trim();
+  let ids = [], choices = [], book = false, collect = false, multiSelect = null, budget = false;
+  let group = false, when = false, where = false, budgetNew = false, notesPlaceholder = null;
 
   // SHOW tags
   const showMatches = [...clean.matchAll(/\[SHOW:([\d,\s]+)\]/g)];
   if (showMatches.length) { ids = showMatches.flatMap(m => m[1].split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n))); clean = clean.replace(/\[SHOW:[\d,\s]+\]/g, '').trim(); }
 
-  // CHOICES
+  // CHOICES (legacy)
   const cm = clean.match(/\[CHOICES:([^\]]+)\]/);
   if (cm) { choices = cm[1].split('|').map(s => s.trim()).filter(Boolean); clean = clean.replace(/\[CHOICES:[^\]]+\]/, '').trim(); }
 
-  // MULTISELECT
+  // MULTISELECT (legacy — also updates priorities)
   const msm = clean.match(/\[MULTISELECT:([^\]]+)\]/);
   if (msm) { multiSelect = msm[1].split('|').map(s => s.trim()).filter(Boolean); clean = clean.replace(/\[MULTISELECT:[^\]]+\]/, '').trim(); }
 
-  // BUDGET
-  if (clean.includes('[BUDGET]')) { budget = true; clean = clean.replace(/\[BUDGET\]/g, '').trim(); }
+  // BUDGET (legacy, plain — no colon)
+  if (/\[BUDGET\](?!:)/.test(clean) || clean.includes('[BUDGET]')) {
+    if (!clean.match(/\[BUDGET:\]/)) { budget = true; clean = clean.replace(/\[BUDGET\]/g, '').trim(); }
+  }
 
-  // BOOK
+  // BOOK (legacy)
   if (clean.includes('[BOOK]')) { book = true; clean = clean.replace(/\[BOOK\]/g, '').trim(); }
 
   // COLLECT
   if (clean.includes('[COLLECT]')) { collect = true; clean = clean.replace(/\[COLLECT\]/g, '').trim(); }
 
-  // PROFILE tags — silent, update side panel
+  // PROFILE tags (legacy — silent, strip from text; keys don't map to v2 structure so assignment is a no-op)
   const profileTags = clean.match(/\[PROFILE:([^\]]+)\]/g);
-  if (profileTags) {
-    profileTags.forEach(tag => {
-      const inner = tag.slice(9, -1);
-      inner.split('|').forEach(pair => {
-        const eq = pair.indexOf('=');
-        if (eq > -1) { const k = pair.slice(0, eq).trim(), v = pair.slice(eq + 1).trim(); if (k && v && k in profile) profile[k] = v; }
-      });
-    });
-    clean = clean.replace(/\[PROFILE:[^\]]+\]/g, '').trim();
-    updateProfile();
-  }
+  if (profileTags) { clean = clean.replace(/\[PROFILE:[^\]]+\]/g, '').trim(); }
 
-  return { clean, ids, choices, book, collect, multiSelect, budget };
+  // v2: GROUP
+  if (clean.includes('[GROUP:]')) { group = true; clean = clean.replace(/\[GROUP:\]/g, '').trim(); }
+
+  // v2: WHEN
+  if (clean.includes('[WHEN:]')) { when = true; clean = clean.replace(/\[WHEN:\]/g, '').trim(); }
+
+  // v2: WHERE
+  if (clean.includes('[WHERE:]')) { where = true; clean = clean.replace(/\[WHERE:\]/g, '').trim(); }
+
+  // v2: BUDGET: (with colon — distinct from legacy [BUDGET])
+  if (/\[BUDGET:\]/.test(clean)) { budgetNew = true; clean = clean.replace(/\[BUDGET:\]/g, '').trim(); }
+
+  // v2: NOTES
+  const notesMatch = clean.match(/\[NOTES:([^\]]*)\]/);
+  if (notesMatch) { notesPlaceholder = notesMatch[1].trim(); clean = clean.replace(/\[NOTES:[^\]]*\]/g, '').trim(); }
+
+  return { clean, ids, choices, book, collect, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder };
 }
 
 async function callAI() {
@@ -652,14 +1276,20 @@ async function callAI() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // TEMPLATE: update model if needed (claude-sonnet-4-20250514 / claude-opus-4-5-20250514)
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, system: systemPrompt, messages: hist })
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          system: systemPrompt,
+          messages: hist,
+          profile: JSON.parse(JSON.stringify(profile))
+        })
       });
       const d = await res.json();
       if (d.error) throw new Error(d.error.message);
       const raw = (d.content?.[0]?.text || '').trim();
       hideT();
-      const { clean, ids, choices, book, collect, multiSelect, budget } = parse(raw);
-      addMsg('ai', clean, ids, choices, book, collect, multiSelect, budget);
+      const { clean, ids, choices, book, collect, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder } = parse(raw);
+      addMsg('ai', clean, ids, choices, book, collect, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder);
       hist.push({ role: 'assistant', content: raw });
       checkEmailSection();
       lastErr = null;
@@ -702,15 +1332,23 @@ window.addEventListener('beforeunload', () => {
   const payload = JSON.stringify({
     email: capturedEmail, name: capturedName,
     conversationHistory: hist.slice(-20),
-    propertiesShown
+    propertiesShown,
+    profile: JSON.parse(JSON.stringify(profile))
   });
   navigator.sendBeacon('/api/send-email', new Blob([payload], { type: 'application/json' }));
 });
 
 /* ── Init ── */
 (function init() {
+  const mode = detectMode();
   // TEMPLATE: replace with the opening message from the system prompt / DEMO_BRIEF
-  const opening = '[Opening message here]';
+  let opening = '[Opening message here]';
+  if (typeof mode === 'object' && mode.mode === 'property_match') {
+    const prop = L.find(x => x.id === mode.propertyId);
+    // TEMPLATE: set [PROPERTY_MATCH_OPENING] in your DEMO_BRIEF, include [PROPERTY_NAME] as a token
+    opening = '[PROPERTY_MATCH_OPENING]'.replace('[PROPERTY_NAME]', prop ? prop.name : '');
+    profile.where = { destinations: [prop?.location_key || ''], openToSuggestions: false };
+  }
   addMsg('ai', opening);
   hist.push({ role: 'assistant', content: opening });
   if (window === window.top) document.getElementById('inp').focus();

@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { email, name, conversationHistory = [], propertiesShown = [] } = req.body || {};
+  const { email, name, conversationHistory = [], propertiesShown = [], profile: chatProfile = null } = req.body || {};
   if (!email || !email.includes('@')) return res.status(400).json({ error: 'Valid email required' });
 
   // TEMPLATE: paste the same property/listing objects here as in chat.html's const L
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
   ];
 
-  // TEMPLATE: update brand name and market context defaults
+  // AI-extracted profile (populated below)
   let profile = {
     buyerName: name || null,
     buyerSummary: 'A prospective [customer type] exploring [product/service] with [BRAND_NAME].',
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
 }`,
         messages: [{
           role: 'user',
-          content: `Conversation (last 10 messages): ${JSON.stringify(conversationHistory.slice(-10))}\n\nAvailable inventory: ${JSON.stringify(PROPERTIES.map(p => ({ id: p.id, name: p.name, location: p.location })))}\n\nItems shown in conversation: ${JSON.stringify(propertiesShown)}`,
+          content: `Conversation (last 10 messages): ${JSON.stringify(conversationHistory.slice(-10))}\n\nAvailable inventory: ${JSON.stringify(PROPERTIES.map(p => ({ id: p.id, name: p.name, location: p.location })))}\n\nItems shown in conversation: ${JSON.stringify(propertiesShown)}\n\nConversation profile (structured): ${JSON.stringify(chatProfile)}`,
         }],
       }),
     });
@@ -91,6 +91,44 @@ export default async function handler(req, res) {
       </table>
     </td></tr>
   `).join('');
+
+  // Format the structured chatProfile for the notification email
+  function formatChatProfile(cp) {
+    if (!cp) return '';
+    const lines = [];
+    if (cp.who?.type) {
+      const whoLabels = { solo: 'Solo', couple: 'Couple', friends: 'Friends', family: 'Family', family_dog: 'Family + Dog' };
+      let whoStr = whoLabels[cp.who.type] || cp.who.type;
+      const adults = cp.who.adults || 0;
+      const kids = Array.isArray(cp.who.kids) ? cp.who.kids.length : (cp.who.kids || 0);
+      if (adults || kids) whoStr += ` (${[adults && adults + ' adults', kids && kids + ' kids', cp.who.dogs && cp.who.dogs + ' dogs'].filter(Boolean).join(', ')})`;
+      lines.push(`<p style="font-size:13px;margin:0 0 6px;"><strong>Who:</strong> ${whoStr}</p>`);
+    }
+    if (cp.when?.mode) {
+      let whenStr = cp.when.mode;
+      if (cp.when.mode === 'exact' && cp.when.exactStart) whenStr = cp.when.exactStart + (cp.when.exactEnd ? ' – ' + cp.when.exactEnd : '');
+      else if (cp.when.mode === 'approximate' && cp.when.month) whenStr = cp.when.month + (cp.when.duration ? ', ' + cp.when.duration + ' nights' : '');
+      else if (cp.when.mode === 'flexible' && cp.when.season) whenStr = cp.when.season + (cp.when.duration ? ', ~' + cp.when.duration + ' nights' : '');
+      lines.push(`<p style="font-size:13px;margin:0 0 6px;"><strong>When:</strong> ${whenStr}</p>`);
+    }
+    if (cp.where?.destinations?.length || cp.where?.openToSuggestions) {
+      const dests = cp.where.destinations || [];
+      let whereStr = dests.join(', ');
+      if (cp.where.openToSuggestions) whereStr += (whereStr ? ' + ' : '') + 'open to suggestions';
+      lines.push(`<p style="font-size:13px;margin:0 0 6px;"><strong>Where:</strong> ${whereStr}</p>`);
+    }
+    if (cp.priorities?.length) {
+      lines.push(`<p style="font-size:13px;margin:0 0 6px;"><strong>Priorities:</strong> ${cp.priorities.join(', ')}</p>`);
+    }
+    if (cp.budget?.range || cp.budget?.exact) {
+      const budgetStr = cp.budget.exact ? '£' + (cp.budget.exact / 1000).toFixed(0) + 'k' : cp.budget.range;
+      lines.push(`<p style="font-size:13px;margin:0 0 6px;"><strong>Budget:</strong> ${budgetStr}</p>`);
+    }
+    if (cp.notes) {
+      lines.push(`<p style="font-size:13px;margin:0 0 6px;"><strong>Notes:</strong> ${cp.notes}</p>`);
+    }
+    return lines.join('');
+  }
 
   // TEMPLATE: update all [BRAND_NAME], [BRAND_TAGLINE], [BRAND_URL] references in the email HTML below
   const html = `<!DOCTYPE html>
@@ -277,6 +315,7 @@ export default async function handler(req, res) {
   }
 
   // Notify team — TEMPLATE: replace [NOTIFY_EMAIL] with the client's team inbox
+  const chatProfileHtml = formatChatProfile(chatProfile);
   const notifyHtml = `<div style="font-family:Montserrat,Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1B3A5C;">
     <p style="font-size:13px;color:#7a7068;margin-bottom:16px;">New lead from the [BRAND_NAME] AI Concierge</p>
     <h2 style="font-size:18px;margin:0 0 16px;">${profile.buyerName ? profile.buyerName : 'New enquiry'}</h2>
@@ -286,11 +325,16 @@ export default async function handler(req, res) {
     ${profile.buyerMotivation ? `<p style="font-size:13px;margin:0 0 8px;"><strong>Motivation:</strong> ${profile.buyerMotivation}</p>` : ''}
     ${profile.concerns ? `<p style="font-size:13px;margin:0 0 8px;"><strong>Concerns:</strong> ${profile.concerns}</p>` : ''}
     ${profile.specialContext ? `<p style="font-size:13px;margin:0 0 16px;"><strong>Notes:</strong> ${profile.specialContext}</p>` : '<p style="margin:0 0 16px;"></p>'}
+    ${chatProfileHtml ? `
+    <div style="background:#F8F5F0;border-radius:8px;padding:16px;margin-bottom:16px;">
+      <p style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#C9A96E;margin:0 0 10px;">Structured profile</p>
+      ${chatProfileHtml}
+    </div>` : ''}
     <div style="background:#F8F5F0;border-radius:8px;padding:16px;font-size:13px;line-height:1.6;margin-bottom:16px;">
-      <strong>Summary:</strong><br>${profile.buyerSummary}
+      <strong>AI summary:</strong><br>${profile.buyerSummary}
     </div>
     <div style="font-size:13px;line-height:1.6;">
-      <strong>Insight:</strong><br>${profile.marketInsight}
+      <strong>Market insight:</strong><br>${profile.marketInsight}
     </div>
     <p style="font-size:12px;color:#7a7068;margin-top:24px;">Full summary sent to ${email}</p>
   </div>`;
