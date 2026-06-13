@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The concierge problem: why luxury's best defence is also its biggest risk - High Elm Studio</title>
+  <meta name="description" content="78% of luxury's biggest spenders are early tech adopters. Your clients aren't waiting for the industry to decide how it feels about AI. Here's what that means for the human touch.">
+  <meta name="author" content="Neil Peacock">
+  <link rel="canonical" href="https://highelmstudio.com/thinking/concierge-problem">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+
+  <meta property="og:title" content="The concierge problem: why luxury's best defence is also its biggest risk">
+  <meta property="og:description" content="78% of luxury's biggest spenders are early tech adopters. Your clients aren't waiting for the industry to decide how it feels about AI.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://highelmstudio.com/thinking/concierge-problem">
+  <meta property="og:site_name" content="High Elm Studio">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "The concierge problem: why luxury's best defence is also its biggest risk",
+    "description": "78% of luxury's biggest spenders are early tech adopters. Your clients aren't waiting for the industry to decide how it feels about AI.",
+    "datePublished": "2026-04-09",
+    "author": {
+      "@type": "Person",
+      "name": "Neil Peacock",
+      "url": "https://highelmstudio.com/about",
+      "jobTitle": "Founder",
+      "worksFor": { "@type": "Organization", "name": "High Elm Studio" }
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "High Elm Studio",
+      "url": "https://highelmstudio.com"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://highelmstudio.com/thinking/concierge-problem"
+    }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;600&family=Raleway:ital,wght@0,200;0,300;1,200;1,300&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand:     #F5F0E8;
+      --stone:    #E0D8CC;
+      --mid:      #C8BFB0;
+      --ocean:    #5B9BAA;
+      --ocean-lt: #8BBDC9;
+      --ocean-d:  #3D7A8A;
+      --storm:    #243D4F;
+      --night:    #111C26;
+      --ink:      #0C1520;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--sand);
+      color: var(--ink);
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 17px;
+      line-height: 1.82;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Noise ── */
+    .noise {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 9999;
+      opacity: 0.022;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 28px 64px;
+      display: flex; justify-content: space-between; align-items: center;
+      transition: background 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease;
+    }
+    nav.scrolled {
+      background: rgba(245,240,232,0.96);
+      backdrop-filter: blur(8px);
+      padding: 18px 64px;
+      box-shadow: 0 1px 0 rgba(12,21,32,0.07);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 9px;
+      text-decoration: none;
+    }
+    .nav-logo span {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600; font-size: 15px;
+      letter-spacing: -0.05em; color: var(--ink);
+    }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 11px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--storm); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--ocean); }
+
+    /* ── HERO - dark ── */
+    .article-hero {
+      background: var(--night);
+      padding: 148px 64px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .article-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+    .hero-inner {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .prev-article {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 10px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(245,240,232,0.3);
+      text-decoration: none;
+      margin-bottom: 48px;
+      transition: color 0.2s;
+    }
+    .prev-article:hover { color: var(--ocean-lt); }
+    .prev-article::before { content: '←'; font-size: 12px; }
+
+    .article-eyebrow {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 11px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ocean-lt);
+      margin-bottom: 28px;
+    }
+    .article-headline {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: clamp(30px, 4.5vw, 46px);
+      letter-spacing: -0.04em;
+      line-height: 1.04;
+      color: var(--sand);
+      margin-bottom: 28px;
+    }
+    .article-standfirst {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: clamp(18px, 2.2vw, 22px);
+      line-height: 1.65;
+      color: rgba(245,240,232,0.65);
+      margin-bottom: 36px;
+      max-width: 580px;
+    }
+    .article-meta {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 11px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(245,240,232,0.3);
+    }
+
+    /* ── Summary block - storm ── */
+    .article-summary {
+      background: var(--storm);
+      padding: 48px 64px;
+    }
+    .summary-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0 48px;
+      align-items: start;
+    }
+    .summary-label {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 10px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ocean-lt);
+      padding-top: 4px;
+      white-space: nowrap;
+    }
+    .summary-list {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .summary-list li {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300; font-size: 15px;
+      line-height: 1.55;
+      color: rgba(245,240,232,0.88);
+      padding-left: 20px;
+      position: relative;
+    }
+    .summary-list li::before {
+      content: '—';
+      position: absolute; left: 0;
+      color: var(--ocean);
+    }
+    @media (max-width: 600px) {
+      .summary-inner { grid-template-columns: 1fr; gap: 16px; }
+    }
+
+    /* ── Article body - sand ── */
+    .article-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 64px;
+    }
+    .article-body {
+      padding: 72px 0 80px;
+    }
+    .article-body p {
+      margin-bottom: 28px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+
+    .article-body h2 {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: clamp(18px, 2.2vw, 24px);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin: 72px 0 24px;
+      padding-top: 56px;
+      border-top: 2px solid var(--ocean);
+    }
+    .article-body h2:first-of-type {
+      margin-top: 0;
+    }
+
+    /* ── Pull quote ── */
+    blockquote.pull-quote {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300; font-style: italic;
+      font-size: clamp(22px, 2.8vw, 30px);
+      line-height: 1.45;
+      color: var(--ink);
+      border-left: 3px solid var(--ocean);
+      padding: 8px 0 8px 36px;
+      margin: 64px 0;
+    }
+
+    /* ── Image block ── */
+    .article-image {
+      margin: 56px 0;
+      position: relative;
+    }
+    .article-image img {
+      width: 100%;
+      display: block;
+      filter: saturate(0.82) brightness(0.97);
+    }
+    /* Placeholder shown when no image loaded */
+    .article-image .img-placeholder {
+      width: 100%;
+      height: 320px;
+      background: var(--stone);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .article-image .img-placeholder span {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 11px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--mid);
+    }
+    .article-image figcaption {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--mid);
+      margin-top: 10px;
+    }
+    .article-image figcaption a {
+      color: var(--mid);
+    }
+
+    /* ── Internal link ── */
+    .article-body a {
+      color: var(--ocean-d);
+      text-decoration: underline;
+      text-decoration-color: rgba(61,122,138,0.3);
+      text-underline-offset: 3px;
+      transition: color 0.2s, text-decoration-color 0.2s;
+    }
+    .article-body a:hover {
+      color: var(--ocean);
+      text-decoration-color: var(--ocean);
+    }
+
+    /* ── Dark interlude section ── */
+    .article-interlude {
+      background: var(--ink);
+      padding: 72px 64px;
+      margin: 0;
+    }
+    .interlude-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 64px;
+    }
+    .article-interlude h2 {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: clamp(16px, 2vw, 20px);
+      letter-spacing: -0.02em;
+      color: var(--sand);
+      margin-bottom: 24px;
+    }
+    .article-interlude p {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 17px;
+      line-height: 1.82;
+      color: rgba(245,240,232,0.85);
+      margin-bottom: 24px;
+    }
+    .article-interlude p:last-child { margin-bottom: 0; }
+    .article-interlude em {
+      color: rgba(245,240,232,0.9);
+      font-style: italic;
+    }
+
+    /* ── CTA ── */
+    .article-cta {
+      background: var(--ocean-d);
+      padding: 80px 64px;
+    }
+    .article-cta-inner { max-width: 720px; margin: 0 auto; }
+    .article-cta p {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 11px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(245,240,232,0.5);
+      margin-bottom: 16px;
+    }
+    .article-cta h2 {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing: -0.04em; line-height: 1.1;
+      color: var(--sand);
+      margin-bottom: 36px;
+    }
+    .cta-btn {
+      display: inline-block;
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 400; font-size: 14px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      background: var(--sand);
+      padding: 18px 36px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .cta-btn:hover { background: var(--stone); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--ink);
+      padding: 48px 64px;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 16px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .footer-logo {
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none;
+    }
+    .footer-logo span {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600; font-size: 14px;
+      letter-spacing: -0.05em; color: var(--sand);
+    }
+    .footer-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .footer-tagline {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200; font-style: italic;
+      font-size: 13px; color: rgba(245,240,232,0.35);
+    }
+    .footer-links { display: flex; gap: 16px; }
+    .footer-links a {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300; font-size: 10px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(245,240,232,0.25); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--ocean-lt); }
+
+    /* ── Mobile ── */
+    @media (max-width: 700px) {
+      nav { padding: 20px 24px; }
+      nav.scrolled { padding: 14px 24px; }
+      .nav-links { gap: 20px; }
+      .article-hero { padding: 128px 24px 64px; }
+      .article-summary { padding: 40px 24px; }
+      .article-wrap { padding: 0 24px; }
+      .article-interlude { padding: 56px 24px; }
+      .article-cta { padding: 64px 24px; }
+      footer { padding: 40px 24px; flex-direction: column; align-items: flex-start; }
+      .footer-right { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<svg class="noise" xmlns="http://www.w3.org/2000/svg">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
+
+<!-- Nav -->
+<nav id="nav">
+  <a href="https://highelmstudio.com" class="nav-logo">
+    <svg width="13" height="22" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/>
+      <line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+      <line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      <line x1="30" y1="40" x2="49" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      <line x1="30" y1="55" x2="50" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      <line x1="30" y1="70" x2="46" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      <line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      <line x1="30" y1="40" x2="11" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      <line x1="30" y1="55" x2="10" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      <line x1="30" y1="70" x2="14" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+    </svg>
+    <span>high elm studio.</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="https://highelmstudio.com/about">about</a></li>
+    <li><a href="https://highelmstudio.com/how-it-works.html">how it works</a></li>
+    <li><a href="https://highelmstudio.com/thinking.html" class="active">thinking</a></li>
+    <li><a href="https://highelmstudio.com">begin</a></li>
+  </ul>
+</nav>
+
+<!-- HERO - night background -->
+<header class="article-hero">
+  <div class="hero-inner">
+    <a href="https://highelmstudio.com/thinking/luxury-websites-art-galleries" class="prev-article">previous: luxury websites are art galleries</a>
+    <div class="article-eyebrow">
+      <svg width="10" viewBox="0 0 60 100" fill="none"><path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#8BBDC9" opacity="0.8"/></svg>
+      on luxury travel &amp; AI
+    </div>
+    <h1 class="article-headline">the concierge problem: why luxury's best defence is also its biggest risk.</h1>
+    <p class="article-standfirst">Your clients aren't waiting for you to catch up with AI. Most of them are already ahead of you.</p>
+    <div class="article-meta">
+      <span>April 2026</span>
+      <span>·</span>
+      <span>4 min read</span>
+      <span>·</span>
+      <span>Neil Peacock</span>
+    </div>
+  </div>
+</header>
+
+<!-- SUMMARY - storm background -->
+<div class="article-summary">
+  <div class="summary-inner">
+    <p class="summary-label">in this piece</p>
+    <ul class="summary-list">
+      <li>78% of luxury's biggest spenders are early tech adopters. Are you?</li>
+      <li>Your client's AI is already better than your website. One thing separates you.</li>
+      <li>The form is 25 years old. The competition isn't.</li>
+      <li>Why "humans as luxury" is the wrong answer to the right problem.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- BODY - sand background -->
+<main>
+  <div class="article-wrap">
+    <article class="article-body">
+
+      <p>78% of high-spending luxury travellers describe themselves as early technology adopters. More than twice the rate of the general population. These are your clients.</p>
+
+      <p>They're not waiting for the industry to decide how it feels about AI. A lot of them are using it better than most luxury businesses are.</p>
+
+      <p>Right now, someone planning a ski chalet or a villa in the south of France can open Claude or ChatGPT, and it already knows them. Their travel preferences, their dietary requirements, what they've loved before and what didn't land. Projects set up. Memory enabled. Instructions saved. This is where the intentional AI user already lives - and where the majority are heading. It builds an itinerary in minutes, flags the things that don't make it into the reviews, and does the whole thing in a conversation. Not a search. Not a scroll. Not a website.</p>
+
+      <p>Then they land on your site. Beautiful photography. Warm copy. And at the bottom: a form. Name. Email. Enquiry. Submit.</p>
+
+      <figure class="article-image">
+        <img src="https://images.unsplash.com/photo-1681301968103-f5f413c2bdd3?auto=format&fit=crop&w=1200&q=80" alt="A laptop computer on a table - the modern interface between client and business" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><span>image unavailable</span></div>'">
+        <figcaption>photo on <a href="https://unsplash.com/photos/d21CGQKtJh8">Unsplash</a></figcaption>
+      </figure>
+
+      <h2>the form has been around since 1999. here's why.</h2>
+
+      <p>It survived this long for a reason. There's something trusted about it - something that says a real person will read this and get back to you. That's not nothing. Analogue in a digital world can work, when there's nothing better available.</p>
+
+      <p>But there is now. And the question a prospect is asking - consciously or not - is whether a business still using a 25-year-old contact mechanism is really the premium service it claims to be. A form takes information. A conversation gives something back. The information on your website might be helpful, but it isn't for them - just them, specifically. That's where we're heading. One-directional communication makes adding instant value to the individual impossible. And what people are always looking for, underneath everything else, is peace of mind. The feeling that they're in the right hands. A form can't give them that. A conversation can.</p>
+
+      <h2>the only gap left is authority</h2>
+
+      <p>The difference between what your client can do with their own AI and what your business offers comes down to one thing: genuine authority. The knowledge that comes from having actually been there. Real relationships with the properties. Knowing what the reviews miss, what the off-season looks like, why you probably shouldn't book that particular week in August. That's the peace of mind they're paying for. Not information - reassurance.</p>
+
+      <p><a href="https://highelmstudio.com/thinking/luxury-websites-art-galleries">That gap - between information and judgement - is exactly what defines the best luxury operators.</a> It's real and it's valuable. But it can only do its job if it shows up from the very first moment of contact.</p>
+
+      <blockquote class="pull-quote">"If your first touchpoint can't keep pace with what your client can do themselves, they're not going to feel the gap you're asking them to pay to close. They'll just close the tab."</blockquote>
+
+    </article>
+  </div>
+
+  <!-- INTERLUDE - ink background, breaks the rhythm -->
+  <div class="article-interlude">
+    <div class="interlude-inner">
+      <h2>the human moment gets better, not smaller</h2>
+
+      <p>The industry is tying itself in knots over this. At the Forbes Travel Guide Summit in Monaco in February, it was framed as the central tension: high-touch tradition on one side, AI-powered personalisation on the other. As if they're in competition.</p>
+
+      <p>They're not.</p>
+
+      <p>There will come a time - closer than most people expect - when a guest's personal AI connects to a property's AI before they arrive. Dietary preferences passed through automatically. Morning routine already loaded. The guest doesn't repeat themselves. It's just there.</p>
+
+      <p>But when they walk through the door, they'll still want a person. Not a concierge who hands them a printed summary of their preferences - a concierge who takes that information and does something <em>original</em> with it. Who takes the ingredients list and creates something the guest hasn't had before. Who reads the room. Who suggests the thing that isn't on any list because that kind of knowledge can't be indexed.</p>
+
+      <p>That's the human moment. And it gets more powerful when AI has cleared the path to it. The human isn't spread across a hundred routine questions. They're available for the twenty that actually need them.</p>
+    </div>
+  </div>
+
+  <!-- Back to sand -->
+  <div class="article-wrap">
+    <article class="article-body" style="padding-top: 72px;">
+
+      <figure class="article-image">
+        <img src="https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1200&q=80" alt="Two people in conversation - the human moment that technology should protect, not replace" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><span>image unavailable</span></div>'">
+        <figcaption>photo on <a href="https://unsplash.com/photos/erCPgyXNlto">Unsplash</a></figcaption>
+      </figure>
+
+      <h2>"humans as luxury" is the wrong aspiration</h2>
+
+      <p>There's a counter-narrative in hospitality circles: as AI handles more, a fully human experience becomes scarce, and therefore premium. Humans as luxury.</p>
+
+      <p>Humans shouldn't be a luxury. They should be a staple. Any business worth its reputation should always have a route to a real conversation. The point is <em>if you need it</em> - because with a well-built system, most people won't need it for most things. Not because they're being fobbed off. Because they already got what they needed, clearly and immediately.</p>
+
+      <p>Five people across twenty complex conversations beats five people stretched across a hundred routine ones. The quality of the human interaction goes up. The client who needs someone's full attention, gets it.</p>
+
+      <h2>the question worth sitting with</h2>
+
+      <p>If you're a luxury travel or property operator still leading with a contact form - what's actually stopping you from replacing it with something that feels like a conversation?</p>
+
+      <p>You're still collecting the same information. Still taking the enquiry. The difference is one approach front-loads value - gives the prospect something warm, useful, and reflective of what you actually offer - before they've committed to anything. The other asks them to wait.</p>
+
+      <figure class="article-image">
+        <img src="https://images.unsplash.com/photo-rHi-KR_NA24?auto=format&fit=crop&w=1200&q=80" alt="A wrecked passenger plane - technology that served its purpose and was superseded" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><span>image unavailable</span></div>'">
+        <figcaption>photo on <a href="https://unsplash.com/photos/rHi-KR_NA24">Unsplash</a></figcaption>
+      </figure>
+
+      <p>Every piece of technology that gets left behind served its purpose. It got people where they needed to go. The contact form did the same - it was the infrastructure of an era when the alternative was a phone call or a posted letter, and it worked. But the plane in that picture didn't stop flying because it failed. It stopped because something better took off.</p>
+
+      <p>Your clients are early adopters. They're not waiting for the industry to decide. Some of them are already planning without you, with tools that are getting better every month.</p>
+
+      <p>The opportunity is to be the business that does it better than they can do it themselves. And then, when they're ready to talk to a person - to make that moment worth arriving at.</p>
+
+    </article>
+  </div>
+
+  <!-- CTA -->
+  <div class="article-cta">
+    <div class="article-cta-inner">
+      <p>want to talk this through?</p>
+      <h2>see what this looks like for your business.</h2>
+      <a href="https://highelmstudio.com" class="cta-btn">shall we begin →</a>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer>
+  <a href="https://highelmstudio.com" class="footer-logo">
+    <svg width="11" height="18" viewBox="0 0 60 100" fill="none">
+      <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.5"/>
+    </svg>
+    <span>high elm studio.</span>
+  </a>
+  <div class="footer-right">
+    <span class="footer-tagline">Grounded thinking for an unsteady moment.</span>
+    <div class="footer-links">
+      <a href="https://highelmstudio.com/privacy">privacy</a>
+      <a href="https://highelmstudio.com/terms">terms</a>
+      <a href="https://highelmstudio.com/cookies">cookies</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  });
+</script>
+
+</body>
+</html>

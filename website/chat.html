@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>diagnostic — high elm studio.</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;600&family=Raleway:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --sand:     #F5F0E8;
+  --stone:    #E0D8CC;
+  --mid:      #C8BFB0;
+  --ocean:    #5B9BAA;
+  --ocean-lt: #8BBDC9;
+  --ocean-d:  #3D7A8A;
+  --storm:    #243D4F;
+  --night:    #111C26;
+  --ink:      #0C1520;
+  --sans:     'Raleway', sans-serif;
+  --ui:       'League Spartan', sans-serif;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--sans); background: var(--ink); color: var(--night); overflow-x: hidden; }
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.022; pointer-events: none; z-index: 999;
+}
+
+@keyframes riseIn  { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
+@keyframes dotPulse { 0%,80%,100% { opacity:.2; transform:scale(.85) } 40% { opacity:1; transform:scale(1) } }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 36px 64px; transition: all 0.6s ease;
+  border-bottom: 1px solid transparent;
+}
+nav.dark-nav {
+  background: rgba(12,21,32,0.88); backdrop-filter: blur(20px);
+  border-bottom-color: rgba(245,240,232,0.05);
+}
+nav.dark-nav .nav-logo { color: var(--sand); }
+nav.dark-nav .nav-links a { color: rgba(245,240,232,0.45); }
+nav.dark-nav .nav-links a:hover { color: var(--sand); opacity: 1; }
+.nav-logo {
+  font-family: var(--ui); font-size: 18px; font-weight: 600;
+  letter-spacing: -0.05em; text-transform: lowercase; color: var(--night);
+  text-decoration: none; display: flex; align-items: center;
+}
+.leaf-nav { width: 13px; height: auto; margin-right: 7px; }
+.nav-links { display: flex; gap: 40px; list-style: none; }
+.nav-links a { font-family: var(--ui); font-size: 13px; font-weight: 300; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: 0.5; transition: opacity 0.2s; }
+.nav-links a:hover { opacity: 1; }
+
+/* ── INTRO PANEL ── */
+#introPanel {
+  position: fixed; inset: 0; z-index: 20;
+  background: var(--sand);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 64px;
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+#introPanel.hiding { opacity: 0; transform: translateY(-24px); pointer-events: none; }
+.intro-inner { max-width: 560px; width: 100%; text-align: center; }
+.intro-leaf { display: block; width: 32px; height: auto; margin: 0 auto 32px; opacity: 0.5; }
+.intro-label {
+  font-family: var(--ui); font-size: 11px; font-weight: 300;
+  letter-spacing: -0.01em; text-transform: lowercase; color: var(--ocean);
+  margin-bottom: 28px; opacity: 0;
+  animation: riseIn 0.8s cubic-bezier(0.16,1,0.3,1) forwards 0.3s;
+}
+.intro-copy {
+  font-family: var(--ui); font-size: clamp(24px,3.2vw,40px);
+  font-weight: 600; line-height: 1.3;
+  letter-spacing: -0.05em; color: var(--night); margin-bottom: 52px;
+  opacity: 0; animation: riseIn 1s cubic-bezier(0.16,1,0.3,1) forwards 0.5s;
+}
+.btn-begin {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--ui); font-size: 14px; font-weight: 400;
+  letter-spacing: -0.03em; text-transform: lowercase;
+  color: var(--sand); background: var(--night);
+  border: none; padding: 16px 32px; cursor: pointer;
+  transition: background 0.2s, gap 0.3s; border-radius: 1px;
+  opacity: 0; animation: riseIn 0.8s cubic-bezier(0.16,1,0.3,1) forwards 0.9s;
+}
+.btn-begin:hover { background: var(--storm); gap: 16px; }
+
+/* ── CHAT INTERFACE ── */
+#chatInterface {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; opacity: 0; pointer-events: none;
+  background: var(--ink);
+  transition: opacity 0.8s ease 0.4s, background 1.4s ease;
+}
+#chatInterface.visible { opacity: 1; pointer-events: auto; }
+#chatInterface.bg2  { background: #0e1d2c; }
+#chatInterface.bg3  { background: #121f30; }
+#chatInterface.bg4  { background: #152233; }
+#chatInterface.bg5  { background: #182537; }
+#chatInterface.bg6  { background: #1b283b; }
+#chatInterface.bg7  { background: #1e2c3f; }
+#chatInterface.bg8  { background: #213043; }
+#chatInterface.bg9  { background: #243448; }
+#chatInterface.bg10 { background: #27374c; }
+#chatInterface.bg11 { background: #2a3b50; }
+
+/* ── CHAT MAIN ── */
+.chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-top: 80px; }
+.thread-wrap {
+  flex: 1; overflow-y: auto; padding: 44px 64px 24px;
+  scroll-behavior: smooth;
+}
+.thread-wrap::-webkit-scrollbar { width: 3px; }
+.thread-wrap::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.08); border-radius: 2px; }
+#thread { max-width: 560px; display: flex; flex-direction: column; gap: 32px; }
+
+/* ── MESSAGES ── */
+.t-msg { display: flex; flex-direction: column; gap: 6px; opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+.t-msg.show { opacity: 1; transform: translateY(0); }
+.t-who { font-family: var(--ui); font-size: 10px; font-weight: 300; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(200,191,176,0.28); }
+.t-msg.them .t-who { color: var(--ocean-lt); opacity: 0.65; }
+.t-text { font-size: 15px; font-weight: 200; line-height: 1.85; color: rgba(245,240,232,0.6); max-width: 500px; }
+.t-msg.them .t-text {
+  font-family: var(--ui); font-size: clamp(19px,2.1vw,26px);
+  font-weight: 600; line-height: 1.45;
+  letter-spacing: -0.05em; color: rgba(245,240,232,0.88);
+}
+
+/* ── TYPING ── */
+.typing-row { display: flex; flex-direction: column; gap: 6px; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; }
+.typing-row.show { opacity: 1; transform: translateY(0); }
+.typing-row .t-who { color: var(--ocean-lt); opacity: 0.65; }
+.dots { display: flex; gap: 5px; padding: 4px 0; }
+.dots span { width: 5px; height: 5px; border-radius: 50%; background: rgba(139,189,201,0.4); animation: dotPulse 1.3s ease-in-out infinite; }
+.dots span:nth-child(2) { animation-delay: 0.18s; }
+.dots span:nth-child(3) { animation-delay: 0.36s; }
+
+/* ── INTERACTION ZONE ── */
+.interaction-zone {
+  flex-shrink: 0; padding: 24px 64px 40px;
+  border-top: 1px solid rgba(245,240,232,0.06);
+}
+.iz-inner { max-width: 560px; }
+
+/* text input */
+.chat-input-wrap {
+  display: flex; align-items: center;
+  border-bottom: 1px solid rgba(200,191,176,0.18);
+  padding-bottom: 12px; max-width: 500px; transition: border-color 0.3s;
+}
+.chat-input-wrap:focus-within { border-color: rgba(139,189,201,0.4); }
+.chat-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-family: var(--sans); font-size: 16px; font-weight: 200;
+  color: rgba(245,240,232,0.85); padding: 4px 0; font-style: italic;
+}
+.chat-input::placeholder { color: rgba(200,191,176,0.28); }
+.chat-send {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--ui); font-size: 12px; font-weight: 400;
+  text-transform: lowercase; color: var(--ocean-lt);
+  padding: 4px 0 4px 20px; opacity: 0; transition: opacity 0.3s, color 0.2s;
+}
+.chat-send.show { opacity: 1; }
+.chat-send:hover { color: var(--sand); }
+
+/* option / role cards */
+.option-grid { display: flex; flex-wrap: wrap; gap: 8px; max-width: 520px; }
+.opt-card {
+  font-family: var(--ui); font-size: 13px; font-weight: 300;
+  letter-spacing: -0.02em; text-transform: lowercase;
+  color: rgba(245,240,232,0.55); border: 1px solid rgba(200,191,176,0.14);
+  padding: 10px 18px; cursor: pointer; background: transparent;
+  transition: all 0.2s; border-radius: 2px;
+}
+.opt-card:hover { border-color: rgba(139,189,201,0.35); color: rgba(245,240,232,0.88); }
+.opt-card.selected { border-color: var(--ocean); color: var(--ocean-lt); background: rgba(91,155,170,0.1); }
+
+/* quick-reply pills */
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; max-width: 520px; }
+.pill {
+  font-family: var(--ui); font-size: 12px; font-weight: 300;
+  letter-spacing: -0.01em; text-transform: lowercase;
+  color: rgba(245,240,232,0.55); border: 1px solid rgba(200,191,176,0.14);
+  padding: 9px 16px; cursor: pointer; background: transparent;
+  transition: all 0.2s; border-radius: 14px;
+}
+.pill:hover { border-color: rgba(139,189,201,0.35); color: rgba(245,240,232,0.88); }
+
+/* sliders */
+.slider-block { max-width: 480px; margin-bottom: 24px; }
+.slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.slider-label { font-family: var(--ui); font-size: 11px; font-weight: 300; letter-spacing: -0.01em; text-transform: lowercase; color: rgba(245,240,232,0.45); }
+.slider-val { font-family: var(--ui); font-size: 20px; font-weight: 300; letter-spacing: -0.02em; color: var(--ocean-lt); }
+input[type=range] { width: 100%; -webkit-appearance: none; appearance: none; height: 1px; background: rgba(200,191,176,0.2); outline: none; cursor: pointer; display: block; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--ocean); cursor: pointer; transition: transform 0.15s; }
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--ocean); border: none; cursor: pointer; }
+.slider-calc { font-family: var(--ui); font-size: 17px; font-weight: 300; letter-spacing: -0.02em; color: rgba(245,240,232,0.65); margin-bottom: 24px; line-height: 1.55; max-width: 440px; }
+.slider-calc strong { color: var(--ocean-lt); font-style: normal; font-weight: 300; }
+
+/* chips */
+.chip-wrap { display: flex; flex-wrap: wrap; gap: 7px; max-width: 520px; margin-bottom: 24px; }
+.chip {
+  font-family: var(--ui); font-size: 11px; font-weight: 300;
+  letter-spacing: -0.01em; text-transform: lowercase;
+  color: rgba(245,240,232,0.5); border: 1px solid rgba(200,191,176,0.13);
+  padding: 8px 13px; cursor: pointer; background: transparent;
+  transition: all 0.2s; border-radius: 2px;
+}
+.chip:hover { border-color: rgba(139,189,201,0.3); color: rgba(245,240,232,0.82); }
+.chip.on { border-color: var(--ocean); color: var(--ocean-lt); background: rgba(91,155,170,0.1); }
+
+/* rank cards */
+.rank-list { display: flex; flex-direction: column; gap: 5px; max-width: 460px; margin-bottom: 20px; user-select: none; touch-action: none; }
+.rank-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 16px; border: 1px solid rgba(200,191,176,0.13);
+  background: rgba(245,240,232,0.025); cursor: grab;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s; border-radius: 2px;
+}
+.rank-card:active { cursor: grabbing; }
+.rank-card.dragging { opacity: 0.4; border-color: rgba(91,155,170,0.5); }
+.rank-card.drag-over { border-color: var(--ocean-lt); background: rgba(91,155,170,0.07); }
+.rank-num { font-family: var(--ui); font-size: 13px; font-weight: 300; letter-spacing: -0.02em; color: var(--ocean); opacity: 0.55; width: 18px; flex-shrink: 0; }
+.rank-text { font-family: var(--ui); font-size: 12px; font-weight: 300; letter-spacing: -0.02em; text-transform: lowercase; color: rgba(245,240,232,0.72); flex: 1; }
+.rank-handle { color: rgba(200,191,176,0.2); font-size: 10px; letter-spacing: 0.08em; }
+
+/* decision cards */
+.decision-row { display: flex; gap: 10px; max-width: 460px; }
+.decision-card {
+  flex: 1; padding: 18px 20px; border: 1px solid rgba(200,191,176,0.13);
+  background: transparent; cursor: pointer; text-align: left;
+  transition: all 0.2s; border-radius: 2px;
+}
+.decision-card.yes { border-color: rgba(91,155,170,0.28); }
+.decision-card:hover { background: rgba(245,240,232,0.04); border-color: rgba(139,189,201,0.45); }
+.decision-card.yes:hover { background: rgba(91,155,170,0.09); }
+.dc-label { font-family: var(--ui); font-size: 13px; font-weight: 400; letter-spacing: -0.02em; text-transform: lowercase; color: rgba(245,240,232,0.75); display: block; margin-bottom: 4px; }
+.decision-card.yes .dc-label { color: var(--ocean-lt); }
+.dc-sub { font-size: 12px; font-weight: 200; color: rgba(245,240,232,0.3); }
+
+/* contact fields */
+.contact-row { display: flex; gap: 28px; max-width: 460px; margin-bottom: 6px; }
+.contact-field { flex: 1; }
+.contact-label { font-family: var(--ui); font-size: 10px; font-weight: 300; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(200,191,176,0.35); margin-bottom: 8px; display: block; }
+.contact-input {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1px solid rgba(200,191,176,0.18); outline: none;
+  font-family: var(--sans); font-size: 15px; font-weight: 200;
+  color: rgba(245,240,232,0.85); padding: 4px 0 10px;
+  transition: border-color 0.3s;
+}
+.contact-input:focus { border-color: rgba(139,189,201,0.4); }
+.contact-input::placeholder { color: rgba(200,191,176,0.25); }
+.contact-error { font-size: 11px; font-weight: 200; color: rgba(220,100,80,0.7); margin-top: 8px; min-height: 16px; }
+
+/* slot cards */
+.slot-row { display: flex; flex-wrap: wrap; gap: 8px; max-width: 520px; }
+.slot-card {
+  padding: 14px 18px; border: 1px solid rgba(200,191,176,0.13);
+  background: transparent; cursor: pointer; text-align: left;
+  transition: all 0.2s; min-width: 130px; border-radius: 2px;
+}
+.slot-card:hover { border-color: rgba(139,189,201,0.38); background: rgba(91,155,170,0.06); }
+.slot-card.confirmed { border-color: var(--ocean); background: rgba(91,155,170,0.11); pointer-events: none; }
+.slot-card.dimmed { opacity: 0.28; pointer-events: none; }
+.slot-day { font-family: var(--ui); font-size: 11px; font-weight: 300; letter-spacing: -0.01em; text-transform: lowercase; color: rgba(245,240,232,0.5); margin-bottom: 4px; }
+.slot-time { font-family: var(--ui); font-size: 20px; font-weight: 300; letter-spacing: -0.02em; color: rgba(245,240,232,0.88); }
+.slot-card.confirmed .slot-day,
+.slot-card.confirmed .slot-time { color: var(--ocean-lt); }
+
+/* confirm / secondary buttons */
+.btn-confirm {
+  font-family: var(--ui); font-size: 12px; font-weight: 400;
+  letter-spacing: -0.02em; text-transform: lowercase;
+  color: var(--ocean-lt); background: none; border: none; cursor: pointer;
+  padding: 0; transition: color 0.2s;
+}
+.btn-confirm:hover { color: var(--sand); }
+.btn-confirm:disabled { opacity: 0.3; pointer-events: none; }
+
+.end-note { font-family: var(--ui); font-size: 15px; font-weight: 300; letter-spacing: -0.02em; color: rgba(245,240,232,0.45); padding-top: 4px; }
+
+/* ── PROFILE PANEL ── */
+.profile-panel {
+  width: 288px; flex-shrink: 0;
+  border-left: 1px solid rgba(245,240,232,0.05);
+  display: flex; flex-direction: column; padding-top: 80px;
+  overflow-y: auto;
+}
+.profile-panel::-webkit-scrollbar { width: 3px; }
+.profile-panel::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.07); }
+.profile-inner { padding: 28px 28px 24px; flex: 1; }
+.profile-eyebrow { font-family: var(--ui); font-size: 10px; font-weight: 300; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(200,191,176,0.25); display: block; margin-bottom: 24px; }
+.pf-row { padding: 10px 0; border-bottom: 1px solid rgba(245,240,232,0.04); display: flex; flex-direction: column; gap: 4px; }
+.pf-key { font-family: var(--ui); font-size: 9px; font-weight: 300; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(200,191,176,0.28); }
+.pf-val { font-family: var(--sans); font-size: 12px; font-weight: 200; color: rgba(245,240,232,0.35); line-height: 1.5; transition: color 0.4s; }
+.pf-val.set { color: rgba(245,240,232,0.78); }
+.pf-meeting-val { font-family: var(--ui); font-size: 14px; font-weight: 300; letter-spacing: -0.02em; color: var(--ocean-lt); }
+.pf-tags { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 2px; min-height: 16px; }
+.pf-tag { font-family: var(--ui); font-size: 9px; font-weight: 300; text-transform: lowercase; color: rgba(139,189,201,0.8); border: 1px solid rgba(91,155,170,0.22); padding: 3px 7px; border-radius: 2px; }
+
+/* progress tracker */
+.progress-tracker { padding: 22px 28px 28px; border-top: 1px solid rgba(245,240,232,0.04); margin-top: auto; }
+.pt-dots { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.pt-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(200,191,176,0.12); transition: background 0.5s ease; }
+.pt-dot.done { background: rgba(91,155,170,0.6); }
+.pt-dot.current { background: var(--ocean-lt); }
+.pt-label { font-family: var(--ui); font-size: 9px; font-weight: 300; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(200,191,176,0.22); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 960px) {
+  .profile-panel { display: none; }
+  .thread-wrap { padding: 36px 32px 20px; }
+  .interaction-zone { padding: 20px 32px 36px; }
+}
+@media (max-width: 600px) {
+  nav { padding: 24px 24px; }
+  .thread-wrap { padding: 28px 24px 16px; }
+  .interaction-zone { padding: 16px 24px 28px; }
+  .contact-row { flex-direction: column; gap: 20px; }
+  .decision-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="nav">
+  <a class="nav-logo" href="index.html">
+    <svg class="leaf-nav" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.8"/>
+      <line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
+      <line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+      <line x1="30" y1="40" x2="49" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+      <line x1="30" y1="55" x2="50" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+      <line x1="30" y1="70" x2="46" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+      <line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+      <line x1="30" y1="40" x2="11" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+      <line x1="30" y1="55" x2="10" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+      <line x1="30" y1="70" x2="14" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+    high elm studio.
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">about</a></li>
+    <li><a href="how-it-works.html">how it works</a></li>
+    <li><a href="thinking.html">thinking</a></li>
+  </ul>
+</nav>
+
+<!-- ── INTRO PANEL ── -->
+<div id="introPanel">
+  <div class="intro-inner">
+    <svg class="intro-leaf" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.7"/>
+      <line x1="30" y1="5" x2="30" y2="92" stroke="#243D4F" stroke-width="1" stroke-linecap="round" opacity="0.35"/>
+      <line x1="30" y1="25" x2="44" y2="32" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+      <line x1="30" y1="40" x2="49" y2="48" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+      <line x1="30" y1="55" x2="50" y2="62" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+      <line x1="30" y1="70" x2="46" y2="76" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+      <line x1="30" y1="25" x2="16" y2="32" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+      <line x1="30" y1="40" x2="11" y2="48" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+      <line x1="30" y1="55" x2="10" y2="62" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+      <line x1="30" y1="70" x2="14" y2="76" stroke="#243D4F" stroke-width="0.6" opacity="0.28"/>
+    </svg>
+    <p class="intro-label">a five-minute conversation</p>
+    <p class="intro-copy">"If you've got five minutes, have this conversation. We'll look at your business, identify where AI can genuinely help, and send you a summary report you keep — whether we work together or not."</p>
+    <button class="btn-begin" onclick="beginChat()">let's begin →</button>
+  </div>
+</div>
+
+<!-- ── CHAT INTERFACE ── -->
+<div id="chatInterface">
+  <div class="chat-main">
+    <div class="thread-wrap" id="threadWrap">
+      <div id="thread"></div>
+    </div>
+    <div class="interaction-zone" id="interactionZone">
+      <div class="iz-inner" id="izInner"></div>
+    </div>
+  </div>
+  <div class="profile-panel">
+    <div class="profile-inner">
+      <span class="profile-eyebrow">your profile</span>
+      <div class="pf-row"><span class="pf-key">website</span><span class="pf-val" id="pf-url">—</span></div>
+      <div class="pf-row"><span class="pf-key">role</span><span class="pf-val" id="pf-role">—</span></div>
+      <div class="pf-row"><span class="pf-key">AI use</span><span class="pf-val" id="pf-ai">—</span></div>
+      <div class="pf-row"><span class="pf-key">opportunities spotted</span><div class="pf-tags" id="pf-opps"></div></div>
+      <div class="pf-row"><span class="pf-key">enquiry load</span><span class="pf-val" id="pf-load">—</span></div>
+      <div class="pf-row"><span class="pf-key">pain areas</span><div class="pf-tags" id="pf-pain"></div></div>
+      <div class="pf-row"><span class="pf-key">main priority</span><span class="pf-val" id="pf-priority">—</span></div>
+      <div class="pf-row"><span class="pf-key">contact</span><span class="pf-val" id="pf-contact">—</span></div>
+      <div class="pf-row"><span class="pf-key">meeting booked</span><span class="pf-val" id="pf-meeting">—</span></div>
+    </div>
+    <div class="progress-tracker">
+      <div class="pt-dots" id="ptDots"></div>
+      <span class="pt-label" id="ptLabel">—</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// EDITABLE CONFIG
+// ═══════════════════════════════════════════════════════════
+
+// EmailJS — create templates at https://www.emailjs.com/
+// Template params available: visitor_name, visitor_email, business_url,
+// role, ai_maturity, hours_per_week, pain_areas, top_priority,
+// meeting_day, meeting_time, enquiries_week, staff_count, mins_per_enquiry
+const EMAILJS_SERVICE_ID       = 'YOUR_SERVICE_ID';        // ← replace
+const EMAILJS_TEMPLATE_VISITOR = 'YOUR_VISITOR_TEMPLATE';  // ← replace
+const EMAILJS_TEMPLATE_NEIL    = 'YOUR_NEIL_TEMPLATE';     // ← replace
+const EMAILJS_PUBLIC_KEY       = 'YOUR_PUBLIC_KEY';        // ← replace
+
+// Booking slots — replace with live API call when Google Calendar is connected.
+// Keep the same object shape: { id, day, time }
+const SLOTS = [
+  { id: 's1', day: 'Tuesday 8 April',    time: '10:00 am' },
+  { id: 's2', day: 'Tuesday 8 April',    time: '2:00 pm'  },
+  { id: 's3', day: 'Wednesday 9 April',  time: '9:00 am'  },
+  { id: 's4', day: 'Wednesday 9 April',  time: '3:00 pm'  },
+  { id: 's5', day: 'Thursday 10 April',  time: '11:00 am' },
+  { id: 's6', day: 'Friday 11 April',    time: '10:00 am' },
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+
+const S = {
+  stage:             0,
+  url:               '',
+  urlFetch:          null,   // Promise
+  urlObservations:   [],
+  role:              '',
+  aiMaturity:        '',
+  enquiriesPerWeek:  20,
+  staffCount:        2,
+  minutesPerEnquiry: 15,
+  hoursPerWeek:      0,
+  painAreas:         [],
+  ambitionRank:      [
+    'save time on day-to-day admin',
+    'respond to enquiries faster',
+    'grow revenue without more headcount',
+    'improve the customer experience',
+  ],
+  name:        '',
+  email:       '',
+  bookedSlot:  null,
+};
+
+let typingEl   = null;
+let dragSrcIdx = null;
+let touchSrcIdx  = null;
+let touchStartY  = 0;
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dots = document.getElementById('ptDots');
+  for (let i = 1; i <= 11; i++) {
+    const d = document.createElement('div');
+    d.className = 'pt-dot';
+    d.id = 'dot-' + i;
+    dots.appendChild(d);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// INTRO → CHAT
+// ═══════════════════════════════════════════════════════════
+
+function beginChat() {
+  document.getElementById('introPanel').classList.add('hiding');
+  const chat = document.getElementById('chatInterface');
+  chat.classList.add('visible');
+  document.getElementById('nav').classList.add('dark-nav');
+  setTimeout(() => {
+    document.getElementById('introPanel').style.display = 'none';
+    renderStage(1);
+  }, 850);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MESSAGE HELPERS
+// ═══════════════════════════════════════════════════════════
+
+function addMsg(text, who) {
+  const thread = document.getElementById('thread');
+  const el = document.createElement('div');
+  el.className = 't-msg' + (who === 'them' ? ' them' : '');
+  const w = document.createElement('div');
+  w.className = 't-who';
+  w.textContent = who === 'them' ? 'high elm studio' : 'you';
+  const t = document.createElement('div');
+  t.className = 't-text';
+  t.textContent = text;
+  el.appendChild(w);
+  el.appendChild(t);
+  thread.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+  setTimeout(scrollBottom, 120);
+}
+
+function scrollBottom() {
+  const tw = document.getElementById('threadWrap');
+  tw.scrollTo({ top: tw.scrollHeight, behavior: 'smooth' });
+}
+
+function showTyping() {
+  if (typingEl) return;
+  typingEl = document.createElement('div');
+  typingEl.className = 'typing-row';
+  typingEl.innerHTML = '<div class="t-who">high elm studio</div><div class="dots"><span></span><span></span><span></span></div>';
+  document.getElementById('thread').appendChild(typingEl);
+  requestAnimationFrame(() => requestAnimationFrame(() => typingEl.classList.add('show')));
+  setTimeout(scrollBottom, 100);
+}
+
+function hideTyping() {
+  if (typingEl) { typingEl.remove(); typingEl = null; }
+}
+
+// Show Neil's message with typing animation, then call cb
+function neilSays(text, cb) {
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    addMsg(text, 'them');
+    setTimeout(cb || function(){}, 350);
+  }, 1100 + Math.random() * 550);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INTERACTION ZONE
+// ═══════════════════════════════════════════════════════════
+
+function showInteraction(html) {
+  const iz = document.getElementById('interactionZone');
+  const inner = document.getElementById('izInner');
+  iz.style.transition = 'none';
+  iz.style.opacity = '0';
+  iz.style.transform = 'translateY(10px)';
+  inner.innerHTML = html;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      iz.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+      iz.style.opacity = '1';
+      iz.style.transform = 'translateY(0)';
+    });
+  });
+}
+
+function clearInteraction(cb) {
+  const iz = document.getElementById('interactionZone');
+  iz.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+  iz.style.opacity = '0';
+  iz.style.transform = 'translateY(8px)';
+  setTimeout(() => {
+    document.getElementById('izInner').innerHTML = '';
+    iz.style.transition = 'none';
+    iz.style.opacity = '';
+    iz.style.transform = '';
+    cb && cb();
+  }, 300);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROGRESS + PROFILE
+// ═══════════════════════════════════════════════════════════
+
+function setProgress(n) {
+  for (let i = 1; i <= 11; i++) {
+    const d = document.getElementById('dot-' + i);
+    if (!d) continue;
+    d.className = 'pt-dot' + (i < n ? ' done' : i === n ? ' current' : '');
+  }
+  const lbl = document.getElementById('ptLabel');
+  if (lbl) lbl.textContent = 'step ' + n + ' of 11';
+}
+
+function setPF(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  el.classList.add('set');
+}
+
+function setPFTags(id, tags) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = tags.map(t => '<span class="pf-tag">' + t + '</span>').join('');
+}
+
+function setBG(n) {
+  const chat = document.getElementById('chatInterface');
+  chat.className = 'visible' + (n >= 2 ? ' bg' + Math.min(n, 11) : '');
+}
+
+// ═══════════════════════════════════════════════════════════
+// URL FETCH + ANALYSIS
+// ═══════════════════════════════════════════════════════════
+
+function fetchURL(url) {
+  const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+  return fetch(proxy, { signal: AbortSignal.timeout(9000) })
+    .then(r => r.json())
+    .then(d => analyseHTML(d.contents || ''))
+    .catch(() => null);
+}
+
+function analyseHTML(html) {
+  const lc = html.toLowerCase();
+  const obs = [];
+
+  // Live chat / first response
+  if (/tawk|intercom|drift|crisp|zendesk|freshchat|tidio|livechat/.test(lc)) {
+    obs.push('enquiry handling — live chat is in place, which is a useful foundation');
+  } else if (/contact|get in touch|reach out/.test(lc)) {
+    obs.push('enquiry handling — no automated first response visible, enquiries are going straight to inbox');
+  }
+
+  // Booking
+  if (/calendly|acuity|booksy|timely|appointy|cal\.com|tidycal/.test(lc)) {
+    obs.push('booking — online scheduling is set up');
+  } else if (/book|appointment|schedule|arrange a call/.test(lc)) {
+    obs.push('booking — booking language on the site but no automated scheduling tool visible');
+  } else {
+    obs.push('booking — no online booking system visible, appointments are likely coordinated manually');
+  }
+
+  // Self-serve / FAQ
+  if (/faq|frequently asked|help centre|knowledge base/.test(lc)) {
+    obs.push('self-serve — some FAQ content present');
+  } else {
+    obs.push('self-serve — no FAQ or self-serve content visible, common questions handled individually');
+  }
+
+  return obs.slice(0, 3);
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE DISPATCHER
+// ═══════════════════════════════════════════════════════════
+
+function renderStage(n) {
+  S.stage = n;
+  setProgress(n);
+  setBG(n);
+  ({ 1:s1, 2:s2, 3:s3, 4:s4, 5:s5, 6:s6, 7:s7, 8:s8, 9:s9, 10:s10, 11:s11 })[n]();
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 1 — URL
+// ═══════════════════════════════════════════════════════════
+
+function s1() {
+  neilSays("Good to meet you. What's your website URL? We'll take a look while we talk.", () => {
+    showInteraction(
+      '<div class="chat-input-wrap" id="urlWrap">' +
+        '<input class="chat-input" id="urlInput" type="url" placeholder="e.g. yourbusiness.com" autocomplete="off" />' +
+        '<button class="chat-send" id="urlSend" onclick="submitURL()">send →</button>' +
+      '</div>'
+    );
+    const inp = document.getElementById('urlInput');
+    inp.addEventListener('input', () => {
+      document.getElementById('urlSend').classList.toggle('show', inp.value.trim().length > 3);
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitURL(); });
+    setTimeout(() => inp.focus(), 100);
+  });
+}
+
+function submitURL() {
+  const inp = document.getElementById('urlInput');
+  let url = inp.value.trim();
+  if (!url) return;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  S.url = url;
+  const display = url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  S.urlFetch = fetchURL(url);  // silent background fetch
+  addMsg(display, 'you');
+  setPF('pf-url', display);
+  clearInteraction(() => renderStage(2));
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 2 — Role
+// ═══════════════════════════════════════════════════════════
+
+function s2() {
+  neilSays("Before we dig in — who best describes you?", () => {
+    const roles = ['owner / founder','general manager','marketing or CX lead','ops or finance','partner or investor','something else'];
+    showInteraction(
+      '<div class="option-grid">' +
+      roles.map(r => '<button class="opt-card" onclick="pickRole(this,\'' + esc(r) + '\')">' + r + '</button>').join('') +
+      '</div>'
+    );
+  });
+}
+
+function pickRole(el, role) {
+  S.role = role;
+  document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  setTimeout(() => {
+    addMsg(role, 'you');
+    setPF('pf-role', role);
+    clearInteraction(() => renderStage(3));
+  }, 180);
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 3 — AI Maturity
+// ═══════════════════════════════════════════════════════════
+
+function s3() {
+  neilSays("How much is your business currently using AI? Even tools your team reaches for day to day count.", () => {
+    const opts = ['barely at all','a few tools here and there','actively exploring it','we have real systems running'];
+    showInteraction(
+      '<div class="pill-row">' +
+      opts.map(o => '<button class="pill" onclick="pickMaturity(this,\'' + esc(o) + '\')">' + o + '</button>').join('') +
+      '</div>'
+    );
+  });
+}
+
+function pickMaturity(el, val) {
+  S.aiMaturity = val;
+  addMsg(val, 'you');
+  setPF('pf-ai', val);
+  clearInteraction(() => renderStage(4));
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 4 — Website insight + enquiry question
+// ═══════════════════════════════════════════════════════════
+
+function s4() {
+  const display = S.url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+
+  const proceed = (observations) => {
+    S.urlObservations = observations || [];
+    let msg;
+    if (observations && observations.length > 0) {
+      const obs = observations.slice(0, 2).map(o => {
+        // Convert "category — detail" to readable sentence
+        const parts = o.split(' — ');
+        return parts.length > 1 ? cap(parts[1]) + '.' : cap(o) + '.';
+      }).join(' ');
+      msg = 'We had a look at ' + display + '. ' + obs + ' What\'s the one part of dealing with new enquiries that takes the most effort on your side?';
+      setPFTags('pf-opps', observations.map(o => o.split(' — ')[0]));
+    } else {
+      msg = "I wasn't able to pull up the site — no problem. Tell me a bit about what the business does and how people typically get in touch with you.";
+    }
+    neilSays(msg, () => {
+      showInteraction(
+        '<div class="chat-input-wrap">' +
+          '<input class="chat-input" id="s4i" type="text" placeholder="The part that takes the most time…" autocomplete="off" />' +
+          '<button class="chat-send" id="s4s" onclick="submitS4()">send →</button>' +
+        '</div>'
+      );
+      const inp = document.getElementById('s4i');
+      inp.addEventListener('input', () => {
+        document.getElementById('s4s').classList.toggle('show', inp.value.trim().length > 2);
+      });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitS4(); });
+      setTimeout(() => inp.focus(), 100);
+    });
+  };
+
+  // Wait up to 1200ms for the fetch (it started ~3-4 stages ago)
+  Promise.race([
+    S.urlFetch || Promise.resolve(null),
+    new Promise(r => setTimeout(() => r(null), 1200)),
+  ]).then(proceed);
+}
+
+function submitS4() {
+  const val = document.getElementById('s4i').value.trim();
+  if (!val) return;
+  addMsg(val, 'you');
+  clearInteraction(() => renderStage(5));
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 5 — Volume sliders
+// ═══════════════════════════════════════════════════════════
+
+function s5() {
+  neilSays("Just to get a sense of scale — roughly how much time does your team spend handling enquiries?", () => {
+    showInteraction(
+      '<div>' +
+        sliderHTML('sl-enq',   'enquiries per week',  0,   100, 1,  S.enquiriesPerWeek,  'sv-enq') +
+        sliderHTML('sl-staff', 'staff handling them', 1,   20,  1,  S.staffCount,        'sv-staff') +
+        sliderHTML('sl-mins',  'minutes per enquiry', 5,   60,  5,  S.minutesPerEnquiry, 'sv-mins') +
+        '<div class="slider-calc" id="slCalc"></div>' +
+        '<button class="btn-confirm" onclick="submitS5()">that looks about right →</button>' +
+      '</div>'
+    );
+    calcSliders();
+  });
+}
+
+function sliderHTML(id, label, min, max, step, val, vid) {
+  return '<div class="slider-block">' +
+    '<div class="slider-header">' +
+      '<span class="slider-label">' + label + '</span>' +
+      '<span class="slider-val" id="' + vid + '">' + val + '</span>' +
+    '</div>' +
+    '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + val + '" oninput="calcSliders()" />' +
+  '</div>';
+}
+
+function calcSliders() {
+  const enq   = +document.getElementById('sl-enq').value;
+  const staff = +document.getElementById('sl-staff').value;
+  const mins  = +document.getElementById('sl-mins').value;
+  S.enquiriesPerWeek  = enq;
+  S.staffCount        = staff;
+  S.minutesPerEnquiry = mins;
+  document.getElementById('sv-enq').textContent   = enq;
+  document.getElementById('sv-staff').textContent = staff;
+  document.getElementById('sv-mins').textContent  = mins;
+  const hrs = Math.round((enq * mins) / 60);
+  S.hoursPerWeek = hrs;
+  let txt = 'That\'s roughly <strong>' + hrs + ' hour' + (hrs !== 1 ? 's' : '') + '</strong> a week on enquiry handling alone.';
+  if (hrs > 10) txt += ' With ' + staff + ' ' + (staff === 1 ? 'person' : 'people') + ' involved, that\'s a significant chunk of productive time.';
+  document.getElementById('slCalc').innerHTML = txt;
+}
+
+function submitS5() {
+  const sum = S.enquiriesPerWeek + ' enquiries/week · ' + S.staffCount + ' staff · ' + S.minutesPerEnquiry + ' min each — ' + S.hoursPerWeek + ' hrs/week';
+  addMsg(sum, 'you');
+  setPF('pf-load', S.hoursPerWeek + ' hrs/week');
+  clearInteraction(() => renderStage(6));
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 6 — Pain areas
+// ═══════════════════════════════════════════════════════════
+
+function s6() {
+  S.painAreas = [];
+  neilSays("Where does time go in your business that it probably shouldn't? Select everything that feels true.", () => {
+    const areas = [
+      'answering the same questions','chasing enquiry responses',
+      'manual booking coordination','writing proposals and quotes',
+      'social media content','reporting and summaries',
+      'onboarding new clients','staff training and briefing',
+      'chasing reviews','internal communication',
+    ];
+    showInteraction(
+      '<div class="chip-wrap">' +
+      areas.map(a => '<button class="chip" onclick="toggleChip(this,\'' + esc(a) + '\')">' + a + '</button>').join('') +
+      '</div>' +
+      '<button class="btn-confirm" onclick="submitS6()">that\'s clear →</button>'
+    );
+  });
+}
+
+function toggleChip(el, val) {
+  el.classList.toggle('on');
+  if (el.classList.contains('on')) S.painAreas.push(val);
+  else S.painAreas = S.painAreas.filter(p => p !== val);
+}
+
+function submitS6() {
+  const msg = S.painAreas.length ? S.painAreas.join(' · ') : 'none in particular';
+  addMsg(msg, 'you');
+  if (S.painAreas.length) setPFTags('pf-pain', S.painAreas);
+  clearInteraction(() => renderStage(7));
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 7 — Drag-to-rank
+// ═══════════════════════════════════════════════════════════
+
+function s7() {
+  neilSays("Last one before we share what we've found. If you got that time back — what would you actually do with it?", () => {
+    showInteraction('<div id="rkContainer"></div><button class="btn-confirm" style="margin-top:4px;" onclick="submitS7()">that\'s the order →</button>');
+    renderRankList();
+  });
+}
+
+function renderRankList() {
+  const container = document.getElementById('rkContainer');
+  if (!container) return;
+  container.innerHTML =
+    '<div class="rank-list" id="rkList">' +
+    S.ambitionRank.map((item, i) =>
+      '<div class="rank-card" draggable="true" data-i="' + i + '">' +
+        '<span class="rank-num">' + (i+1) + '.</span>' +
+        '<span class="rank-text">' + item + '</span>' +
+        '<span class="rank-handle">⋮⋮</span>' +
+      '</div>'
+    ).join('') +
+    '</div>';
+
+  container.querySelectorAll('.rank-card').forEach((card, i) => {
+    card.addEventListener('dragstart', () => { dragSrcIdx = i; card.classList.add('dragging'); });
+    card.addEventListener('dragend',   () => { card.classList.remove('dragging'); document.querySelectorAll('.rank-card').forEach(c => c.classList.remove('drag-over')); });
+    card.addEventListener('dragover',  e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      document.querySelectorAll('.rank-card').forEach(c => c.classList.remove('drag-over'));
+      if (dragSrcIdx !== null && dragSrcIdx !== i) {
+        const moved = S.ambitionRank.splice(dragSrcIdx, 1)[0];
+        S.ambitionRank.splice(i, 0, moved);
+        dragSrcIdx = null;
+        renderRankList();
+      }
+    });
+    card.addEventListener('touchstart', e => {
+      touchSrcIdx = i; touchStartY = e.touches[0].clientY;
+      card.classList.add('dragging');
+    }, { passive: true });
+    card.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+    card.addEventListener('touchend', e => {
+      card.classList.remove('dragging');
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      const shift = Math.round(dy / 52);
+      if (shift !== 0) {
+        const newI = Math.max(0, Math.min(S.ambitionRank.length - 1, touchSrcIdx + shift));
+        if (newI !== touchSrcIdx) {
+          const item = S.ambitionRank.splice(touchSrcIdx, 1)[0];
+          S.ambitionRank.splice(newI, 0, item);
+          renderRankList();
+          return;
+        }
+      }
+      touchSrcIdx = null;
+    });
+  });
+}
+
+function submitS7() {
+  const summary = S.ambitionRank.map((item, i) => (i+1) + '. ' + item).join(' · ');
+  addMsg(summary, 'you');
+  setPF('pf-priority', S.ambitionRank[0]);
+  clearInteraction(() => renderStage(8));
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 8 — The offer
+// ═══════════════════════════════════════════════════════════
+
+function s8() {
+  const p1 = S.painAreas[0], p2 = S.painAreas[1];
+  const obs = S.urlObservations[0];
+  let msg = 'There are a few things here worth talking through properly.';
+  if (p1 && p2) msg += ' ' + cap(p1) + ' and ' + p2 + ' stand out as obvious places to start.';
+  else if (p1)  msg += ' ' + cap(p1) + ' stands out as an obvious place to start.';
+  if (obs) msg += ' And based on what we saw on the site, there\'s a clear opportunity around how enquiries first come in.';
+  msg += ' Want to book a short call? Neil will come prepared — no slides, just a focused conversation about what\'s most useful for you.';
+
+  neilSays(msg, () => {
+    showInteraction(
+      '<div class="decision-row">' +
+        '<button class="decision-card yes" onclick="chooseCall(true)">' +
+          '<span class="dc-label">yes, let\'s book a call</span>' +
+          '<span class="dc-sub">30 minutes, no obligation</span>' +
+        '</button>' +
+        '<button class="decision-card" onclick="chooseCall(false)">' +
+          '<span class="dc-label">not right now</span>' +
+          '<span class="dc-sub">you can always come back</span>' +
+        '</button>' +
+      '</div>'
+    );
+  });
+}
+
+function chooseCall(yes) {
+  if (yes) {
+    addMsg("yes, let's book a call", 'you');
+    clearInteraction(() => renderStage(9));
+  } else {
+    addMsg('not right now', 'you');
+    clearInteraction(() => {
+      neilSays("No problem at all. If anything changes, neil@highelm.studio is always open. Take care.", () => {
+        showInteraction('<p class="end-note">thanks for the conversation.</p>');
+      });
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 9 — Contact details
+// ═══════════════════════════════════════════════════════════
+
+function s9() {
+  neilSays("Perfect. Just your name and email — Neil will confirm everything from there.", () => {
+    showInteraction(
+      '<div class="contact-row">' +
+        '<div class="contact-field">' +
+          '<label class="contact-label" for="cName">name</label>' +
+          '<input class="contact-input" id="cName" type="text" placeholder="Your name" autocomplete="name" />' +
+        '</div>' +
+        '<div class="contact-field">' +
+          '<label class="contact-label" for="cEmail">email address</label>' +
+          '<input class="contact-input" id="cEmail" type="email" placeholder="you@example.com" autocomplete="email" />' +
+        '</div>' +
+      '</div>' +
+      '<div class="contact-error" id="cErr"></div>' +
+      '<button class="btn-confirm" style="margin-top:14px;" onclick="submitContact()">confirm →</button>'
+    );
+    setTimeout(() => document.getElementById('cName') && document.getElementById('cName').focus(), 100);
+    document.addEventListener('keydown', contactEnter);
+  });
+}
+
+function contactEnter(e) {
+  if (e.key === 'Enter' && document.getElementById('cName')) { submitContact(); document.removeEventListener('keydown', contactEnter); }
+}
+
+function submitContact() {
+  const name  = (document.getElementById('cName')  || {}).value || '';
+  const email = (document.getElementById('cEmail') || {}).value || '';
+  const err   = document.getElementById('cErr');
+  if (!name.trim())         { if (err) err.textContent = 'Please enter your name.'; return; }
+  if (!email.includes('@')) { if (err) err.textContent = "That doesn't look like an email address."; return; }
+  S.name  = name.trim();
+  S.email = email.trim();
+  addMsg(S.name + ' · ' + S.email, 'you');
+  setPF('pf-contact', S.name + ' · ' + S.email);
+  clearInteraction(() => renderStage(10));
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 10 — Slot picker
+// ═══════════════════════════════════════════════════════════
+
+function s10() {
+  neilSays("Good to meet you properly, " + S.name + ". Here are the next available slots — pick whichever works.", () => {
+    showInteraction(
+      '<div class="slot-row">' +
+      SLOTS.map(s =>
+        '<button class="slot-card" id="sl-' + s.id + '" onclick="pickSlot(\'' + s.id + '\',\'' + esc(s.day) + '\',\'' + s.time + '\')">' +
+          '<div class="slot-day">' + s.day + '</div>' +
+          '<div class="slot-time">' + s.time + '</div>' +
+        '</button>'
+      ).join('') +
+      '</div>'
+    );
+  });
+}
+
+function pickSlot(id, day, time) {
+  S.bookedSlot = { id, day, time };
+  document.querySelectorAll('.slot-card').forEach(c => {
+    c.classList.toggle('confirmed', c.id === 'sl-' + id);
+    c.classList.toggle('dimmed', c.id !== 'sl-' + id);
+  });
+  setTimeout(() => clearInteraction(() => renderStage(11)), 650);
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAGE 11 — Confirmed
+// ═══════════════════════════════════════════════════════════
+
+function s11() {
+  const { day, time } = S.bookedSlot;
+  neilSays("Confirmed — " + day + ", " + time + ". You'll get a summary email shortly with everything you need. Neil's looking forward to it.", () => {
+    const meetingEl = document.getElementById('pf-meeting');
+    if (meetingEl) {
+      meetingEl.textContent = day + ' at ' + time;
+      meetingEl.className = 'pf-val pf-meeting-val set';
+    }
+    showInteraction('<p class="end-note">you\'re all set. see you then.</p>');
+    setProgress(11);
+    sendEmails();
+    downloadICS();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMAILJS
+// ═══════════════════════════════════════════════════════════
+
+function sendEmails() {
+  if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') return; // not configured
+  try {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    const params = {
+      visitor_name:      S.name,
+      visitor_email:     S.email,
+      business_url:      S.url,
+      role:              S.role,
+      ai_maturity:       S.aiMaturity,
+      enquiries_week:    S.enquiriesPerWeek,
+      staff_count:       S.staffCount,
+      mins_per_enquiry:  S.minutesPerEnquiry,
+      hours_per_week:    S.hoursPerWeek,
+      pain_areas:        S.painAreas.join(', ') || 'none specified',
+      top_priority:      S.ambitionRank[0] || '—',
+      meeting_day:       S.bookedSlot.day,
+      meeting_time:      S.bookedSlot.time,
+    };
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_VISITOR, params);
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_NEIL,    params);
+  } catch(e) {
+    console.warn('EmailJS:', e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ICS DOWNLOAD
+// ═══════════════════════════════════════════════════════════
+// Note: DTSTART/DTEND use placeholder timestamps.
+// To use real calendar times, store ISO date strings in the SLOTS array
+// (e.g. add dateISO: '20260408T100000') and reference them here.
+
+function downloadICS() {
+  try {
+    const stamp = new Date().toISOString().replace(/[-:.]/g,'').slice(0,15) + 'Z';
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//High Elm Studio//Diagnostic Call//EN',
+      'BEGIN:VEVENT',
+      'SUMMARY:Call with High Elm Studio',
+      'DESCRIPTION:Your diagnostic call with Neil.\\nSummary report included in your confirmation email.',
+      'DTSTART:' + stamp,
+      'DTEND:'   + stamp,
+      'ORGANIZER;CN=High Elm Studio:MAILTO:neil@highelm.studio',
+      'ATTENDEE;CN=' + S.name + ':MAILTO:' + S.email,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'high-elm-studio-call.ics';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch(e) {
+    console.warn('ICS:', e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+function esc(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+</script>
+</body>
+</html>

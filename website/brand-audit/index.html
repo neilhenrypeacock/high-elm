@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>your brand audit — high elm studio.</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;600&family=Raleway:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F0E8;
+    --bg-2:#E7DECF;
+    --surface:#FCFAF5;
+    --ink:#0C1520;
+    --body:#243D4F;
+    --mute:rgba(36,61,79,0.60);
+    --line:rgba(12,21,32,0.12);
+    --line-light:rgba(245,240,232,0.14);
+    --ui:'League Spartan',Helvetica,Arial,sans-serif;
+    --sans:'Raleway',-apple-system,sans-serif;
+    --maxw:1080px;
+    --narrow:680px;
+    --display-font:'League Spartan',Helvetica,Arial,sans-serif;
+    --display-weight:600;
+    --display-case:lowercase;
+    --display-track:-0.05em;
+    --display-lh:0.99;
+    --accent:#5B9BAA;
+    --accent-strong:#3D7A8A;
+    --accent-bright:#8BBDC9;
+    --dark:#111C26;
+    --dark-deep:#0C1520;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);font-weight:300;background:var(--bg);color:var(--body);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+  body::before{content:"";position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0.022;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+  .narrow{max-width:var(--narrow);margin:0 auto;padding:0 32px}
+
+  h1,h2,h3,.disp{font-family:var(--display-font);font-weight:var(--display-weight);
+    text-transform:var(--display-case);letter-spacing:var(--display-track);line-height:var(--display-lh);color:var(--ink)}
+  h1 em,h2 em,h3 em,.disp em{font-style:normal;color:var(--accent-strong);text-transform:none}
+
+  .eyebrow{font-family:var(--ui);font-weight:300;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent)}
+
+  /* ── header ── */
+  header{background:var(--dark)}
+  .header-inner{display:flex;align-items:center;justify-content:space-between;padding-top:28px;padding-bottom:28px}
+  .brand{display:flex;align-items:center;gap:11px;text-decoration:none}
+  .brand svg{display:block}
+  .brand b{font-family:var(--ui);font-weight:600;font-size:18px;letter-spacing:-0.05em;text-transform:lowercase;color:var(--bg);white-space:nowrap}
+  .top-cta{font-family:var(--ui);font-size:12px;font-weight:400;letter-spacing:-0.01em;text-transform:lowercase;color:var(--bg);text-decoration:none;display:inline-flex;align-items:center;gap:8px;border-bottom:1.5px solid var(--accent);padding-bottom:3px;white-space:nowrap;transition:gap .25s,opacity .25s}
+  .top-cta:hover{gap:13px}
+
+  /* ── hero ── */
+  .hero{text-align:center;padding:64px 0 116px;background:var(--dark)}
+  .hero .eyebrow{display:inline-block;margin-bottom:26px;color:var(--accent-bright)}
+  .hero h1{font-size:clamp(2.7rem,6.6vw,5rem);margin:0 auto 26px;max-width:15.5em;color:var(--bg)}
+  .hero h1 em{color:var(--accent-bright)}
+  .hero .lede{font-family:var(--sans);font-weight:200;font-size:1.2rem;line-height:1.7;color:rgba(245,240,232,.74);max-width:33em;margin:0 auto 46px}
+
+  /* ── card / form ── */
+  .card{background:var(--surface);border:1px solid var(--line);padding:40px 36px 32px;text-align:left;max-width:480px;margin:0 auto;
+    box-shadow:0 1px 0 rgba(12,21,32,.03),0 44px 80px -50px rgba(12,21,32,.5)}
+  .card .kicker{font-family:var(--ui);font-size:10px;font-weight:300;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .card h3{font-size:1.7rem;margin-bottom:24px;line-height:1.04}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-family:var(--ui);font-size:11px;font-weight:400;letter-spacing:.04em;text-transform:lowercase;color:var(--body);margin-bottom:7px}
+  .field input{width:100%;font-family:var(--sans);font-weight:300;font-size:1rem;color:var(--ink);padding:14px 15px;border:1px solid var(--line);background:var(--bg);transition:border-color .2s,background .2s}
+  .field input:focus{outline:none;border-color:var(--accent-strong);background:#fff}
+  .field input::placeholder{color:rgba(36,61,79,.36)}
+  .btn{width:100%;font-family:var(--ui);font-size:14px;font-weight:400;letter-spacing:-0.01em;text-transform:lowercase;color:var(--bg);background:var(--dark);border:none;padding:17px;cursor:pointer;margin-top:8px;transition:background .25s,gap .25s;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+  .btn:hover{background:var(--accent-strong);gap:16px}
+  .btn:active{transform:translateY(1px)}
+  .card .fine{font-family:var(--ui);font-size:11px;font-weight:300;letter-spacing:.02em;text-transform:lowercase;color:var(--mute);margin-top:15px;text-align:center}
+  .success{display:none;text-align:center;padding:22px 6px}
+  .success .tick{width:54px;height:54px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 20px}
+  .success h3{margin-bottom:10px;font-size:1.5rem}
+  .success p{color:var(--mute);font-weight:200}
+
+  /* ── value stack ── */
+  .value{padding:128px 0;border-top:1px solid var(--line);background:var(--bg-2)}
+  .sec-head{text-align:center;margin-bottom:72px}
+  .sec-head .eyebrow{display:block;margin-bottom:18px}
+  .sec-head h2{font-size:clamp(2rem,4.6vw,3.2rem);max-width:16em;margin:0 auto}
+  .sec-head p{font-family:var(--sans);font-weight:200;font-size:1.1rem;color:var(--body);max-width:31em;margin:18px auto 0;line-height:1.7}
+  .stack{max-width:var(--narrow);margin:0 auto;padding:0 32px}
+  .stack .row{display:flex;gap:26px;padding:34px 0;border-top:1px solid var(--line)}
+  .stack .row:first-child{border-top:none}
+  .stack .ix{font-family:var(--ui);font-size:1.1rem;font-weight:300;color:var(--accent);min-width:42px;line-height:1.3;opacity:.7}
+  .stack strong{display:block;font-family:var(--display-font);font-weight:var(--display-weight);text-transform:var(--display-case);letter-spacing:var(--display-track);font-size:1.4rem;color:var(--ink);margin-bottom:9px;line-height:1.05}
+  .stack span{color:var(--body);font-weight:300;font-size:1.02rem;line-height:1.6}
+  .stack .free{text-align:center;font-family:var(--display-font);text-transform:var(--display-case);font-size:1.4rem;color:var(--accent-strong);margin-top:52px}
+
+  /* ── method — three windows ── */
+  .method{padding:130px 0}
+  .tier-row{display:grid;grid-template-columns:repeat(3,1fr);gap:54px;max-width:var(--maxw);margin:0 auto;padding:0 32px}
+  .tier{text-align:center}
+  .tier .num{font-family:var(--display-font);font-weight:300;font-size:clamp(5rem,11vw,8rem);line-height:0.82;color:var(--accent);letter-spacing:-0.03em}
+  .tier .lab{font-family:var(--ui);font-size:11px;font-weight:300;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-strong);margin:22px 0 14px}
+  .tier h3{font-size:1.35rem;margin-bottom:12px}
+  .tier p{color:var(--body);font-weight:300;font-size:1rem;line-height:1.6}
+
+  /* ── why us (dark) ── */
+  .why{background:var(--dark);color:var(--bg);padding:130px 0;text-align:center}
+  .why .eyebrow{color:var(--accent-bright)}
+  .why h2{font-size:clamp(2rem,4.6vw,3.2rem);margin:18px auto 28px;max-width:15em;color:var(--bg)}
+  .why h2 em{color:var(--accent-bright)}
+  .why p{color:rgba(245,240,232,.72);font-weight:200;font-size:1.16rem;max-width:32em;margin:0 auto;line-height:1.7}
+  .why .years{font-family:var(--display-font);text-transform:var(--display-case);font-size:1.3rem;color:#fff;margin-top:28px}
+  .industries{margin:30px auto 0;font-family:var(--ui);font-size:11px;font-weight:300;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,240,232,.55);max-width:42em;border-top:1px solid var(--line-light);padding-top:26px;line-height:2}
+
+  /* ── risk ── */
+  .risk{padding:130px 0;text-align:center}
+  .risk .eyebrow{display:block;margin-bottom:18px}
+  .risk h2{font-size:clamp(1.9rem,4.2vw,2.8rem);margin-bottom:24px}
+  .risk p{font-family:var(--sans);font-weight:200;font-size:1.22rem;color:var(--body);max-width:27em;margin:0 auto;line-height:1.6}
+  .risk p em{font-style:italic;color:var(--ink);font-weight:300}
+
+  /* ── final cta ── */
+  .final{background:var(--dark-deep);color:var(--bg);padding:130px 0;text-align:center}
+  .final .eyebrow{color:var(--accent-bright);display:block;margin-bottom:18px}
+  .final h2{font-size:clamp(2.3rem,5.2vw,3.6rem);margin-bottom:20px;color:#fff}
+  .final .sub{font-family:var(--sans);font-weight:200;color:rgba(245,240,232,.7);font-size:1.12rem;max-width:28em;margin:0 auto 46px;line-height:1.7}
+
+  /* ── footer ── */
+  footer{background:var(--dark-deep);color:rgba(245,240,232,.6);padding:40px 0 48px;border-top:1px solid var(--line-light)}
+  .foot-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;max-width:var(--maxw);margin:0 auto;padding:0 32px}
+  .foot-row .brand b{color:rgba(245,240,232,.85)}
+  .foot-links{display:flex;align-items:center;gap:24px}
+  .foot-links a{font-family:var(--ui);font-size:12px;font-weight:300;letter-spacing:.02em;text-transform:lowercase;color:rgba(245,240,232,.6);text-decoration:none;transition:color .2s}
+  .foot-links a:hover{color:var(--accent-bright)}
+  .legal{max-width:var(--maxw);margin:22px auto 0;padding:18px 32px 0;border-top:1px solid var(--line-light);font-family:var(--ui);font-size:10.5px;font-weight:300;letter-spacing:.04em;text-transform:lowercase;color:rgba(245,240,232,.38)}
+  .legal a{color:inherit;text-decoration:none}
+
+  /* ── reveals ── */
+  .reveal{transform:none}
+  @media(prefers-reduced-motion:no-preference){
+    html.js .reveal{transform:translateY(20px);transition:transform .85s cubic-bezier(.16,1,.3,1)}
+    html.js .reveal.in{transform:none}
+    html.js .d1{transition-delay:.05s}
+    html.js .d2{transition-delay:.16s}
+    html.js .d3{transition-delay:.28s}
+    html.js .d4{transition-delay:.4s}
+  }
+
+  @media(max-width:820px){
+    .tier-row{grid-template-columns:1fr;gap:58px}
+    .value,.method,.why,.risk,.final{padding:84px 0}
+    .hero{padding:36px 0 72px}
+    .foot-row{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="high elm studio">
+      <svg width="15" height="25" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="var(--accent)"/>
+        <line x1="30" y1="5" x2="30" y2="92" stroke="var(--bg)" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+        <line x1="30" y1="25" x2="44" y2="32" stroke="var(--bg)" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="40" x2="49" y2="48" stroke="var(--bg)" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="55" x2="50" y2="62" stroke="var(--bg)" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="25" x2="16" y2="32" stroke="var(--bg)" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="40" x2="11" y2="48" stroke="var(--bg)" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="55" x2="10" y2="62" stroke="var(--bg)" stroke-width="0.7" opacity="0.5"/>
+      </svg>
+      <b>high elm studio.</b>
+    </a>
+    <a href="#audit" class="top-cta">get your free audit →</a>
+  </div>
+</header>
+
+<!-- ════ HERO ════ -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow reveal d1">free brand audit</div>
+    <h1 class="reveal d2">what's the <em>first impression</em> you make?</h1>
+    <p class="lede reveal d3">Share your URL and we'll look at your brand through the same lens every visitor does. Where are you inspiring and helpful? Where are you flat and confusing?</p>
+
+    <div class="card reveal d4" id="audit">
+      <div id="formView">
+        <div class="kicker">start here</div>
+        <h3 class="disp">receive your free brand audit.</h3>
+        <div class="field"><label for="url">your website</label><input type="url" id="url" placeholder="yourbrand.com" autocomplete="url"></div>
+        <div class="field"><label for="email">your email</label><input type="email" id="email" placeholder="you@yourbrand.com" autocomplete="email"></div>
+        <button class="btn" id="submitBtn">get my free audit →</button>
+        <p class="fine">20 seconds to send. no pitch. no obligation.</p>
+      </div>
+      <div class="success" id="successView">
+        <div class="tick">✓</div>
+        <h3 class="disp">it's on its way.</h3>
+        <p>Thanks — we've got your brand. We'll take a proper look and send your audit over soon.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ VALUE STACK ════ -->
+<section class="value">
+  <div class="sec-head reveal">
+    <span class="eyebrow">what you get</span>
+    <h2 class="disp">here's exactly what lands in your inbox.</h2>
+  </div>
+  <div class="stack">
+    <div class="row reveal"><div class="ix">01</div><div><strong>a recorded walkthrough of your channels</strong><span>We spend thirty minutes moving across them — homepage, mobile, key pages, enquiry flow, welcome email, Instagram — recording as we go and highlighting exactly what we see and feel, with twelve years of industry experience behind every note.</span></div></div>
+    <div class="row reveal"><div class="ix">02</div><div><strong>the exact points you're losing people</strong><span>The specific moments where interest leaks away — before it becomes a follow, a sign-up, or an enquiry.</span></div></div>
+    <div class="row reveal"><div class="ix">03</div><div><strong>what's already working</strong><span>The strengths worth leaning into — and the fastest ways to get even more from them.</span></div></div>
+    <div class="row reveal"><div class="ix">04</div><div><strong>a prioritised next-steps list</strong><span>Clear, do-this-first recommendations you can act on straight away — with or without us.</span></div></div>
+    <p class="free reveal">all of it, free.</p>
+  </div>
+</section>
+
+<!-- ════ METHOD ════ -->
+<section class="method">
+  <div class="sec-head reveal">
+    <span class="eyebrow">the framework</span>
+    <h2 class="disp">your brand audit.</h2>
+    <p>Every visitor judges your brand in three moments — the first glance, the first thirty seconds, and the first five minutes. The audit walks all three, exactly the way a real stranger would.</p>
+  </div>
+  <div class="tier-row">
+    <div class="tier reveal d1">
+      <div class="num">0</div>
+      <div class="lab">instant</div>
+      <h3 class="disp">first impression</h3>
+      <p>Before a word is read, your brand has said something. Is it the right thing — to the right person?</p>
+    </div>
+    <div class="tier reveal d2">
+      <div class="num">30</div>
+      <div class="lab">thirty seconds</div>
+      <h3 class="disp">enough to stay</h3>
+      <p>Long enough to leave, too. Has the moment earned their attention — or just looked nice?</p>
+    </div>
+    <div class="tier reveal d3">
+      <div class="num">5</div>
+      <div class="lab">five minutes</div>
+      <h3 class="disp">the full experience</h3>
+      <p>The first five minutes every visitor really gets. Has the path to follow, subscribe or enquire been clear and obvious — or full of friction?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════ WHY US ════ -->
+<section class="why">
+  <div class="narrow reveal">
+    <span class="eyebrow">why us</span>
+    <h2 class="disp">taste <em>and</em> conversion. most studios pick one.</h2>
+    <p>Design studios speak in vibes. Performance shops produce templates. We work at the junction between the two — luxury sensibility with commercial mechanics.</p>
+    <div class="years">twelve years in luxury marketing.</div>
+    <div class="industries">travel · festivals · events · magazines · ecommerce · health &amp; wellness</div>
+  </div>
+</section>
+
+<!-- ════ RISK REVERSAL ════ -->
+<section class="risk">
+  <div class="narrow reveal">
+    <span class="eyebrow">why it's free</span>
+    <h2 class="disp">no catch. here's the deal.</h2>
+    <p>The audit <em>is</em> the proof. If it's useful, maybe we work together. If not, you've lost nothing but the 20 seconds it took to send your URL. That's the whole arrangement.</p>
+  </div>
+</section>
+
+<!-- ════ FINAL CTA ════ -->
+<section class="final" id="audit2">
+  <div class="wrap reveal">
+    <span class="eyebrow">your turn</span>
+    <h2 class="disp">send us your brand.</h2>
+    <p class="sub">If you've made it this far, it's going to be worth your time.</p>
+    <div class="card">
+      <div id="formView2">
+        <div class="kicker">start here</div>
+        <h3 class="disp">get your free audit.</h3>
+        <div class="field"><label for="url2">your website</label><input type="url" id="url2" placeholder="yourbrand.com" autocomplete="url"></div>
+        <div class="field"><label for="email2">your email</label><input type="email" id="email2" placeholder="you@yourbrand.com" autocomplete="email"></div>
+        <button class="btn" id="submitBtn2">get my free audit →</button>
+        <p class="fine">20 seconds to send. no pitch. no obligation.</p>
+      </div>
+      <div class="success" id="successView2">
+        <div class="tick">✓</div>
+        <h3 class="disp">it's on its way.</h3>
+        <p>Thanks — we've got your brand. We'll take a proper look and send your audit over soon.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-row">
+    <a class="brand" href="/" aria-label="high elm studio">
+      <svg width="13" height="22" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="var(--bg)"/>
+        <line x1="30" y1="5" x2="30" y2="92" stroke="var(--accent-bright)" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+        <line x1="30" y1="25" x2="44" y2="32" stroke="var(--accent-bright)" stroke-width="0.7" opacity="0.55"/>
+        <line x1="30" y1="40" x2="49" y2="48" stroke="var(--accent-bright)" stroke-width="0.7" opacity="0.55"/>
+        <line x1="30" y1="55" x2="50" y2="62" stroke="var(--accent-bright)" stroke-width="0.7" opacity="0.55"/>
+        <line x1="30" y1="25" x2="16" y2="32" stroke="var(--accent-bright)" stroke-width="0.7" opacity="0.55"/>
+        <line x1="30" y1="40" x2="11" y2="48" stroke="var(--accent-bright)" stroke-width="0.7" opacity="0.55"/>
+        <line x1="30" y1="55" x2="10" y2="62" stroke="var(--accent-bright)" stroke-width="0.7" opacity="0.55"/>
+      </svg>
+      <b>high elm studio.</b>
+    </a>
+    <div class="foot-links">
+      <a href="/">home</a>
+      <a href="/how-it-works.html">how it works</a>
+      <a href="#audit">get an audit</a>
+    </div>
+  </div>
+  <div class="legal">high elm productions ltd · company #15336186 · england &amp; wales · <a href="https://ico.org.uk/ESDWebPages/Entry/ZC112391" target="_blank" rel="noopener">registered with the ico · zc112391</a></div>
+</footer>
+
+<script>
+  function wireForm(urlId, emailId, btnId, formViewId, successViewId) {
+    var btn = document.getElementById(btnId);
+    btn.addEventListener('click', function() {
+      var url = document.getElementById(urlId);
+      var email = document.getElementById(emailId);
+      var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+      var urlOk = url.value.trim().length > 3;
+      if (!urlOk) { url.focus(); url.style.borderColor = 'var(--accent-strong)'; return; }
+      if (!emailOk) { email.focus(); email.style.borderColor = 'var(--accent-strong)'; return; }
+      /* TODO: wire to backend — shows success state for now */
+      document.getElementById(formViewId).style.display = 'none';
+      document.getElementById(successViewId).style.display = 'block';
+    });
+  }
+  wireForm('url', 'email', 'submitBtn', 'formView', 'successView');
+  wireForm('url2', 'email2', 'submitBtn2', 'formView2', 'successView2');
+
+  (function() {
+    document.documentElement.classList.add('js');
+    var els = [].slice.call(document.querySelectorAll('.reveal'));
+    if (!('IntersectionObserver' in window)) { els.forEach(function(e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
+    els.forEach(function(e) { io.observe(e); });
+  })();
+</script>
+
+</body>
+</html>
