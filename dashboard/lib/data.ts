@@ -128,6 +128,34 @@ export function normalizeType(t: string | null): string {
   }
 }
 
+/** Instagram hides like counts on some posts — the pipeline stores those as -1. */
+export function hasVisibleLikes(p: { likes_count: number | null }): boolean {
+  return p.likes_count !== -1 && p.likes_count !== null;
+}
+
+/**
+ * ER reliability flags. A `hard` flag means the ER itself is untrustworthy —
+ * it is nulled and excluded from all category stats. A `soft` flag only warns
+ * that the breakout baseline is low-confidence; the ER stays valid and counted.
+ */
+export function erFlagReasons(
+  validPostCount: number,
+  rawERPct: number | null,
+  recentBaselineCount: number
+): { hard: string | null; soft: string | null } {
+  const hard =
+    validPostCount < MIN_VALID_POSTS
+      ? `Only ${validPostCount} post${validPostCount === 1 ? '' : 's'} with visible likes`
+      : rawERPct !== null && rawERPct > ER_ANOMALY_THRESHOLD
+        ? `ER ${rawERPct.toFixed(2)}% — unusually high, verify data`
+        : null;
+  const soft =
+    recentBaselineCount < BASELINE_MIN_POSTS
+      ? `Breakout baseline low-confidence: only ${recentBaselineCount} recent post${recentBaselineCount === 1 ? '' : 's'} (need ${BASELINE_MIN_POSTS})`
+      : null;
+  return { hard, soft };
+}
+
 export function captionBucket(caption: string | null): string {
   const len = (caption ?? '').length;
   if (len < CAPTION_SHORT_MAX)  return 'Short';
@@ -267,17 +295,41 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const supabase = getSupabase();
   const PAGE = 1000;
 
-  const [hotelsRes, standoutPostsRes] = await Promise.all([
-    supabase.from('hotels').select('name, region, country, instagram_handle').order('name'),
-    supabase
-      .from('standout_posts')
-      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag'),
-  ]);
-
+  const hotelsRes = await supabase
+    .from('hotels')
+    .select('name, region, country, instagram_handle')
+    .order('name');
   if (hotelsRes.error) throw new Error(hotelsRes.error.message);
-  if (standoutPostsRes.error) {
-    // Non-fatal (table may not exist yet) — but never swallow it silently
-    console.error('standout_posts query failed:', standoutPostsRes.error.message);
+
+  // NOTE: every paginated query orders by a UNIQUE key (or has a unique
+  // tiebreaker). Offset pagination over non-unique columns (a scrape inserts
+  // ~465 rows with near-identical timestamps) can silently skip rows at page
+  // boundaries.
+
+  // Paginate standout posts — the PostgREST default caps at 1,000 rows, which
+  // this table outgrows within ~10 months at 25 rows/week
+  type StandoutRow = {
+    post_id: string;
+    stored_image_url: string | null;
+    post_insight: string | null;
+    driver_tag: string | null;
+    theme_tag: string | null;
+  };
+  const standoutRows: StandoutRow[] = [];
+  for (let page = 0; ; page++) {
+    const { data, error } = await supabase
+      .from('standout_posts')
+      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag')
+      .order('post_id')
+      .range(page * PAGE, page * PAGE + PAGE - 1);
+    if (error) {
+      // Non-fatal (table may not exist yet) — but never swallow it silently
+      console.error('standout_posts query failed:', error.message);
+      break;
+    }
+    if (!data || data.length === 0) break;
+    standoutRows.push(...data);
+    if (data.length < PAGE) break;
   }
 
   // Paginate snapshots — a fixed range silently drops hotels once the table
@@ -289,6 +341,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       .from('profile_snapshots')
       .select('instagram_handle, followers_count, captured_at')
       .order('captured_at', { ascending: false })
+      .order('id', { ascending: false })
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
@@ -305,6 +358,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       .select('post_id, instagram_handle, likes_count, comments_count, posted_at, type, caption, image_url, post_url')
       .not('posted_at', 'is', null)
       .order('posted_at', { ascending: false })
+      .order('post_id')
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
@@ -322,7 +376,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   // ── Stored image URLs + per-post insights ─────────────────────────────────
   const storedImageUrl: Record<string, string | null> = {};
   const storedInsight:  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }> = {};
-  for (const r of standoutPostsRes.data ?? []) {
+  for (const r of standoutRows) {
     storedImageUrl[r.post_id] = r.stored_image_url ?? null;
     storedInsight[r.post_id]  = { insight: r.post_insight ?? null, tag: r.driver_tag ?? null, theme_tag: r.theme_tag ?? null };
   }
@@ -351,7 +405,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
 
   for (const [handle, posts] of Object.entries(postsByHandle)) {
     const followers  = latestFollowers[handle] ?? null;
-    const validPosts = posts.filter(p => p.likes_count !== -1 && p.likes_count !== null);
+    const validPosts = posts.filter(hasVisibleLikes);
 
     // Overall ER (last 12 posts) — used for the leaderboard column
     const last12ERs = followers && followers > 0
@@ -390,8 +444,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const hotelCountryByHandle: Record<string, string | null> = {};
 
   for (const h of allHotels) {
-    hotelNameByHandle[h.instagram_handle]    = h.name;
-    hotelCountryByHandle[h.instagram_handle] = h.country ?? null;
+    // First entry wins for duplicated handles — keeps cards and leaderboard
+    // showing the same hotel name
+    if (!(h.instagram_handle in hotelNameByHandle)) {
+      hotelNameByHandle[h.instagram_handle]    = h.name;
+      hotelCountryByHandle[h.instagram_handle] = h.country ?? null;
+    }
     if (seenHandles.has(h.instagram_handle)) continue;
     if (!postsByHandle[h.instagram_handle])  continue;
     seenHandles.add(h.instagram_handle);
@@ -401,17 +459,10 @@ export async function getPortfolioData(): Promise<DashboardData> {
     const vpc     = m?.validPostCount ?? 0;
     const baselineAgeMs = BASELINE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
     const recentBaselineCount = (postsByHandle[h.instagram_handle] ?? [])
-      .filter(p => p.likes_count !== -1 && p.likes_count !== null &&
+      .filter(p => hasVisibleLikes(p) &&
                    now - new Date(p.posted_at).getTime() <= baselineAgeMs)
       .slice(0, BASELINE_POSTS).length;
-    const erFlagReason: string | null =
-      vpc < MIN_VALID_POSTS
-        ? `Only ${vpc} post${vpc === 1 ? '' : 's'} with visible likes`
-        : rawER !== null && rawER > ER_ANOMALY_THRESHOLD
-          ? `ER ${rawER.toFixed(2)}% — unusually high, verify data`
-          : recentBaselineCount < BASELINE_MIN_POSTS
-            ? `Breakout baseline low-confidence: only ${recentBaselineCount} recent post${recentBaselineCount === 1 ? '' : 's'} (need ${BASELINE_MIN_POSTS})`
-            : null;
+    const { hard, soft } = erFlagReasons(vpc, rawER, recentBaselineCount);
 
     hotelRows.push({
       name:             h.name,
@@ -419,22 +470,20 @@ export async function getPortfolioData(): Promise<DashboardData> {
       country:          h.country ?? null,
       instagram_handle: h.instagram_handle,
       followers_count:  latestFollowers[h.instagram_handle] ?? null,
-      // Null out flagged ER so it's excluded from all stat medians and sorts to the bottom
-      engagement_rate:  erFlagReason ? null : rawER,
+      // Only a hard flag nulls the ER (excluded from medians, sorts to the
+      // bottom). A soft baseline warning keeps the valid ER counted.
+      engagement_rate:  hard ? null : rawER,
       posts_per_week:   m?.ppw ?? null,
       last_posted:      m?.lastPosted ?? null,
-      er_flag_reason:   erFlagReason,
+      er_flag_reason:   hard ?? soft,
     });
   }
 
   // ── Valid posts ───────────────────────────────────────────────────────────
   const recentValidPosts = allPosts.filter(
-    p => now - new Date(p.posted_at).getTime() <= outlierWindowMs &&
-         p.likes_count !== -1 && p.likes_count !== null
+    p => now - new Date(p.posted_at).getTime() <= outlierWindowMs && hasVisibleLikes(p)
   );
-  const validForAnalysis = allPosts.filter(
-    p => p.likes_count !== -1 && p.likes_count !== null
-  );
+  const validForAnalysis = allPosts.filter(hasVisibleLikes);
 
   // ── Breakouts ─────────────────────────────────────────────────────────────
   const { posts: standout, breakout_count, super_breakout_count } = computeStandout(
@@ -454,9 +503,9 @@ export async function getPortfolioData(): Promise<DashboardData> {
   // ── Week ending — from the data, not the render date ─────────────────────
   // allPosts is ordered newest-first, so the first post carries the latest date.
   const latestPostDate = allPosts[0] ? new Date(allPosts[0].posted_at) : new Date(now);
-  const week_ending = latestPostDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const week_ending = latestPostDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
   const week_ending_long = latestPostDate
-    .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
     .toUpperCase();
 
   return {

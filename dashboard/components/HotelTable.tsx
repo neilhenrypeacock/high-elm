@@ -39,7 +39,8 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
       setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      setSortDir('desc');
+      // Names read naturally A→Z; numeric columns start with the biggest
+      setSortDir(key === 'name' ? 'asc' : 'desc');
     }
   }
 
@@ -58,7 +59,11 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
       if (av === null && bv === null) return 0;
       if (av === null) return 1;
       if (bv === null) return -1;
-      const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+      // localeCompare so accented hotel names ("Château…") sort naturally
+      const cmp =
+        typeof av === 'string' && typeof bv === 'string'
+          ? av.localeCompare(bv, 'en', { sensitivity: 'base' })
+          : av < bv ? -1 : av > bv ? 1 : 0;
       return sortDir === 'asc' ? cmp : -cmp;
     });
   }, [hotels, sortKey, sortDir, regionFilter, search]);
@@ -79,6 +84,7 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
         <input
           type="text"
           placeholder="Search hotel or handle…"
+          aria-label="Search hotel or handle"
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
@@ -121,8 +127,6 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
 
       {/* Table card */}
       <div
-        role="table"
-        aria-label="Hotel leaderboard"
         style={{
           background: 'var(--surface)',
           border: '1px solid var(--line)',
@@ -131,7 +135,9 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
           boxShadow: 'var(--shadow-card)',
         }}
       >
+        <div role="table" aria-label="Hotel leaderboard">
         {/* Header */}
+        <div role="rowgroup">
         <div role="row" className="cr-lb-row" style={{ ...GRID, background: 'var(--ink)' }}>
           {COLUMNS.map(col => {
             const active = col.key !== null && sortKey === col.key;
@@ -152,10 +158,13 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
                 style={headerStyle}
               >
                 {col.key ? (
+                  /* No `all: unset` here — it would wipe the :focus-visible outline */
                   <button
                     onClick={() => handleSort(col.key!)}
                     style={{
-                      all: 'unset',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
                       cursor: 'pointer',
                       font: 'inherit',
                       color: 'inherit',
@@ -172,8 +181,10 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
             );
           })}
         </div>
+        </div>
 
         {/* Body */}
+        <div role="rowgroup">
         {visible.map((h, i) => {
           const top3 = highlightTop3 && i < 3 && !search.trim() && regionFilter === 'All';
           const bg = top3 ? 'var(--top3-tint)' : i % 2 === 1 ? 'var(--surface-alt)' : 'var(--surface)';
@@ -216,17 +227,24 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
               </div>
 
               <div role="cell">
-                {h.er_flag_reason ? (
-                  <span title={h.er_flag_reason} style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ color: 'var(--signal-deep)' }}>⚠</span>
-                    <span style={{ fontFamily: LABEL, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
-                      flagged
-                    </span>
-                  </span>
-                ) : h.engagement_rate !== null ? (
+                {h.engagement_rate !== null ? (
+                  // Valid ER — a soft flag (low-confidence breakout baseline) shows
+                  // a warning next to it but keeps the value counted
                   <>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: hot ? 'var(--signal-deep)' : 'var(--ink)' }}>
-                      {fmtNumber(h.engagement_rate, 2)}%
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: hot ? 'var(--signal-deep)' : 'var(--ink)' }}>
+                        {fmtNumber(h.engagement_rate, 2)}%
+                      </span>
+                      {h.er_flag_reason && (
+                        <span
+                          tabIndex={0}
+                          title={h.er_flag_reason}
+                          aria-label={h.er_flag_reason}
+                          style={{ color: 'var(--signal-deep)', cursor: 'help', fontSize: 12 }}
+                        >
+                          ⚠
+                        </span>
+                      )}
                     </span>
                     <div style={{ height: 4, marginTop: 5, marginRight: 24, background: 'var(--track)', borderRadius: 2, overflow: 'hidden' }}>
                       <div
@@ -239,6 +257,19 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
                       />
                     </div>
                   </>
+                ) : h.er_flag_reason ? (
+                  // Hard flag — the ER itself is unreliable and excluded
+                  <span
+                    tabIndex={0}
+                    title={h.er_flag_reason}
+                    aria-label={h.er_flag_reason}
+                    style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span style={{ color: 'var(--signal-deep)' }}>⚠</span>
+                    <span style={{ fontFamily: LABEL, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
+                      flagged
+                    </span>
+                  </span>
                 ) : (
                   <span style={{ color: 'var(--faint)' }}>—</span>
                 )}
@@ -254,6 +285,8 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
             </div>
           );
         })}
+        </div>
+        </div>
 
         {filtered.length === 0 && (
           <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 14, color: 'var(--body-mid)', borderTop: '1px solid var(--line-soft)' }}>
@@ -276,7 +309,7 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
                 Showing all {filtered.length} hotels ·{' '}
                 <button
                   onClick={() => setShowAll(false)}
-                  style={{ all: 'unset', cursor: 'pointer', color: 'var(--signal-deep)', fontWeight: 500 }}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', color: 'var(--signal-deep)', fontWeight: 500 }}
                 >
                   view less ↑
                 </button>
@@ -286,7 +319,7 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
                 Showing top {DEFAULT_VISIBLE} of {filtered.length} ·{' '}
                 <button
                   onClick={() => setShowAll(true)}
-                  style={{ all: 'unset', cursor: 'pointer', color: 'var(--signal-deep)', fontWeight: 500 }}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', color: 'var(--signal-deep)', fontWeight: 500 }}
                 >
                   view more ↓
                 </button>
@@ -297,10 +330,11 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
       </div>
 
       <p style={{ marginTop: 14, fontSize: 12, color: 'var(--faint)', lineHeight: 1.6 }}>
-        Engagement rate = mean(likes + comments) on the last 12 posts ÷ followers × 100. Requires ≥3
-        posts with visible likes; rates above 10% are flagged{' '}
-        <span style={{ color: 'var(--signal-deep)' }}>⚠</span> and excluded from category medians. Public
-        Instagram data only — no reach or impressions.
+        Engagement rate = mean(likes + comments) on the last 12 posts ÷ followers × 100. Hotels with
+        under 3 visible-likes posts or rates above 10% are flagged{' '}
+        <span style={{ color: 'var(--signal-deep)' }}>⚠</span> and excluded from category medians;
+        a <span style={{ color: 'var(--signal-deep)' }}>⚠</span> beside a value only marks a
+        low-confidence breakout baseline. Public Instagram data only — no reach or impressions.
       </p>
     </div>
   );

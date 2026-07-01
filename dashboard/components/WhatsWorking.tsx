@@ -189,7 +189,7 @@ export default function WhatsWorkingPanel({
           <BarChart data={whatsWorking.by_caption} />
           <GapNote text={gapLine(whatsWorking.by_caption, 'captions')} />
           <p style={{ marginTop: 14, fontSize: 12, color: 'var(--faint)' }}>
-            Short &lt;100 chars · Medium 100–300 · Long &gt;300.
+            Short &lt;100 chars · Medium 100–299 · Long 300+.
           </p>
         </ChartCard>
       </div>

@@ -10,8 +10,14 @@
 -- The pipeline (../instagram-pipeline/) keeps using the service-role key,
 -- which bypasses RLS entirely — enabling RLS does not affect its writes.
 --
--- Result: the dashboard's key can SELECT these five tables and nothing else.
--- No INSERT/UPDATE/DELETE policies exist for anon, so writes are refused.
+-- Result: on THESE five tables the anon key can SELECT and nothing else
+-- (no INSERT/UPDATE/DELETE policies exist for anon, so writes are refused).
+--
+-- ⚠ Scope caveat: this protects only the tables listed below. Any FUTURE
+-- table created in the public schema without RLS enabled is readable AND
+-- writable by the anon key under Supabase defaults — enable RLS on every
+-- new table as part of creating it. Storage is separate: the
+-- `standout-images` bucket needs its own policy if it isn't already public.
 
 alter table public.hotels            enable row level security;
 alter table public.profile_snapshots enable row level security;

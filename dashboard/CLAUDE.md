@@ -78,6 +78,7 @@ npm run dev     # local dev server (preview name: hotel-dashboard, port 3200)
 ## Current state / known gaps
 - TikTok/YouTube channels and Last month/All time timeframes are disabled "soon" pills per the design.
 - Floating nav has no scroll-spy (plain hash anchors, per prototype).
-- Still on the service-role key — swapping to anon key + read-only RLS is the agreed next security step.
-- No ESLint config or tests yet (agreed follow-ups from the code review).
+- Anon key ready but needs Neil's one-time manual step: run `supabase/rls.sql` in the Supabase SQL editor, add `SUPABASE_ANON_KEY` to `.env.local` + Vercel. Until then lib/supabase.ts falls back to the service-role key with a warning.
+- ESLint (`npm run lint`, flat config) and vitest (`npm test`, tests/data.test.ts) are set up — both must pass before shipping, alongside `npm run build`.
+- ER flags are two-tier: hard flags (too few posts / implausible ER) null the ER out of all stats; soft flags (thin breakout baseline) only show a ⚠ next to a still-counted ER.
 - Dashboard is data-starved until the next Apify top-up run provides more post history (some hotels have tiny engagement medians, which inflates multipliers).

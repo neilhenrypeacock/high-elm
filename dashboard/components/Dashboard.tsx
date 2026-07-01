@@ -372,7 +372,7 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
         <SectionHead
           eyebrow="Ranked by engagement rate"
           title="Hotel leaderboard"
-          sub="Highest median engagement over the last 12 posts · click a column to re-sort."
+          sub="Average engagement across each hotel's last 12 posts · click a column to re-sort."
         />
         <HotelTable hotels={data.hotels} regions={regions} />
       </div>
@@ -400,7 +400,8 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
           style={{
             ...INNER,
             paddingTop: 46,
-            paddingBottom: 46,
+            // Extra bottom clearance so the fixed floating nav never covers content
+            paddingBottom: 110,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

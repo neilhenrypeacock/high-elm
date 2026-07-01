@@ -8,6 +8,8 @@ import {
   computeSnapshot,
   computeWhatsWorking,
   computeStandout,
+  hasVisibleLikes,
+  erFlagReasons,
   type RawPost,
   type HotelMetrics,
   type HotelRow,
@@ -208,6 +210,44 @@ describe('computeWhatsWorking', () => {
       { hotel_a: 10_000 }
     );
     expect(result.by_format.map(f => f.label)).toEqual(['Video', 'Photo']);
+  });
+});
+
+// ─── hasVisibleLikes / erFlagReasons ─────────────────────────────────────────
+
+describe('hasVisibleLikes', () => {
+  it('excludes the -1 hidden-likes sentinel and null, keeps real counts', () => {
+    expect(hasVisibleLikes({ likes_count: -1 })).toBe(false);
+    expect(hasVisibleLikes({ likes_count: null })).toBe(false);
+    expect(hasVisibleLikes({ likes_count: 0 })).toBe(true);
+    expect(hasVisibleLikes({ likes_count: 250 })).toBe(true);
+  });
+});
+
+describe('erFlagReasons', () => {
+  it('hard-flags hotels with fewer than 3 visible-likes posts', () => {
+    const { hard } = erFlagReasons(2, 1.5, 20);
+    expect(hard).toMatch(/Only 2 posts/);
+  });
+
+  it('hard-flags implausibly high ER (>10%)', () => {
+    const { hard } = erFlagReasons(20, 12.34, 20);
+    expect(hard).toMatch(/unusually high/);
+  });
+
+  it('accepts ER exactly at the 10% threshold', () => {
+    const { hard } = erFlagReasons(20, 10, 20);
+    expect(hard).toBeNull();
+  });
+
+  it('soft-flags a thin breakout baseline WITHOUT hard-flagging — the ER stays valid', () => {
+    const { hard, soft } = erFlagReasons(20, 1.5, 5);
+    expect(hard).toBeNull(); // valid ER must NOT be nulled for a baseline warning
+    expect(soft).toMatch(/low-confidence/);
+  });
+
+  it('returns no flags for a healthy hotel', () => {
+    expect(erFlagReasons(20, 1.5, 20)).toEqual({ hard: null, soft: null });
   });
 });
 
