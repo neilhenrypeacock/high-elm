@@ -4,7 +4,6 @@ import { getSupabase } from './supabase';
 const HOTEL_ER_POSTS      = 12;
 const OUTLIER_THRESHOLD   = 2;
 const OUTLIER_WINDOW_DAYS = 7
-const MIN_LEADERBOARD_FOLLOWERS = 1_000  // hotels below this follower count skipped in top-5 ER panel;
 const POSTS_WEEK_WINDOW   = 28;
 const CAPTION_SHORT_MAX   = 100;
 const CAPTION_MEDIUM_MAX  = 300;
@@ -29,8 +28,6 @@ const HOUR_BLOCKS: [string, number, number][] = [
 const FORMAT_ORDER = ['Carousel', 'Reel', 'Video', 'Photo', 'Other'];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-export type FilterKey = 'all' | 'top50' | 'top30' | 'top10';
-
 export type HotelRow = {
   name: string;
   region: string | null;
@@ -70,14 +67,6 @@ export type OutlierPost = {
   theme_tag: string | null;
 };
 
-export type TopHotelRow = {
-  rank: number;
-  name: string;
-  country: string | null;
-  er_pct: number;
-  instagram_handle: string;
-};
-
 export type BarItem = { label: string; value: number; count: number };
 
 export type WhatsWorkingSet = {
@@ -93,7 +82,8 @@ export type Snapshot = {
   median_followers: number | null;
 };
 
-export type FilterSet = {
+export type DashboardData = {
+  hotels: HotelRow[];
   snapshot: Snapshot;
   whatsWorking: WhatsWorkingSet;
   standout: OutlierPost[];
@@ -101,28 +91,17 @@ export type FilterSet = {
   breakout_count: number;
   /** Posts qualifying ≥10× this week */
   super_breakout_count: number;
-  hotel_count: number;
-  countries_count: number;
-  posts_count: number;
-};
-
-export type DashboardData = {
-  hotels: HotelRow[];
-  filters: Record<FilterKey, FilterSet>;
-  /** Global: top-10 vs rest, by overall ER — independent of filter */
+  /** Global: top-10 vs rest, by overall ER */
   frequency: { top10_ppw: number; rest_ppw: number };
-  /** How many hotels posted in the last 7 days (the eligible pool for Top-N) */
-  eligible_this_week: number;
-  insightText: string | null;
-  insightLabel: string | null;
-  takeaways: string[] | null;
-  topHotels: TopHotelRow[];
+  hotel_count: number;
   /** Distinct countries among hotels with post data */
   countries_count: number;
   /** Total valid posts (likes not hidden) across the full dataset */
   total_posts_analysed: number;
-  /** "26 Jun" — displayed in stats strip */
+  /** "26 Jun" — most recent post date in the data, NOT the render date */
   week_ending: string;
+  /** "26 JUN 2026" — footer "updated" stamp, derived from the same date */
+  week_ending_long: string;
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -186,7 +165,7 @@ type HotelMetrics = {
   er: number | null;
   ppw: number | null;
   lastPosted: string | null;
-  /** Median absolute engagement (likes+comments) across ALL valid posts — Content Radar breakout baseline */
+  /** Median absolute engagement (likes+comments) across ALL valid posts — breakout baseline */
   medianPostEngagement: number | null;
   medianLikes: number | null;
   medianComments: number | null;
@@ -236,7 +215,6 @@ function computeSnapshot(hotels: HotelRow[]): Snapshot {
 
 function computeStandout(
   recentValidPosts: RawPost[],
-  handleSet: Set<string> | null,
   hotelMetrics: Record<string, HotelMetrics>,
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
@@ -245,7 +223,6 @@ function computeStandout(
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
   for (const p of recentValidPosts) {
-    if (handleSet && !handleSet.has(p.instagram_handle)) continue;
     const m = hotelMetrics[p.instagram_handle];
     const postEngagement = p.likes_count + (p.comments_count ?? 0);
     if (postEngagement < MIN_ENGAGEMENT) continue;
@@ -278,7 +255,7 @@ function computeStandout(
       theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
     });
   }
-  // Count ALL qualifying posts before slicing for the stats strip
+  // Count ALL qualifying posts before slicing for the hero panel
   const breakout_count       = standout.length;
   const super_breakout_count = standout.filter(p => p.multiplier >= 10).length;
   standout.sort((a, b) => b.multiplier - a.multiplier);
@@ -288,32 +265,40 @@ function computeStandout(
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export async function getPortfolioData(): Promise<DashboardData> {
   const supabase = getSupabase();
+  const PAGE = 1000;
 
-  const [hotelsRes, snapshotsRes, insightRes, standoutPostsRes] = await Promise.all([
+  const [hotelsRes, standoutPostsRes] = await Promise.all([
     supabase.from('hotels').select('name, region, country, instagram_handle').order('name'),
-    supabase
-      .from('profile_snapshots')
-      .select('instagram_handle, followers_count, captured_at')
-      .order('captured_at', { ascending: false })
-      .range(0, 4999),
-    supabase
-      .from('insights')
-      .select('prose, week_label, takeaways')
-      .order('generated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
     supabase
       .from('standout_posts')
       .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag'),
   ]);
 
-  if (hotelsRes.error)    throw new Error(hotelsRes.error.message);
-  if (snapshotsRes.error) throw new Error(snapshotsRes.error.message);
-  // insights + standout_posts errors are non-fatal (tables may not exist yet)
+  if (hotelsRes.error) throw new Error(hotelsRes.error.message);
+  if (standoutPostsRes.error) {
+    // Non-fatal (table may not exist yet) — but never swallow it silently
+    console.error('standout_posts query failed:', standoutPostsRes.error.message);
+  }
+
+  // Paginate snapshots — a fixed range silently drops hotels once the table
+  // outgrows it (~10 scrape runs at 465 hotels per run)
+  type SnapshotRow = { instagram_handle: string; followers_count: number | null };
+  const snapshots: SnapshotRow[] = [];
+  for (let page = 0; ; page++) {
+    const { data, error } = await supabase
+      .from('profile_snapshots')
+      .select('instagram_handle, followers_count, captured_at')
+      .order('captured_at', { ascending: false })
+      .range(page * PAGE, page * PAGE + PAGE - 1);
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) break;
+    snapshots.push(...data);
+    if (data.length < PAGE) break;
+  }
 
   // Paginate posts
-  const PAGE = 1000;
   const allPosts: RawPost[] = [];
+  const seenPostIds = new Set<string>();
   for (let page = 0; ; page++) {
     const { data, error } = await supabase
       .from('posts')
@@ -323,12 +308,16 @@ export async function getPortfolioData(): Promise<DashboardData> {
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
-    allPosts.push(...data);
+    for (const p of data) {
+      // Rows can shift between pages if the pipeline uploads mid-fetch
+      if (seenPostIds.has(p.post_id)) continue;
+      seenPostIds.add(p.post_id);
+      allPosts.push(p);
+    }
     if (data.length < PAGE) break;
   }
 
-  const allHotels = hotelsRes.data  ?? [];
-  const snapshots = snapshotsRes.data ?? [];
+  const allHotels = hotelsRes.data ?? [];
 
   // ── Stored image URLs + per-post insights ─────────────────────────────────
   const storedImageUrl: Record<string, string | null> = {};
@@ -338,7 +327,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     storedInsight[r.post_id]  = { insight: r.post_insight ?? null, tag: r.driver_tag ?? null, theme_tag: r.theme_tag ?? null };
   }
 
-  // ── Latest followers per handle ───────────────────────────────────────────
+  // ── Latest followers per handle (snapshots are newest-first) ──────────────
   const latestFollowers: Record<string, number | null> = {};
   for (const s of snapshots) {
     if (!(s.instagram_handle in latestFollowers)) {
@@ -357,11 +346,8 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const now              = Date.now();
   const weekWindowMs     = POSTS_WEEK_WINDOW * 24 * 60 * 60 * 1000;
   const outlierWindowMs  = OUTLIER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-  const sevenDayMs       = 7 * 24 * 60 * 60 * 1000;
 
   const hotelMetrics: Record<string, HotelMetrics> = {};
-  // 7-day ER per hotel — used for Top-N ranking (surfaces who is trending now)
-  const weeklyERByHandle: Record<string, number>   = {};
 
   for (const [handle, posts] of Object.entries(postsByHandle)) {
     const followers  = latestFollowers[handle] ?? null;
@@ -373,7 +359,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       : [];
     const er = mean(last12ERs);
 
-    // Median absolute engagement (all valid posts) — Content Radar breakout baseline.
+    // Median absolute engagement (all valid posts) — breakout baseline.
     const allLikes       = validPosts.map(p => p.likes_count!);
     const allComments    = validPosts.map(p => p.comments_count ?? 0);
     const allEngagements = allLikes.map((l, i) => l + allComments[i]);
@@ -384,13 +370,6 @@ export async function getPortfolioData(): Promise<DashboardData> {
     // Posts per week (last 28 days)
     const recentCount = posts.filter(p => now - new Date(p.posted_at).getTime() < weekWindowMs).length;
     const ppw = recentCount / (POSTS_WEEK_WINDOW / 7);
-
-    // 7-day ER — only hotels that posted this week are eligible for Top-N
-    const recentValid = validPosts.filter(p => now - new Date(p.posted_at).getTime() <= sevenDayMs);
-    if (recentValid.length > 0 && followers && followers > 0) {
-      const weeklyER = mean(recentValid.map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers));
-      if (weeklyER !== null) weeklyERByHandle[handle] = weeklyER;
-    }
 
     hotelMetrics[handle] = {
       er,
@@ -448,17 +427,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     });
   }
 
-  // ── Top-N sets — ranked by trailing 7-day ER ─────────────────────────────
-  const eligible_this_week = Object.keys(weeklyERByHandle).length;
-  const rankedByWeekly = Object.entries(weeklyERByHandle)
-    .sort((a, b) => b[1] - a[1])
-    .map(([handle]) => handle);
-
-  const top50Set = new Set(rankedByWeekly.slice(0, 50));
-  const top30Set = new Set(rankedByWeekly.slice(0, 30));
-  const top10Set = new Set(rankedByWeekly.slice(0, 10));
-
-  // ── Recent valid posts (for standout computation) ─────────────────────────
+  // ── Valid posts ───────────────────────────────────────────────────────────
   const recentValidPosts = allPosts.filter(
     p => now - new Date(p.posted_at).getTime() <= outlierWindowMs &&
          p.likes_count !== -1 && p.likes_count !== null
@@ -467,30 +436,11 @@ export async function getPortfolioData(): Promise<DashboardData> {
     p => p.likes_count !== -1 && p.likes_count !== null
   );
 
-  // ── Shared standout builder args ──────────────────────────────────────────
-  const standoutArgs = [
-    hotelMetrics, hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight,
-  ] as const;
-
-  // ── Top-5 leaderboard: median 7-day ER, follower-gated ──────────────────────
-  const topHotelsRaw: { name: string; country: string | null; er_pct: number; instagram_handle: string }[] = [];
-  for (const [handle, posts] of Object.entries(postsByHandle)) {
-    const followers = latestFollowers[handle];
-    if (!followers || followers < MIN_LEADERBOARD_FOLLOWERS) continue;
-    const recentValid = posts.filter(
-      p => now - new Date(p.posted_at).getTime() <= sevenDayMs &&
-           p.likes_count !== -1 && p.likes_count !== null
-    );
-    if (!recentValid.length) continue;
-    const ers = recentValid.map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers * 100);
-    const erMedian = median(ers);
-    if (erMedian === null) continue;
-    topHotelsRaw.push({ name: hotelNameByHandle[handle] ?? handle, country: hotelCountryByHandle[handle] ?? null, er_pct: erMedian, instagram_handle: handle });
-  }
-  const topHotels: TopHotelRow[] = topHotelsRaw
-    .sort((a, b) => b.er_pct - a.er_pct)
-    .slice(0, 5)
-    .map((h, i) => ({ ...h, rank: i + 1, instagram_handle: h.instagram_handle }));
+  // ── Breakouts ─────────────────────────────────────────────────────────────
+  const { posts: standout, breakout_count, super_breakout_count } = computeStandout(
+    recentValidPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
+    storedImageUrl, storedInsight,
+  );
 
   // ── Global frequency (top 10 vs rest by overall ER) ──────────────────────
   const rankedByOverall = [...hotelRows]
@@ -501,50 +451,26 @@ export async function getPortfolioData(): Promise<DashboardData> {
     rest_ppw:  mean(rankedByOverall.slice(10).map(h => h.posts_per_week!))    ?? 0,
   };
 
-  // ── Compute all 4 filter sets ─────────────────────────────────────────────
-  function makeFilterSet(handleSet: Set<string> | null): FilterSet {
-    const hotels = handleSet
-      ? hotelRows.filter(h => handleSet.has(h.instagram_handle))
-      : hotelRows;
-    const posts = handleSet
-      ? validForAnalysis.filter(p => handleSet.has(p.instagram_handle))
-      : validForAnalysis;
-    const { posts: standout, breakout_count, super_breakout_count } =
-      computeStandout(recentValidPosts, handleSet, ...standoutArgs);
-    return {
-      snapshot:            computeSnapshot(hotels),
-      whatsWorking:        computeWhatsWorking(posts, latestFollowers),
-      standout,
-      breakout_count,
-      super_breakout_count,
-      hotel_count:         hotels.length,
-      countries_count:     new Set(hotels.map(h => h.country).filter(Boolean)).size,
-      posts_count:         posts.length,
-    };
-  }
-
-  const filters: Record<FilterKey, FilterSet> = {
-    all:   makeFilterSet(null),
-    top50: makeFilterSet(top50Set),
-    top30: makeFilterSet(top30Set),
-    top10: makeFilterSet(top10Set),
-  };
-
-  const countries_count       = new Set(hotelRows.map(h => h.country).filter(Boolean)).size;
-  const total_posts_analysed  = validForAnalysis.length;
-  const week_ending           = new Date(now).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  // ── Week ending — from the data, not the render date ─────────────────────
+  // allPosts is ordered newest-first, so the first post carries the latest date.
+  const latestPostDate = allPosts[0] ? new Date(allPosts[0].posted_at) : new Date(now);
+  const week_ending = latestPostDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const week_ending_long = latestPostDate
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    .toUpperCase();
 
   return {
     hotels: hotelRows,
-    filters,
+    snapshot:      computeSnapshot(hotelRows),
+    whatsWorking:  computeWhatsWorking(validForAnalysis, latestFollowers),
+    standout,
+    breakout_count,
+    super_breakout_count,
     frequency,
-    eligible_this_week,
-    insightText:  insightRes.data?.prose      ?? null,
-    insightLabel: insightRes.data?.week_label ?? null,
-    takeaways:    (insightRes.data?.takeaways as string[] | null) ?? null,
-    topHotels,
-    countries_count,
-    total_posts_analysed,
+    hotel_count:          hotelRows.length,
+    countries_count:      new Set(hotelRows.map(h => h.country).filter(Boolean)).size,
+    total_posts_analysed: validForAnalysis.length,
     week_ending,
+    week_ending_long,
   };
 }

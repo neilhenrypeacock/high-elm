@@ -2,36 +2,30 @@
 
 import { useState, useMemo } from 'react';
 import type { HotelRow } from '@/lib/data';
+import { fmtFollowers, fmtDate, fmtNumber } from '@/lib/format';
 
 type SortKey = 'name' | 'followers_count' | 'engagement_rate' | 'posts_per_week' | 'last_posted';
 type SortDir = 'asc' | 'desc';
 
-function fmt(n: number | null, decimals = 0): string {
-  if (n === null) return '—';
-  return n.toLocaleString('en-GB', { maximumFractionDigits: decimals });
-}
+const LABEL = "var(--font-label), 'Space Mono', monospace";
+const GRID: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '42px 2.4fr 1.1fr 0.8fr 1.4fr 0.8fr 1fr',
+  gap: 24,
+  padding: '16px 24px',
+  alignItems: 'center',
+};
+const DEFAULT_VISIBLE = 10;
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function fmtFollowers(n: number | null): string {
-  if (n === null) return '—';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + 'k';
-  return n.toString();
-}
-
-function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
-  return (
-    <span className="ml-1 inline-block text-xs" style={{ color: active ? 'var(--signal)' : 'var(--line)' }}>
-      {active ? (dir === 'asc' ? '↑' : '↓') : '↕'}
-    </span>
-  );
-}
-
-const DEFAULT_VISIBLE = 30;
+const COLUMNS: { key: SortKey | null; label: string; align?: 'right'; className?: string }[] = [
+  { key: null, label: '#' },
+  { key: 'name', label: 'Hotel' },
+  { key: null, label: 'Region', className: 'cr-lb-region' },
+  { key: 'followers_count', label: 'Followers', align: 'right' },
+  { key: 'engagement_rate', label: 'Eng. rate' },
+  { key: 'posts_per_week', label: 'Posts/wk', align: 'right', className: 'cr-lb-ppw' },
+  { key: 'last_posted', label: 'Last posted', align: 'right', className: 'cr-lb-last' },
+];
 
 export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; regions: string[] }) {
   const [sortKey, setSortKey] = useState<SortKey>('engagement_rate');
@@ -42,7 +36,7 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
       setSortDir('desc');
@@ -54,9 +48,8 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
     if (regionFilter !== 'All') rows = rows.filter(h => h.region === regionFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
-      rows = rows.filter(h =>
-        h.name.toLowerCase().includes(q) ||
-        h.instagram_handle.toLowerCase().includes(q)
+      rows = rows.filter(
+        h => h.name.toLowerCase().includes(q) || h.instagram_handle.toLowerCase().includes(q)
       );
     }
     return [...rows].sort((a, b) => {
@@ -70,130 +63,244 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
     });
   }, [hotels, sortKey, sortDir, regionFilter, search]);
 
-  const th = 'text-left text-xs font-medium uppercase tracking-wider cursor-pointer select-none px-4 py-3 whitespace-nowrap';
-  const td = 'px-4 py-3 text-sm';
+  const maxEr = useMemo(
+    () => Math.max(...hotels.map(h => h.engagement_rate ?? 0), 0.001),
+    [hotels]
+  );
+
+  const visible = showAll ? filtered : filtered.slice(0, DEFAULT_VISIBLE);
+  // Top-3 emphasis only means something when ranked by ER descending (the default)
+  const highlightTop3 = sortKey === 'engagement_rate' && sortDir === 'desc';
 
   return (
-    <div>
-      {/* Controls */}
-      <div className="flex flex-wrap gap-3 mb-4">
+    <div style={{ marginTop: 32 }}>
+      {/* Filter row */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 18 }}>
         <input
           type="text"
           placeholder="Search hotel or handle…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="px-3 py-2 rounded-lg text-sm outline-none w-64"
-          style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--ink)', borderRadius: 8 }}
+          style={{
+            flex: 1,
+            maxWidth: 280,
+            fontSize: 13,
+            fontFamily: 'inherit',
+            color: 'var(--ink)',
+            background: 'var(--surface)',
+            border: '1px solid var(--line)',
+            borderRadius: 10,
+            padding: '10px 14px',
+            outline: 'none',
+          }}
         />
         <select
           value={regionFilter}
           onChange={e => setRegionFilter(e.target.value)}
-          className="px-3 py-2 rounded-lg text-sm outline-none"
-          style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+          aria-label="Filter by region"
+          style={{
+            fontSize: 13,
+            fontFamily: 'inherit',
+            color: 'var(--ink)',
+            background: 'var(--surface)',
+            border: '1px solid var(--line)',
+            borderRadius: 10,
+            padding: '10px 14px',
+            outline: 'none',
+          }}
         >
-          <option value="All">All countries</option>
-          {regions.map(r => <option key={r} value={r}>{r}</option>)}
+          <option value="All">All regions</option>
+          {regions.map(r => (
+            <option key={r} value={r}>{r}</option>
+          ))}
         </select>
-        <span className="ml-auto text-sm self-center" style={{ color: 'var(--muted)' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--faint)' }}>
           {filtered.length} hotels
         </span>
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--line)' }}>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead style={{ background: 'var(--card-soft)' }}>
-              <tr>
-                <th className={th} style={{ color: 'var(--muted)' }} onClick={() => handleSort('name')}>
-                  Hotel <SortIcon active={sortKey === 'name'} dir={sortDir} />
-                </th>
-                <th className={th} style={{ color: 'var(--muted)' }}>Country</th>
-                <th className={th} style={{ color: 'var(--muted)' }} onClick={() => handleSort('followers_count')}>
-                  Followers <SortIcon active={sortKey === 'followers_count'} dir={sortDir} />
-                </th>
-                <th className={th} style={{ color: 'var(--muted)' }} onClick={() => handleSort('engagement_rate')}>
-                  Eng. rate <SortIcon active={sortKey === 'engagement_rate'} dir={sortDir} />
-                </th>
-                <th className={th} style={{ color: 'var(--muted)' }} onClick={() => handleSort('posts_per_week')}>
-                  Posts/wk <SortIcon active={sortKey === 'posts_per_week'} dir={sortDir} />
-                </th>
-                <th className={th} style={{ color: 'var(--muted)' }} onClick={() => handleSort('last_posted')}>
-                  Last posted <SortIcon active={sortKey === 'last_posted'} dir={sortDir} />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {(showAll ? filtered : filtered.slice(0, DEFAULT_VISIBLE)).map((h, i) => (
-                <tr
-                  key={h.instagram_handle}
-                  style={{
-                    background: i % 2 === 0 ? 'var(--card)' : 'var(--card-soft)',
-                    borderTop: '1px solid var(--line)',
-                  }}
-                >
-                  <td className={td}>
-                    <div className="font-medium" style={{ color: 'var(--ink)' }}>{h.name}</div>
-                    <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>@{h.instagram_handle}</div>
-                  </td>
-                  <td className={td} style={{ color: 'var(--muted)' }}>{h.region ?? '—'}</td>
-                  <td className={td} style={{ color: 'var(--ink)' }}>{fmtFollowers(h.followers_count)}</td>
-                  <td className={td}>
-                    {h.er_flag_reason ? (
-                      <span title={h.er_flag_reason} className="cursor-help">
-                        <span style={{ color: 'var(--signal-deep)' }}>⚠</span>
-                        <span className="ml-1 text-xs" style={{ color: 'var(--muted)' }}>
-                          {h.er_flag_reason}
-                        </span>
-                      </span>
-                    ) : h.engagement_rate !== null ? (
-                      <span style={{ color: h.engagement_rate >= 1 ? 'var(--signal-deep)' : 'var(--ink)' }}>
-                        {fmt(h.engagement_rate, 2)}%
-                      </span>
-                    ) : <span style={{ color: 'var(--muted)' }}>—</span>}
-                  </td>
-                  <td className={td} style={{ color: 'var(--ink)' }}>{h.posts_per_week !== null ? fmt(h.posts_per_week, 1) : '—'}</td>
-                  <td className={td} style={{ color: 'var(--muted)' }}>{fmtDate(h.last_posted)}</td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                    No hotels match your filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* Table card */}
+      <div
+        role="table"
+        aria-label="Hotel leaderboard"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--line)',
+          borderRadius: 14,
+          overflow: 'hidden',
+          boxShadow: 'var(--shadow-card)',
+        }}
+      >
+        {/* Header */}
+        <div role="row" className="cr-lb-row" style={{ ...GRID, background: 'var(--ink)' }}>
+          {COLUMNS.map(col => {
+            const active = col.key !== null && sortKey === col.key;
+            const headerStyle: React.CSSProperties = {
+              fontFamily: LABEL,
+              fontSize: 10,
+              textTransform: 'uppercase',
+              letterSpacing: '0.14em',
+              color: active ? '#F7F6F2' : '#A49D92',
+              textAlign: col.align ?? 'left',
+            };
+            return (
+              <div
+                key={col.label}
+                role="columnheader"
+                aria-sort={active ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+                className={col.className}
+                style={headerStyle}
+              >
+                {col.key ? (
+                  <button
+                    onClick={() => handleSort(col.key!)}
+                    style={{
+                      all: 'unset',
+                      cursor: 'pointer',
+                      font: 'inherit',
+                      color: 'inherit',
+                      letterSpacing: 'inherit',
+                      textTransform: 'inherit',
+                    }}
+                  >
+                    {col.label} {active ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                  </button>
+                ) : (
+                  col.label
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {/* Body */}
+        {visible.map((h, i) => {
+          const top3 = highlightTop3 && i < 3 && !search.trim() && regionFilter === 'All';
+          const bg = top3 ? 'var(--top3-tint)' : i % 2 === 1 ? 'var(--surface-alt)' : 'var(--surface)';
+          const hot = h.engagement_rate !== null && h.engagement_rate >= 1;
+          const barW = h.engagement_rate !== null
+            ? Math.max(6, Math.round((h.engagement_rate / maxEr) * 100))
+            : 0;
+
+          return (
+            <div
+              key={h.instagram_handle}
+              role="row"
+              className="cr-lb-row cr-lb-body-row"
+              style={{ ...GRID, background: bg, borderTop: '1px solid var(--line-soft)' }}
+            >
+              <div
+                role="cell"
+                style={{
+                  fontSize: 12,
+                  fontWeight: top3 ? 700 : 400,
+                  color: top3 ? 'var(--signal-deep)' : 'var(--faint)',
+                }}
+              >
+                {i + 1}
+              </div>
+
+              <div role="cell" style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {h.name}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 2 }}>@{h.instagram_handle}</div>
+              </div>
+
+              <div role="cell" className="cr-lb-region" style={{ fontSize: 12, color: 'var(--muted)' }}>
+                {h.region ?? '—'}
+              </div>
+
+              <div role="cell" style={{ fontSize: 12, color: 'var(--ink)', textAlign: 'right' }}>
+                {fmtFollowers(h.followers_count).toLowerCase()}
+              </div>
+
+              <div role="cell">
+                {h.er_flag_reason ? (
+                  <span title={h.er_flag_reason} style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: 'var(--signal-deep)' }}>⚠</span>
+                    <span style={{ fontFamily: LABEL, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
+                      flagged
+                    </span>
+                  </span>
+                ) : h.engagement_rate !== null ? (
+                  <>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: hot ? 'var(--signal-deep)' : 'var(--ink)' }}>
+                      {fmtNumber(h.engagement_rate, 2)}%
+                    </span>
+                    <div style={{ height: 4, marginTop: 5, marginRight: 24, background: 'var(--track)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${barW}%`,
+                          borderRadius: 2,
+                          background: hot ? 'var(--signal)' : 'var(--bar-grey)',
+                        }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--faint)' }}>—</span>
+                )}
+              </div>
+
+              <div role="cell" className="cr-lb-ppw" style={{ fontSize: 12, color: 'var(--ink)', textAlign: 'right' }}>
+                {h.posts_per_week !== null ? fmtNumber(h.posts_per_week, 1) : '—'}
+              </div>
+
+              <div role="cell" className="cr-lb-last" style={{ fontSize: 12, color: 'var(--faint)', textAlign: 'right' }}>
+                {fmtDate(h.last_posted)}
+              </div>
+            </div>
+          );
+        })}
+
+        {filtered.length === 0 && (
+          <div style={{ padding: '40px 24px', textAlign: 'center', fontSize: 14, color: 'var(--body-mid)', borderTop: '1px solid var(--line-soft)' }}>
+            No hotels match your filters.
+          </div>
+        )}
+
+        {/* Footer row */}
+        {filtered.length > DEFAULT_VISIBLE && (
+          <div
+            style={{
+              padding: '14px 24px',
+              borderTop: '1px solid var(--line-soft)',
+              fontSize: 12,
+              color: 'var(--body-mid)',
+            }}
+          >
+            {showAll ? (
+              <>
+                Showing all {filtered.length} hotels ·{' '}
+                <button
+                  onClick={() => setShowAll(false)}
+                  style={{ all: 'unset', cursor: 'pointer', color: 'var(--signal-deep)', fontWeight: 500 }}
+                >
+                  view less ↑
+                </button>
+              </>
+            ) : (
+              <>
+                Showing top {DEFAULT_VISIBLE} of {filtered.length} ·{' '}
+                <button
+                  onClick={() => setShowAll(true)}
+                  style={{ all: 'unset', cursor: 'pointer', color: 'var(--signal-deep)', fontWeight: 500 }}
+                >
+                  view more ↓
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      {filtered.length > DEFAULT_VISIBLE && (
-        <div className="mt-3 text-center">
-          {showAll ? (
-            <button
-              onClick={() => setShowAll(false)}
-              className="text-sm px-4 py-2 rounded-lg transition-colors"
-              style={{ background: 'var(--card)', color: 'var(--muted)', border: '1px solid var(--line)' }}
-            >
-              Show fewer
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowAll(true)}
-              className="text-sm px-4 py-2 rounded-lg transition-colors"
-              style={{ background: 'var(--card)', color: 'var(--signal-deep)', border: '1px solid var(--line)' }}
-            >
-              Show all {filtered.length} hotels
-            </button>
-          )}
-        </div>
-      )}
-
-      <p className="mt-3 text-xs" style={{ color: 'var(--muted)' }}>
-        Engagement rate = avg(likes + comments) on last 12 posts ÷ followers × 100. Requires ≥{3} posts with visible
-        likes; ER above 10% is flagged <span style={{ color: 'var(--signal-deep)' }}>⚠</span> and excluded from category averages.
-        Data reflects public Instagram information only — no reach or impressions.
+      <p style={{ marginTop: 14, fontSize: 12, color: 'var(--faint)', lineHeight: 1.6 }}>
+        Engagement rate = mean(likes + comments) on the last 12 posts ÷ followers × 100. Requires ≥3
+        posts with visible likes; rates above 10% are flagged{' '}
+        <span style={{ color: 'var(--signal-deep)' }}>⚠</span> and excluded from category medians. Public
+        Instagram data only — no reach or impressions.
       </p>
     </div>
   );

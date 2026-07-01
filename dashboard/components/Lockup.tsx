@@ -1,8 +1,10 @@
 import MarkSvg from './MarkSvg';
 
-// Content Radar brand lockup — implements the identity spec exactly.
-// variant="secondary" = mark + wordmark (nav use)
-// variant="primary"   = mark + wordmark + "powered by High Elm Studio" (footer use)
+// Content Radar brand lockup — proportions locked in the logo component spec:
+// mark = 0.724×, gap = 0.207×, endorsement = 0.172× of the wordmark size,
+// endorsement right-flush under the final "r" of "radar".
+// variant="secondary" = mark + wordmark
+// variant="primary"   = mark + wordmark + "powered by High Elm Studio"
 
 interface LockupProps {
   variant?: 'primary' | 'secondary';
@@ -12,9 +14,9 @@ interface LockupProps {
 
 export default function Lockup({ variant = 'secondary', size = 28, onDark = false }: LockupProps) {
   const wm = size;
-  const markSize = wm * 0.72;
-  const gap = wm * 0.20;
-  const endoSize = wm * 0.17;
+  const markSize = wm * 0.724;
+  const gap = wm * 0.207;
+  const endoSize = wm * 0.172;
   const endoGap = wm * 0.03;
 
   const inkColor = onDark ? '#F7F6F2' : '#262420';
@@ -27,7 +29,7 @@ export default function Lockup({ variant = 'secondary', size = 28, onDark = fals
         <MarkSvg size={markSize} color={inkColor} />
         <span
           style={{
-            font: `800 ${wm}px/0.86 var(--font-wordmark, 'Baloo 2', sans-serif)`,
+            font: `800 ${wm}px/0.86 var(--font-display, 'Baloo 2', sans-serif)`,
             letterSpacing: '-0.035em',
             whiteSpace: 'nowrap',
             color: inkColor,
@@ -43,7 +45,7 @@ export default function Lockup({ variant = 'secondary', size = 28, onDark = fals
           style={{
             marginTop: endoGap,
             textAlign: 'right',
-            font: `400 ${endoSize}px/1 var(--font-mono, 'JetBrains Mono', monospace)`,
+            font: `400 ${endoSize}px/1 var(--font-label, 'Space Mono', monospace)`,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: mutedColor,
