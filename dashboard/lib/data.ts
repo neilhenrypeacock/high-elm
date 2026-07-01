@@ -105,19 +105,19 @@ export type DashboardData = {
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function median(values: number[]): number | null {
+export function median(values: number[]): number | null {
   if (!values.length) return null;
   const s = [...values].sort((a, b) => a - b);
   const m = Math.floor(s.length / 2);
   return s.length % 2 === 0 ? (s[m - 1] + s[m]) / 2 : s[m];
 }
 
-function mean(values: number[]): number | null {
+export function mean(values: number[]): number | null {
   if (!values.length) return null;
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-function normalizeType(t: string | null): string {
+export function normalizeType(t: string | null): string {
   if (!t) return 'Other';
   switch (t.toLowerCase()) {
     case 'sidecar': return 'Carousel';
@@ -128,14 +128,14 @@ function normalizeType(t: string | null): string {
   }
 }
 
-function captionBucket(caption: string | null): string {
+export function captionBucket(caption: string | null): string {
   const len = (caption ?? '').length;
   if (len < CAPTION_SHORT_MAX)  return 'Short';
   if (len < CAPTION_MEDIUM_MAX) return 'Medium';
   return 'Long';
 }
 
-function groupMedianER(
+export function groupMedianER(
   posts: { er: number; label: string }[],
   labelOrder: string[]
 ): BarItem[] {
@@ -149,7 +149,7 @@ function groupMedianER(
     .map(l => ({ label: l, value: median(buckets[l])! * 100, count: buckets[l].length }));
 }
 
-type RawPost = {
+export type RawPost = {
   post_id: string;
   instagram_handle: string;
   likes_count: number;
@@ -161,7 +161,7 @@ type RawPost = {
   post_url: string | null;
 };
 
-type HotelMetrics = {
+export type HotelMetrics = {
   er: number | null;
   ppw: number | null;
   lastPosted: string | null;
@@ -173,7 +173,7 @@ type HotelMetrics = {
   validPostCount: number;
 };
 
-function computeWhatsWorking(
+export function computeWhatsWorking(
   posts: RawPost[],
   latestFollowers: Record<string, number | null>
 ): WhatsWorkingSet {
@@ -202,7 +202,7 @@ function computeWhatsWorking(
   };
 }
 
-function computeSnapshot(hotels: HotelRow[]): Snapshot {
+export function computeSnapshot(hotels: HotelRow[]): Snapshot {
   const ers       = hotels.map(h => h.engagement_rate).filter((e): e is number => e !== null);
   const ppws      = hotels.map(h => h.posts_per_week).filter((p): p is number => p !== null);
   const followers = hotels.map(h => h.followers_count).filter((f): f is number => f !== null);
@@ -213,7 +213,7 @@ function computeSnapshot(hotels: HotelRow[]): Snapshot {
   };
 }
 
-function computeStandout(
+export function computeStandout(
   recentValidPosts: RawPost[],
   hotelMetrics: Record<string, HotelMetrics>,
   hotelNameByHandle: Record<string, string>,

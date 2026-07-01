@@ -32,6 +32,7 @@ function ImageWithFallback({ src, alt, fallback }: { src: string | null; alt: st
   }
   return (
     // Instagram CDN images are external and short-lived — plain <img> with a fallback
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
