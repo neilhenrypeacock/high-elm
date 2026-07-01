@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+:root {
+  /* ── Elevation ladder ── */
+  --bg:          #EEEBE4;   /* page background (sunken) */
+  --card:        #F7F6F2;   /* panels / cards (surface — floats above page) */
+  --raised:      #FDFCFA;   /* hover / selected state */
+  --inverse:     #1F1D1A;   /* dark bands (signal band, footer) */
+  --card-soft:   #EEEBE4;   /* flush / de-emphasised panel */
+  --line:        #E4E0D7;   /* hairline borders on light */
+  --line-strong: #D6D2C8;
+  --radius:      12px;
+
+  /* ── Text ── */
+  --ink:         #262420;
+  --muted:       #9A8F7E;
+  --faint:       #9A8F7E;
+
+  /* ── Signal — teal is the brand accent (mark centre, live dot) ── */
+  --signal:       #5B9BAA;
+  --signal-deep:  #3D7A8A;
+  --signal-light: #8BBDC9;
+
+  /* ── Amber — outperformance / heat ── */
+  --amber-ink:      #BA7517;
+  --amber-fill:     #EF9F27;
+  --amber-wash:     rgba(239,159,39,0.07);
+  --amber-hairline: rgba(186,117,23,0.18);
+
+  /* ── Sage — leaderboard rank ramp (dark → light by rank) ── */
+  --sage-600: #1D9E75;
+  --sage-500: #38AC86;
+  --sage-400: #5DCAA5;
+  --sage-300: #84D6BC;
+  --sage-200: #9FE1CB;
+
+  /* ── Quiet secondary (dividers, tags only) ── */
+  --sage:        #8A9079;
+
+  /* ── Legacy aliases ── */
+  --sage-text:   #3D7A8A;   /* → signal-deep */
+  --amber:       #5B9BAA;   /* → signal */
+  --amber-text:  #3D7A8A;   /* → signal-deep */
+  --ocean:       #5B9BAA;   /* → signal */
+  --ocean-deep:  #3D7A8A;   /* → signal-deep */
+  --green-ink:   #3D7A8A;   /* → signal-deep */
+  --espresso:    #262420;
+  --base:        #EEEBE4;
+  --surface:     #F7F6F2;
+  --surface-2:   #EEEBE4;
+  --border:      #E4E0D7;
+  --text:        #262420;
+  --text-muted:  #9A8F7E;
+  --accent:      #5B9BAA;
+
+  /* ── Structure ── */
+  --shadow:      0 1px 2px rgba(38,36,32,.04), 0 4px 12px rgba(38,36,32,.06);
+  --shadow-lift: 0 2px 4px rgba(38,36,32,.06), 0 8px 24px rgba(38,36,32,.1);
+
+  /* ── Font stacks ── */
+  --font-display: var(--font-wordmark);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  line-height: 1.6;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ── ContentRadar large card — responsive layout ── */
+.large-card-layout {
+  display: flex;
+  flex-direction: column;
+}
+.large-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  text-decoration: none;
+  display: block;
+}
+@media (min-width: 640px) {
+  .large-card-layout { flex-direction: row; min-height: 380px; }
+  .large-card-image   { width: 42%; aspect-ratio: unset; }
+}

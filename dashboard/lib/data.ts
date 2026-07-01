@@ -1,0 +1,550 @@
+import { getSupabase } from './supabase';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const HOTEL_ER_POSTS      = 12;
+const OUTLIER_THRESHOLD   = 2;
+const OUTLIER_WINDOW_DAYS = 7
+const MIN_LEADERBOARD_FOLLOWERS = 1_000  // hotels below this follower count skipped in top-5 ER panel;
+const POSTS_WEEK_WINDOW   = 28;
+const CAPTION_SHORT_MAX   = 100;
+const CAPTION_MEDIUM_MAX  = 300;
+const MAX_STANDOUT_POSTS      = 25;
+// Absolute engagement floor — posts below this threshold are treated as noise.
+const MIN_ENGAGEMENT          = 100;
+// Hotel ER reliability guards — flagged hotels are excluded from category stats.
+const MIN_VALID_POSTS         = 3;   // need ≥3 posts with visible likes for a reliable ER
+const ER_ANOMALY_THRESHOLD    = 10;  // ER above 10% is implausibly high — flag for review
+// Breakout baseline window — median computed from recent posts only.
+const BASELINE_POSTS          = 25;  // use at most this many recent posts for the baseline
+const BASELINE_MAX_AGE_DAYS   = 183; // exclude posts older than ~6 months
+const BASELINE_MIN_POSTS      = 12;  // fewer qualifying posts → low-confidence baseline (reuses er_flag_reason)
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+const HOUR_BLOCKS: [string, number, number][] = [
+  ['Midnight (0–5)',    0,  5],
+  ['Morning (6–11)',    6, 11],
+  ['Afternoon (12–17)', 12, 17],
+  ['Evening (18–23)',  18, 23],
+];
+const FORMAT_ORDER = ['Carousel', 'Reel', 'Video', 'Photo', 'Other'];
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+export type FilterKey = 'all' | 'top50' | 'top30' | 'top10';
+
+export type HotelRow = {
+  name: string;
+  region: string | null;
+  country: string | null;
+  instagram_handle: string;
+  followers_count: number | null;
+  /** Null when flagged (too few posts or anomalous value) — excluded from all stats */
+  engagement_rate: number | null;
+  posts_per_week: number | null;
+  last_posted: string | null;
+  /** Non-null when ER is unreliable; shown as ⚠ in leaderboard */
+  er_flag_reason: string | null;
+};
+
+export type OutlierPost = {
+  hotel_name: string;
+  hotel_country: string | null;
+  hotel_followers: number | null;
+  instagram_handle: string;
+  post_id: string;
+  type: string | null;
+  likes_count: number;
+  comments_count: number;
+  image_url: string | null;
+  post_url: string | null;
+  multiplier: number;
+  /** Per-metric lift ratios vs hotel median */
+  likes_multiple: number;
+  comments_multiple: number;
+  /** Hotel's typical absolute engagement (median) */
+  hotel_typical_total: number | null;
+  hotel_typical_likes: number | null;
+  hotel_typical_comments: number | null;
+  posted_at: string;
+  post_insight: string | null;
+  driver_tag: string | null;
+  theme_tag: string | null;
+};
+
+export type TopHotelRow = {
+  rank: number;
+  name: string;
+  country: string | null;
+  er_pct: number;
+  instagram_handle: string;
+};
+
+export type BarItem = { label: string; value: number; count: number };
+
+export type WhatsWorkingSet = {
+  by_format: BarItem[];
+  by_caption: BarItem[];
+  by_day: BarItem[];
+  by_hour_block: BarItem[];
+};
+
+export type Snapshot = {
+  median_er: number | null;
+  median_ppw: number | null;
+  median_followers: number | null;
+};
+
+export type FilterSet = {
+  snapshot: Snapshot;
+  whatsWorking: WhatsWorkingSet;
+  standout: OutlierPost[];
+  /** Total posts qualifying ≥2× this week (before top-25 slice) */
+  breakout_count: number;
+  /** Posts qualifying ≥10× this week */
+  super_breakout_count: number;
+  hotel_count: number;
+  countries_count: number;
+  posts_count: number;
+};
+
+export type DashboardData = {
+  hotels: HotelRow[];
+  filters: Record<FilterKey, FilterSet>;
+  /** Global: top-10 vs rest, by overall ER — independent of filter */
+  frequency: { top10_ppw: number; rest_ppw: number };
+  /** How many hotels posted in the last 7 days (the eligible pool for Top-N) */
+  eligible_this_week: number;
+  insightText: string | null;
+  insightLabel: string | null;
+  takeaways: string[] | null;
+  topHotels: TopHotelRow[];
+  /** Distinct countries among hotels with post data */
+  countries_count: number;
+  /** Total valid posts (likes not hidden) across the full dataset */
+  total_posts_analysed: number;
+  /** "26 Jun" — displayed in stats strip */
+  week_ending: string;
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function median(values: number[]): number | null {
+  if (!values.length) return null;
+  const s = [...values].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 === 0 ? (s[m - 1] + s[m]) / 2 : s[m];
+}
+
+function mean(values: number[]): number | null {
+  if (!values.length) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+function normalizeType(t: string | null): string {
+  if (!t) return 'Other';
+  switch (t.toLowerCase()) {
+    case 'sidecar': return 'Carousel';
+    case 'image':   return 'Photo';
+    case 'video':   return 'Video';
+    case 'reel':    return 'Reel';
+    default:        return 'Other';
+  }
+}
+
+function captionBucket(caption: string | null): string {
+  const len = (caption ?? '').length;
+  if (len < CAPTION_SHORT_MAX)  return 'Short';
+  if (len < CAPTION_MEDIUM_MAX) return 'Medium';
+  return 'Long';
+}
+
+function groupMedianER(
+  posts: { er: number; label: string }[],
+  labelOrder: string[]
+): BarItem[] {
+  const buckets: Record<string, number[]> = {};
+  for (const p of posts) {
+    if (!buckets[p.label]) buckets[p.label] = [];
+    buckets[p.label].push(p.er);
+  }
+  return labelOrder
+    .filter(l => buckets[l]?.length)
+    .map(l => ({ label: l, value: median(buckets[l])! * 100, count: buckets[l].length }));
+}
+
+type RawPost = {
+  post_id: string;
+  instagram_handle: string;
+  likes_count: number;
+  comments_count: number;
+  posted_at: string;
+  type: string | null;
+  caption: string | null;
+  image_url: string | null;
+  post_url: string | null;
+};
+
+type HotelMetrics = {
+  er: number | null;
+  ppw: number | null;
+  lastPosted: string | null;
+  /** Median absolute engagement (likes+comments) across ALL valid posts — Content Radar breakout baseline */
+  medianPostEngagement: number | null;
+  medianLikes: number | null;
+  medianComments: number | null;
+  followers: number | null;
+  validPostCount: number;
+};
+
+function computeWhatsWorking(
+  posts: RawPost[],
+  latestFollowers: Record<string, number | null>
+): WhatsWorkingSet {
+  const byFormat:  { er: number; label: string }[] = [];
+  const byCaption: { er: number; label: string }[] = [];
+  const byDay:     { er: number; label: string }[] = [];
+  const byHour:    { er: number; label: string }[] = [];
+
+  for (const p of posts) {
+    const f = latestFollowers[p.instagram_handle];
+    if (!f || f <= 0) continue;
+    const er = (p.likes_count + (p.comments_count ?? 0)) / f;
+    byFormat.push({ er, label: normalizeType(p.type) });
+    byCaption.push({ er, label: captionBucket(p.caption) });
+    byDay.push({ er, label: DAYS[new Date(p.posted_at).getUTCDay()] });
+    const h = new Date(p.posted_at).getUTCHours();
+    const block = HOUR_BLOCKS.find(([, lo, hi]) => h >= lo && h <= hi);
+    if (block) byHour.push({ er, label: block[0] });
+  }
+
+  return {
+    by_format:     groupMedianER(byFormat,  FORMAT_ORDER).sort((a, b) => b.value - a.value),
+    by_caption:    groupMedianER(byCaption, ['Short', 'Medium', 'Long']),
+    by_day:        groupMedianER(byDay,     [...DAYS]),
+    by_hour_block: groupMedianER(byHour,    HOUR_BLOCKS.map(b => b[0])),
+  };
+}
+
+function computeSnapshot(hotels: HotelRow[]): Snapshot {
+  const ers       = hotels.map(h => h.engagement_rate).filter((e): e is number => e !== null);
+  const ppws      = hotels.map(h => h.posts_per_week).filter((p): p is number => p !== null);
+  const followers = hotels.map(h => h.followers_count).filter((f): f is number => f !== null);
+  return {
+    median_er:        median(ers),
+    median_ppw:       median(ppws),
+    median_followers: median(followers),
+  };
+}
+
+function computeStandout(
+  recentValidPosts: RawPost[],
+  handleSet: Set<string> | null,
+  hotelMetrics: Record<string, HotelMetrics>,
+  hotelNameByHandle: Record<string, string>,
+  hotelCountryByHandle: Record<string, string | null>,
+  storedImageUrl: Record<string, string | null>,
+  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
+): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
+  const standout: OutlierPost[] = [];
+  for (const p of recentValidPosts) {
+    if (handleSet && !handleSet.has(p.instagram_handle)) continue;
+    const m = hotelMetrics[p.instagram_handle];
+    const postEngagement = p.likes_count + (p.comments_count ?? 0);
+    if (postEngagement < MIN_ENGAGEMENT) continue;
+    if (!m?.medianPostEngagement) continue;
+    const multiplier = postEngagement / m.medianPostEngagement;
+    if (multiplier < OUTLIER_THRESHOLD) continue;
+    const medL = m.medianLikes    ?? 1;
+    const medC = m.medianComments ?? 1;
+    standout.push({
+      hotel_name:           hotelNameByHandle[p.instagram_handle] ?? p.instagram_handle,
+      hotel_country:        hotelCountryByHandle[p.instagram_handle] ?? null,
+      hotel_followers:      m.followers,
+      instagram_handle:     p.instagram_handle,
+      post_id:              p.post_id,
+      type:                 normalizeType(p.type),
+      likes_count:          p.likes_count,
+      comments_count:       p.comments_count ?? 0,
+      // Stored image takes priority; falls back to live Instagram CDN link
+      image_url:            storedImageUrl[p.post_id] ?? p.image_url,
+      post_url:             p.post_url,
+      multiplier,
+      likes_multiple:       medL > 0 ? p.likes_count / medL : 0,
+      comments_multiple:    medC > 0 ? (p.comments_count ?? 0) / medC : 0,
+      hotel_typical_total:  m.medianPostEngagement,
+      hotel_typical_likes:  m.medianLikes,
+      hotel_typical_comments: m.medianComments,
+      posted_at:            p.posted_at,
+      post_insight:         storedInsight[p.post_id]?.insight ?? null,
+      driver_tag:           storedInsight[p.post_id]?.tag ?? null,
+      theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
+    });
+  }
+  // Count ALL qualifying posts before slicing for the stats strip
+  const breakout_count       = standout.length;
+  const super_breakout_count = standout.filter(p => p.multiplier >= 10).length;
+  standout.sort((a, b) => b.multiplier - a.multiplier);
+  return { posts: standout.slice(0, MAX_STANDOUT_POSTS), breakout_count, super_breakout_count };
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+export async function getPortfolioData(): Promise<DashboardData> {
+  const supabase = getSupabase();
+
+  const [hotelsRes, snapshotsRes, insightRes, standoutPostsRes] = await Promise.all([
+    supabase.from('hotels').select('name, region, country, instagram_handle').order('name'),
+    supabase
+      .from('profile_snapshots')
+      .select('instagram_handle, followers_count, captured_at')
+      .order('captured_at', { ascending: false })
+      .range(0, 4999),
+    supabase
+      .from('insights')
+      .select('prose, week_label, takeaways')
+      .order('generated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('standout_posts')
+      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag'),
+  ]);
+
+  if (hotelsRes.error)    throw new Error(hotelsRes.error.message);
+  if (snapshotsRes.error) throw new Error(snapshotsRes.error.message);
+  // insights + standout_posts errors are non-fatal (tables may not exist yet)
+
+  // Paginate posts
+  const PAGE = 1000;
+  const allPosts: RawPost[] = [];
+  for (let page = 0; ; page++) {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('post_id, instagram_handle, likes_count, comments_count, posted_at, type, caption, image_url, post_url')
+      .not('posted_at', 'is', null)
+      .order('posted_at', { ascending: false })
+      .range(page * PAGE, page * PAGE + PAGE - 1);
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) break;
+    allPosts.push(...data);
+    if (data.length < PAGE) break;
+  }
+
+  const allHotels = hotelsRes.data  ?? [];
+  const snapshots = snapshotsRes.data ?? [];
+
+  // ── Stored image URLs + per-post insights ─────────────────────────────────
+  const storedImageUrl: Record<string, string | null> = {};
+  const storedInsight:  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }> = {};
+  for (const r of standoutPostsRes.data ?? []) {
+    storedImageUrl[r.post_id] = r.stored_image_url ?? null;
+    storedInsight[r.post_id]  = { insight: r.post_insight ?? null, tag: r.driver_tag ?? null, theme_tag: r.theme_tag ?? null };
+  }
+
+  // ── Latest followers per handle ───────────────────────────────────────────
+  const latestFollowers: Record<string, number | null> = {};
+  for (const s of snapshots) {
+    if (!(s.instagram_handle in latestFollowers)) {
+      latestFollowers[s.instagram_handle] = s.followers_count;
+    }
+  }
+
+  // ── Group posts by handle ─────────────────────────────────────────────────
+  const postsByHandle: Record<string, RawPost[]> = {};
+  for (const p of allPosts) {
+    if (!postsByHandle[p.instagram_handle]) postsByHandle[p.instagram_handle] = [];
+    postsByHandle[p.instagram_handle].push(p);
+  }
+
+  // ── Per-hotel metrics ─────────────────────────────────────────────────────
+  const now              = Date.now();
+  const weekWindowMs     = POSTS_WEEK_WINDOW * 24 * 60 * 60 * 1000;
+  const outlierWindowMs  = OUTLIER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  const sevenDayMs       = 7 * 24 * 60 * 60 * 1000;
+
+  const hotelMetrics: Record<string, HotelMetrics> = {};
+  // 7-day ER per hotel — used for Top-N ranking (surfaces who is trending now)
+  const weeklyERByHandle: Record<string, number>   = {};
+
+  for (const [handle, posts] of Object.entries(postsByHandle)) {
+    const followers  = latestFollowers[handle] ?? null;
+    const validPosts = posts.filter(p => p.likes_count !== -1 && p.likes_count !== null);
+
+    // Overall ER (last 12 posts) — used for the leaderboard column
+    const last12ERs = followers && followers > 0
+      ? validPosts.slice(0, HOTEL_ER_POSTS).map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers)
+      : [];
+    const er = mean(last12ERs);
+
+    // Median absolute engagement (all valid posts) — Content Radar breakout baseline.
+    const allLikes       = validPosts.map(p => p.likes_count!);
+    const allComments    = validPosts.map(p => p.comments_count ?? 0);
+    const allEngagements = allLikes.map((l, i) => l + allComments[i]);
+    const medianPostEngagement = median(allEngagements);
+    const medianLikes          = median(allLikes);
+    const medianComments       = median(allComments);
+
+    // Posts per week (last 28 days)
+    const recentCount = posts.filter(p => now - new Date(p.posted_at).getTime() < weekWindowMs).length;
+    const ppw = recentCount / (POSTS_WEEK_WINDOW / 7);
+
+    // 7-day ER — only hotels that posted this week are eligible for Top-N
+    const recentValid = validPosts.filter(p => now - new Date(p.posted_at).getTime() <= sevenDayMs);
+    if (recentValid.length > 0 && followers && followers > 0) {
+      const weeklyER = mean(recentValid.map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers));
+      if (weeklyER !== null) weeklyERByHandle[handle] = weeklyER;
+    }
+
+    hotelMetrics[handle] = {
+      er,
+      ppw,
+      lastPosted:    posts[0]?.posted_at ?? null,
+      medianPostEngagement,
+      medianLikes,
+      medianComments,
+      followers,
+      validPostCount: validPosts.length,
+    };
+  }
+
+  // ── Hotel rows (deduped, scraped-only) ────────────────────────────────────
+  const seenHandles        = new Set<string>();
+  const hotelRows: HotelRow[] = [];
+  const hotelNameByHandle:    Record<string, string>      = {};
+  const hotelCountryByHandle: Record<string, string | null> = {};
+
+  for (const h of allHotels) {
+    hotelNameByHandle[h.instagram_handle]    = h.name;
+    hotelCountryByHandle[h.instagram_handle] = h.country ?? null;
+    if (seenHandles.has(h.instagram_handle)) continue;
+    if (!postsByHandle[h.instagram_handle])  continue;
+    seenHandles.add(h.instagram_handle);
+
+    const m       = hotelMetrics[h.instagram_handle];
+    const rawER   = m?.er != null ? m.er * 100 : null;
+    const vpc     = m?.validPostCount ?? 0;
+    const baselineAgeMs = BASELINE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+    const recentBaselineCount = (postsByHandle[h.instagram_handle] ?? [])
+      .filter(p => p.likes_count !== -1 && p.likes_count !== null &&
+                   now - new Date(p.posted_at).getTime() <= baselineAgeMs)
+      .slice(0, BASELINE_POSTS).length;
+    const erFlagReason: string | null =
+      vpc < MIN_VALID_POSTS
+        ? `Only ${vpc} post${vpc === 1 ? '' : 's'} with visible likes`
+        : rawER !== null && rawER > ER_ANOMALY_THRESHOLD
+          ? `ER ${rawER.toFixed(2)}% — unusually high, verify data`
+          : recentBaselineCount < BASELINE_MIN_POSTS
+            ? `Breakout baseline low-confidence: only ${recentBaselineCount} recent post${recentBaselineCount === 1 ? '' : 's'} (need ${BASELINE_MIN_POSTS})`
+            : null;
+
+    hotelRows.push({
+      name:             h.name,
+      region:           h.region ?? null,
+      country:          h.country ?? null,
+      instagram_handle: h.instagram_handle,
+      followers_count:  latestFollowers[h.instagram_handle] ?? null,
+      // Null out flagged ER so it's excluded from all stat medians and sorts to the bottom
+      engagement_rate:  erFlagReason ? null : rawER,
+      posts_per_week:   m?.ppw ?? null,
+      last_posted:      m?.lastPosted ?? null,
+      er_flag_reason:   erFlagReason,
+    });
+  }
+
+  // ── Top-N sets — ranked by trailing 7-day ER ─────────────────────────────
+  const eligible_this_week = Object.keys(weeklyERByHandle).length;
+  const rankedByWeekly = Object.entries(weeklyERByHandle)
+    .sort((a, b) => b[1] - a[1])
+    .map(([handle]) => handle);
+
+  const top50Set = new Set(rankedByWeekly.slice(0, 50));
+  const top30Set = new Set(rankedByWeekly.slice(0, 30));
+  const top10Set = new Set(rankedByWeekly.slice(0, 10));
+
+  // ── Recent valid posts (for standout computation) ─────────────────────────
+  const recentValidPosts = allPosts.filter(
+    p => now - new Date(p.posted_at).getTime() <= outlierWindowMs &&
+         p.likes_count !== -1 && p.likes_count !== null
+  );
+  const validForAnalysis = allPosts.filter(
+    p => p.likes_count !== -1 && p.likes_count !== null
+  );
+
+  // ── Shared standout builder args ──────────────────────────────────────────
+  const standoutArgs = [
+    hotelMetrics, hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight,
+  ] as const;
+
+  // ── Top-5 leaderboard: median 7-day ER, follower-gated ──────────────────────
+  const topHotelsRaw: { name: string; country: string | null; er_pct: number; instagram_handle: string }[] = [];
+  for (const [handle, posts] of Object.entries(postsByHandle)) {
+    const followers = latestFollowers[handle];
+    if (!followers || followers < MIN_LEADERBOARD_FOLLOWERS) continue;
+    const recentValid = posts.filter(
+      p => now - new Date(p.posted_at).getTime() <= sevenDayMs &&
+           p.likes_count !== -1 && p.likes_count !== null
+    );
+    if (!recentValid.length) continue;
+    const ers = recentValid.map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers * 100);
+    const erMedian = median(ers);
+    if (erMedian === null) continue;
+    topHotelsRaw.push({ name: hotelNameByHandle[handle] ?? handle, country: hotelCountryByHandle[handle] ?? null, er_pct: erMedian, instagram_handle: handle });
+  }
+  const topHotels: TopHotelRow[] = topHotelsRaw
+    .sort((a, b) => b.er_pct - a.er_pct)
+    .slice(0, 5)
+    .map((h, i) => ({ ...h, rank: i + 1, instagram_handle: h.instagram_handle }));
+
+  // ── Global frequency (top 10 vs rest by overall ER) ──────────────────────
+  const rankedByOverall = [...hotelRows]
+    .filter(h => h.engagement_rate !== null && h.posts_per_week !== null)
+    .sort((a, b) => (b.engagement_rate ?? 0) - (a.engagement_rate ?? 0));
+  const frequency = {
+    top10_ppw: mean(rankedByOverall.slice(0, 10).map(h => h.posts_per_week!)) ?? 0,
+    rest_ppw:  mean(rankedByOverall.slice(10).map(h => h.posts_per_week!))    ?? 0,
+  };
+
+  // ── Compute all 4 filter sets ─────────────────────────────────────────────
+  function makeFilterSet(handleSet: Set<string> | null): FilterSet {
+    const hotels = handleSet
+      ? hotelRows.filter(h => handleSet.has(h.instagram_handle))
+      : hotelRows;
+    const posts = handleSet
+      ? validForAnalysis.filter(p => handleSet.has(p.instagram_handle))
+      : validForAnalysis;
+    const { posts: standout, breakout_count, super_breakout_count } =
+      computeStandout(recentValidPosts, handleSet, ...standoutArgs);
+    return {
+      snapshot:            computeSnapshot(hotels),
+      whatsWorking:        computeWhatsWorking(posts, latestFollowers),
+      standout,
+      breakout_count,
+      super_breakout_count,
+      hotel_count:         hotels.length,
+      countries_count:     new Set(hotels.map(h => h.country).filter(Boolean)).size,
+      posts_count:         posts.length,
+    };
+  }
+
+  const filters: Record<FilterKey, FilterSet> = {
+    all:   makeFilterSet(null),
+    top50: makeFilterSet(top50Set),
+    top30: makeFilterSet(top30Set),
+    top10: makeFilterSet(top10Set),
+  };
+
+  const countries_count       = new Set(hotelRows.map(h => h.country).filter(Boolean)).size;
+  const total_posts_analysed  = validForAnalysis.length;
+  const week_ending           = new Date(now).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+  return {
+    hotels: hotelRows,
+    filters,
+    frequency,
+    eligible_this_week,
+    insightText:  insightRes.data?.prose      ?? null,
+    insightLabel: insightRes.data?.week_label ?? null,
+    takeaways:    (insightRes.data?.takeaways as string[] | null) ?? null,
+    topHotels,
+    countries_count,
+    total_posts_analysed,
+    week_ending,
+  };
+}

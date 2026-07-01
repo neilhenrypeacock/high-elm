@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72" fill="none" role="img" aria-label="Content Radar">
+  
+  <circle cx="36" cy="36" r="34" stroke="currentColor" stroke-width="3" opacity="0.16"></circle>
+  <circle cx="36" cy="36" r="27" stroke="currentColor" stroke-width="3" opacity="0.32"></circle>
+  <circle cx="36" cy="36" r="20" stroke="currentColor" stroke-width="3" opacity="0.52"></circle>
+  <circle cx="36" cy="36" r="13" stroke="currentColor" stroke-width="3" opacity="0.78"></circle>
+  
+  <circle cx="36" cy="36" r="7" fill="#5B9BAA"></circle>
+</svg>
