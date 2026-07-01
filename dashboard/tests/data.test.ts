@@ -256,11 +256,20 @@ describe('erFlagReasons', () => {
 describe('computeStandout', () => {
   it('excludes posts below the 100-engagement noise floor even at a huge multiplier', () => {
     const { posts, breakout_count } = computeStandout(
-      [post({ likes_count: 90, comments_count: 5 })], // 95 engagement, 19× a median of 5
-      { hotel_a: metrics({ medianPostEngagement: 5 }) },
+      [post({ likes_count: 90, comments_count: 5 })], // 95 engagement, 3.2× a median of 30
+      { hotel_a: metrics({ medianPostEngagement: 30 }) },
       ...NO_META
     );
     expect(posts).toEqual([]);
+    expect(breakout_count).toBe(0);
+  });
+
+  it('excludes hotels whose baseline median is below the 25-engagement floor', () => {
+    const { breakout_count } = computeStandout(
+      [post({ likes_count: 300, comments_count: 0 })], // 15× a median of 20 — still excluded
+      { hotel_a: metrics({ medianPostEngagement: 20 }) },
+      ...NO_META
+    );
     expect(breakout_count).toBe(0);
   });
 

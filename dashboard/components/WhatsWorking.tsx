@@ -117,8 +117,8 @@ function Intro({ whatsWorking, snapshot }: { whatsWorking: WhatsWorkingSet; snap
               {' '}and <span style={strong}>{captionWord}</span>
             </>
           ) : null}{' '}
-          are earning the highest median engagement across the portfolio
-          {snapshot.median_er !== null ? <>, where the median engagement rate is {snapshot.median_er.toFixed(2)}%</> : null}
+          are earning the highest median engagement across the portfolio&rsquo;s last six months of
+          posts{snapshot.median_er !== null ? <> — the median engagement rate is {snapshot.median_er.toFixed(2)}%</> : null}
           . Patterns the leaders share — correlation, not guarantees.
         </>
       )}

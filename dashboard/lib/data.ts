@@ -10,6 +10,13 @@ const CAPTION_MEDIUM_MAX  = 300;
 const MAX_STANDOUT_POSTS      = 25;
 // Absolute engagement floor — posts below this threshold are treated as noise.
 const MIN_ENGAGEMENT          = 100;
+// Baseline floor — hotels whose median engagement is below this are excluded
+// from breakout detection: "94× a median of 3" is technically true but reads
+// as noise on a sales asset. Tunable.
+const MIN_BASELINE_ENGAGEMENT = 25;
+// "What's working" charts use recent posts only — all-time posts normalised by
+// today's follower counts mix eras with inconsistent ER.
+const WHATS_WORKING_WINDOW_DAYS = 183;
 // Hotel ER reliability guards — flagged hotels are excluded from category stats.
 const MIN_VALID_POSTS         = 3;   // need ≥3 posts with visible likes for a reliable ER
 const ER_ANOMALY_THRESHOLD    = 10;  // ER above 10% is implausibly high — flag for review
@@ -254,7 +261,7 @@ export function computeStandout(
     const m = hotelMetrics[p.instagram_handle];
     const postEngagement = p.likes_count + (p.comments_count ?? 0);
     if (postEngagement < MIN_ENGAGEMENT) continue;
-    if (!m?.medianPostEngagement) continue;
+    if (!m?.medianPostEngagement || m.medianPostEngagement < MIN_BASELINE_ENGAGEMENT) continue;
     const multiplier = postEngagement / m.medianPostEngagement;
     if (multiplier < OUTLIER_THRESHOLD) continue;
     const medL = m.medianLikes    ?? 1;
@@ -484,6 +491,10 @@ export async function getPortfolioData(): Promise<DashboardData> {
     p => now - new Date(p.posted_at).getTime() <= outlierWindowMs && hasVisibleLikes(p)
   );
   const validForAnalysis = allPosts.filter(hasVisibleLikes);
+  const wwWindowMs = WHATS_WORKING_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  const whatsWorkingPosts = validForAnalysis.filter(
+    p => now - new Date(p.posted_at).getTime() <= wwWindowMs
+  );
 
   // ── Breakouts ─────────────────────────────────────────────────────────────
   const { posts: standout, breakout_count, super_breakout_count } = computeStandout(
@@ -511,7 +522,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   return {
     hotels: hotelRows,
     snapshot:      computeSnapshot(hotelRows),
-    whatsWorking:  computeWhatsWorking(validForAnalysis, latestFollowers),
+    whatsWorking:  computeWhatsWorking(whatsWorkingPosts, latestFollowers),
     standout,
     breakout_count,
     super_breakout_count,
