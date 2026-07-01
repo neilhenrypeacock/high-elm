@@ -48,10 +48,22 @@ Removed in the redesign: `FilteredDashboard.tsx`, `TopHotels.tsx`, the top50/30/
 | `OUTLIER_WINDOW_DAYS` | 7 | Only posts from the last 7 days are candidates |
 | `HOTEL_ER_POSTS` | 12 | Last N posts used for overall ER in leaderboard |
 | `MIN_ENGAGEMENT` | 100 | Absolute floor; posts below this are noise |
-| `BASELINE_*` | 25/183/12 | Used ONLY in the low-confidence er_flag_reason warning |
+| `MIN_BASELINE_ENGAGEMENT` | 25 | Hotels with a median below this are excluded from breakouts |
+| `BASELINE_POSTS` | 30 | Baseline = median over the hotel's last 30 valid posts |
+| `BASELINE_MIN_POSTS` | 12 | Fewer baseline posts → soft ⚠ warning (ER stays counted) |
+| `WHATS_WORKING_WINDOW_DAYS` | 183 | What's-working charts cover the last ~6 months only |
+
+## Tracked hotels (beta scope)
+The dashboard shows ONLY hotels with `tracked = true` — currently the 200
+most-followed (205 rows incl. shared-brand handles), set by
+`../instagram-pipeline/setup-tracked.sql`. Untracked hotels stay in the DB but
+are filtered out of every stat, including their posts. To expand coverage,
+flip more hotels to tracked and re-run the pipeline.
 
 ## Breakout baseline method (current)
-The baseline is the **median absolute engagement (likes + comments) across ALL valid posts** for a hotel — all-historical, no recency window. The `BASELINE_*` constants are NOT used for the baseline itself, only for the `er_flag_reason` warning.
+The baseline is the **median engagement (likes + comments) across the hotel's
+last 30 valid posts** — count-based and recency-weighted, matching exactly what
+the pipeline scrapes per run (`POSTS_PER_HOTEL = 30` in full-run.js).
 
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
@@ -64,7 +76,7 @@ The baseline is the **median absolute engagement (likes + comments) across ALL v
 - `profile_snapshots` — follower counts over time (one row per scrape)
 - `posts` — all scraped posts (upserted on post_id)
 - `standout_posts` — per-post stored image URLs, insights, driver/theme tags
-- `insights` — AI weekly prose (currently NOT read by the dashboard)
+- `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01)
 
 ## Image storage
 Post images are saved to the **`standout-images`** Supabase Storage bucket by the pipeline. The dashboard reads `stored_image_url` from `standout_posts` and falls back to the live Instagram CDN URL (signed, expires — fallback gradient shows for older posts).

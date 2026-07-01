@@ -1,4 +1,6 @@
-// CHECKPOINT 2 — Full run across all 465 hotels
+// Full run across all TRACKED hotels (beta: the 200 most-followed —
+// see setup-tracked.sql). Scrapes each hotel's last N posts; those posts
+// are the hotel's breakout baseline.
 // Run with: npm run full
 
 import 'dotenv/config';
@@ -14,13 +16,16 @@ const supabase = createClient(
 const apify = new ApifyClient({ token: process.env.APIFY_TOKEN });
 
 const BATCH_SIZE = 50;
-const POST_WINDOW = '14 days';
+// Last N posts per hotel — count-based, not time-based, so every tracked
+// hotel gets a full-strength baseline regardless of posting frequency.
+const POSTS_PER_HOTEL = 30;
 
-// ─── fetch all unique handles from Supabase ───────────────────────────────────
+// ─── fetch tracked handles from Supabase ──────────────────────────────────────
 
 const { data: hotelRows, error } = await supabase
   .from('hotels')
   .select('instagram_handle')
+  .eq('tracked', true)
   .order('instagram_handle');
 
 if (error) {
@@ -33,8 +38,8 @@ const allHandles = [...new Set(
 )].sort();
 
 console.log(`\n════════════════════════════════════════════`);
-console.log(`FULL RUN — ${allHandles.length} unique handles`);
-console.log(`Post window: ${POST_WINDOW} | Batch size: ${BATCH_SIZE}`);
+console.log(`FULL RUN — ${allHandles.length} tracked handles`);
+console.log(`Posts per hotel: ${POSTS_PER_HOTEL} | Batch size: ${BATCH_SIZE}`);
 console.log(`════════════════════════════════════════════\n`);
 
 // ─── split into batches ───────────────────────────────────────────────────────
@@ -57,7 +62,7 @@ for (let i = 0; i < batches.length; i++) {
   console.log(`\n─── Batch ${i + 1} / ${batches.length} (${batch.length} hotels) ───`);
 
   try {
-    const summary = await run(batch, { postsNewerThan: POST_WINDOW });
+    const summary = await run(batch, { resultsLimit: POSTS_PER_HOTEL });
     totalProfiles += summary.profilesLoaded;
     totalPosts += summary.postsLoaded;
     allSkipped.push(...summary.skipped);

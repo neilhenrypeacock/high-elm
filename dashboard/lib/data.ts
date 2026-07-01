@@ -20,10 +20,10 @@ const WHATS_WORKING_WINDOW_DAYS = 183;
 // Hotel ER reliability guards — flagged hotels are excluded from category stats.
 const MIN_VALID_POSTS         = 3;   // need ≥3 posts with visible likes for a reliable ER
 const ER_ANOMALY_THRESHOLD    = 10;  // ER above 10% is implausibly high — flag for review
-// Breakout baseline window — median computed from recent posts only.
-const BASELINE_POSTS          = 25;  // use at most this many recent posts for the baseline
-const BASELINE_MAX_AGE_DAYS   = 183; // exclude posts older than ~6 months
-const BASELINE_MIN_POSTS      = 12;  // fewer qualifying posts → low-confidence baseline (reuses er_flag_reason)
+// Breakout baseline = the hotel's last N valid posts. The pipeline scrapes
+// exactly this many per tracked hotel, so baseline and scrape stay in step.
+const BASELINE_POSTS          = 30;
+const BASELINE_MIN_POSTS      = 12;  // fewer posts in the baseline → low-confidence warning
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const HOUR_BLOCKS: [string, number, number][] = [
@@ -158,7 +158,7 @@ export function erFlagReasons(
         : null;
   const soft =
     recentBaselineCount < BASELINE_MIN_POSTS
-      ? `Breakout baseline low-confidence: only ${recentBaselineCount} recent post${recentBaselineCount === 1 ? '' : 's'} (need ${BASELINE_MIN_POSTS})`
+      ? `Breakout baseline low-confidence: only ${recentBaselineCount} post${recentBaselineCount === 1 ? '' : 's'} in baseline (need ${BASELINE_MIN_POSTS})`
       : null;
   return { hard, soft };
 }
@@ -302,11 +302,16 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const supabase = getSupabase();
   const PAGE = 1000;
 
+  // Beta: only tracked hotels (the 200 most-followed — see
+  // instagram-pipeline/setup-tracked.sql). Untracked hotels stay in the
+  // database but are invisible to the dashboard.
   const hotelsRes = await supabase
     .from('hotels')
     .select('name, region, country, instagram_handle')
+    .eq('tracked', true)
     .order('name');
   if (hotelsRes.error) throw new Error(hotelsRes.error.message);
+  const trackedHandles = new Set((hotelsRes.data ?? []).map(h => h.instagram_handle));
 
   // NOTE: every paginated query orders by a UNIQUE key (or has a unique
   // tiebreaker). Offset pagination over non-unique columns (a scrape inserts
@@ -370,6 +375,8 @@ export async function getPortfolioData(): Promise<DashboardData> {
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
     for (const p of data) {
+      // Untracked hotels' historical posts stay in the DB but out of the stats
+      if (!trackedHandles.has(p.instagram_handle)) continue;
       // Rows can shift between pages if the pipeline uploads mid-fetch
       if (seenPostIds.has(p.post_id)) continue;
       seenPostIds.add(p.post_id);
@@ -420,13 +427,16 @@ export async function getPortfolioData(): Promise<DashboardData> {
       : [];
     const er = mean(last12ERs);
 
-    // Median absolute engagement (all valid posts) — breakout baseline.
-    const allLikes       = validPosts.map(p => p.likes_count!);
-    const allComments    = validPosts.map(p => p.comments_count ?? 0);
-    const allEngagements = allLikes.map((l, i) => l + allComments[i]);
-    const medianPostEngagement = median(allEngagements);
-    const medianLikes          = median(allLikes);
-    const medianComments       = median(allComments);
+    // Breakout baseline: median engagement across the hotel's last 30 valid
+    // posts — matches what the pipeline scrapes per run, and stays recent as
+    // history accumulates.
+    const baselinePosts    = validPosts.slice(0, BASELINE_POSTS);
+    const baseLikes        = baselinePosts.map(p => p.likes_count!);
+    const baseComments     = baselinePosts.map(p => p.comments_count ?? 0);
+    const baseEngagements  = baseLikes.map((l, i) => l + baseComments[i]);
+    const medianPostEngagement = median(baseEngagements);
+    const medianLikes          = median(baseLikes);
+    const medianComments       = median(baseComments);
 
     // Posts per week (last 28 days)
     const recentCount = posts.filter(p => now - new Date(p.posted_at).getTime() < weekWindowMs).length;
@@ -464,12 +474,9 @@ export async function getPortfolioData(): Promise<DashboardData> {
     const m       = hotelMetrics[h.instagram_handle];
     const rawER   = m?.er != null ? m.er * 100 : null;
     const vpc     = m?.validPostCount ?? 0;
-    const baselineAgeMs = BASELINE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
-    const recentBaselineCount = (postsByHandle[h.instagram_handle] ?? [])
-      .filter(p => hasVisibleLikes(p) &&
-                   now - new Date(p.posted_at).getTime() <= baselineAgeMs)
-      .slice(0, BASELINE_POSTS).length;
-    const { hard, soft } = erFlagReasons(vpc, rawER, recentBaselineCount);
+    // The baseline is the last BASELINE_POSTS valid posts, so its size is
+    // simply the valid-post count capped at that limit
+    const { hard, soft } = erFlagReasons(vpc, rawER, Math.min(vpc, BASELINE_POSTS));
 
     hotelRows.push({
       name:             h.name,

@@ -10,11 +10,11 @@ A Node.js (ESM) script that scrapes Instagram data for ~465 luxury hotels using 
 npm run test5
 ```
 
-**Full run (all hotels, batches of 50):**
+**Full run (all TRACKED hotels, batches of 50):**
 ```bash
 npm run full
 ```
-Takes ~90 minutes and costs ~$5 on Apify. The `POST_WINDOW` variable in `full-run.js` controls how far back posts are fetched (currently `'14 days'`; set to `'7 days'` for weekly top-ups).
+Scrapes only hotels with `tracked = true` (beta: the 200 most-followed — set by `setup-tracked.sql`). `POSTS_PER_HOTEL` in `full-run.js` fetches each hotel's **last 30 posts** (count-based, not a time window) — those 30 posts are the dashboard's breakout baseline. To widen coverage, flip more hotels to tracked and re-run.
 
 **Re-run skipped handles:**
 ```bash
@@ -38,6 +38,8 @@ Credentials are also documented in `../keys/README.md`.
 | `remaining-handles.js` | Re-runs handles that returned no data (e.g. after Apify top-up) |
 | `setup-tables.sql` | SQL to create Supabase tables (already run — do not re-run) |
 | `setup-standout-posts.sql` | SQL for standout_posts table (already run) |
+| `setup-tracked.sql` | Adds/refreshes hotels.tracked = top-200 by followers (idempotent; run 2026-07-01) |
+| `generate-insight.js` | Per-post insights + driver/theme tags → standout_posts (weekly prose generation REMOVED 2026-07-01 — dashboard never displayed it) |
 
 ## Apify actors used
 - `apify/instagram-profile-scraper` — follower counts, bio → `profile_snapshots`

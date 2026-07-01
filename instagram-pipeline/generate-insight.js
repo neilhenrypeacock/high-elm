@@ -343,42 +343,8 @@ async function generatePostInsights(posts) {
   return insights;
 }
 
-async function generateProseAndTakeaways(numbers) {
-  const { categoryER, topHotelName, topHotelER, bestFormat, bestFormatER,
-          standoutCount, topStandout, hotelsWithData } = numbers;
-
-  const facts = [
-    `Category median engagement rate across ${hotelsWithData} hotels: ${categoryER}%`,
-    topHotelName && `Top hotel this period: ${topHotelName} at ${topHotelER}% median ER`,
-    bestFormat && `Best performing format: ${bestFormat} (median ER ${bestFormatER}%)`,
-    standoutCount > 0 && `${standoutCount} post${standoutCount === 1 ? '' : 's'} outperformed the hotel's own median by 2× or more this week`,
-    topStandout && `Top standout: ${topStandout.name}'s post reached ${topStandout.multiplier}× their hotel median`,
-  ].filter(Boolean).join('\n- ');
-
-  const prompt = `You are writing a weekly Instagram performance summary for a luxury hotel industry dashboard.
-
-Write a JSON object with:
-- "prose": 2–4 sentences, analytical tone, no filler phrases, no invented statistics, state observations directly.
-- "takeaways": exactly 3 one-line plain-English sentences. These bullets appear in a dashboard read by hospitality marketers. Rules: (1) No hotel names — describe patterns, not individual properties. (2) Focus on what explains the breakout posts: content format (Video/Carousel/Photo), caption style (short/long), driver type (Collaboration, Notable guest, Live moment, Craft, Organic), or posting timing. (3) Write as actionable patterns, e.g. "Video posts are capturing twice the engagement of statics for the second week running." or "Collaboration posts — those tagging a partner brand or creator — are clustering at the top of this week's rankings."
-
-All content must be grounded in these facts — do not invent statistics:
-- ${facts}
-
-Return ONLY valid JSON, no markdown:
-{"prose": "...", "takeaways": ["...", "...", "..."]}`;
-
-  const raw = await callClaude(prompt, 700);
-  try {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('no object');
-    const parsed = JSON.parse(match[0]);
-    if (!parsed.prose || !Array.isArray(parsed.takeaways) || parsed.takeaways.length < 3) throw new Error('bad structure');
-    return { prose: parsed.prose, takeaways: parsed.takeaways.slice(0, 3) };
-  } catch (e) {
-    console.warn(`Prose parse failed: ${e.message}. Using raw text as prose.`);
-    return { prose: raw.slice(0, 600), takeaways: null };
-  }
-}
+// Weekly prose/takeaways generation removed 2026-07-01 — the redesigned
+// dashboard computes its own summary lines and never read the insights table.
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -419,16 +385,7 @@ async function main() {
     else console.log(`  ${p.post_id}: "${ins.insight}" [${ins.tag}] [${ins.theme}]`);
   }
 
-  console.log('\nGenerating prose + takeaways…');
-  const { prose, takeaways } = await generateProseAndTakeaways(numbers);
-  console.log('\nProse:', prose);
-  console.log('Takeaways:', takeaways);
-
-  const weekLabel = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  const { error } = await sb.from('insights').insert({ prose, week_label: weekLabel, takeaways: takeaways ?? null });
-  if (error) throw error;
-
-  console.log(`\nDone — stored in insights table (${weekLabel}).`);
+  console.log(`\nDone — ${enriched.length} standout posts enriched.`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
