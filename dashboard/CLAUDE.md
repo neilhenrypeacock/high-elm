@@ -65,6 +65,16 @@ The baseline is the **median engagement (likes + comments) across the hotel's
 last 30 valid posts** — count-based and recency-weighted, matching exactly what
 the pipeline scrapes per run (`POSTS_PER_HOTEL = 30` in full-run.js).
 
+## Collaboration posts (co-posts)
+Collab posts are INCLUDED. An Instagram co-post shares one `post_id` but appears
+on every partner's grid, so `posts` is keyed on the composite
+**(post_id, instagram_handle)** — one row per grid — and the pipeline upserts
+`onConflict: 'post_id,instagram_handle'`. Each copy is measured against its own
+hotel's baseline, so a collab that outperforms surfaces as a breakout for the
+hotel whose grid it's on. Dashboard de-dupes and keys React lists on
+`post_id + '|' + instagram_handle`, NOT post_id alone. Migration:
+`instagram-pipeline/setup-composite-post-key.sql` (applied to prod 2026-07-02).
+
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
 - `profile_snapshots` and `posts` are both fully paginated (1,000/page); posts deduped by post_id.

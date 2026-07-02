@@ -50,5 +50,5 @@ Post images are downloaded and uploaded to the **`standout-images`** Supabase St
 
 ## Supabase tables written
 - `profile_snapshots` — one new row per scrape per hotel (INSERT, not upsert)
-- `posts` — upserted on `post_id`; duplicate posts are updated in place
+- `posts` — upserted on `(post_id, instagram_handle)`. Collab/co-posts are KEPT (no owner filter): a co-post appears on each partner's grid and is stored once per grid so each hotel measures it against its own baseline. Composite key applied via setup-composite-post-key.sql.
 - `standout_posts` — written separately (see `add-theme-tag.sql`, `backfill-themes.js`)
