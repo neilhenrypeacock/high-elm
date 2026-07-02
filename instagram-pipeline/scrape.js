@@ -115,10 +115,15 @@ async function scrapePosts(handles, resultsLimit, postsNewerThan) {
   const { items } = await apify.dataset(run.defaultDatasetId).listItems();
   console.log(`      Post items returned: ${items.length}`);
 
-  // Group by handle
+  // Group by the GRID that was queried (inputUrl), NOT the post's owner — a
+  // collaboration owned by a partner account (e.g. @jumeirah co-posting on
+  // @jumeirahburjalarab's grid) must be attributed to the hotel whose grid it
+  // appeared on. inputUrl is the profile the actor actually visited. Falls back
+  // to ownerUsername if inputUrl is ever missing.
   const byHandle = {};
   for (const item of items) {
-    const handle = (item.ownerUsername || '').toLowerCase();
+    const fromInput = (item.inputUrl || '').toLowerCase().replace(/.*instagram\.com\//, '').replace(/\/+$/, '');
+    const handle = fromInput || (item.ownerUsername || '').toLowerCase();
     if (!handle) continue;
     if (!byHandle[handle]) byHandle[handle] = [];
     byHandle[handle].push(item);
