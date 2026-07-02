@@ -332,7 +332,7 @@ export default function ContentRadar({ posts }: { posts: OutlierPost[] }) {
         <Eyebrow>Top 5</Eyebrow>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {topPosts.map((p, i) => (
-            <BreakoutCard key={p.post_id} post={p} rank={i + 1} />
+            <BreakoutCard key={`${p.post_id}-${p.instagram_handle}`} post={p} rank={i + 1} />
           ))}
         </div>
       </div>
@@ -351,7 +351,7 @@ export default function ContentRadar({ posts }: { posts: OutlierPost[] }) {
             }}
           >
             {visibleRest.map((p, i) => (
-              <PostRow key={p.post_id} post={p} rank={i + 6} />
+              <PostRow key={`${p.post_id}-${p.instagram_handle}`} post={p} rank={i + 6} />
             ))}
           </div>
           {hiddenCount > 0 && (

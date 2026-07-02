@@ -65,7 +65,7 @@ async function saveProfile(profile) {
 async function savePosts(posts) {
   if (!posts.length) return;
   const { error } = await supabase.from('posts').upsert(posts, {
-    onConflict: 'post_id',
+    onConflict: 'post_id,instagram_handle',
     ignoreDuplicates: false,
   });
   if (error) throw new Error(`posts upsert failed: ${error.message}`);
@@ -157,13 +157,14 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
       continue;
     }
 
-    // Build post rows, filtering out collaboration posts from other owners.
+    // Keep every post on the hotel's grid — INCLUDING collaborations owned by a
+    // partner account. A co-post appears on each partner's grid and is stored
+    // once per grid (composite key post_id + instagram_handle), so it's measured
+    // against each hotel's own baseline. If a partner collab is outperforming,
+    // it surfaces as a breakout for the hotel it appeared on.
     // Images are uploaded to Supabase Storage in parallel to get permanent URLs.
     const seen = new Set();
-    const candidates = postItems.filter(p => {
-      const owner = (p.ownerUsername || '').toLowerCase();
-      return !owner || owner === h;
-    });
+    const candidates = postItems;
 
     const posts = await Promise.all(
       candidates.map(async p => {

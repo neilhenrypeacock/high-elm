@@ -363,7 +363,9 @@ export async function getPortfolioData(): Promise<DashboardData> {
 
   // Paginate posts
   const allPosts: RawPost[] = [];
-  const seenPostIds = new Set<string>();
+  // A co-post appears on each partner's grid as a separate row (same post_id,
+  // different instagram_handle) — de-dupe on the composite, not post_id alone.
+  const seenPostKeys = new Set<string>();
   for (let page = 0; ; page++) {
     const { data, error } = await supabase
       .from('posts')
@@ -378,8 +380,9 @@ export async function getPortfolioData(): Promise<DashboardData> {
       // Untracked hotels' historical posts stay in the DB but out of the stats
       if (!trackedHandles.has(p.instagram_handle)) continue;
       // Rows can shift between pages if the pipeline uploads mid-fetch
-      if (seenPostIds.has(p.post_id)) continue;
-      seenPostIds.add(p.post_id);
+      const key = `${p.post_id}|${p.instagram_handle}`;
+      if (seenPostKeys.has(key)) continue;
+      seenPostKeys.add(key);
       allPosts.push(p);
     }
     if (data.length < PAGE) break;
