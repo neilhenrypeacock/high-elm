@@ -96,7 +96,8 @@ function GapNote({ text }: { text: string | null }) {
   return <p style={{ marginTop: 16, fontSize: 12, color: 'var(--signal-deep)', lineHeight: 1.5 }}>{text}</p>;
 }
 
-// Dynamic section intro — names the winning format + caption length from live data
+// Dynamic section intro — names the winning format + caption length from live data.
+// Static window: the last 30 days (the time-window toggle now drives Top posts).
 function Intro({ whatsWorking, snapshot }: { whatsWorking: WhatsWorkingSet; snapshot: Snapshot }) {
   const topFormat = [...whatsWorking.by_format].sort((a, b) => b.value - a.value)[0];
   const topCaption = [...whatsWorking.by_caption].sort((a, b) => b.value - a.value)[0];
@@ -117,7 +118,7 @@ function Intro({ whatsWorking, snapshot }: { whatsWorking: WhatsWorkingSet; snap
               {' '}and <span style={strong}>{captionWord}</span>
             </>
           ) : null}{' '}
-          are earning the highest median engagement across the portfolio&rsquo;s last six months of
+          are earning the highest median engagement across the portfolio&rsquo;s last 30 days of
           posts{snapshot.median_er !== null ? <> — the median engagement rate is {snapshot.median_er.toFixed(2)}%</> : null}
           . Patterns the leaders share — correlation, not guarantees.
         </>

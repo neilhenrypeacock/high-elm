@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { OutlierPost } from '@/lib/data';
+import type { OutlierPost, TimeWindow } from '@/lib/data';
+import { TIME_WINDOWS } from '@/lib/data';
 import { fmtFollowers, fmtPostedAt } from '@/lib/format';
 
 const LABEL = "var(--font-label), 'Space Mono', monospace";
@@ -68,7 +69,8 @@ function TagChip({ type }: { type: string | null }) {
 }
 
 // ─── Top-5 breakout card ──────────────────────────────────────────────────────
-function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: number }) {
+// Exported for reuse by the public landing page taster (components/Landing.tsx)
+export function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: number }) {
   const followersStr = fmtFollowers(p.hotel_followers);
   const meta = [p.hotel_country, followersStr !== '—' ? `${followersStr} followers` : null, fmtPostedAt(p.posted_at)]
     .filter(Boolean)
@@ -298,35 +300,100 @@ function PostRow({ post: p, rank }: { post: OutlierPost; rank: number }) {
   );
 }
 
+// ─── Live time-window toggle (matches the shell's PillToggle visual style) ────
+function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: TimeWindow) => void }) {
+  return (
+    <div
+      role="group"
+      aria-label="Top posts time window"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        background: 'var(--surface-alt-2)',
+        border: '1px solid var(--line)',
+        borderRadius: 10,
+        padding: 3,
+        gap: 2,
+      }}
+    >
+      {TIME_WINDOWS.map(w => {
+        const active = w.key === value;
+        return (
+          <button
+            key={w.key}
+            type="button"
+            onClick={() => onChange(w.key)}
+            aria-pressed={active}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              border: 'none',
+              borderRadius: 6,
+              padding: '6px 13px',
+              fontSize: 12,
+              fontWeight: 500,
+              fontFamily: 'inherit',
+              background: active ? 'var(--ink)' : 'transparent',
+              color: active ? 'var(--surface)' : 'var(--muted)',
+              cursor: active ? 'default' : 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {active && (
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', flexShrink: 0 }} />
+            )}
+            {w.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export default function ContentRadar({ posts }: { posts: OutlierPost[] }) {
+export default function ContentRadar({ postsByWindow }: { postsByWindow: Record<TimeWindow, OutlierPost[]> }) {
   const [showMore, setShowMore] = useState(false);
+  const [win, setWin] = useState<TimeWindow>('7d');
+  const posts = postsByWindow[win];
 
   const topPosts = posts.slice(0, 5);
   const rest = posts.slice(5);
   const visibleRest = showMore ? rest : rest.slice(0, 10);
   const hiddenCount = rest.length - 10;
 
-  if (posts.length === 0) {
-    return (
-      <div
-        style={{
-          background: 'var(--surface)',
-          borderRadius: 14,
-          border: '1px solid var(--line)',
-          padding: '56px 40px',
-          textAlign: 'center',
-          color: 'var(--body-mid)',
-          fontSize: 14,
-        }}
-      >
-        No posts broke meaningfully past their hotel&rsquo;s own median this week.
-      </div>
-    );
-  }
+  const emptyMsg = win === '7d'
+    ? 'No posts broke meaningfully past their hotel’s own median this week.'
+    : 'No posts broke meaningfully past their hotel’s own median in this window.';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {/* Time-window toggle — windows this list; opens on the last 7 days */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <WindowToggle value={win} onChange={w => { setWin(w); setShowMore(false); }} />
+        {win === 'all' && (
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+            Top {posts.length} best-performing posts on record
+          </span>
+        )}
+      </div>
+
+      {posts.length === 0 ? (
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: 14,
+            border: '1px solid var(--line)',
+            padding: '56px 40px',
+            textAlign: 'center',
+            color: 'var(--body-mid)',
+            fontSize: 14,
+          }}
+        >
+          {emptyMsg}
+        </div>
+      ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
       {/* Top 5 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Eyebrow>Top 5</Eyebrow>
@@ -376,6 +443,8 @@ export default function ContentRadar({ posts }: { posts: OutlierPost[] }) {
             </div>
           )}
         </div>
+      )}
+      </div>
       )}
     </div>
   );

@@ -1,28 +1,50 @@
 import { getSupabase } from './supabase';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const HOTEL_ER_POSTS      = 12;
+// Shared "recent window" — the leaderboard ER and the breakout baseline both use
+// each hotel's last N valid posts (matches the pipeline's 30-posts-per-scrape).
+// One source of truth so the two never drift apart.
+const RECENT_POSTS        = 30;
+const HOTEL_ER_POSTS      = RECENT_POSTS;
 const OUTLIER_THRESHOLD   = 2;
 const OUTLIER_WINDOW_DAYS = 7
 const POSTS_WEEK_WINDOW   = 28;
 const CAPTION_SHORT_MAX   = 100;
 const CAPTION_MEDIUM_MAX  = 300;
 const MAX_STANDOUT_POSTS      = 25;
+// Per-window cap on the Top posts (breakout) list. Same selection logic across
+// all three windows; "All time" surfaces the top 100 best-performing ever.
+const STANDOUT_LIMIT          = 100;
+// What's Working is a STATIC panel (the time-window toggle now drives Top posts,
+// not this) — its median-engagement charts cover the last 30 days.
+const WHATS_WORKING_WINDOW_DAYS = 30;
+// Landing-page taster rule (Neil, 2026-07-03): feature the best-performing
+// posts of the last 30 days, excluding collaborations
+const LANDING_WINDOW_DAYS     = 30;
 // Absolute engagement floor — posts below this threshold are treated as noise.
 const MIN_ENGAGEMENT          = 100;
 // Baseline floor — hotels whose median engagement is below this are excluded
 // from breakout detection: "94× a median of 3" is technically true but reads
 // as noise on a sales asset. Tunable.
 const MIN_BASELINE_ENGAGEMENT = 25;
-// "What's working" charts use recent posts only — all-time posts normalised by
-// today's follower counts mix eras with inconsistent ER.
-const WHATS_WORKING_WINDOW_DAYS = 183;
+// Live client-side time window for the Top posts (breakout) list. Each window's
+// list is precomputed server-side (below) so toggling needs no new query. Same
+// breakout selection for all three; "All time" is the top 100 best-performing
+// ever (see STANDOUT_LIMIT). Note the baseline a post is judged against is the
+// hotel's last-30-posts median (today's baseline), so old posts in the all-time
+// view are compared to a current bar — read them as directional.
+export type TimeWindow = '7d' | '30d' | 'all';
+export const TIME_WINDOWS: { key: TimeWindow; label: string; days: number | null }[] = [
+  { key: '7d',  label: 'Last 7 days',  days: 7 },
+  { key: '30d', label: 'Last 30 days', days: 30 },
+  { key: 'all', label: 'All time',     days: null },
+];
 // Hotel ER reliability guards — flagged hotels are excluded from category stats.
 const MIN_VALID_POSTS         = 3;   // need ≥3 posts with visible likes for a reliable ER
 const ER_ANOMALY_THRESHOLD    = 10;  // ER above 10% is implausibly high — flag for review
 // Breakout baseline = the hotel's last N valid posts. The pipeline scrapes
 // exactly this many per tracked hotel, so baseline and scrape stay in step.
-const BASELINE_POSTS          = 30;
+const BASELINE_POSTS          = RECENT_POSTS;
 const BASELINE_MIN_POSTS      = 12;  // fewer posts in the baseline → low-confidence warning
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
@@ -92,8 +114,12 @@ export type Snapshot = {
 export type DashboardData = {
   hotels: HotelRow[];
   snapshot: Snapshot;
+  /** What's Working medians — static, over the last WHATS_WORKING_WINDOW_DAYS */
   whatsWorking: WhatsWorkingSet;
-  standout: OutlierPost[];
+  /** Top posts (breakouts) precomputed per time window; the client toggle picks one */
+  standout: Record<TimeWindow, OutlierPost[]>;
+  /** Landing-page taster: best non-collab breakouts of the last 30 days */
+  landing_featured: OutlierPost[];
   /** Total posts qualifying ≥2× this week (before top-25 slice) */
   breakout_count: number;
   /** Posts qualifying ≥10× this week */
@@ -255,6 +281,7 @@ export function computeStandout(
   hotelCountryByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
+  limit: number = MAX_STANDOUT_POSTS,
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
   for (const p of recentValidPosts) {
@@ -294,7 +321,7 @@ export function computeStandout(
   const breakout_count       = standout.length;
   const super_breakout_count = standout.filter(p => p.multiplier >= 10).length;
   standout.sort((a, b) => b.multiplier - a.multiplier);
-  return { posts: standout.slice(0, MAX_STANDOUT_POSTS), breakout_count, super_breakout_count };
+  return { posts: standout.slice(0, limit), breakout_count, super_breakout_count };
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -424,11 +451,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
     const followers  = latestFollowers[handle] ?? null;
     const validPosts = posts.filter(hasVisibleLikes);
 
-    // Overall ER (last 12 posts) — used for the leaderboard column
-    const last12ERs = followers && followers > 0
+    // Overall ER — mean over the hotel's last 30 valid posts (RECENT_POSTS, the
+    // same recent window as the breakout baseline). Used for the leaderboard.
+    const recentERs = followers && followers > 0
       ? validPosts.slice(0, HOTEL_ER_POSTS).map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers)
       : [];
-    const er = mean(last12ERs);
+    const er = mean(recentERs);
 
     // Breakout baseline: median engagement across the hotel's last 30 valid
     // posts — matches what the pipeline scrapes per run, and stays recent as
@@ -497,20 +525,62 @@ export async function getPortfolioData(): Promise<DashboardData> {
   }
 
   // ── Valid posts ───────────────────────────────────────────────────────────
-  const recentValidPosts = allPosts.filter(
-    p => now - new Date(p.posted_at).getTime() <= outlierWindowMs && hasVisibleLikes(p)
-  );
   const validForAnalysis = allPosts.filter(hasVisibleLikes);
-  const wwWindowMs = WHATS_WORKING_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-  const whatsWorkingPosts = validForAnalysis.filter(
-    p => now - new Date(p.posted_at).getTime() <= wwWindowMs
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const recentValidPosts = validForAnalysis.filter(
+    p => now - new Date(p.posted_at).getTime() <= outlierWindowMs
   );
 
-  // ── Breakouts ─────────────────────────────────────────────────────────────
-  const { posts: standout, breakout_count, super_breakout_count } = computeStandout(
-    recentValidPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-    storedImageUrl, storedInsight,
+  // What's Working — static median-engagement patterns over the last 30 days.
+  const whatsWorkingPosts = validForAnalysis.filter(
+    p => now - new Date(p.posted_at).getTime() <= WHATS_WORKING_WINDOW_DAYS * DAY_MS
   );
+  const whatsWorking = computeWhatsWorking(whatsWorkingPosts, latestFollowers);
+
+  // ── Top posts (breakouts) per time window ─────────────────────────────────
+  // Same selection for each window (≥2× the hotel's own median, ranked by
+  // multiplier), capped at STANDOUT_LIMIT. "All time" = the top 100 ever. The
+  // hero "this week" counts always come from the 7-day window.
+  const standout = {} as Record<TimeWindow, OutlierPost[]>;
+  let breakout_count = 0;
+  let super_breakout_count = 0;
+  for (const w of TIME_WINDOWS) {
+    const { key, days } = w;
+    const windowPosts =
+      key === '7d'  ? recentValidPosts :
+      days === null ? validForAnalysis :
+      validForAnalysis.filter(p => now - new Date(p.posted_at).getTime() <= days * DAY_MS);
+    const res = computeStandout(
+      windowPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
+      storedImageUrl, storedInsight, STANDOUT_LIMIT,
+    );
+    standout[key] = res.posts;
+    if (key === '7d') {
+      breakout_count = res.breakout_count;
+      super_breakout_count = res.super_breakout_count;
+    }
+  }
+
+  // ── Landing taster: best NON-COLLAB breakouts of the last 30 days ────────
+  // Collabs are detected structurally: a co-post is stored once per partner
+  // grid, so the same post_id under more than one handle means a collab.
+  // (A collab with an UNTRACKED account leaves no duplicate row and can't be
+  // detected from this data — the AI driver_tag is used as a second guard.)
+  const handlesByPostId = new Map<string, Set<string>>();
+  for (const p of allPosts) {
+    let s = handlesByPostId.get(p.post_id);
+    if (!s) handlesByPostId.set(p.post_id, s = new Set());
+    s.add(p.instagram_handle);
+  }
+  const landingCandidates = validForAnalysis.filter(p =>
+    now - new Date(p.posted_at).getTime() <= LANDING_WINDOW_DAYS * DAY_MS &&
+    (handlesByPostId.get(p.post_id)?.size ?? 1) === 1 &&
+    storedInsight[p.post_id]?.tag !== 'Collaboration'
+  );
+  const landing_featured = computeStandout(
+    landingCandidates, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
+    storedImageUrl, storedInsight,
+  ).posts;
 
   // ── Global frequency (top 10 vs rest by overall ER) ──────────────────────
   const rankedByOverall = [...hotelRows]
@@ -532,8 +602,9 @@ export async function getPortfolioData(): Promise<DashboardData> {
   return {
     hotels: hotelRows,
     snapshot:      computeSnapshot(hotelRows),
-    whatsWorking:  computeWhatsWorking(whatsWorkingPosts, latestFollowers),
+    whatsWorking,
     standout,
+    landing_featured,
     breakout_count,
     super_breakout_count,
     frequency,

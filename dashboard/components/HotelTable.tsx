@@ -330,7 +330,7 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
       </div>
 
       <p style={{ marginTop: 14, fontSize: 12, color: 'var(--faint)', lineHeight: 1.6 }}>
-        Engagement rate = mean(likes + comments) on the last 12 posts ÷ followers × 100. Hotels with
+        Engagement rate = mean(likes + comments) on the last 30 posts ÷ followers × 100. Hotels with
         under 3 visible-likes posts or rates above 10% are flagged{' '}
         <span style={{ color: 'var(--signal-deep)' }}>⚠</span> and excluded from category medians;
         a <span style={{ color: 'var(--signal-deep)' }}>⚠</span> beside a value only marks a

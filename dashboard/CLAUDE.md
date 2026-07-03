@@ -15,16 +15,34 @@ The data pipeline is a **separate manual repo** at `../instagram-pipeline/`. It 
 ## File structure
 ```
 app/
-  page.tsx              — server component; revalidate=3600; calls getPortfolioData()
+  page.tsx              — PUBLIC LANDING PAGE (server, revalidate=3600); renders
+                          components/Landing.tsx with the same getPortfolioData()
+  dashboard/page.tsx    — the full dashboard (server, revalidate=3600); renders
+                          Dashboard.tsx. PUBLIC — no auth/gate yet (Neil's decision
+                          2026-07-03; the landing blur is persuasion, not protection)
+  start-trial/page.tsx  — placeholder for every "Start your free trial" CTA; swap for
+                          Stripe Checkout later (or repoint TRIAL_HREF in Landing.tsx)
   layout.tsx            — fonts (Baloo 2 / Hanken Grotesk / Space Mono), brand favicon
   error.tsx / loading.tsx — branded error + loading states
   globals.css           — all design tokens, hover/focus utilities, responsive breakpoints
 components/
+  Landing.tsx           — public landing page: hero w/ live stats, live taster (top-3
+                          real BreakoutCards + 2 blurred behind one lock overlay),
+                          "Viral hotel content, in your pocket" statement band,
+                          what-you-get, credibility, £49 founding-member pricing,
+                          closing CTA. All trial CTAs use the TRIAL_HREF constant.
+                          TASTER RULE (Neil, 2026-07-03): cards come from
+                          data.landing_featured — best-performing NON-COLLAB posts of
+                          the last 30 days (NOT the dashboard's 7-day standout list).
+                          Collab = same post_id under >1 handle, plus the AI
+                          driver_tag 'Collaboration' as a second guard.
   Dashboard.tsx         — shell: top bar + channel switcher, dark hero w/ by-the-numbers
                           panel, section rules, floating bottom nav (mailto feature pill),
                           dark footer. PillToggle exported from here.
-  ContentRadar.tsx      — timeframe toggle handled by shell; top-5 spec cards, ranks 6–25
-                          table card, Show-more/less expander
+  ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list);
+                          top-5 spec cards, ranks 6–25
+                          table card, Show-more/less expander. BreakoutCard is exported
+                          for reuse by Landing.tsx
   WhatsWorking.tsx      — 3 dark stat cards + format/caption bar cards; day/time/frequency
                           panels behind "Show more detail" expander (kept by Neil's decision)
   HotelTable.tsx        — functional leaderboard in the spec's 7-col grid: dark header,
@@ -43,15 +61,19 @@ Removed in the redesign: `FilteredDashboard.tsx`, `TopHotels.tsx`, the top50/30/
 ## Key constants (lib/data.ts)
 | Constant | Value | Purpose |
 |---|---|---|
-| `MAX_STANDOUT_POSTS` | 25 | Max breakout posts returned to ContentRadar |
+| `MAX_STANDOUT_POSTS` | 25 | Default limit in computeStandout (used by the landing taster) |
+| `STANDOUT_LIMIT` | 100 | Per-window cap on the Top posts list (7d rarely hits it; 30d/all-time do) |
+| `LANDING_WINDOW_DAYS` | 30 | Landing taster window (best non-collab posts) |
 | `OUTLIER_THRESHOLD` | 2 | Posts must hit 2× hotel median to qualify as breakout |
-| `OUTLIER_WINDOW_DAYS` | 7 | Only posts from the last 7 days are candidates |
-| `HOTEL_ER_POSTS` | 12 | Last N posts used for overall ER in leaderboard |
+| `OUTLIER_WINDOW_DAYS` | 7 | The 7-day window (hero "this week" counts + default Top-posts view) |
+| `RECENT_POSTS` | 30 | Shared "recent window": leaderboard ER **and** breakout baseline (unified) |
+| `HOTEL_ER_POSTS` | =RECENT_POSTS | Last N posts for overall ER in leaderboard (now 30, was 12) |
 | `MIN_ENGAGEMENT` | 100 | Absolute floor; posts below this are noise |
 | `MIN_BASELINE_ENGAGEMENT` | 25 | Hotels with a median below this are excluded from breakouts |
-| `BASELINE_POSTS` | 30 | Baseline = median over the hotel's last 30 valid posts |
+| `BASELINE_POSTS` | =RECENT_POSTS | Baseline = median over the hotel's last 30 valid posts |
 | `BASELINE_MIN_POSTS` | 12 | Fewer baseline posts → soft ⚠ warning (ER stays counted) |
-| `WHATS_WORKING_WINDOW_DAYS` | 183 | What's-working charts cover the last ~6 months only |
+| `WHATS_WORKING_WINDOW_DAYS` | 30 | Static window for the What's Working median charts |
+| `TIME_WINDOWS` | 7d / 30d / all | Time-window options for the **Top posts** toggle (drives that list) |
 
 ## Tracked hotels (beta scope)
 The dashboard shows ONLY hotels with `tracked = true` — currently the 200
@@ -78,7 +100,9 @@ hotel whose grid it's on. Dashboard de-dupes and keys React lists on
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
 - `profile_snapshots` and `posts` are both fully paginated (1,000/page); posts deduped by post_id.
-- Only the "all hotels" stat set is computed — the spec's timeframe/channel toggles are disabled "soon" placeholders.
+- Only the "all hotels" stat set is computed. The channel toggle (Instagram/TikTok/YouTube) is still a disabled "soon" placeholder.
+- The **Top posts** list has a LIVE time-window toggle (7d / 30d / all, default 7d) built into `ContentRadar.tsx`. `getPortfolioData` precomputes the breakout list per window (`data.standout` is `Record<TimeWindow, OutlierPost[]>`); the client toggle selects one — no new query on toggle. Same breakout selection for all three windows (≥2× own median, ranked by multiplier), capped at `STANDOUT_LIMIT` (100). "All time" = the top 100 best-performing ever. The hero "X posts outperformed this week" always uses the 7-day count. Caveat: a post is judged against its hotel's *current* last-30 median, so old posts in the all-time view are compared to today's baseline.
+- What's Working is STATIC (no toggle) — median charts over the last `WHATS_WORKING_WINDOW_DAYS` (30). `data.whatsWorking` is a single `WhatsWorkingSet`.
 - ContentRadar tiers: top 5 = large cards, 6–15 always visible rows, 16–25 behind "Show more".
 
 ## Supabase tables
@@ -98,7 +122,13 @@ npm run dev     # local dev server (preview name: hotel-dashboard, port 3200)
 ```
 
 ## Current state / known gaps
-- TikTok/YouTube channels and Last month/All time timeframes are disabled "soon" pills per the design.
+- Public landing page live at `/` (2026-07-03): full marketing page with live-taster
+  (top-3 real breakout cards, next 2 blurred behind one lock overlay). Copy is
+  reality-adjusted (200+ hotels, no Hall of Fame/Weekly Read claims — those are listed
+  as "coming"). Dashboard moved to `/dashboard`, still public — no auth yet, so the
+  blur is a persuasion device until a gate exists. Trial CTAs → `/start-trial`
+  placeholder (swap for Stripe: repoint `TRIAL_HREF` in `components/Landing.tsx`).
+- TikTok/YouTube channels are still disabled "soon" pills. The time-window toggle is now LIVE on the **Top posts** list (7d/30d/all, default 7d) — it replaced the old disabled placeholder. All-time is capped at the top 100.
 - Floating nav has no scroll-spy (plain hash anchors, per prototype).
 - Anon key + RLS are LIVE (applied 2026-07-01): `supabase/rls.sql` has been run against the project, `SUPABASE_ANON_KEY` is in `.env.local`, `keys/.env.supabase`, and Vercel production env. Verified: anon reads succeed, writes refused (42501). Vercel *preview* env doesn't have the key (CLI branch-prompt issue) — preview deploys fall back to the service-role key. Production URL: https://dashboard-one-xi-75.vercel.app (the dashboard-wisprteam alias sits behind Vercel team SSO).
 - ⚠ When creating any NEW Supabase table, enable RLS on it immediately — the anon key can read/write any public table that lacks RLS.

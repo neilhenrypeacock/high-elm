@@ -338,22 +338,13 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
 
       {/* ── Top posts ── */}
       <div id="breakouts" className="cr-inner" style={{ ...INNER, paddingTop: 56 }}>
-        <div style={{ marginBottom: 44 }}>
-          <PillToggle
-            items={[
-              { label: 'Last week', active: true },
-              { label: 'Last month', soon: true },
-              { label: 'All time', soon: true },
-            ]}
-          />
-        </div>
         <SectionHead
           eyebrow="Content that stood out"
           title="Top posts"
-          sub="Posts that beat their hotel's own median by 2× or more"
+          sub="Posts that beat their hotel's own median by 2× or more — choose a time window"
         />
         <div style={{ marginTop: 32 }}>
-          <ContentRadar posts={data.standout} />
+          <ContentRadar postsByWindow={data.standout} />
         </div>
       </div>
 
@@ -372,7 +363,7 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
         <SectionHead
           eyebrow="Ranked by engagement rate"
           title="Hotel leaderboard"
-          sub="Average engagement across each hotel's last 12 posts · click a column to re-sort."
+          sub="Average engagement across each hotel's last 30 posts · click a column to re-sort."
         />
         <HotelTable hotels={data.hotels} regions={regions} />
       </div>

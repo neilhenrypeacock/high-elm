@@ -153,6 +153,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 820px) {
   .cr-stat-grid  { grid-template-columns: 1fr !important; }
   .cr-chart-grid { grid-template-columns: 1fr !important; }
+  .cr-stack-grid { grid-template-columns: 1fr !important; }
 }
 
 /* Leaderboard: drop Region / Posts-wk / Last-posted, keep rank·hotel·followers·ER */
