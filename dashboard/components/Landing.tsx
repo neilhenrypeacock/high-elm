@@ -537,13 +537,22 @@ export default function Landing({ data }: { data: DashboardData }) {
           }}
         >
           <Lockup variant="primary" size={30} />
-          <Link
-            href={TRIAL_HREF}
-            className="cr-link"
-            style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-deep)', textDecoration: 'none' }}
-          >
-            Start your free trial →
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <Link
+              href="/login"
+              className="cr-link"
+              style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)', textDecoration: 'none' }}
+            >
+              Log in
+            </Link>
+            <Link
+              href={TRIAL_HREF}
+              className="cr-link"
+              style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-deep)', textDecoration: 'none' }}
+            >
+              Start your free trial →
+            </Link>
+          </div>
         </div>
       </div>
 
