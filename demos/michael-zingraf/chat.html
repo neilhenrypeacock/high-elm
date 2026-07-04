@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Michaël Zingraf Demo</title>
+<link rel="icon" type="image/svg+xml" href="/hes-favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1B3A5C;
+  --navy-dark: #122840;
+  --gold: #C9A96E;
+  --gold-dark: #A8884A;
+  --sand: #F8F5F0;
+  --white: #FFFFFF;
+  --text: #1a1a1a;
+  --muted: #7a7068;
+  --border: rgba(27,58,92,0.12);
+  --border-light: rgba(27,58,92,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: var(--sand);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overscroll-behavior: none;
+  padding: 20px;
+}
+.topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; }
+.powered { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--muted); letter-spacing: 0.03em; }
+.shell {
+  background: var(--white); border-radius: 20px; overflow: hidden;
+  box-shadow: 0 8px 60px rgba(27,58,92,0.10); display: flex; flex-direction: column; height: 700px;
+}
+.head { background: var(--navy); padding: 16px 22px; display: flex; align-items: center; gap: 13px; flex-shrink: 0; }
+.hname { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #fff; font-weight: 400; }
+.hsub { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; display: flex; align-items: center; gap: 5px; font-family: 'Montserrat', sans-serif; }
+.hdot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 2s infinite; flex-shrink: 0; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.hbadge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); letter-spacing: 0.03em; font-family: 'Montserrat', sans-serif; }
+.hright { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+/* Language switcher */
+.lang-wrap { position: relative; }
+.lang-btn { background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; }
+.lang-btn svg { fill: rgba(255,255,255,0.45); transition: fill 0.15s; }
+.lang-btn:hover svg { fill: rgba(255,255,255,0.8); }
+.lang-dd { position: absolute; top: 100%; right: 0; margin-top: 6px; background: var(--white); border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,0.15); overflow: hidden; display: none; z-index: 100; min-width: 160px; }
+.lang-dd.open { display: block; }
+.lang-opt { display: flex; align-items: center; gap: 8px; padding: 9px 16px; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--text); cursor: pointer; transition: background 0.12s; white-space: nowrap; }
+.lang-opt:hover { background: var(--sand); }
+.lang-opt.active { font-weight: 600; color: var(--navy); }
+/* Messages */
+.msgs { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; overscroll-behavior: contain; }
+.msgs::-webkit-scrollbar { width: 3px; }
+.msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.msg { display: flex; gap: 10px; align-items: flex-start; animation: up 0.22s ease; }
+.msg.user { flex-direction: row-reverse; }
+@keyframes up { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.mav { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
+.mav.ai { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: var(--gold); font-size: 12px; font-weight: 400; font-family: 'Cormorant Garamond', serif; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mav.user { width: 30px; height: 30px; border-radius: 50%; background: rgba(27,58,92,0.08); color: var(--muted); font-family: 'Montserrat', sans-serif; }
+.bub { max-width: 82%; padding: 12px 15px; font-size: 14px; line-height: 1.65; }
+.bub.ai { background: var(--white); color: var(--text); border-radius: 16px 16px 16px 4px; border: 1px solid var(--border); }
+.bub.user { background: var(--navy); color: #fff; border-radius: 16px 16px 4px 16px; }
+.bub p { margin: 0 0 0.6em; }
+.bub p:last-child { margin-bottom: 0; }
+/* Property cards */
+.pcard { display: block; margin-top: 10px; text-decoration: none; background: var(--white); border: 1px solid var(--border-light); border-radius: 14px; overflow: hidden; transition: border-color 0.15s, transform 0.15s; }
+.pcard:hover { border-color: var(--navy); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(27,58,92,0.08); }
+.pcard-img { height: 100px; background: linear-gradient(135deg, #F8F5F0 0%, #e8e0d4 50%, #d4c9b8 100%); display: flex; align-items: center; justify-content: center; }
+.pcard-img span { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; color: var(--muted); opacity: 0.7; }
+.pcard-body { padding: 12px 14px; }
+.ptag { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); display: inline-block; margin-bottom: 4px; }
+.pname { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 500; color: var(--navy); }
+.ploc { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--muted); margin-top: 1px; }
+.pdesc { font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 6px; }
+.pfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-light); }
+.pprice { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 600; color: var(--navy); }
+.plink { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600; color: var(--navy); }
+.pbeds { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--muted); margin-top: 3px; }
+/* Typing */
+.typing { display: flex; gap: 5px; align-items: center; padding: 12px 15px; background: var(--white); border: 1px solid var(--border); border-radius: 16px 16px 16px 4px; }
+.tdot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: td 1.3s infinite; }
+.tdot:nth-child(2){animation-delay:.2s} .tdot:nth-child(3){animation-delay:.4s}
+@keyframes td { 0%,60%,100%{transform:translateY(0);opacity:0.35} 30%{transform:translateY(-6px);opacity:1} }
+/* Choice pills */
+.sugs { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.sug { font-size: 12px; padding: 8px 18px; border-radius: 999px; border: 1px solid var(--navy); background: transparent; cursor: pointer; color: var(--navy); font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.12s; }
+.sug:hover { background: var(--navy); color: #fff; }
+/* Multi-select */
+.ms-wrap { margin-top: 10px; }
+.ms-hint { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-style: italic; }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+.ms-chip { font-size: 12px; padding: 6px 13px; border-radius: 20px; border: 1px solid rgba(27,58,92,0.15); background: var(--white); cursor: pointer; color: var(--muted); font-family: 'Montserrat', sans-serif; transition: all 0.12s; user-select: none; }
+.ms-chip.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.ms-confirm { padding: 7px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.ms-confirm:hover { background: var(--navy-dark); }
+/* Budget slider */
+.budget-wrap { margin-top: 10px; padding: 14px; background: var(--sand); border-radius: 10px; }
+.budget-display { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--navy); margin-bottom: 10px; }
+.budget-wrap input[type=range] { width: 100%; accent-color: var(--navy); cursor: pointer; margin-bottom: 4px; }
+.budget-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 12px; font-family: 'Montserrat', sans-serif; }
+.budget-confirm { width: 100%; padding: 9px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.budget-confirm:hover { background: var(--navy-dark); }
+/* Input bar */
+.ibar { padding: 13px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-shrink: 0; background: var(--white); }
+.ibar input { flex: 1; padding: 11px 16px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--sand); outline: none; transition: all 0.15s; }
+.ibar input:focus { border-color: var(--gold); background: var(--white); }
+.ibar input::placeholder { color: var(--muted); opacity: 0.6; }
+.sbtn { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+.sbtn:hover { background: var(--gold); }
+.sbtn:disabled { opacity: 0.3; cursor: default; }
+/* CTA book button */
+.cta-book { display: block; margin-top: 12px; padding: 16px 22px; background: var(--navy); border-radius: 14px; text-decoration: none; text-align: center; }
+.cta-book-headline { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 400; font-style: italic; color: #fff; margin-bottom: 4px; }
+.cta-book-sub { font-family: 'Montserrat', sans-serif; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+.cta-book-btn { display: inline-block; padding: 10px 24px; background: var(--gold); color: var(--navy-dark); border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 600; border: none; cursor: pointer; transition: background 0.15s; text-decoration: none; }
+.cta-book-btn:hover { background: var(--gold-dark); }
+/* Email capture / collect */
+.collect-form { margin-top: 12px; padding: 16px; background: var(--sand); border-radius: 12px; }
+.collect-headline { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 500; color: var(--navy); margin-bottom: 4px; }
+.collect-sub { font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.collect-form input { display: block; width: 100%; padding: 10px 14px; border: 1px solid rgba(27,58,92,0.15); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; margin-bottom: 8px; transition: border-color 0.15s; box-sizing: border-box; }
+.collect-form input:focus { border-color: var(--gold); }
+.collect-row { display: flex; gap: 8px; }
+.collect-row input { flex: 1; margin-bottom: 0; }
+.collect-submit { padding: 10px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
+.collect-submit:hover { background: var(--navy-dark); }
+/* Contact form (inline in bubble) */
+.contact-form { margin-top: 12px; }
+.contact-form input { display: block; width: 100%; margin-bottom: 7px; padding: 9px 12px; border: 1px solid rgba(27,58,92,0.15); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+.contact-form input:focus { border-color: var(--gold); }
+.contact-form button { padding: 8px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.contact-form button:hover { background: var(--gold); }
+/* Layout */
+.wrapper { width: 100%; max-width: 1100px; position: relative; z-index: 1; }
+.chat-row { display: flex; gap: 16px; align-items: flex-start; }
+.shell { flex: 1; min-width: 0; }
+/* Profile panel */
+.profile-panel { width: 260px; flex-shrink: 0; height: 700px; border-radius: 20px; background: var(--navy); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 60px rgba(27,58,92,0.15); }
+.pp-head { padding: 16px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.pp-eyebrow { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 300; font-style: italic; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+.pp-title { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+.pp-body { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.pp-body::-webkit-scrollbar { width: 2px; }
+.pp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+.pp-empty { font-size: 11px; color: rgba(255,255,255,0.18); font-style: italic; text-align: center; margin-top: 24px; line-height: 1.7; }
+.pp-row { display: flex; flex-direction: column; gap: 3px; animation: up 0.25s ease; }
+.pp-label { font-family: 'Montserrat', sans-serif; font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.28); font-weight: 500; }
+.pp-value { font-size: 13px; color: rgba(255,255,255,0.82); font-weight: 400; line-height: 1.45; }
+.pp-value.empty { font-style: italic; color: rgba(255,255,255,0.15); }
+@keyframes flash { 0%{background:rgba(201,169,110,0.15)} 100%{background:transparent} }
+.pp-row.flash { animation: flash 1.2s ease; }
+/* Profile panel email section */
+.pp-email-section { padding: 0; flex-shrink: 0; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 1.4s ease, opacity 1.8s ease; }
+.pp-email-visible { max-height: 300px; opacity: 1; }
+.pp-email-inner { padding: 0 18px 18px; }
+.pp-divider { height: 1px; background: rgba(255,255,255,0.08); margin-bottom: 14px; }
+.pp-email-label { font-family: 'Cormorant Garamond', serif; font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 5px; }
+.pp-email-sub { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.55; margin-bottom: 12px; font-family: 'Montserrat', sans-serif; }
+.pp-email-section input[type=text], .pp-email-section input[type=email] { display: block; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 10px; color: #fff; font-size: 12px; font-family: 'Montserrat', sans-serif; margin-bottom: 8px; outline: none; transition: border-color 0.15s; }
+.pp-email-section input::placeholder { color: rgba(255,255,255,0.25); }
+.pp-email-section input:focus { border-color: rgba(201,169,110,0.6); }
+.pp-submit { width: 100%; background: var(--gold); color: var(--navy-dark); border: none; border-radius: 8px; padding: 9px; font-size: 12px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.04em; transition: background 0.15s; }
+.pp-submit:hover { background: var(--gold-dark); }
+.pp-not-now { display: block; text-align: center; margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.25); cursor: pointer; background: none; border: none; font-family: 'Montserrat', sans-serif; width: 100%; }
+.pp-not-now:hover { color: rgba(255,255,255,0.5); }
+.pp-sent { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; padding: 10px 0 4px; line-height: 1.6; }
+/* Responsive */
+@media (max-width: 820px) { .profile-panel { display: none; } .wrapper { max-width: 780px; } }
+/* Embedded mode */
+html.embedded body { padding: 12px; height: 100vh; overflow: hidden; background: var(--white); }
+html.embedded .topbar { display: none; }
+html.embedded .shell { height: calc(100vh - 24px); }
+html.embedded .profile-panel { height: calc(100vh - 24px); }
+</style>
+</head>
+<body>
+<script>if (window !== window.top) document.documentElement.classList.add('embedded');</script>
+<div class="wrapper">
+  <div class="topbar">
+    <div class="powered">AI Property Intelligence · Demo</div>
+  </div>
+  <div class="chat-row">
+    <div class="shell">
+      <div class="head">
+        <div>
+          <div class="hname">Michaël Zingraf</div>
+          <div class="hsub"><div class="hdot"></div>French Riviera · Est. 1977</div>
+        </div>
+        <div class="hright">
+          <div class="lang-wrap">
+            <button class="lang-btn" onclick="toggleLang()" title="Language">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.45)"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="10" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/><line x1="2" y1="12" x2="22" y2="12" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/></svg>
+            </button>
+            <div class="lang-dd" id="langDd">
+              <div class="lang-opt active" data-lang="en" data-instruction="" onclick="setLang(this)">🇬🇧  English</div>
+              <div class="lang-opt" data-lang="fr" data-instruction="Respond entirely in French." onclick="setLang(this)">🇫🇷  Français</div>
+              <div class="lang-opt" data-lang="de" data-instruction="Respond entirely in German." onclick="setLang(this)">🇩🇪  Deutsch</div>
+              <div class="lang-opt" data-lang="it" data-instruction="Respond entirely in Italian." onclick="setLang(this)">🇮🇹  Italiano</div>
+              <div class="lang-opt" data-lang="ar" data-instruction="Respond entirely in Arabic." onclick="setLang(this)">🇸🇦  العربية</div>
+              <div class="lang-opt" data-lang="zh" data-instruction="Respond entirely in Mandarin Chinese." onclick="setLang(this)">🇨🇳  中文</div>
+            </div>
+          </div>
+          <span class="hbadge">AI Concierge</span>
+        </div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="ibar">
+        <input id="inp" placeholder="Ask anything about the Côte d'Azur…" onkeydown="if(event.key==='Enter')send()"/>
+        <button class="sbtn" id="sbtn" onclick="send()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M2 12L22 2L12 22L10 14L2 12Z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="profile-panel" id="profilePanel">
+      <div class="pp-head">
+        <div class="pp-eyebrow">Building as we talk</div>
+        <div class="pp-title">Buyer profile</div>
+      </div>
+      <div class="pp-body" id="ppBody"></div>
+      <div class="pp-email-section" id="ppEmailSection">
+        <div class="pp-email-inner">
+          <div class="pp-divider"></div>
+          <div class="pp-email-label">Get your property summary</div>
+          <div class="pp-email-sub">We'll send you everything we've covered — properties, market context, and a warm introduction to the right adviser.</div>
+          <input type="text" id="ppName" placeholder="Your name" autocomplete="name" />
+          <input type="email" id="ppEmail" placeholder="your@email.com" autocomplete="email" />
+          <button class="pp-submit" onclick="submitPanelEmail()">Send my summary →</button>
+          <button class="pp-not-now" onclick="dismissEmailSection()">Not now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* ── Inventory ── */
+const L = [
+  {id:1, name:"Villa Les Pins",        location:"La Californie, Cannes",   price:"€6,800,000", beds:"5 bedrooms", size:"420m²", tag:"Exclusive",          desc:"A mature pine-framed villa in Cannes' most prestigious residential quarter. Panoramic sea views and a pool terrace that catches the afternoon light until dusk.", url:"https://www.michaelzingraf.com"},
+  {id:2, name:"Penthouse La Croisette", location:"Central Cannes",          price:"€4,200,000", beds:"3 bedrooms", size:"220m²", tag:"Rare opportunity",   desc:"Top-floor penthouse on the Croisette's most coveted address. Terrace overlooking the Bay of Cannes. Exceptional rental yield potential.",                     url:"https://www.michaelzingraf.com"},
+  {id:3, name:"Villa Cap Soleil",       location:"Cap d'Antibes",           price:"€12,500,000",beds:"6 bedrooms", size:"680m²", tag:"Waterfront",         desc:"A Belle Époque residence on the western slope of the Cap, 80 metres from the sea. Renovated to the highest standard, with direct Mediterranean access.",       url:"https://www.michaelzingraf.com"},
+  {id:4, name:"Bastide des Oliviers",   location:"Mougins",                 price:"€2,900,000", beds:"4 bedrooms", size:"310m²", tag:"Character property", desc:"A restored Provençal bastide set in 5,000m² of mature olive groves, fifteen minutes from Cannes. Pool, guest house, complete privacy.",                      url:"https://www.michaelzingraf.com"},
+  {id:5, name:"Villa San Remo",         location:"Villefranche-sur-Mer",    price:"€8,400,000", beds:"5 bedrooms", size:"500m²", tag:"Sea view",           desc:"Commanding position above the Bay of Villefranche. Ten minutes from Nice, twelve from Monaco.",                                                               url:"https://www.michaelzingraf.com"},
+];
+
+/* ── System prompt ── */
+const SYS = `You are the AI concierge for Michaël Zingraf Real Estate — the leading luxury property agency on the French Riviera since 1977, and exclusive Christie's International Real Estate affiliate for Provence-Alpes-Côte d'Azur.
+
+Your purpose is to help serious buyers find the right property on the Côte d'Azur. You are not a search engine. You are an expert adviser who has spent decades in this market — someone who knows the difference between Cannes La Californie and Palm Beach at three in the afternoon, who understands why Cap Ferrat commands prices that most people find astonishing, and who can articulate the investment case for the South of France in a way that makes the decision feel inevitable.
+
+The most important thing you do is make every person who speaks to you feel immediately understood — before you recommend anything.
+
+---
+
+VOICE AND TONE
+
+You speak with warm authority. Never excitable. Never corporate. The register is refined, direct, and occasionally poetic about place — the way someone speaks when they genuinely love where they work.
+
+You name specific places, precise price ranges, and real market context. You never speak in generalities when a specific will do. "The Cannes hinterland" is not a good answer. "Mougins, fifteen minutes from the Croisette and half the price per square metre" is.
+
+You have a point of view and you share it — once, clearly — before adapting to what the buyer wants. You are not a mirror. You are an adviser.
+
+Never use: "Great question!", "Absolutely!", "Of course!", "Certainly!", "Happy to help!" These are banned.
+
+Keep responses focused. Two to four short paragraphs maximum. Luxury is never breathless.
+
+When describing a place or property, write one sentence of atmosphere before the facts. One true, specific sentence that puts the reader there.
+
+---
+
+PIPELINE — FOLLOW THIS ORDER EXACTLY
+
+STAGE 1 — OPENING
+One atmospheric sentence about the Côte d'Azur or the act of finding a home there. Then: "What's drawing you to the South of France right now?"
+Listen carefully. Extract motivation, use, dream. Emit [PROFILE:] tags immediately. Only probe for what is genuinely missing.
+
+STAGE 2 — QUALIFICATION
+Ask these five questions in order. Use the specified component each time.
+
+Q1 Location: "Where on the coast are you drawn — or is it still wide open?"
+[CHOICES:Cannes & the western Riviera|Nice & Cap Ferrat|Saint-Tropez & the Gulf|Provence inland|Still exploring]
+Emit [PROFILE:location=...]
+
+Q2 Property type: "What kind of property feels right?"
+[MULTISELECT:Villa|Apartment|Penthouse|Bastide / estate|Chalet (Megève)]
+Emit [PROFILE:property_type=...]
+
+Q3 Budget: "To point you toward the right part of the market — where are you thinking, roughly?"
+[BUDGET]
+Emit [PROFILE:budget=...]
+
+Q4 Timeline: "When are you looking to make a move?"
+[CHOICES:Actively looking now|Within 6 months|Within the year|Still early — exploring]
+Emit [PROFILE:timeline=...]
+
+Q5 Concerns: "Is there anything you'd want to understand better before going further?"
+[MULTISELECT:The buying process|Taxes & ownership costs|Mortgages for non-residents|Currency & conversion|Nothing specific — tell me about the market]
+Emit [PROFILE:concerns=...]
+
+Nationality: infer from context. If not clear by end of Stage 2, ask naturally: "Are you based in the UK, or somewhere else in Europe — or further afield? It shapes which parts of the buying process matter most."
+
+STAGE 3 — EDUCATION
+No questions. Address concerns from Q5 directly and honestly first. Then: Michaël Zingraf has been in this market since 1977. That means watching every cycle. The Côte d'Azur is one of the most structurally protected luxury markets in the world — constrained by mountains and sea, finite in supply, consistently desired by the world's wealthiest buyers for over 150 years. Make this personal to what this buyer said. End with a sentence that moves naturally toward recommendation.
+
+If they selected "Nothing specific — tell me about the market": skip concerns, go straight to the Zingraf and Riviera story.
+
+STAGE 4 — RECOMMENDATION
+Name the property. Explain the match.
+[SHOW:id1,id2] — 2 to 3 properties from inventory.
+Short paragraph: why each property matches what this buyer specifically said.
+
+STAGE 5 — ADVANCEMENT
+"The obvious next step is a conversation with one of our advisers — not a pitch, just a proper conversation."
+[CHOICES:Arrange a conversation|Send me a summary|Tell me more about [X]]
+Replace [X] with something specific from the conversation.
+
+STAGE 6 — CAPTURE
+"I'll put together everything we've covered and send it to you."
+[COLLECT]
+After submission: [BOOK]
+
+---
+
+KNOWLEDGE BASE — THE RIVIERA
+
+THE HISTORICAL CASE
+The Côte d'Azur has attracted the world's wealthy since the mid-19th century — Queen Victoria at the Excelsior Hôtel Regina, Matisse in Nice for thirty-seven years, Coco Chanel popularising the Riviera summer in the 1920s. Over 150 years of continuous demand from the world's highest-net-worth individuals. That is not a trend. It is a structural fact.
+
+THE INVESTMENT CASE
+Property values increased 15–20% between 2019 and 2023. In 2024, transactions exceeded €9 billion — up 12% on 2023. Properties over €5m represent 30% of all transactions. International buyers (US, GCC, Germany, Switzerland, UK, Scandinavia) account for 85% of Zingraf's clientele. Supply is structurally constrained — mountains to the north, sea to the south.
+
+CAP FERRAT
+Most prestigious address on the Riviera. A narrow peninsula between Nice and Monaco, almost entirely residential. Typical villa: €10m–€80m+. Thirteen minutes from Monaco. Absolute privacy, direct sea access. A trophy market, not a yield market.
+
+NICE
+France's fifth-largest city. Mont-Boron, Cimiez, and the Carré d'Or are the prestige addresses. Airport fifteen minutes away. Prices €6,000–€12,000/m² for prime apartments.
+
+CANNES
+La Californie: large villas, pine trees, sea views, privacy. Palm Beach: direct beach access. Super Cannes: panoramic views. Average villa €3m–€15m. Croisette apartments start ~€1.5m. Croisette apartment: €10,000–€30,000/week in May during the Film Festival.
+
+CAP D'ANTIBES
+12km peninsula between Cannes and Nice. The Hôtel du Cap-Eden-Roc at its tip since 1870. Waterfront villas rarely come to market. Average villa €5m–€30m. Discretion and privacy prioritised over Croisette or Monaco.
+
+MOUGINS
+Ten minutes inland from Cannes. Medieval hilltop village. Villas with grounds, olive groves, views. Price per m²: roughly 40–50% below equivalent Cannes. Not a sea-view address — but more for less, and genuine Provençal character.
+
+SAINT-TROPEZ
+The Gulf is the serious market: Gassin, Ramatuelle, Pampelonne. Villas with sea views: €5m–€40m+. Strongly seasonal. Rental yield among the highest on the Riviera.
+
+PROVENCE
+Aix-en-Provence: TGV to Paris 3 hours. Gordes: €2m–€8m. Lourmarin: authentic, less known. A different world — mas, bastides, lavender.
+
+THE BUYING PROCESS
+Timeline: 3–6 months. Compromis de vente → acte de vente at notaire. Notaire fees: ~7–8% older properties, 2–3% new builds (buyer-paid). Agency fees: typically 4–6%. No ownership restrictions for non-residents. Capital gains: 19% EU residents, 36.2% non-EU after allowances. IFI wealth tax on French property over €1.3m net, rates 0.5–1.5%. French mortgages available to non-residents: typically up to 70% LTV.
+
+---
+
+OBJECTION HANDLING
+
+"Is now a good time to buy?"
+The Riviera has outperformed most European property markets over any 10-year window since the 1970s. The buyers who wait for the perfect moment in Cap Ferrat tend to wait permanently.
+
+"It's very expensive for what you get."
+Price per square metre is the wrong metric. What you're buying is land scarcity, climate, lifestyle infrastructure, and a century of established prestige. Compare to London or Geneva at equivalent addresses.
+
+"The buying process seems complicated."
+The notaire system is extremely protective of buyers. We work with buyers from 40+ countries. The process is manageable — and we introduce the right legal and tax advisers at the right moment.
+
+"I'm worried about French taxes."
+IFI applies to French property over €1.3m net — but calculated on net value after debt, and rates are modest. Capital gains varies significantly by holding period and residency. Worth a specialist conversation — we can introduce the right people.
+
+"I don't know the market well enough to commit."
+That's exactly the right instinct. The Riviera rewards familiarity. We can structure a viewing trip that teaches you the market in two days.
+
+"What if I can't get a mortgage?"
+French lenders offer non-resident mortgages at competitive rates, typically up to 70% LTV. We work with specialist brokers who handle this regularly.
+
+---
+
+QUICK REFERENCE
+
+If asked something outside the knowledge base: "That's a specific question worth getting right — let me make sure our team gives you accurate information rather than approximating." Do not fabricate figures.
+
+If a buyer is ready to advance before Stage 5: compress gracefully. Skip to [CHOICES:Arrange a conversation|Send me a summary].
+
+If asked about fees: "Agency fees vary by property — typically 4–6%, sometimes included in the listed price. We'll always be explicit before you make an offer."`;
+
+/* ── Language state ── */
+let currentLang = 'en';
+let langInstruction = '';
+
+const UI_STRINGS = {
+  en: { placeholder: 'Ask anything about the Côte d\'Azur…', panelTitle: 'Buyer profile', panelEyebrow: 'Building as we talk', badge: 'AI Concierge',
+        labels: {motivation:'Motivation',dream:'Dream outcome',location:'Location interest',property_type:'Property type',budget:'Budget',use:'Intended use',timeline:'Timeline',nationality:'Origin / base',concerns:'Concerns'} },
+  fr: { placeholder: 'Posez vos questions sur la Côte d\'Azur…', panelTitle: 'Profil acheteur', panelEyebrow: 'Se construit au fil de la conversation', badge: 'Concierge IA',
+        labels: {motivation:'Motivation',dream:'Objectif',location:'Localisation',property_type:'Type de bien',budget:'Budget',use:'Usage',timeline:'Calendrier',nationality:'Origine',concerns:'Questions'} },
+  de: { placeholder: 'Fragen Sie alles über die Côte d\'Azur…', panelTitle: 'Käuferprofil', panelEyebrow: 'Wird während des Gesprächs erstellt', badge: 'KI-Concierge',
+        labels: {motivation:'Motivation',dream:'Traumziel',location:'Standort',property_type:'Immobilientyp',budget:'Budget',use:'Nutzung',timeline:'Zeitrahmen',nationality:'Herkunft',concerns:'Fragen'} },
+  it: { placeholder: 'Chiedi qualsiasi cosa sulla Costa Azzurra…', panelTitle: 'Profilo acquirente', panelEyebrow: 'Si costruisce durante la conversazione', badge: 'Concierge IA',
+        labels: {motivation:'Motivazione',dream:'Obiettivo',location:'Posizione',property_type:'Tipo di immobile',budget:'Budget',use:'Utilizzo',timeline:'Tempistica',nationality:'Provenienza',concerns:'Domande'} },
+  ar: { placeholder: 'اسأل أي شيء عن الريفييرا الفرنسية…', panelTitle: 'ملف المشتري', panelEyebrow: 'يتم بناؤه أثناء المحادثة', badge: 'مساعد ذكي',
+        labels: {motivation:'الدافع',dream:'الهدف',location:'الموقع',property_type:'نوع العقار',budget:'الميزانية',use:'الاستخدام',timeline:'الجدول الزمني',nationality:'الأصل',concerns:'الاستفسارات'} },
+  zh: { placeholder: '询问有关蔚蓝海岸的任何问题…', panelTitle: '买家资料', panelEyebrow: '在对话中逐步完善', badge: 'AI 礼宾',
+        labels: {motivation:'动机',dream:'理想目标',location:'意向位置',property_type:'物业类型',budget:'预算',use:'用途',timeline:'时间安排',nationality:'来源',concerns:'关注问题'} },
+};
+
+function toggleLang() { document.getElementById('langDd').classList.toggle('open'); }
+document.addEventListener('click', e => { if (!e.target.closest('.lang-wrap')) document.getElementById('langDd').classList.remove('open'); });
+
+function setLang(el) {
+  currentLang = el.dataset.lang;
+  langInstruction = el.dataset.instruction;
+  document.querySelectorAll('.lang-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('langDd').classList.remove('open');
+  const s = UI_STRINGS[currentLang] || UI_STRINGS.en;
+  document.getElementById('inp').placeholder = s.placeholder;
+  document.querySelector('.pp-title').textContent = s.panelTitle;
+  document.querySelector('.pp-eyebrow').textContent = s.panelEyebrow;
+  document.querySelector('.hbadge').textContent = s.badge;
+  updateProfile();
+}
+
+/* ── State ── */
+let hist = [], busy = false;
+let capturedEmail = null, capturedName = null;
+let emailSent = false, sendBeaconFired = false;
+let propertiesShown = [];
+const profile = { motivation:'', dream:'', location:'', property_type:'', budget:'', use:'', timeline:'', nationality:'', concerns:'' };
+let emailSectionShown = false;
+
+/* ── Profile panel labels mapping ── */
+const PROFILE_LABELS = {motivation:'Motivation',dream:'Dream outcome',location:'Location interest',property_type:'Property type',budget:'Budget',use:'Intended use',timeline:'Timeline',nationality:'Origin / base',concerns:'Concerns'};
+const PROFILE_ORDER = ['motivation','dream','location','property_type','budget','use','timeline','nationality','concerns'];
+
+/* ── Helpers ── */
+function aiAv() {
+  const av = document.createElement('div'); av.className = 'mav ai';
+  av.textContent = 'MZ';
+  return av;
+}
+
+function mkCard(l) {
+  const a = document.createElement('a'); a.className = 'pcard'; a.href = l.url; a.target = '_blank';
+  a.innerHTML = `<div class="pcard-img"><span>${l.location}</span></div><div class="pcard-body"><span class="ptag">${l.tag}</span><div class="pname">${l.name}</div><div class="ploc">${l.location}</div><div class="pbeds">${l.beds} · ${l.size}</div><div class="pdesc">${l.desc}</div><div class="pfoot"><span class="pprice">${l.price}</span><span class="plink">View on michaelzingraf.com →</span></div></div>`;
+  return a;
+}
+
+function mkBookCta() {
+  const wrap = document.createElement('div'); wrap.className = 'cta-book';
+  wrap.innerHTML = `<div class="cta-book-headline">The next step is a conversation</div><div class="cta-book-sub">No obligation — just a proper conversation about what you're looking for</div><a class="cta-book-btn" href="https://www.michaelzingraf.com" target="_blank">Arrange a conversation</a>`;
+  return wrap;
+}
+
+function mkCollectForm() {
+  const wrap = document.createElement('div'); wrap.className = 'collect-form';
+  const uid = 'cf' + Date.now();
+  wrap.innerHTML = `<div class="collect-headline">Let us send you a summary</div><div class="collect-sub">Everything we've covered — properties, market context, and a warm introduction to the right adviser.</div><input type="text" id="${uid}-name" placeholder="Your name" autocomplete="name" /><div class="collect-row"><input type="email" id="${uid}-email" placeholder="Email address" autocomplete="email" /><button class="collect-submit" onclick="submitContact('${uid}',this)">Send →</button></div>`;
+  return wrap;
+}
+
+async function submitContact(uid, btn) {
+  const name = (document.getElementById(uid+'-name')||{}).value||'';
+  const email = (document.getElementById(uid+'-email')||{}).value||'';
+  if (!name.trim()||!email.trim()) return;
+  capturedEmail = email.trim();
+  capturedName = name.trim() || null;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const ok = await sendSummaryEmail();
+  btn.closest('.collect-form').innerHTML = ok
+    ? `<span style="font-size:12px;color:var(--muted)">Thank you, ${capturedName} — check your inbox shortly.</span>`
+    : `<span style="font-size:12px;color:var(--muted)">Thank you — we'll be in touch at ${capturedEmail}.</span>`;
+  const sec = document.getElementById('ppEmailSection');
+  if (sec) sec.classList.remove('pp-email-visible');
+}
+
+/* ── Multi-select ── */
+function renderMultiSelect(opts, parent) {
+  const wrap = document.createElement('div'); wrap.className = 'ms-wrap';
+  const hint = document.createElement('div'); hint.className = 'ms-hint'; hint.textContent = 'You can select more than one';
+  wrap.appendChild(hint);
+  const chips = document.createElement('div'); chips.className = 'ms-chips';
+  opts.forEach(opt => {
+    const c = document.createElement('div'); c.className = 'ms-chip'; c.textContent = opt;
+    c.onclick = () => c.classList.toggle('on');
+    chips.appendChild(c);
+  });
+  const btn = document.createElement('button'); btn.className = 'ms-confirm'; btn.textContent = 'Confirm →';
+  btn.onclick = () => {
+    const sel = [...chips.querySelectorAll('.ms-chip.on')].map(c => c.textContent);
+    if (!sel.length) return;
+    const msg = sel.join(', ');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${msg}</span>`;
+    qs(msg);
+  };
+  wrap.appendChild(chips); wrap.appendChild(btn);
+  parent.appendChild(wrap);
+}
+
+/* ── Budget slider ── */
+const BUDGET = {
+  min: 500000, max: 30000000, step: 250000, default: 3000000,
+  format: (n) => {
+    if (n >= 1000000) return '€' + (n/1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + 'm';
+    return '€' + (n/1000).toFixed(0) + 'k';
+  }
+};
+
+function renderBudget(parent) {
+  const wrap = document.createElement('div'); wrap.className = 'budget-wrap';
+  const disp = document.createElement('div'); disp.className = 'budget-display'; disp.textContent = BUDGET.format(BUDGET.default);
+  const slider = document.createElement('input'); slider.type = 'range';
+  slider.min = BUDGET.min; slider.max = BUDGET.max; slider.step = BUDGET.step; slider.value = BUDGET.default;
+  slider.oninput = () => { disp.textContent = BUDGET.format(Number(slider.value)); };
+  const ticks = document.createElement('div'); ticks.className = 'budget-ticks';
+  ticks.innerHTML = '<span>€500k</span><span>€3m</span><span>€10m</span><span>€30m</span>';
+  const btn = document.createElement('button'); btn.className = 'budget-confirm'; btn.textContent = 'Confirm budget →';
+  btn.onclick = () => {
+    const val = BUDGET.format(Number(slider.value));
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">Budget: ${val}</span>`;
+    qs('My budget is around ' + val);
+  };
+  wrap.appendChild(disp); wrap.appendChild(slider); wrap.appendChild(ticks); wrap.appendChild(btn);
+  parent.appendChild(wrap);
+}
+
+/* ── Profile panel ── */
+function updateProfile() {
+  const body = document.getElementById('ppBody');
+  if (!body) return;
+  const s = UI_STRINGS[currentLang] || UI_STRINGS.en;
+  const hasAny = PROFILE_ORDER.some(k => profile[k]);
+  if (!hasAny) {
+    body.innerHTML = '<div class="pp-empty">Fields will appear as the conversation unfolds</div>';
+    return;
+  }
+  body.innerHTML = PROFILE_ORDER.map(k => {
+    const label = s.labels[k] || PROFILE_LABELS[k];
+    const val = profile[k];
+    return `<div class="pp-row${val ? ' flash' : ''}"><div class="pp-label">${label}</div><div class="pp-value${val ? '' : ' empty'}">${val || '—'}</div></div>`;
+  }).join('');
+}
+updateProfile();
+
+/* ── Panel email capture ── */
+function checkEmailSection() {
+  if (emailSectionShown) return;
+  if (Math.floor(hist.length / 2) >= 5) {
+    emailSectionShown = true;
+    document.getElementById('ppEmailSection')?.classList.add('pp-email-visible');
+  }
+}
+
+async function submitPanelEmail() {
+  const emailInp = document.getElementById('ppEmail');
+  const nameInp = document.getElementById('ppName');
+  const email = (emailInp?.value||'').trim();
+  if (!email || !email.includes('@')) { if (emailInp) emailInp.style.borderColor = 'rgba(201,169,110,0.8)'; return; }
+  capturedEmail = email;
+  capturedName = (nameInp?.value||'').trim() || null;
+  const inner = document.querySelector('#ppEmailSection .pp-email-inner');
+  if (inner) inner.innerHTML = '<div class="pp-divider"></div><div class="pp-sent">Sending…</div>';
+  const ok = await sendSummaryEmail();
+  if (inner) inner.innerHTML = ok
+    ? '<div class="pp-divider"></div><div class="pp-sent">Got it — we\'ll send your full summary.<br>A Zingraf adviser will follow up shortly.</div>'
+    : '<div class="pp-divider"></div><div class="pp-sent" style="color:rgba(201,169,110,0.7)">Something went wrong — please try again.</div>';
+}
+
+function dismissEmailSection() {
+  const sec = document.getElementById('ppEmailSection');
+  if (sec) { sec.classList.remove('pp-email-visible'); emailSectionShown = false; }
+}
+
+async function sendSummaryEmail() {
+  if (emailSent || sendBeaconFired || !capturedEmail) return false;
+  emailSent = true;
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email: capturedEmail, name: capturedName, conversationHistory: hist, propertiesShown })
+    });
+    if (!res.ok) { emailSent = false; return false; }
+    return true;
+  } catch(e) { emailSent = false; return false; }
+}
+
+/* ── Core chat ── */
+function addMsg(role, text, ids=[], choices=[], book=false, collect=false, multiSelect=null, budget=false) {
+  const msgs = document.getElementById('msgs');
+  const row = document.createElement('div'); row.className = 'msg ' + role;
+  const av = role==='ai' ? aiAv() : document.createElement('div');
+  if (role !== 'ai') { av.className = 'mav user'; av.textContent = 'You'; }
+  const b = document.createElement('div'); b.className = 'bub ' + role;
+  b.innerHTML = text.split(/\n\n+/).map(chunk =>
+    `<p>${chunk.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+)\*/g,'<em>$1</em>').replace(/\n/g,'<br>')}</p>`
+  ).join('');
+  row.appendChild(av); row.appendChild(b); msgs.appendChild(row);
+  if (ids && ids.length) { ids.forEach(id => { const l=L.find(x=>x.id===id); if(l) b.appendChild(mkCard(l)); }); propertiesShown = [...new Set([...propertiesShown, ...ids])]; }
+  if (choices && choices.length) {
+    const cd = document.createElement('div'); cd.className = 'sugs';
+    choices.forEach(c => { const btn=document.createElement('button'); btn.className='sug'; btn.textContent=c; btn.onclick=()=>{ cd.style.opacity='0.4'; cd.style.pointerEvents='none'; qs(c); }; cd.appendChild(btn); });
+    b.appendChild(cd);
+  }
+  if (multiSelect) renderMultiSelect(multiSelect, b);
+  if (budget) renderBudget(b);
+  if (collect) b.appendChild(mkCollectForm());
+  if (book) b.appendChild(mkBookCta());
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showT() {
+  const msgs = document.getElementById('msgs');
+  const r = document.createElement('div'); r.className = 'msg ai'; r.id = 'TY';
+  const t = document.createElement('div'); t.className = 'typing';
+  t.innerHTML = '<div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>';
+  r.appendChild(aiAv()); r.appendChild(t);
+  msgs.appendChild(r); msgs.scrollTop = msgs.scrollHeight;
+}
+function hideT() { const t = document.getElementById('TY'); if(t) t.remove(); }
+
+function parse(text) {
+  let clean = text.trim(), ids=[], choices=[], book=false, collect=false, multiSelect=null, budget=false;
+
+  // SHOW tags
+  const showMatches = [...clean.matchAll(/\[SHOW:([\d,\s]+)\]/g)];
+  if (showMatches.length) { ids = showMatches.flatMap(m => m[1].split(',').map(n=>parseInt(n.trim())).filter(n=>!isNaN(n))); clean = clean.replace(/\[SHOW:[\d,\s]+\]/g,'').trim(); }
+
+  // CHOICES
+  const cm = clean.match(/\[CHOICES:([^\]]+)\]/);
+  if (cm) { choices = cm[1].split('|').map(s=>s.trim()).filter(Boolean); clean = clean.replace(/\[CHOICES:[^\]]+\]/,'').trim(); }
+
+  // MULTISELECT
+  const msm = clean.match(/\[MULTISELECT:([^\]]+)\]/);
+  if (msm) { multiSelect = msm[1].split('|').map(s=>s.trim()).filter(Boolean); clean = clean.replace(/\[MULTISELECT:[^\]]+\]/,'').trim(); }
+
+  // BUDGET
+  if (clean.includes('[BUDGET]')) { budget=true; clean=clean.replace(/\[BUDGET\]/g,'').trim(); }
+
+  // BOOK
+  if (clean.includes('[BOOK]')) { book=true; clean=clean.replace(/\[BOOK\]/g,'').trim(); }
+
+  // COLLECT
+  if (clean.includes('[COLLECT]')) { collect=true; clean=clean.replace(/\[COLLECT\]/g,'').trim(); }
+
+  // PROFILE tags — silent, strip from display
+  const profileTags = clean.match(/\[PROFILE:([^\]]+)\]/g);
+  if (profileTags) {
+    profileTags.forEach(tag => {
+      const inner = tag.slice(9, -1);
+      inner.split('|').forEach(pair => {
+        const eq = pair.indexOf('=');
+        if (eq > -1) { const k = pair.slice(0,eq).trim(), v = pair.slice(eq+1).trim(); if (k && v && k in profile) profile[k] = v; }
+      });
+    });
+    clean = clean.replace(/\[PROFILE:[^\]]+\]/g,'').trim();
+    updateProfile();
+  }
+
+  return {clean, ids, choices, book, collect, multiSelect, budget};
+}
+
+async function callAI() {
+  busy = true;
+  document.getElementById('sbtn').disabled = true;
+  showT();
+  let lastErr = null;
+  const systemPrompt = langInstruction ? langInstruction + '\n\n' + SYS : SYS;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 1000));
+    try {
+      const res = await fetch('/api/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:600, system:systemPrompt, messages:hist})
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error.message);
+      const raw = (d.content?.[0]?.text||'').trim();
+      hideT();
+      const {clean, ids, choices, book, collect, multiSelect, budget} = parse(raw);
+      addMsg('ai', clean, ids, choices, book, collect, multiSelect, budget);
+      hist.push({role:'assistant', content:raw});
+      checkEmailSection();
+      lastErr = null;
+      break;
+    } catch(e) { lastErr = e; }
+  }
+  if (lastErr) { hideT(); addMsg('ai', 'Sorry, there was a connection issue — please try again.'); }
+  busy = false;
+  document.getElementById('sbtn').disabled = false;
+}
+
+async function send() {
+  const inp = document.getElementById('inp');
+  const msg = inp.value.trim();
+  if (!msg||busy) return;
+  inp.value='';
+  addMsg('user', msg);
+  hist.push({role:'user', content:msg});
+  // Show email panel when buyer wants to arrange a conversation
+  if (/arrange.*conversation|speak.*adviser|get.*in.*touch|send.*summary/i.test(msg) && !capturedEmail) {
+    const sec = document.getElementById('ppEmailSection');
+    if (sec && !emailSectionShown) {
+      emailSectionShown = true;
+      sec.classList.add('pp-email-visible');
+    }
+  }
+  await callAI();
+  if (window === window.top) inp.focus();
+}
+
+function qs(t) {
+  document.getElementById('inp').value = t;
+  send();
+}
+
+/* ── Unload: send email if captured but not yet sent ── */
+window.addEventListener('beforeunload', () => {
+  if (!capturedEmail || emailSent || sendBeaconFired) return;
+  sendBeaconFired = true;
+  const payload = JSON.stringify({
+    email: capturedEmail, name: capturedName,
+    conversationHistory: hist.slice(-20),
+    propertiesShown
+  });
+  navigator.sendBeacon('/api/send-email', new Blob([payload], {type:'application/json'}));
+});
+
+/* ── Init ── */
+(function init(){
+  addMsg('ai', 'There is a particular light on the Côte d\'Azur — the kind that has drawn people here for over a century, and that photographs never quite capture.\n\nWhat\'s drawing you to the South of France right now?');
+  hist.push({role:'assistant', content:'There is a particular light on the Côte d\'Azur — the kind that has drawn people here for over a century, and that photographs never quite capture.\n\nWhat\'s drawing you to the South of France right now?'});
+  if (window === window.top) document.getElementById('inp').focus();
+})();
+</script>
+</body>
+</html>

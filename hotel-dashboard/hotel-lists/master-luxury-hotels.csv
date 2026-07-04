@@ -1,0 +1,489 @@
+id,hotel_name,country,region,website,instagram_handle,instagram_url,source,gold_list_listings,notes
+1,Acqualina Resort and Residences on the Beach,United States,Americas,https://www.acqualinaresort.com/,@acqualinaresort,https://www.instagram.com/acqualinaresort,Forbes,,
+2,Adare Manor,Ireland,Europe,https://www.adaremanor.com,@theadaremanor,https://www.instagram.com/theadaremanor,"Forbes, Gold List","US 2025, UK 2025",
+3,Address Beach Resort Dubai,United Arab Emirates,Middle East,https://www.addresshotels.com/en/resorts/address-beach-resort/,@addressbeachresort,https://www.instagram.com/addressbeachresort,Forbes,,
+4,Address Istanbul,Turkey,Europe,https://www.addresshotels.com/en/hotels/address-istanbul/,@addresshotelistanbul,https://www.instagram.com/addresshotelistanbul,Forbes,,region assigned by judgement (transcontinental country)
+5,"Airelles Courchevel, Les Airelles",France,Europe,https://airelles.com/en/destination/courchevel-hotel,@airellescourchevel,https://www.instagram.com/airellescourchevel,Forbes,,
+6,"Airelles Gordes, La Bastide",France,Europe,https://airelles.com/en/destination/gordes-hotel,@airellesgordes,https://www.instagram.com/airellesgordes,Forbes,,
+7,Akelarre,Spain,Europe,https://akelarre.net,@akelarrehotel,https://www.instagram.com/akelarrehotel,Gold List,"US 2026, UK 2026",
+8,Al Moudira Hotel,Egypt,Africa,https://www.moudira.com,@moudira_hotel,https://www.instagram.com/moudira_hotel,Gold List,"US 2026, UK 2026",
+9,Altira Macau,China,Asia-Pacific,https://www.altiramacau.com/en,@altira.macau,https://www.instagram.com/altira.macau,Forbes,,
+10,Aman Kyoto,Japan,Asia-Pacific,https://www.aman.com/resorts/aman-kyoto,@aman_kyoto,https://www.instagram.com/aman_kyoto,Gold List,"US 2025, UK 2025",
+11,Aman Tokyo,Japan,Asia-Pacific,https://www.aman.com/hotels/aman-tokyo,@aman_tokyo,https://www.instagram.com/aman_tokyo,World's 50 Best,,Property account preferred over global @aman.
+12,Amangiri,United States,Americas,https://www.aman.com/resorts/amangiri,@amangiri,https://www.instagram.com/amangiri,Gold List,"US 2026, UK 2026",
+13,Amansara,Cambodia,Asia-Pacific,https://www.aman.com/resorts/amansara,@amansara,https://www.instagram.com/amansara,Forbes,,
+14,andBeyond Mnemba Island,Tanzania,Africa,https://www.andbeyond.com/our-lodges/africa/tanzania/mnemba-island/andbeyond-mnemba-island,@andbeyondmnemba,https://www.instagram.com/andbeyondmnemba,Gold List,"US 2025, UK 2025",
+15,Andronis Luxury Suites,Greece,Europe,https://www.andronis.com/hotels/andronis-luxury-suites,@andronissuites,https://www.instagram.com/andronissuites,Forbes,,Site footer publishes @andronissuites (resolves earlier ambiguity).
+16,ARIA Sky Suites,United States,Americas,https://aria.mgmresorts.com,,,Forbes,,ARIA Sky Suites is a suite product within ARIA Resort & Casino; no property-specific Instagram. Left blank.
+17,Armani Hotel Dubai,United Arab Emirates,Middle East,https://www.armanihotels.com/en/hotels/armani-hotel-dubai,@armanihoteldxb,https://www.instagram.com/armanihoteldxb,Forbes,,
+18,Ashford Castle,Ireland,Europe,https://ashfordcastle.com,@ashfordcastle,https://www.instagram.com/ashfordcastle,Forbes,,
+19,"Atlantis, The Royal",United Arab Emirates,Middle East,https://www.atlantis.com/atlantis-the-royal,@atlantistheroyal,https://www.instagram.com/atlantistheroyal,"Forbes, World's 50 Best",,
+20,"Auberge du Soleil, Auberge Collection",United States,Americas,https://auberge.com/auberge-du-soleil/,@aubergedusoleil,https://www.instagram.com/aubergedusoleil,Forbes,,
+21,Baccarat Hotel New York,United States,Americas,https://www.baccarathotels.com/,@baccarathotels,https://www.instagram.com/baccarathotels,Forbes,,@baccarathotels is the New York flagship's account (brand HQ is this property).
+22,Badrutt's Palace Hotel,Switzerland,Europe,https://badruttspalace.com,@badruttspalace,https://www.instagram.com/badruttspalace,"Forbes, Gold List","US 2026, UK 2026",
+23,Banyan Tree Macau,China,Asia-Pacific,https://www.banyantree.com/china/macau,@banyantreemacau,https://www.instagram.com/banyantreemacau,Forbes,,
+24,Beach Club at The Boca Raton,United States,Americas,https://www.thebocaraton.com/suites-rooms/beach-club/,@thebocaraton,https://www.instagram.com/thebocaraton,Forbes,,Beach Club has no separate IG; resort account @thebocaraton used (property has none of its own).
+25,Beaverbrook,United Kingdom,Europe,https://beaverbrook.co.uk,@beaverbrook,https://www.instagram.com/beaverbrook,Gold List,"US 2026, UK 2026",
+26,Blackberry Farm,United States,Americas,https://www.dorchestercollection.com/los-angeles/the-beverly-hills-hotel,@bevhillshotel,https://www.instagram.com/bevhillshotel,Gold List,"US 2025, UK 2025",
+27,BLESS Hotel Madrid,Spain,Europe,https://www.blesscollectionhotels.com/en/bless-hotel-madrid/,@blesshotelmadrid,https://www.instagram.com/blesshotelmadrid,Forbes,,
+28,BLESS Ibiza Cala Nova,Spain,Europe,https://www.blesscollectionhotels.com/en/bless-hotel-ibiza/,@blessibizacalanova,https://www.instagram.com/blessibizacalanova,Forbes,,Site footer publishes @blessibizacalanova (resolves earlier ambiguity).
+29,Borgo Santo Pietro,Italy,Europe,https://borgosantopietro.com/,@borgosantopietro,https://www.instagram.com/borgosantopietro,Manual add,,From official site footer.
+30,Boston Harbor Hotel,United States,Americas,https://www.bostonharborhotel.com/,@bostonharborhotel,https://www.instagram.com/bostonharborhotel,Forbes,,
+31,"Brown's Hotel, a Rocco Forte Hotel",United Kingdom,Europe,https://www.roccofortehotels.com/hotels-and-resorts/brown-s-hotel/,@browns_hotel,https://www.instagram.com/browns_hotel,Forbes,,
+32,"Buahan, A Banyan Tree Escape",Indonesia,Asia-Pacific,https://www.blackberryfarm.com,@blackberryfarm,https://www.instagram.com/blackberryfarm,Gold List,"US 2026, UK 2026",
+33,Bullo River Station,Australia,Asia-Pacific,https://thebrando.com,@thebrandoresort,https://www.instagram.com/thebrandoresort,Gold List,UK 2025,
+34,Bvlgari Hotel Beijing,China,Asia-Pacific,https://www.bulgarihotels.com/en_US/beijing,,,Forbes,,Only group @bvlgarihotels published; no property-specific account. Left blank.
+35,Bvlgari Hotel London,United Kingdom,Europe,https://www.bulgarihotels.com/en_US/london,@bvlgarihotellondon,https://www.instagram.com/bvlgarihotellondon,Forbes,,
+36,Bvlgari Hotel Roma,Italy,Europe,https://www.bulgarihotels.com/en_US/rome,@bvlgarihotelroma,https://www.instagram.com/bvlgarihotelroma,World's 50 Best,,Property account preferred over brand @bvlgarihotels.
+37,Bvlgari Hotel Shanghai,China,Asia-Pacific,https://www.bulgarihotels.com/en_US/shanghai,,,Forbes,,Only group @bvlgarihotels published; no property-specific account. Left blank.
+38,Bvlgari Hotel Tokyo,Japan,Asia-Pacific,https://www.bulgarihotels.com/en_US/tokyo,@bvlgarihoteltokyo,https://www.instagram.com/bvlgarihoteltokyo,"Forbes, World's 50 Best",,
+39,Bvlgari Resort and Residences Dubai,United Arab Emirates,Middle East,https://www.bulgarihotels.com/en_US/dubai,@bvlgariresortdubai,https://www.instagram.com/bvlgariresortdubai,"Forbes, Gold List","US 2026, UK 2026",
+40,Bvlgari Resort Bali,Indonesia,Asia-Pacific,https://www.bulgarihotels.com/en_US/bali,@bvlgariresortbali,https://www.instagram.com/bvlgariresortbali,"Forbes, Gold List",US 2025,
+41,"Caiman, Pantanal",Brazil,Americas,https://www.bulgarihotels.com/en_US/bali,@bvlgariresortbali,https://www.instagram.com/bvlgariresortbali,Gold List,"US 2025, UK 2025",
+42,Canaves Ena,Greece,Europe,https://www.bulgarihotels.com/en_US/dubai,@bvlgariresortdubai,https://www.instagram.com/bvlgariresortdubai,Gold List,"US 2025, UK 2025",
+43,"Cap Juluca, A Belmond Hotel, Anguilla",Anguilla,Americas,https://www.belmond.com/hotels/north-america/caribbean/anguilla/belmond-cap-juluca/,@belmondcapjuluca,https://www.instagram.com/belmondcapjuluca,Forbes,,
+44,Cap Rocat,Spain,Europe,https://www.caiman.com.br/en/,@caimanpantanal,https://www.instagram.com/caimanpantanal,Gold List,"US 2025, UK 2025",
+45,Cape Weligama,Sri Lanka,Asia-Pacific,https://canaves.com/canaves-oia-hotel-ena/,@canavesena,https://www.instagram.com/canavesena,Gold List,"US 2026, UK 2026",
+46,Capella at Galaxy Macau,China,Asia-Pacific,https://capellahotels.com/en/capella-galaxy-macau,@capellamacau,https://www.instagram.com/capellamacau,Forbes,,
+47,Capella Bangkok,Thailand,Asia-Pacific,https://capellahotels.com/en/capella-bangkok,@capellabangkok,https://www.instagram.com/capellabangkok,"Forbes, Gold List, World's 50 Best",US 2025,
+48,Capella Hanoi,Vietnam,Asia-Pacific,https://capellahotels.com/en/capella-hanoi,@capellahanoi,https://www.instagram.com/capellahanoi,Forbes,,
+49,"Capella Shanghai, Jian Ye Li",China,Asia-Pacific,https://capellahotels.com/en/capella-shanghai,@capellashanghai,https://www.instagram.com/capellashanghai,Forbes,,
+50,Capella Singapore,Singapore,Asia-Pacific,https://www.capella-singapore.com/,@capellasingapore,https://www.instagram.com/capellasingapore,"Forbes, Gold List","US 2026, UK 2026",
+51,Capella Sydney,Australia,Asia-Pacific,https://capellahotels.com/en/capella-sydney,@capellasydney,https://www.instagram.com/capellasydney,World's 50 Best,,Property account confirmed via search.
+52,"Carlton Cannes, a Regent Hotel",France,Europe,https://carltoncannes.com/en/,@carltoncannes,https://www.instagram.com/carltoncannes,Forbes,,
+53,Carlton Hotel St. Moritz,Switzerland,Europe,https://tschuggencollection.ch/en/hotel/carlton-hotel,@carltonstmoritz,https://www.instagram.com/carltonstmoritz,Forbes,,
+54,"Caruso, A Belmond Hotel, Amalfi Coast",Italy,Europe,https://www.belmond.com/hotels/europe/italy/amalfi-coast/belmond-hotel-caruso/,@belmondhotelcaruso,https://www.instagram.com/belmondhotelcaruso,Forbes,,
+55,Casa Angelina,Italy,Europe,https://www.casangelina.com/,@casaangelinalifestyle,https://www.instagram.com/casaangelinalifestyle,Forbes,,
+56,Castelfalfi,Italy,Europe,https://www.castelfalfi.com/,@castelfalfi,https://www.instagram.com/castelfalfi,"Forbes, Gold List","US 2026, UK 2026",
+57,"Castiglion del Bosco, A Rosewood Hotel",Italy,Europe,https://www.rosewoodhotels.com/en/castiglion-del-bosco,@rosewoodcastigliondelbosco,https://www.instagram.com/rosewoodcastigliondelbosco,Forbes,,
+58,Cempedak Island,Indonesia,Asia-Pacific,https://www.cempedak.com,@cempedakisland,https://www.instagram.com/cempedakisland,Gold List,"US 2026, UK 2026",From official site footer.
+59,Chablé Yucatán,Mexico,Americas,https://yucatan.chablehotels.com/,@chableyucatan,https://www.instagram.com/chableyucatan,"Gold List, World's 50 Best","US 2025, UK 2025",From official site footer.
+60,Chatham Bars Inn,United States,Americas,https://www.chathambarsinn.com/,@chathambarsinn,https://www.instagram.com/chathambarsinn,Forbes,,
+61,Chatham Inn,United States,Americas,https://www.chathaminn.com/,@chatham.inn,https://www.instagram.com/chatham.inn,Forbes,,
+62,Cheval Blanc Paris,France,Europe,https://www.chevalblanc.com/en/maison/paris/,@chevalblancparis,https://www.instagram.com/chevalblancparis,"Forbes, World's 50 Best",,
+63,Cheval Blanc Randheli,Maldives,Asia-Pacific,https://www.chevalblanc.com/en/maison/randheli/,@chevalblancrandheli,https://www.instagram.com/chevalblancrandheli,Forbes,,
+64,Cheval Blanc St-Barth,St Barts,Americas,https://www.chevalblanc.com/en/maison/st-barth/,@chevalblancstbarth,https://www.instagram.com/chevalblancstbarth,Forbes,,
+65,"Chileno Bay Resort & Residences, Auberge Collection",Mexico,Americas,https://auberge.com/chileno-bay/,@chilenobayauberge,https://www.instagram.com/chilenobayauberge,Forbes,,
+66,Chiva-Som,Thailand,Asia-Pacific,https://www.chivasom.com/en/chiva-som-hua-hin/,@chivasomhuahin,https://www.instagram.com/chivasomhuahin,Gold List,"US 2026, UK 2026",From official site footer.
+67,"Cipriani, A Belmond Hotel, Venice",Italy,Europe,https://www.belmond.com/hotels/europe/italy/venice/belmond-hotel-cipriani/,@belmondhotelcipriani,https://www.instagram.com/belmondhotelcipriani,Forbes,,
+68,Claridge's,United Kingdom,Europe,https://www.maybourne.com/en/hotels/claridges,@claridgeshotel,https://www.instagram.com/claridgeshotel,"Forbes, Gold List, World's 50 Best","US 2026, UK 2026",
+69,Conrad Abu Dhabi Etihad Towers,United Arab Emirates,Middle East,https://www.hilton.com/en/hotels/auhetci-conrad-abu-dhabi-etihad-towers/,@conradetihadtowers,https://www.instagram.com/conradetihadtowers,Forbes,,Official Hilton property page confirmed.
+70,"Copacabana Palace, A Belmond Hotel",Brazil,Americas,https://www.belmond.com/hotels/south-america/brazil/rio-de-janeiro/belmond-copacabana-palace/,@belmondcopacabanapalace,https://www.instagram.com/belmondcopacabanapalace,World's 50 Best,,From property footer.
+71,Coral Sands Inn & Cottages,Bahamas,Americas,https://www.coralsands.com/,@coralsands_harbourisland,https://www.instagram.com/coralsands_harbourisland,Gold List,"US 2026, UK 2026",From official site footer.
+72,"Coworth Park, Dorchester Collection",United Kingdom,Europe,https://www.dorchestercollection.com/ascot/coworth-park,@coworthpark,https://www.instagram.com/coworthpark,Gold List,"US 2026, UK 2026",From official site footer.
+73,Crockfords at Resorts World Genting,Malaysia,Asia-Pacific,https://www.rwgenting.com/en/hotels/crockfords.html,@resortsworldgenting,https://www.instagram.com/resortsworldgenting,Forbes,,Resort-level account; no Crockfords-specific IG found.
+74,Delaire Graff Lodge,South Africa,Africa,https://www.delaire.co.za/,@delairegraff,https://www.instagram.com/delairegraff,Forbes,,
+75,Desa Potato Head,Indonesia,Asia-Pacific,https://seminyak.potatohead.co/,@potatoheadbali,https://www.instagram.com/potatoheadbali,World's 50 Best,,From official site footer.
+76,Dolphin Island,Fiji,Asia-Pacific,https://www.dolphinislandfiji.com/,@dolphinislandfiji,https://www.instagram.com/dolphinislandfiji,Forbes,,
+77,"Dorado Beach, a Ritz-Carlton Reserve",Puerto Rico,Americas,https://www.ritzcarlton.com/en/hotels/sjudo-dorado-beach-a-ritz-carlton-reserve/overview/,@doradobeachreserve,https://www.instagram.com/doradobeachreserve,Forbes,,
+78,Eden Rock - St Barths,St Barts,Americas,https://www.oetkerhotels.com/hotels/eden-rock-st-barths/,@er_stbarths,https://www.instagram.com/er_stbarths,Forbes,,Property page on parent Oetker Collection site. Instagram published in footer.
+79,El Questro Homestead,Australia,Asia-Pacific,https://elquestro.com.au/stay/the-homestead,@elquestro,https://www.instagram.com/elquestro,Gold List,US 2026,El Questro brand account covers all three resorts; no Homestead-only account.
+80,Ellerman House,South Africa,Africa,https://www.ellerman.co.za/,@ellermanhousehotel,https://www.instagram.com/ellermanhousehotel,Gold List,"US 2025, UK 2025",From official site footer.
+81,Emerald Tower at MGM COTAI,China,Asia-Pacific,https://www.mgm.mo/en/stay/mgm-cotai/emerald-tower,,,Forbes,,Emerald Tower is a tower within MGM Cotai; no tower-specific IG. Left blank.
+82,"Emirates Palace Mandarin Oriental, Abu Dhabi",United Arab Emirates,Middle East,https://www.mandarinoriental.com/en/abu-dhabi/emirates-palace,@mo_emiratespalace,https://www.instagram.com/mo_emiratespalace,Forbes,,Instagram published in MO property-page footer.
+83,Encore Boston Harbor,United States,Americas,https://www.encorebostonharbor.com/,@encorebostonharbor,https://www.instagram.com/encorebostonharbor,Forbes,,Instagram published in footer.
+84,Encore Macau,China,Asia-Pacific,https://www.wynnresortsmacau.com/en/wynn-macau/,,,Forbes,,Encore is the second tower of Wynn Macau; only shared @wynn.macau. Left blank.
+85,Encore Tower Suites,United States,Americas,https://www.wynnlasvegas.com/rooms-and-suites/encore-tower-suites,,,Forbes,,Encore Tower Suites is a suite product within Wynn/Encore Las Vegas; no property-specific IG. Left blank.
+86,Epic Tower at Studio City Macau,China,Asia-Pacific,https://www.studiocity-macau.com/en/hotels/epic-tower,,,Forbes,,Epic Tower is a tower within Studio City Macau; only @studiocitymacau. Left blank.
+87,ESPACIO The Jewel of Waikiki,United States,Americas,https://www.espaciowaikiki.com/,@espaciowaikiki,https://www.instagram.com/espaciowaikiki,Forbes,,Instagram published in footer.
+88,"Esperanza, Auberge Collection",Mexico,Americas,https://auberge.com/esperanza,@esperanzaauberge,https://www.instagram.com/esperanzaauberge,Forbes,,Property page on Auberge Collection site; IG published on page.
+89,Estelle Manor,United Kingdom,Europe,https://estellemanor.com/,@estellemanor,https://www.instagram.com/estellemanor,World's 50 Best,,From official site footer.
+90,Ett Hem,Sweden,Europe,https://www.etthem.se/,@etthemstockholm,https://www.instagram.com/etthemstockholm,Gold List,"US 2025, UK 2025",From official site footer.
+91,Faena Hotel Miami Beach,United States,Americas,https://www.faena.com/miami-beach,@faenamiamibeach,https://www.instagram.com/faenamiamibeach,Forbes,,Property-specific account used over global @faena.
+92,Fairmont Hotel Vier Jahreszeiten,Germany,Europe,https://hvj.de/en/,@fairmont_hotelvierjahreszeiten,https://www.instagram.com/fairmont_hotelvierjahreszeiten,Gold List,"US 2025, UK 2025",Property's own site (hvj.de); IG in footer.
+93,Fairmont Pacific Rim,Canada,Americas,https://www.fairmontpacificrim.com/,@fairmontpacific,https://www.instagram.com/fairmontpacific,Forbes,,Instagram published in footer.
+94,Falling Rock at Nemacolin,United States,Americas,https://www.nemacolin.com/properties/falling-rock/,,,Forbes,,Falling Rock is within Nemacolin; only @nemacolin. Left blank.
+95,Fogo Island Inn,Canada,Americas,https://fogoislandinn.ca/,@fogoislandinn,https://www.instagram.com/fogoislandinn,Gold List,"US 2025, UK 2025",From official site footer.
+96,Forestis,Italy,Europe,https://www.forestis.it/en,@forestis.dolomites,https://www.instagram.com/forestis.dolomites,Gold List,"US 2026, UK 2026",From official site footer.
+97,Four Seasons Astir Palace Hotel Athens,Greece,Europe,https://www.fourseasons.com/athens/,@fsathens,https://www.instagram.com/fsathens,"Forbes, Gold List, World's 50 Best","US 2026, UK 2026",
+98,Four Seasons Bangkok at Chao Phraya River,Thailand,Asia-Pacific,https://www.fourseasons.com/bangkok/,@fsbangkok,https://www.instagram.com/fsbangkok,World's 50 Best,,Property account preferred over global @fourseasons.
+99,Four Seasons Hotel Abu Dhabi at Al Maryah Island,United Arab Emirates,Middle East,https://www.fourseasons.com/abudhabi/,@fsabudhabi,https://www.instagram.com/fsabudhabi,Forbes,,
+100,Four Seasons Hotel at The Surf Club,United States,Americas,https://www.fourseasons.com/surfside/,@fssurfside,https://www.instagram.com/fssurfside,Forbes,,
+101,Four Seasons Hotel Baku,Azerbaijan,Europe,https://www.fourseasons.com/baku/,@fsbaku,https://www.instagram.com/fsbaku,Forbes,,
+102,Four Seasons Hotel Boston,United States,Americas,https://www.fourseasons.com/boston/,@fsboston,https://www.instagram.com/fsboston,Forbes,,Distinct from @fsbostondalton (One Dalton).
+103,Four Seasons Hotel des Bergues Geneva,Switzerland,Europe,https://www.fourseasons.com/geneva/,@fsgeneva,https://www.instagram.com/fsgeneva,Forbes,,
+104,Four Seasons Hotel Doha,Qatar,Middle East,https://www.fourseasons.com/doha/,@fsdoha,https://www.instagram.com/fsdoha,Forbes,,
+105,Four Seasons Hotel Dubai International Financial Centre,United Arab Emirates,Middle East,https://www.fourseasons.com/dubaidifc/,@fsdubaidifc,https://www.instagram.com/fsdubaidifc,Forbes,,
+106,Four Seasons Hotel Firenze,Italy,Europe,https://www.fourseasons.com/florence/,@fsflorence,https://www.instagram.com/fsflorence,"Forbes, Gold List, World's 50 Best","US 2025, UK 2025",
+107,"Four Seasons Hotel George V, Paris",France,Europe,https://www.fourseasons.com/paris/,@fsgeorgevparis,https://www.instagram.com/fsgeorgevparis,Forbes,,
+108,Four Seasons Hotel Gresham Palace Budapest,Hungary,Europe,https://www.fourseasons.com/budapest/,@fsbudapest,https://www.instagram.com/fsbudapest,Forbes,,
+109,Four Seasons Hotel Hong Kong,China,Asia-Pacific,https://www.fourseasons.com/hongkong/,@fshongkong,https://www.instagram.com/fshongkong,Forbes,,
+110,Four Seasons Hotel Istanbul at Sultanahmet,Turkey,Europe,https://www.fourseasons.com/istanbul/,@fssultanahmet,https://www.instagram.com/fssultanahmet,Forbes,,
+111,Four Seasons Hotel Istanbul at the Bosphorus,Turkey,Europe,https://www.fourseasons.com/bosphorus/,@fsbosphorus,https://www.instagram.com/fsbosphorus,Forbes,,
+112,Four Seasons Hotel Kuwait at Burj Alshaya,Kuwait,Middle East,https://www.fourseasons.com/kuwait/,@fskuwait,https://www.instagram.com/fskuwait,Forbes,,
+113,Four Seasons Hotel London at Park Lane,United Kingdom,Europe,https://www.fourseasons.com/london/,@fslondon,https://www.instagram.com/fslondon,Forbes,,
+114,Four Seasons Hotel London at Tower Bridge,United Kingdom,Europe,https://www.fourseasons.com/towerbridge/,@fstowerbridge,https://www.instagram.com/fstowerbridge,Forbes,,
+115,Four Seasons Hotel Macao,China,Asia-Pacific,https://www.fourseasons.com/macau/,@fsmacau,https://www.instagram.com/fsmacau,Forbes,,
+116,Four Seasons Hotel Madrid,Spain,Europe,https://www.fourseasons.com/madrid/,@fsmadrid,https://www.instagram.com/fsmadrid,Forbes,,
+117,Four Seasons Hotel New York Downtown,United States,Americas,https://www.fourseasons.com/newyorkdowntown/,@fsnydowntown,https://www.instagram.com/fsnydowntown,Forbes,,Distinct from @fsnewyork (Midtown).
+118,"Four Seasons Hotel One Dalton Street, Boston",United States,Americas,https://www.fourseasons.com/onedalton/,@fsbostondalton,https://www.instagram.com/fsbostondalton,Forbes,,
+119,Four Seasons Hotel Prague,Czech Republic,Europe,https://www.fourseasons.com/prague/,@fsprague,https://www.instagram.com/fsprague,Forbes,,
+120,Four Seasons Hotel Ritz Lisbon,Portugal,Europe,https://www.fourseasons.com/lisbon/,@fslisbon,https://www.instagram.com/fslisbon,Forbes,,
+121,Four Seasons Hotel Riyadh at Kingdom Centre,Saudi Arabia,Middle East,https://www.fourseasons.com/riyadh/,@fsriyadh,https://www.instagram.com/fsriyadh,Forbes,,
+122,Four Seasons Hotel Seoul,South Korea,Asia-Pacific,https://www.fourseasons.com/seoul/,@fsseoul,https://www.instagram.com/fsseoul,Forbes,,
+123,Four Seasons Hotel Toronto,Canada,Americas,https://www.fourseasons.com/toronto/,@fstoronto,https://www.instagram.com/fstoronto,Forbes,,
+124,"Four Seasons Hotel Washington, D.C.",United States,Americas,https://www.fourseasons.com/washington/,@fswashington,https://www.instagram.com/fswashington,Forbes,,
+125,Four Seasons Resort and Residences Anguilla,Anguilla,Americas,https://www.fourseasons.com/anguilla/,@fsanguilla,https://www.instagram.com/fsanguilla,Forbes,,
+126,Four Seasons Resort and Residences Napa Valley,United States,Americas,https://www.fourseasons.com/napavalley/,@fsnapavalley,https://www.instagram.com/fsnapavalley,Forbes,,
+127,Four Seasons Resort Bali at Jimbaran Bay,Indonesia,Asia-Pacific,https://www.fourseasons.com/jimbaranbay/,@fsbali,https://www.instagram.com/fsbali,Forbes,,@fsbali is the shared Four Seasons Resorts Bali account (Jimbaran Bay + Sayan).
+128,Four Seasons Resort Bali at Sayan,Indonesia,Asia-Pacific,https://www.fourseasons.com/sayan/,@fsbali,https://www.instagram.com/fsbali,Forbes,,@fsbali is the shared Four Seasons Resorts Bali account (Sayan + Jimbaran Bay).
+129,Four Seasons Resort Dubai at Jumeirah Beach,United Arab Emirates,Middle East,https://www.fourseasons.com/dubaijb/,@fsdubai,https://www.instagram.com/fsdubai,Forbes,,
+130,Four Seasons Resort Hualalai,United States,Americas,https://www.fourseasons.com/hualalai/,@fshualalai,https://www.instagram.com/fshualalai,"Forbes, Gold List","US 2025, UK 2025",
+131,Four Seasons Resort Lanai,United States,Americas,https://www.fourseasons.com/lanai/,@fslanai,https://www.instagram.com/fslanai,Forbes,,Covers Four Seasons Resort Lanai and sister Sensei Lanai.
+132,Four Seasons Resort Maldives at Kuda Huraa,Maldives,Asia-Pacific,https://www.fourseasons.com/maldiveskh/,@fsmaldives,https://www.instagram.com/fsmaldives,Forbes,,Shared Four Seasons Resorts Maldives account; no Kuda Huraa-specific account.
+133,Four Seasons Resort Maui at Wailea,United States,Americas,https://www.fourseasons.com/maui/,@fsmaui,https://www.instagram.com/fsmaui,Forbes,,
+134,Four Seasons Resort Palm Beach,United States,Americas,https://www.fourseasons.com/palmbeach/,@fspalmbeach,https://www.instagram.com/fspalmbeach,Forbes,,
+135,"Four Seasons Resort Peninsula Papagayo, Costa Rica",Costa Rica,Americas,https://www.fourseasons.com/costarica/,@fscostarica,https://www.instagram.com/fscostarica,Forbes,,
+136,"Four Seasons Resort Punta Mita, Mexico",Mexico,Americas,https://www.fourseasons.com/puntamita/,@fspuntamita,https://www.instagram.com/fspuntamita,Forbes,,
+137,"Four Seasons Resort The Nam Hai, Hoi An",Vietnam,Asia-Pacific,https://www.fourseasons.com/hoian/,@fsnamhai,https://www.instagram.com/fsnamhai,Forbes,,
+138,Galaxy Hotel Macau,China,Asia-Pacific,https://www.galaxymacau.com/hotels/galaxy-hotel/,@galaxymacau,https://www.instagram.com/galaxymacau,Forbes,,Integrated-resort account; no Galaxy Hotel-specific account.
+139,Gangtey Lodge,Bhutan,Asia-Pacific,https://gangteylodge.com/,@gangteylodge,https://www.instagram.com/gangteylodge,Gold List,"US 2025, UK 2025",From official site footer.
+140,Gardena Grödnerhof,Italy,Europe,https://www.gardena.it/en/,@gardenagroednerhof,https://www.instagram.com/gardenagroednerhof,Forbes,,
+141,Gleneagles,United Kingdom,Europe,https://gleneagles.com/,@thegleneagleshotel,https://www.instagram.com/thegleneagleshotel,Manual add,,Resort account (distinct from Gleneagles Townhouse).
+142,Gran Hotel Inglés,Spain,Europe,https://hiddenhotels.com/gran-hotel-ingles/en,@granhotelingles,https://www.instagram.com/granhotelingles,Gold List,"US 2025, UK 2025",Property page on Hidden Hotels site; own IG in footer.
+143,Grand Hotel Excelsior Vittoria,Italy,Europe,https://excelsiorvittoria.com/,@excelsiorvittoria,https://www.instagram.com/excelsiorvittoria,Gold List,"US 2026, UK 2026",From official site.
+144,Grand Hotel Son Net,Spain,Europe,https://sonnet.es/,@grandhotelsonnet,https://www.instagram.com/grandhotelsonnet,Gold List,"US 2026, UK 2026",From official site footer.
+145,Grand Hôtel,Sweden,Europe,https://grandhotel.se/en,@grandhotelstockholm,https://www.instagram.com/grandhotelstockholm,Gold List,"US 2026, UK 2026",From official site.
+146,Grand Lisboa Hotel,China,Asia-Pacific,https://www.grandlisboa.com/en,,,Forbes,,"Official site publishes only Facebook/WeChat; two plausible IG accounts, unconfirmed. Left blank."
+147,Grand Lisboa Palace Macau,China,Asia-Pacific,https://www.grandlisboapalace.com/en/hotels/grand-lisboa-palace-macau,@grandlisboapalace,https://www.instagram.com/grandlisboapalace,Forbes,,
+148,Grand Park Hotel Rovinj,Croatia,Europe,https://www.maistra.com/properties/grand-park-hotel-rovinj/,@maistra_collection,https://www.instagram.com/maistra_collection,World's 50 Best,,No property-specific account; parent Maistra Collection account used.
+149,Grand Velas Los Cabos,Mexico,Americas,https://loscabos.grandvelas.com/,@grandvelascabos,https://www.instagram.com/grandvelascabos,Forbes,,
+150,"Grand-Hôtel du Cap-Ferrat, A Four Seasons Hotel",France,Europe,https://www.fourseasons.com/capferrat/,@fscapferrat,https://www.instagram.com/fscapferrat,Forbes,,
+151,"Grosvenor House, a Luxury Collection Hotel, Dubai",United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/dxbgl-grosvenor-house-a-luxury-collection-hotel-dubai/overview/,@grosvenorhouse,https://www.instagram.com/grosvenorhouse,Forbes,,Official page on Marriott (Luxury Collection).
+152,Gstaad Palace,Switzerland,Europe,https://www.palace.ch/en/,@gstaadpalace,https://www.instagram.com/gstaadpalace,Gold List,"US 2025, UK 2025",From official site footer.
+153,"Hacienda AltaGracia, Auberge Resorts Collection",Costa Rica,Americas,https://auberge.com/altagracia/,@altagraciaauberge,https://www.instagram.com/altagraciaauberge,Gold List,"US 2025, UK 2025",Property page on Auberge site.
+154,Halekulani Okinawa,Japan,Asia-Pacific,https://www.okinawa.halekulani.com/en/,@halekulani_okinawa,https://www.instagram.com/halekulani_okinawa,Forbes,,
+155,Hassler Roma,Italy,Europe,https://www.hotelhasslerroma.com/,@hotelhasslerroma,https://www.instagram.com/hotelhasslerroma,Forbes,,
+156,Hermitage Bay,Antigua and Barbuda,Americas,https://www.hermitagebay.com/,@hermitagebay,https://www.instagram.com/hermitagebay,Gold List,"US 2026, UK 2026",From official site footer.
+157,Hotel 41,United Kingdom,Europe,https://41hotel.com/,@41hotel,https://www.instagram.com/41hotel,Forbes,,
+158,Hotel Adlon Kempinski Berlin,Germany,Europe,https://www.kempinski.com/en/hotel-adlon,@hoteladlonkempinski,https://www.instagram.com/hoteladlonkempinski,Gold List,"US 2025, UK 2025",Property's own handle per official page.
+159,Hotel Bel-Air,United States,Americas,https://www.dorchestercollection.com/los-angeles/hotel-bel-air,@hotelbelair,https://www.instagram.com/hotelbelair,World's 50 Best,,From official Dorchester property footer.
+160,Hotel Castello di Reschio,Italy,Europe,https://www.reschio.com/hotel,@reschio,https://www.instagram.com/reschio,Gold List,"US 2025, UK 2025",From official site footer.
+161,"Hotel das Cataratas, A Belmond Hotel, Iguassu Falls",Brazil,Americas,https://www.belmond.com/hotels/south-america/brazil/iguassu-falls/belmond-hotel-das-cataratas/,@belmondhoteldascataratas,https://www.instagram.com/belmondhoteldascataratas,Forbes,,
+162,"Hotel de la Ville, a Rocco Forte Hotel",Italy,Europe,https://www.roccofortehotels.com/hotels-and-resorts/hotel-de-la-ville/,@hoteldelavillerome,https://www.instagram.com/hoteldelavillerome,Forbes,,
+163,"Hotel de Russie, a Rocco Forte Hotel",Italy,Europe,https://www.roccofortehotels.com/hotels-and-resorts/hotel-de-russie/,@hotelderussie,https://www.instagram.com/hotelderussie,Forbes,,
+164,Hotel du Cap-Eden-Roc,France,Europe,https://www.oetkerhotels.com/hotels/hotel-du-cap-eden-roc/,@hotelducapedenroc,https://www.instagram.com/hotelducapedenroc,Forbes,,
+165,Hotel Eden,Italy,Europe,https://www.dorchestercollection.com/rome/hotel-eden,@hoteledenrome,https://www.instagram.com/hoteledenrome,Forbes,,
+166,Hotel Esencia,Mexico,Americas,https://hotelesencia.com/,@hotelesencia,https://www.instagram.com/hotelesencia,Forbes,,
+167,"Hotel Grande Bretagne, a Luxury Collection Hotel, Athens",Greece,Europe,https://www.marriott.com/en-us/hotels/athlc-hotel-grande-bretagne-a-luxury-collection-hotel-athens/overview/,@hotelgrandebretagne,https://www.instagram.com/hotelgrandebretagne,Gold List,"US 2025, UK 2025",Marriott Luxury Collection property page.
+168,Hotel Il Pellicano,Italy,Europe,https://www.pellicanohotels.com/en/hotels/hotel-il-pellicano/,@hotelilpellicano,https://www.instagram.com/hotelilpellicano,"Forbes, Gold List, World's 50 Best","US 2026, UK 2026",Page within Pellicano Hotels group site.
+169,Hotel Le Toiny,St Barthélemy,Americas,https://letoiny.com/,@hotelletoinystbarth,https://www.instagram.com/hotelletoinystbarth,Gold List,"US 2026, UK 2026",Own official site.
+170,Hotel New Otani Tokyo Executive House Zen,Japan,Asia-Pacific,https://www.newotani.co.jp/en/tokyo/stay/exe/,@executivehousezen,https://www.instagram.com/executivehousezen,Forbes,,"Executive House Zen, the Forbes Five-Star floors within Hotel New Otani Tokyo."
+171,Hotel Okura Macau,China,Asia-Pacific,https://www.okura-nikko.com/china/macau/hotel-okura-macau/,@hotelokuramacau,https://www.instagram.com/hotelokuramacau,Forbes,,Official page on Okura Nikko brand site.
+172,Hotel Plaza Athénée Paris,France,Europe,https://www.dorchestercollection.com/paris/hotel-plaza-athenee,@plaza_athenee,https://www.instagram.com/plaza_athenee,Forbes,,
+173,Hotel Sacher Wien,Austria,Europe,https://www.sacher.com/en/vienna/,@sacherhotels,https://www.instagram.com/sacherhotels,World's 50 Best,,Shared Sacher Hotels group account (no Vienna-only account).
+174,"Hotel Savoy, a Rocco Forte Hotel",Italy,Europe,https://www.roccofortehotels.com/hotels-and-resorts/hotel-savoy/,@hotelsavoyflorence,https://www.instagram.com/hotelsavoyflorence,Forbes,,
+175,"HOTEL THE MITSUI KYOTO, A Luxury Collection Hotel & Spa",Japan,Asia-Pacific,https://www.hotelthemitsui.com/en/kyoto/,@hotel_the_mitsui_kyoto,https://www.instagram.com/hotel_the_mitsui_kyoto,"Forbes, World's 50 Best",,IG from official site footer.
+176,Huka Lodge,New Zealand,Asia-Pacific,https://hukalodge.com/,@hukalodge,https://www.instagram.com/hukalodge,Gold List,US 2026,
+177,Hurawalhi Island Resort,Maldives,Asia-Pacific,https://www.hurawalhi.com/,@hurawalhi,https://www.instagram.com/hurawalhi,Forbes,,"Handle confirmed via search (248K, references 5.8 Undersea Restaurant)."
+178,"Hôtel de Crillon, A Rosewood Hotel",France,Europe,https://www.rosewoodhotels.com/en/hotel-de-crillon,@rosewoodhoteldecrillon,https://www.instagram.com/rosewoodhoteldecrillon,"Forbes, World's 50 Best",,
+179,Hôtel de Paris Monte-Carlo,Monaco,Europe,https://www.montecarlosbm.com/en/hotel-monaco/hotel-paris-monte-carlo,@hoteldeparismc,https://www.instagram.com/hoteldeparismc,"Forbes, World's 50 Best",,Page within Monte-Carlo SBM (parent) site.
+180,Hôtel du Couvent,France,Europe,https://www.hotelducouvent.com/,@hotelducouvent,https://www.instagram.com/hotelducouvent,World's 50 Best,,From official site footer.
+181,Il Salviatino,Italy,Europe,https://salviatino.com/,@ilsalviatino,https://www.instagram.com/ilsalviatino,Gold List,"US 2026, UK 2026",
+182,Iniala Valletta,Malta,Europe,https://www.iniala.com/iniala-valletta,@inialavalletta,https://www.instagram.com/inialavalletta,Forbes,,IG from official site footer.
+183,Inkaterra La Casona,Peru,Americas,https://www.inkaterra.com/inkaterra/inkaterra-la-casona/the-experience/,@inkaterrahotels,https://www.instagram.com/inkaterrahotels,Gold List,US 2026,Group account only; no property-specific IG.
+184,Island Shangri La,Hong Kong,Asia-Pacific,https://www.shangri-la.com/hongkong/islandshangrila/,@islandshangrila,https://www.instagram.com/islandshangrila,Gold List,"US 2026, UK 2026",Property page on parent site.
+185,J.K. Place Capri,Italy,Europe,https://www.jkplaces.com/jkcapri/,@jkplacecapri,https://www.instagram.com/jkplacecapri,Forbes,,IG from official site footer.
+186,J.K. Place Roma,Italy,Europe,https://www.jkplaces.com/jkroma/,@jkplaceroma,https://www.instagram.com/jkplaceroma,Forbes,,IG from official site footer.
+187,Jack's Camp,Botswana,Africa,https://naturalselection.travel/camps/jacks-camp-botswana/,@jackscampbotswana,https://www.instagram.com/jackscampbotswana,Gold List,"US 2025, UK 2025",Property's own account.
+188,Jade Mountain,St Lucia,Americas,https://jademountain.com/,@jademountainstlucia,https://www.instagram.com/jademountainstlucia,Gold List,"US 2025, UK 2025",
+189,Janu Tokyo,Japan,Asia-Pacific,https://www.janu.com/janu-tokyo/,@januhotels,https://www.instagram.com/januhotels,World's 50 Best,,Brand account @januhotels published; no property-specific account yet.
+190,JOALI BEING,Maldives,Asia-Pacific,https://www.joali.com/joali-being/,@joalibeing,https://www.instagram.com/joalibeing,Forbes,,
+191,JOALI Maldives,Maldives,Asia-Pacific,https://www.joali.com/joali-maldives/,@joalimaldives,https://www.instagram.com/joalimaldives,Forbes,,
+192,Jumeirah Al Naseem,United Arab Emirates,Middle East,https://www.jumeirah.com/en/stay/dubai/jumeirah-al-naseem,@jumeirahalnaseem,https://www.instagram.com/jumeirahalnaseem,Forbes,,Property page on parent jumeirah.com.
+193,Jumeirah Burj Al Arab,United Arab Emirates,Middle East,https://www.jumeirah.com/en/stay/dubai/jumeirah-burj-al-arab,@jumeirahburjalarab,https://www.instagram.com/jumeirahburjalarab,"Forbes, Gold List","US 2025, UK 2025",Bio notes phased restoration as of 2026.
+194,Jumeirah Marsa Al Arab,United Arab Emirates,Middle East,https://www.jumeirah.com/en/stay/dubai/jumeirah-marsa-al-arab,@jumeirahmarsaalarab,https://www.instagram.com/jumeirahmarsaalarab,World's 50 Best,,Property account preferred over global @jumeirah.
+195,Kalesma Mykonos,Greece,Europe,https://www.kalesmamykonos.com/,@kalesma,https://www.instagram.com/kalesma,Gold List,"US 2025, UK 2025",From official site footer.
+196,Kasbah Tamadot,Morocco,Africa,https://www.virginlimitededition.com/kasbah-tamadot/the-hotel/,@kasbahtamadot,https://www.instagram.com/kasbahtamadot,Gold List,"US 2025, UK 2025",Property page on Virgin Limited Edition site.
+197,Kimpton Seafire Resort + Spa,Cayman Islands,Americas,https://www.seafireresortandspa.com/,@seafireresort,https://www.instagram.com/seafireresort,Forbes,,IG from official site footer.
+198,Kinondo Kwetu,Kenya,Africa,https://www.kinondo-kwetu.com/,@kinondokwetu,https://www.instagram.com/kinondokwetu,Gold List,"US 2026, UK 2026",
+199,"Kona Village, a Rosewood Resort",United States,Americas,https://www.rosewoodhotels.com/en/kona-village,@konavillagerosewood,https://www.instagram.com/konavillagerosewood,Gold List,"US 2026, UK 2026",Property page on Rosewood site.
+200,Kudadoo Maldives Private Island,Maldives,Asia-Pacific,https://www.kudadoo.com/,@kudadoomaldives,https://www.instagram.com/kudadoomaldives,Forbes,,Handle confirmed via search (property-specific).
+201,La Casa de la Playa,Mexico,Americas,https://www.lacasadelaplaya.com/en/,@lacasadelaplaya,https://www.instagram.com/lacasadelaplaya,Forbes,,Grupo Xcaret boutique hotel.
+202,La Mamounia,Morocco,Africa,https://mamounia.com/en/,@lamamouniamarrakech,https://www.instagram.com/lamamouniamarrakech,World's 50 Best,,"Property account confirmed via search (verified, ~369K)."
+203,La Posta Vecchia,Italy,Europe,https://www.pellicanohotels.com/en/hotels/la-posta-vecchia-hotel/,@lapostavecchiahotel,https://www.instagram.com/lapostavecchiahotel,Gold List,"US 2025, UK 2025",Property page within Pellicano Hotels site.
+204,La Réserve Paris,France,Europe,https://www.lareserve-paris.com/en/,@lareserveparis,https://www.instagram.com/lareserveparis,"Forbes, Gold List","US 2026, UK 2026",IG from official site footer.
+205,"Las Ventanas al Paraíso, A Rosewood Resort",Mexico,Americas,https://www.rosewoodhotels.com/en/las-ventanas-los-cabos,@lasventanasalparaiso,https://www.instagram.com/lasventanasalparaiso,"Forbes, World's 50 Best",,IG from Rosewood property-page footer.
+206,Le Bristol Paris,France,Europe,https://www.oetkerhotels.com/hotels/le-bristol-paris/,@lebristolparis,https://www.instagram.com/lebristolparis,"Forbes, Gold List, World's 50 Best","US 2025, UK 2025",IG from Oetker property-page footer.
+207,"Le Meurice, Dorchester Collection",France,Europe,https://www.dorchestercollection.com/paris/le-meurice,@lemeuriceparis,https://www.instagram.com/lemeuriceparis,Forbes,,IG from Dorchester property-page footer.
+208,"Le Royal Monceau, Raffles Paris",France,Europe,https://www.raffles.com/paris/,@leroyalmonceau,https://www.instagram.com/leroyalmonceau,Gold List,"US 2025, UK 2025",Property page on raffles.com.
+209,Le Sirenuse,Italy,Europe,https://sirenuse.it/en/,@lesirenuse,https://www.instagram.com/lesirenuse,Forbes,,IG from official site footer.
+210,Les Roches Rouges,France,Europe,https://www.beaumier.com/en/properties/les-roches-rouges-hotel/,@lesrochesrouges,https://www.instagram.com/lesrochesrouges,Gold List,"US 2025, UK 2025",Property page on Beaumier site.
+211,Lily of the Valley,France,Europe,https://www.lilyofthevalley.com/,@lilyofthevalleyhotel,https://www.instagram.com/lilyofthevalleyhotel,Gold List,"US 2026, UK 2026",
+212,Lime Wood,United Kingdom,Europe,https://www.limewoodhotel.co.uk/,@limewoodhotel,https://www.instagram.com/limewoodhotel,Gold List,"US 2025, UK 2025",
+213,Lizard Island,Australia,Asia-Pacific,https://www.lizardisland.com.au/,@lizardisland,https://www.instagram.com/lizardisland,Gold List,UK 2025,
+214,Londoner Court,China,Asia-Pacific,https://www.londonermacao.com/hotels/londoner-court.html,@the_londoner_macao,https://www.instagram.com/the_londoner_macao,Forbes,,Londoner Court is a suite product within The Londoner Macao; resort account used.
+215,LUX* Belle Mare,Mauritius,Africa,https://www.luxresorts.com/en/mauritius/hotel/luxbellemare,@luxbellemare,https://www.instagram.com/luxbellemare,Forbes,,IG from LUX* property-page footer.
+216,LUX* Grand Baie,Mauritius,Africa,https://www.luxresorts.com/en/mauritius/hotel/luxgrandbaie,@luxgrandbaie,https://www.instagram.com/luxgrandbaie,Forbes,,IG from LUX* property-page footer.
+217,LUX* South Ari Atoll,Maldives,Asia-Pacific,https://www.luxresorts.com/en/maldives/resort/luxsouthariatoll,@luxsouthari,https://www.instagram.com/luxsouthari,Forbes,,IG from LUX* property-page footer.
+218,"Mandapa, a Ritz-Carlton Reserve",Indonesia,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/dpsub-mandapa-a-ritz-carlton-reserve/overview/,@mandapareserve,https://www.instagram.com/mandapareserve,"Forbes, World's 50 Best",,Property page on parent ritzcarlton.com.
+219,"Mandarin Oriental Bosphorus, Istanbul",Turkey,Europe,https://www.mandarinoriental.com/en/istanbul/bosphorus,@mo_istanbul,https://www.instagram.com/mo_istanbul,Forbes,,
+220,"Mandarin Oriental Jumeira, Dubai",United Arab Emirates,Middle East,https://www.mandarinoriental.com/en/dubai/jumeira-beach,@mo_jumeira,https://www.instagram.com/mo_jumeira,Forbes,,
+221,"Mandarin Oriental Palace, Luzern",Switzerland,Europe,https://www.mandarinoriental.com/en/luzern/palace,@mo_luzern,https://www.instagram.com/mo_luzern,Forbes,,
+222,"Mandarin Oriental Pudong, Shanghai",China,Asia-Pacific,https://www.mandarinoriental.com/en/shanghai/pudong,@mo_pudong,https://www.instagram.com/mo_pudong,Forbes,,
+223,"Mandarin Oriental Qianmen, Beijing",China,Asia-Pacific,https://www.mandarinoriental.com/en/beijing/qianmen,@mo_qianmen,https://www.instagram.com/mo_qianmen,"Forbes, World's 50 Best",,
+224,"Mandarin Oriental Ritz, Madrid",Spain,Europe,https://www.mandarinoriental.com/en/madrid/hotel-ritz,@mo_ritzmadrid,https://www.instagram.com/mo_ritzmadrid,Forbes,,
+225,"Mandarin Oriental Savoy, Zurich",Switzerland,Europe,https://www.mandarinoriental.com/en/zurich/savoy,@mo_savoyzurich,https://www.instagram.com/mo_savoyzurich,Forbes,,
+226,"Mandarin Oriental The Landmark, Hong Kong",China,Asia-Pacific,https://www.mandarinoriental.com/en/hong-kong/the-landmark,@mo_landmarkhk,https://www.instagram.com/mo_landmarkhk,Forbes,,Distinct from @mo_hkg.
+227,"Mandarin Oriental Wangfujing, Beijing",China,Asia-Pacific,https://www.mandarinoriental.com/en/beijing/wangfujing,@mo_wangfujing,https://www.instagram.com/mo_wangfujing,Forbes,,
+228,"Mandarin Oriental, Bangkok",Thailand,Asia-Pacific,https://www.mandarinoriental.com/en/bangkok/chao-phraya-river,@mo_bangkok,https://www.instagram.com/mo_bangkok,"Forbes, Gold List, World's 50 Best","US 2025, UK 2025",
+229,"Mandarin Oriental, Barcelona",Spain,Europe,https://www.mandarinoriental.com/en/barcelona/passeig-de-gracia,@mo_barcelona,https://www.instagram.com/mo_barcelona,Forbes,,
+230,"Mandarin Oriental, Bodrum",Turkey,Europe,https://www.mandarinoriental.com/en/bodrum/paradise-bay,@mo_bodrum,https://www.instagram.com/mo_bodrum,Forbes,,
+231,"Mandarin Oriental, Boston",United States,Americas,https://www.mandarinoriental.com/en/boston/back-bay,@mo_boston,https://www.instagram.com/mo_boston,Forbes,,
+232,"Mandarin Oriental, Canouan",Saint Vincent and the Grenadines,Americas,https://www.mandarinoriental.com/en/canouan/caribbean,@mo_canouan,https://www.instagram.com/mo_canouan,Forbes,,
+233,"Mandarin Oriental, Costa Navarino",Greece,Europe,https://www.mandarinoriental.com/en/costa-navarino/messenia,@mo_costanavarino,https://www.instagram.com/mo_costanavarino,Forbes,,
+234,"Mandarin Oriental, Doha",Qatar,Middle East,https://www.mandarinoriental.com/en/doha/qatar,@mo_doha,https://www.instagram.com/mo_doha,Forbes,,
+235,"Mandarin Oriental, Geneva",Switzerland,Europe,https://www.mandarinoriental.com/en/geneva/rhone-river,@mo_geneva,https://www.instagram.com/mo_geneva,Forbes,,
+236,"Mandarin Oriental, Hong Kong",China,Asia-Pacific,https://www.mandarinoriental.com/en/hong-kong/victoria-harbour,@mo_hkg,https://www.instagram.com/mo_hkg,"Forbes, World's 50 Best",,Distinct from Landmark MO @mo_landmarkhk.
+237,"Mandarin Oriental, Hyde Park, London",United Kingdom,Europe,https://www.mandarinoriental.com/en/london/hyde-park,@mo_hydepark,https://www.instagram.com/mo_hydepark,Forbes,,
+238,"Mandarin Oriental, Lago di Como",Italy,Europe,https://www.mandarinoriental.com/en/lake-como/blevio,@mo_lagodicomo,https://www.instagram.com/mo_lagodicomo,Forbes,,
+239,"Mandarin Oriental, Marrakech",Morocco,Africa,https://www.mandarinoriental.com/en/marrakech/la-mamounia,@mo_marrakech,https://www.instagram.com/mo_marrakech,Forbes,,
+240,"Mandarin Oriental, Milan",Italy,Europe,https://www.mandarinoriental.com/en/milan/la-scala,@mo_milan,https://www.instagram.com/mo_milan,Forbes,,
+241,"Mandarin Oriental, New York",United States,Americas,https://www.mandarinoriental.com/en/new-york/manhattan,@mo_newyork,https://www.instagram.com/mo_newyork,"Forbes, Gold List","US 2025, UK 2025",
+242,"Mandarin Oriental, Paris",France,Europe,https://www.mandarinoriental.com/en/paris/place-vendome,@mo_paris,https://www.instagram.com/mo_paris,Forbes,,
+243,"Mandarin Oriental, Shenzhen",China,Asia-Pacific,https://www.mandarinoriental.com/en/shenzhen/futian,@mo_shenzhen_,https://www.instagram.com/mo_shenzhen_,Forbes,,Handle has trailing underscore.
+244,"Mandarin Oriental, Tokyo",Japan,Asia-Pacific,https://www.mandarinoriental.com/en/tokyo/nihonbashi,@mo_tokyo,https://www.instagram.com/mo_tokyo,Forbes,,
+245,Marbella Club,Spain,Europe,https://www.marbellaclub.com/,@marbellaclubh,https://www.instagram.com/marbellaclubh,Gold List,"US 2025, UK 2025",
+246,"Maroma, A Belmond Hotel, Riviera Maya",Mexico,Americas,https://www.belmond.com/hotels/north-america/mexico/riviera-maya/belmond-maroma-resort-and-spa/,@belmondmaroma,https://www.instagram.com/belmondmaroma,"Forbes, World's 50 Best",,
+247,Mashpi Lodge,Ecuador,Americas,https://www.mashpilodge.com/,@mashpilodge,https://www.instagram.com/mashpilodge,Gold List,"US 2025, UK 2025",
+248,Matetsi Victoria Falls,Zimbabwe,Africa,https://matetsivictoriafalls.com/,@matetsivictoriafalls,https://www.instagram.com/matetsivictoriafalls,Gold List,"US 2025, UK 2025",From official site footer.
+249,Mayfair House Hotel & Garden,United States,Americas,https://www.mayfairhousemiami.com/,@mayfairhousemiami,https://www.instagram.com/mayfairhousemiami,Gold List,"US 2026, UK 2026",From official site footer.
+250,Maçakizi,Turkey,Europe,https://www.macakizi.com/,@macakizihotel,https://www.instagram.com/macakizihotel,Gold List,"US 2026, UK 2026",From official site footer.
+251,Meadowood Napa Valley,United States,Americas,https://meadowood.com/,@meadowoodnapavalley,https://www.instagram.com/meadowoodnapavalley,Forbes,,
+252,MGM MACAU,China,Asia-Pacific,https://www.mgm.mo/en/stay/mgm-macau,,,Forbes,,No MGM Macau-specific IG; @mgm.mo shared across MGM Macau/Cotai. Left blank.
+253,Mii amo,United States,Americas,https://miiamo.com/,@mii_amo_spa,https://www.instagram.com/mii_amo_spa,Forbes,,Destination spa-hotel account.
+254,Montage Big Sky,United States,Americas,https://www.montage.com/bigsky/,@montagebigsky,https://www.instagram.com/montagebigsky,Forbes,,
+255,Montage Deer Valley,United States,Americas,https://www.montage.com/deervalley/,@montagedeervalley,https://www.instagram.com/montagedeervalley,Forbes,,
+256,Montage Healdsburg,United States,Americas,https://www.montage.com/healdsburg/,@montagehealdsburg,https://www.instagram.com/montagehealdsburg,Forbes,,
+257,Montage Laguna Beach,United States,Americas,https://www.montage.com/lagunabeach/,@montagelaguna,https://www.instagram.com/montagelaguna,Forbes,,
+258,Montage Los Cabos,Mexico,Americas,https://www.montage.com/loscabos/,@montageloscabos,https://www.instagram.com/montageloscabos,Forbes,,
+259,Montage Palmetto Bluff,United States,Americas,https://www.montage.com/palmettobluff/,@montagepalmettobluff,https://www.instagram.com/montagepalmettobluff,Forbes,,
+260,Morpheus,China,Asia-Pacific,https://www.cityofdreamsmacau.com/en/hotels/morpheus,,,Forbes,,No confirmed Morpheus-specific IG; only resort @cityofdreamsmacau. Left blank.
+261,Mount Gahinga Lodge,Uganda,Africa,https://gahingalodge.com/,,,Gold List,"US 2026, UK 2026",No property-specific IG; only parent brand @volcanoessafaris. Left blank.
+262,"Mount Nelson, A Belmond Hotel, Cape Town",South Africa,Africa,https://www.belmond.com/hotels/africa/south-africa/cape-town/belmond-mount-nelson-hotel/,@belmondmountnelsonhotel,https://www.instagram.com/belmondmountnelsonhotel,Forbes,,
+263,Narendra Bhawan Bikaner,India,Asia-Pacific,https://suryagarhcollection.com/narendra-bhawan,@narendra.bhawan.bikaner,https://www.instagram.com/narendra.bhawan.bikaner,Gold List,"US 2025, UK 2025",Property-specific account confirmed via search.
+264,"Naviva, A Four Seasons Resort, Punta Mita",Mexico,Americas,https://www.fourseasons.com/naviva/,@naviva,https://www.instagram.com/naviva,Gold List,US 2026,Property runs its own dedicated account @naviva.
+265,Nay Palad Hideaway,Philippines,Asia-Pacific,https://naypaladhideaway.com/,@naypalad,https://www.instagram.com/naypalad,Gold List,"US 2026, UK 2026",From official site footer (formerly Dedon Island Resort).
+266,Nizuc Resort & Spa,Mexico,Americas,https://www.nizuc.com/,@nizucresort,https://www.instagram.com/nizucresort,Forbes,,
+267,"Nujuma, a Ritz-Carlton Reserve",Saudi Arabia,Middle East,https://www.ritzcarlton.com/en/hotels/ejhrz-nujuma-a-ritz-carlton-reserve/overview/,@nujumareserve,https://www.instagram.com/nujumareserve,Forbes,,
+268,Nüwa Macau,China,Asia-Pacific,https://www.cityofdreamsmacau.com/en/hotels/nuwa,,,Forbes,,No confirmed Nuwa Macau-specific IG; only resort @cityofdreamsmacau. Left blank.
+269,Nüwa Manila at City of Dreams,Philippines,Asia-Pacific,https://www.cityofdreamsmanila.com/en/stay/nuwa,,,Forbes,,Two plausible small accounts; could not confirm official. Left blank.
+270,Ocean House,United States,Americas,https://www.oceanhouseri.com/,@oceanhouseri,https://www.instagram.com/oceanhouseri,Forbes,,
+271,Okada Manila,Philippines,Asia-Pacific,https://okadamanila.com/,@okadamanila,https://www.instagram.com/okadamanila,Forbes,,
+272,One&Only Gorilla's Nest,Rwanda,Africa,https://www.oneandonlyresorts.com/gorillas-nest,@oorwanda,https://www.instagram.com/oorwanda,Forbes,,@oorwanda is the official One&Only Rwanda account (Gorilla's Nest + Nyungwe House); no property-only account.
+273,One&Only Le Saint Géran,Mauritius,Africa,https://www.oneandonlyresorts.com/le-saint-geran,@oolesaintgeran,https://www.instagram.com/oolesaintgeran,Forbes,,
+274,One&Only Mandarina,Mexico,Americas,https://www.oneandonlyresorts.com/mandarina,@oomandarina,https://www.instagram.com/oomandarina,"Gold List, World's 50 Best","US 2025, UK 2025",Property's own dedicated account.
+275,One&Only Nyungwe House,Rwanda,Africa,https://www.oneandonlyresorts.com/nyungwe-house,@oonyungwehouse,https://www.instagram.com/oonyungwehouse,Forbes,,Property-specific account.
+276,"One&Only Palmilla, Los Cabos Resort",Mexico,Americas,https://www.oneandonlyresorts.com/palmilla,@oneandonlypalmilla,https://www.instagram.com/oneandonlypalmilla,Forbes,,
+277,One&Only Portonovi,Montenegro,Europe,https://www.oneandonlyresorts.com/portonovi,@ooportonovi,https://www.instagram.com/ooportonovi,Forbes,,
+278,One&Only Reethi Rah,Maldives,Asia-Pacific,https://www.oneandonlyresorts.com/reethi-rah,@ooreethirah,https://www.instagram.com/ooreethirah,Forbes,,
+279,One&Only Royal Mirage - The Residence,United Arab Emirates,Middle East,https://www.oneandonlyresorts.com/royal-mirage/accommodation/the-residence,@ooroyalmirage,https://www.instagram.com/ooroyalmirage,Forbes,,The Residence is within One&Only Royal Mirage; resort account used.
+280,Our Habitas AlUla,Saudi Arabia,Middle East,https://www.ourhabitas.com/alula/,@habitasalula,https://www.instagram.com/habitasalula,Gold List,"US 2026, UK 2026",Property's own dedicated account.
+281,Paiza Grand,China,Asia-Pacific,https://www.londonermacao.com/hotels/paiza-grand.html,@the_londoner_macao,https://www.instagram.com/the_londoner_macao,Forbes,,Paiza Grand is within The Londoner Macao; resort account used.
+282,Paiza Lofts,China,Asia-Pacific,https://www.parisianmacao.com/paiza-lofts.html,@parisian_macao,https://www.instagram.com/parisian_macao,Forbes,,Paiza Lofts is within The Parisian Macao; resort account used.
+283,Palace Hotel Tokyo,Japan,Asia-Pacific,https://www.palacehoteltokyo.com/,@palacehoteltokyo,https://www.instagram.com/palacehoteltokyo,Forbes,,
+284,Palazzo Margherita,Italy,Europe,https://thecoppolahideaways.com/resort/palazzo-margherita,@palazzomargherita,https://www.instagram.com/palazzomargherita,Gold List,"US 2025, UK 2025",Property page on Coppola Hideaways site.
+285,Palazzo Versace Macau,China,Asia-Pacific,https://www.palazzoversace.mo/en,@palazzoversacemacau,https://www.instagram.com/palazzoversacemacau,Forbes,,
+286,Pan Pacific London,United Kingdom,Europe,https://www.panpacific.com/en/hotels-and-resorts/pp-london.html,@panpacificlondon,https://www.instagram.com/panpacificlondon,Forbes,,
+287,Park Hotel Vitznau,Switzerland,Europe,https://www.parkhotel-vitznau.ch/en/,@parkhotelvitznau,https://www.instagram.com/parkhotelvitznau,Forbes,,
+288,Park Hyatt Sydney,Australia,Asia-Pacific,https://www.hyatt.com/park-hyatt/en-US/sydph-park-hyatt-sydney,@parkhyattsydney,https://www.instagram.com/parkhyattsydney,Gold List,US 2026,Official Hyatt property page.
+289,Passalacqua,Italy,Europe,https://www.passalacqua.it/en/,@passalacqualakecomo,https://www.instagram.com/passalacqualakecomo,"Gold List, World's 50 Best","US 2026, UK 2026",Property-specific account confirmed via search.
+290,"Patina Maldives, Fari Islands",Maldives,Asia-Pacific,https://patinahotels.com/maldives,@patinamaldives,https://www.instagram.com/patinamaldives,Forbes,,
+291,Portrait Firenze  — Lungarno Collection,Italy,Europe,https://www.lungarnocollection.com/portrait-firenze/,@portraitfirenze,https://www.instagram.com/portraitfirenze,Forbes,,
+292,Posada Ayana,Uruguay,Americas,https://www.posada-ayana.com/,@posadaayana,https://www.instagram.com/posadaayana,Gold List,US 2026,From official site footer.
+293,Post Ranch Inn,United States,Americas,https://postranchinn.com/,@postranchinn,https://www.instagram.com/postranchinn,Gold List,"US 2025, UK 2025",From official site footer.
+294,Raffles at Galaxy Macau,China,Asia-Pacific,https://www.raffles.com/macau/,@raffles.galaxymacau,https://www.instagram.com/raffles.galaxymacau,Forbes,,Property opened 2024; newer account.
+295,Raffles Doha,Qatar,Middle East,https://www.raffles.com/doha/,@rafflesdoha,https://www.instagram.com/rafflesdoha,"Forbes, Gold List","US 2026, UK 2026",
+296,Raffles Hotel Singapore,Singapore,Asia-Pacific,https://www.raffles.com/singapore/,@raffleshotelsingapore,https://www.instagram.com/raffleshotelsingapore,"Forbes, World's 50 Best",,
+297,Raffles Istanbul,Turkey,Europe,https://www.raffles.com/istanbul/,@rafflesistanbul,https://www.instagram.com/rafflesistanbul,Forbes,,
+298,Raffles London at The OWO,United Kingdom,Europe,https://www.raffles.com/london/,@raffleslondon.theowo,https://www.instagram.com/raffleslondon.theowo,"Forbes, World's 50 Best",,
+299,Rancho Valencia Resort & Spa,United States,Americas,https://ranchovalencia.com/,@ranchovalencia,https://www.instagram.com/ranchovalencia,Forbes,,
+300,Raya Heritage,Thailand,Asia-Pacific,https://www.rayaheritage.com/en/,@rayaheritage,https://www.instagram.com/rayaheritage,Gold List,"US 2026, UK 2026",From official site footer.
+301,Refugia Chiloé,Chile,Americas,https://refugiachiloe.com/,@refugia_chiloe,https://www.instagram.com/refugia_chiloe,Gold List,US 2026,Active official account (rebranded from Tierra Chiloe).
+302,Regent Hong Kong,China,Asia-Pacific,https://hongkong.regenthotels.com/,@hongkongregent,https://www.instagram.com/hongkongregent,Forbes,,
+303,Ritz Paris,France,Europe,https://www.ritzparis.com/,@ritzparis,https://www.instagram.com/ritzparis,Forbes,,
+304,RiverView Ranch,United States,Americas,https://www.riverviewranch.com/,@riverviewranchretreat,https://www.instagram.com/riverviewranchretreat,Forbes,,"Independent Forbes Five-Star guest ranch (SLH member), Montana — not a Ritz-Carlton despite list name."
+305,Rockhouse Hotel & Spa,Jamaica,Americas,https://www.rockhouse.com/,@rockhousehotel,https://www.instagram.com/rockhousehotel,Gold List,"US 2025, UK 2025",From official site footer.
+306,"ROKU KYOTO, LXR Hotels & Resorts",Japan,Asia-Pacific,https://www.rokukyoto.com/,@roku.kyoto,https://www.instagram.com/roku.kyoto,Forbes,,
+307,Rosewood Doha,Qatar,Middle East,https://www.rosewoodhotels.com/en/doha,@rosewooddoha,https://www.instagram.com/rosewooddoha,Forbes,,
+308,Rosewood Guangzhou,China,Asia-Pacific,https://www.rosewoodhotels.com/en/guangzhou,@rosewoodguangzhou,https://www.instagram.com/rosewoodguangzhou,Forbes,,
+309,Rosewood Hong Kong,China,Asia-Pacific,https://www.rosewoodhotels.com/en/hong-kong,@rosewoodhongkong,https://www.instagram.com/rosewoodhongkong,World's 50 Best,,From official site footer.
+310,Rosewood Little Dix Bay,British Virgin Islands,Americas,https://www.rosewoodhotels.com/en/little-dix-bay-virgin-gorda,@rosewoodlittledixbay,https://www.instagram.com/rosewoodlittledixbay,Gold List,"US 2025, UK 2025",Property page on Rosewood site.
+311,Rosewood London,United Kingdom,Europe,https://www.rosewoodhotels.com/en/london,@rosewoodlondon,https://www.instagram.com/rosewoodlondon,Forbes,,
+312,Rosewood Mayakoba,Mexico,Americas,https://www.rosewoodhotels.com/en/mayakoba-riviera-maya,@rwmayakoba,https://www.instagram.com/rwmayakoba,Forbes,,
+313,Rosewood Miramar Beach,United States,Americas,https://www.rosewoodhotels.com/en/miramar-beach-montecito,@rosewoodmiramarbeach,https://www.instagram.com/rosewoodmiramarbeach,Forbes,,
+314,Rosewood San Miguel de Allende,Mexico,Americas,https://www.rosewoodhotels.com/en/san-miguel-de-allende,@rosewoodsanmiguel,https://www.instagram.com/rosewoodsanmiguel,Forbes,,
+315,Rosewood Sand Hill,United States,Americas,https://www.rosewoodhotels.com/en/sand-hill-menlo-park,@rosewoodsandhill,https://www.instagram.com/rosewoodsandhill,Forbes,,
+316,Rosewood São Paulo,Brazil,Americas,https://www.rosewoodhotels.com/en/sao-paulo,@rosewoodsaopaulo,https://www.instagram.com/rosewoodsaopaulo,World's 50 Best,,Property account preferred over global @rosewoodhotels.
+317,Rosewood Villa Magna,Spain,Europe,https://www.rosewoodhotels.com/en/villa-magna,@rosewoodvillamagna,https://www.instagram.com/rosewoodvillamagna,Forbes,,
+318,Royal Champagne Hotel & Spa,France,Europe,https://royalchampagne.com/,@royalchampagne,https://www.instagram.com/royalchampagne,Forbes,,
+319,Royal Mansour Marrakech,Morocco,Africa,https://www.royalmansour.com/en/marrakech/,@royalmansourmarrakech,https://www.instagram.com/royalmansourmarrakech,"Forbes, World's 50 Best",,Distinct from group @royalmansourcollection.
+320,Royal Palm Beachcomber Luxury,Mauritius,Africa,https://www.beachcomber-hotels.com/en/hotel/royal-palm-beachcomber-luxury,@royalpalmbeachcomber,https://www.instagram.com/royalpalmbeachcomber,Forbes,,Property page within parent Beachcomber site.
+321,Salamander Middleburg,United States,Americas,https://salamanderresort.com/,@salamanderresort,https://www.instagram.com/salamanderresort,Forbes,,Distinct from group @salamanderhotels.
+322,Samode Palace,India,Asia-Pacific,https://samode.com/samode-palace/,@samode_hotels,https://www.instagram.com/samode_hotels,Gold List,"US 2026, UK 2026","Group account (covers Palace, Haveli, Bagh, Safari Lodge); no Palace-specific account."
+323,San Ysidro Ranch,United States,Americas,https://www.sanysidroranch.com/,@sanysidroranch,https://www.instagram.com/sanysidroranch,Gold List,"US 2025, UK 2025",From official site / verified account.
+324,Sandy Lane Hotel,Barbados,Americas,https://www.sandylane.com/,@sandylanehotel,https://www.instagram.com/sandylanehotel,Forbes,,
+325,Santa Caterina,Italy,Europe,https://www.hotelsantacaterina.it/en/,@hotel_santa_caterina,https://www.instagram.com/hotel_santa_caterina,Gold List,"US 2025, UK 2025",Property-specific account confirmed via search.
+326,"Saxon Hotel, Villas and Spa",South Africa,Africa,https://www.saxon.co.za/,@thesaxonhotel,https://www.instagram.com/thesaxonhotel,Forbes,,
+327,Ser Casasandra,Mexico,Americas,https://www.casasandra.com/,@sercasasandra,https://www.instagram.com/sercasasandra,Gold List,US 2026,From official site footer.
+328,Severin's Resort & Spa,Germany,Europe,https://www.severins-sylt.de/en/,@severins_resort_spa,https://www.instagram.com/severins_resort_spa,Gold List,"US 2025, UK 2025",Property account; brand is @severinshotels.
+329,"Shangri-La Hotel, Toronto",Canada,Americas,https://www.shangri-la.com/toronto/shangrila/,@shangrilato,https://www.instagram.com/shangrilato,Forbes,,
+330,Shangri-La Paris,France,Europe,https://www.shangri-la.com/paris/shangrila/,@shangrilaparis,https://www.instagram.com/shangrilaparis,Forbes,,
+331,"Shangri-La The Shard, London",United Kingdom,Europe,https://www.shangri-la.com/london/shangrila/,@shangrilalondon,https://www.instagram.com/shangrilalondon,Forbes,,
+332,Sheldon Chalet,United States,Americas,https://www.sheldonchalet.com/,@sheldonchalet,https://www.instagram.com/sheldonchalet,Gold List,"US 2026, UK 2026",
+333,Singita Ebony Lodge,South Africa,Africa,https://singita.com/lodge/singita-ebony-lodge/,,,Gold List,"US 2025, UK 2025",Only group account @singita_; no lodge-specific IG. Left blank.
+334,Singita Kruger National Park,South Africa,Africa,https://singita.com/region/kruger-national-park/,@singita_,https://www.instagram.com/singita_,World's 50 Best,,Group account @singita_; Kruger lodges have no separate account.
+335,Six Senses Douro Valley,Portugal,Europe,https://www.sixsenses.com/en/hotels-resorts/europe/portugal/douro-valley/,@sixsensesdourovalley,https://www.instagram.com/sixsensesdourovalley,Gold List,"US 2026, UK 2026",Property page on Six Senses site.
+336,Six Senses Zighy Bay,Oman,Middle East,https://www.sixsenses.com/en/hotels-resorts/middle-east-africa/oman/zighy-bay/,@sixsenseszighybay,https://www.instagram.com/sixsenseszighybay,Gold List,"US 2025, UK 2025",Property page on Six Senses site.
+337,Sky Tower at Solaire Resort Entertainment City,Philippines,Asia-Pacific,https://www.skytowerspins.com/,@solaireresort,https://www.instagram.com/solaireresort,Forbes,,Sky Tower is the prestige tower within Solaire Resort; resort account used.
+338,Skylofts at MGM COTAI,China,Asia-Pacific,https://www.mgm.mo/en/cotai/rooms/skylofts,,,Forbes,,Skylofts is a room product within MGM Cotai; @mgm.mo shared. Left blank.
+339,Skylofts at MGM Grand,United States,Americas,https://mgmgrand.mgmresorts.com/en/hotel/skylofts.html,,,Forbes,,Skylofts is a suite product within MGM Grand Las Vegas; no Skylofts-specific IG. Left blank.
+340,Sofitel Legend Metropole Hanoi,Vietnam,Asia-Pacific,https://www.sofitel-legend-metropole-hanoi.com/,@sofitellegendmetropolehanoi,https://www.instagram.com/sofitellegendmetropolehanoi,Gold List,"US 2025, UK 2025",Primary property account.
+341,Somalisa Camp,Zimbabwe,Africa,https://africanbushcamps.com/experiences/somalisa-camp/,,,Gold List,"US 2026, UK 2026",No Somalisa-specific IG; operator uses a group account. Left blank.
+342,Soneva Fushi,Maldives,Asia-Pacific,https://soneva.com/resorts/soneva-fushi/,@soneva,https://www.instagram.com/soneva,World's 50 Best,,Group account @soneva published on site; no property-specific account.
+343,Soneva Jani,Maldives,Asia-Pacific,https://soneva.com/resorts/soneva-jani/,@soneva,https://www.instagram.com/soneva,Forbes,,Official site footer links group @soneva; a purported @sonevajaniofficial could not be confirmed. Group account used.
+344,"Splendido, A Belmond Hotel, Portofino",Italy,Europe,https://www.belmond.com/hotels/europe/italy/portofino/belmond-hotel-splendido/,@belmondhotelsplendido,https://www.instagram.com/belmondhotelsplendido,Gold List,"US 2025, UK 2025",Property page on Belmond site.
+345,Star Tower at Studio City Macau,China,Asia-Pacific,https://www.studiocity-macau.com/en/hotels/star-tower,,,Forbes,,Star Tower is a tower within Studio City Macau; only @studiocitymacau. Left blank.
+346,Stein Eriksen Lodge Deer Valley,United States,Americas,https://www.steinlodge.com/,@steinlodge,https://www.instagram.com/steinlodge,Forbes,,
+347,Sterrekopje Farm,South Africa,Africa,https://sterrekopje.com/,@sterrekopjefarm,https://www.instagram.com/sterrekopjefarm,Gold List,"US 2026, UK 2026",
+348,SUJÁN Jawai,India,Asia-Pacific,https://thesujanlife.com/sujan-camps/sujan-jawai,@thesujanlife,https://www.instagram.com/thesujanlife,Gold List,"US 2025, UK 2025",Single group account covers all SUJAN camps.
+349,SUJÁN Sher Bagh,India,Asia-Pacific,https://thesujanlife.com/sujan-camps/sujan-sher-bagh,@thesujanlife,https://www.instagram.com/thesujanlife,Gold List,"US 2026, UK 2026",Single group account covers all SUJAN camps.
+350,Sussurro,Mozambique,Africa,https://sussurro.co/,@sussurro.co,https://www.instagram.com/sussurro.co,Gold List,"US 2026, UK 2026",
+351,Taj Falaknuma Palace,India,Asia-Pacific,https://www.tajhotels.com/en-in/hotels/taj-falaknuma-palace-hyderabad,@tajfalaknuma,https://www.instagram.com/tajfalaknuma,Gold List,"US 2025, UK 2025",Property page on Taj Hotels site.
+352,Takanawa Hanakohro,Japan,Asia-Pacific,https://www.princehotels.com/hanakohro/,@takanawa_hanakohro,https://www.instagram.com/takanawa_hanakohro,Forbes,,IG confirmed via official Seibu Prince site footer.
+353,"The Balmoral, a Rocco Forte Hotel",United Kingdom,Europe,https://www.roccofortehotels.com/hotels-and-resorts/the-balmoral-hotel/,@thebalmoral,https://www.instagram.com/thebalmoral,Forbes,,
+354,The Berkeley,United Kingdom,Europe,https://www.maybourne.com/en/hotels/the-berkeley,@the_berkeley,https://www.instagram.com/the_berkeley,Forbes,,
+355,The Beverly Hills Hotel,United States,Americas,https://www.dorchestercollection.com/los-angeles/the-beverly-hills-hotel,@bevhillshotel,https://www.instagram.com/bevhillshotel,"Forbes, Gold List","US 2026, UK 2026",
+356,The Brando,French Polynesia,Asia-Pacific,https://thebrando.com,@thebrandoresort,https://www.instagram.com/thebrandoresort,"Forbes, Gold List",UK 2025,
+357,The Broadmoor,United States,Americas,https://www.broadmoor.com,@thebroadmoor,https://www.instagram.com/thebroadmoor,Forbes,,
+358,"The Cadogan, A Belmond Hotel, London",United Kingdom,Europe,https://www.belmond.com/hotels/europe/uk/london/belmond-cadogan-hotel/,@belmondcadogan,https://www.instagram.com/belmondcadogan,Forbes,,
+359,The Calile,Australia,Asia-Pacific,https://thecalilehotel.com/,@thecalilehotel,https://www.instagram.com/thecalilehotel,World's 50 Best,,From official site.
+360,"The Canyon Suites at The Phoenician,  A Luxury Collection Resort",United States,Americas,https://www.canyonsuites.com/,@canyonsuitesscottsdale,https://www.instagram.com/canyonsuitesscottsdale,Forbes,,Property account now redirects followers to parent resort @phoenicianscottsdale.
+361,The Capitol Hotel Tokyu,Japan,Asia-Pacific,https://www.tokyuhotels.co.jp/en/capitol-h/index.html,@thecapitolhoteltokyu,https://www.instagram.com/thecapitolhoteltokyu,Forbes,,
+362,The Chanler at Cliff Walk,United States,Americas,https://www.thechanler.com/,@thechanler,https://www.instagram.com/thechanler,Forbes,,
+363,The Chateau at Nemacolin,United States,Americas,https://www.nemacolin.com/properties/the-chateau/,,,Forbes,,No Chateau-specific IG; Nemacolin uses estate-wide @nemacolin. Left blank.
+364,The Chedi Andermatt,Switzerland,Europe,https://www.thechediandermatt.com/,@thechediandermatt,https://www.instagram.com/thechediandermatt,Forbes,,
+365,The Cloister at Sea Island,United States,Americas,https://www.seaisland.com/stay/the-cloister/,@seaisland,https://www.instagram.com/seaisland,Forbes,,Sea Island resort account (covers The Cloister and The Lodge); no separate property account.
+366,The Colony Hotel,United States,Americas,https://thecolonypalmbeach.com/,@thecolonypalmbeach,https://www.instagram.com/thecolonypalmbeach,Gold List,"US 2025, UK 2025",
+367,The Connaught,United Kingdom,Europe,https://www.maybourne.com/en/hotels/the-connaught,@theconnaught,https://www.instagram.com/theconnaught,"Forbes, Gold List, World's 50 Best","US 2025, UK 2025",
+368,The Dolder Grand,Switzerland,Europe,https://www.thedoldergrand.com/en/,@thedoldergrand,https://www.instagram.com/thedoldergrand,Forbes,,
+369,The Dorchester,United Kingdom,Europe,https://www.dorchestercollection.com/london/the-dorchester,@thedorchester,https://www.instagram.com/thedorchester,Forbes,,Instagram taken from the official site footer.
+370,The Dwarika's Hotel,Nepal,Asia-Pacific,https://dwarikas.com/thedwarikas,@dwarikas_collection,https://www.instagram.com/dwarikas_collection,Gold List,"US 2025, UK 2025",Collection account; no hotel-only account.
+371,The Egerton House Hotel,United Kingdom,Europe,https://egertonhousehotel.com/,@egerton_house,https://www.instagram.com/egerton_house,Forbes,,Red Carnation property. Instagram published in footer.
+372,The Emory,United Kingdom,Europe,https://www.maybourne.com/en/hotels/the-emory,@theemorylondon,https://www.instagram.com/theemorylondon,World's 50 Best,,From official Maybourne property footer.
+373,The Fife Arms,United Kingdom,Europe,https://thefifearms.com/,@thefifearms,https://www.instagram.com/thefifearms,Gold List,"US 2025, UK 2025",
+374,The Gasparilla Inn & Club,United States,Americas,https://the-gasparilla-inn.com/,@gasparillainn,https://www.instagram.com/gasparillainn,Gold List,"US 2026, UK 2026",
+375,The Goring,United Kingdom,Europe,https://www.thegoring.com/,@thegoring,https://www.instagram.com/thegoring,Forbes,,
+376,The Grand Suites at Four Seasons,China,Asia-Pacific,https://www.fourseasons.com/grandsuitesmacau/,@grandsuitesmacau,https://www.instagram.com/grandsuitesmacau,Forbes,,
+377,The Happy House,Nepal,Asia-Pacific,https://happyhousenepal.com/,@happyhousenepal,https://www.instagram.com/happyhousenepal,Gold List,"US 2026, UK 2026",
+378,The Hazelton Hotel,Canada,Americas,https://www.thehazeltonhotel.com/,@hazeltonto,https://www.instagram.com/hazeltonto,Forbes,,
+379,The Inn at Little Washington,United States,Americas,https://www.theinnatlittlewashington.com/,@innatlittlewash,https://www.instagram.com/innatlittlewash,Forbes,,IG from official site footer.
+380,The Inn on Biltmore Estate,United States,Americas,https://www.biltmore.com/stay/the-inn/,,,Gold List,"US 2026, UK 2026",Only estate-wide @biltmoreestate; no Inn-specific IG. Left blank.
+381,THE KARL LAGERFELD,China,Asia-Pacific,https://www.thekarllagerfeld.mo/en,@thekarllagerfeld,https://www.instagram.com/thekarllagerfeld,Forbes,,IG from official site footer.
+382,The Lana,United Arab Emirates,Middle East,https://www.dorchestercollection.com/dubai/the-lana,@thelanadubai,https://www.instagram.com/thelanadubai,World's 50 Best,,From official Dorchester property footer.
+383,"The Langham, Chicago",United States,Americas,https://www.langhamhotels.com/en/the-langham/chicago/,@langhamchicago,https://www.instagram.com/langhamchicago,Forbes,,Property page on parent site.
+384,The Leela Palace Jaipur,India,Asia-Pacific,https://www.theleela.com/the-leela-palace-jaipur,@theleelapalace_jaipur,https://www.instagram.com/theleelapalace_jaipur,Gold List,"US 2025, UK 2025",Property page on The Leela site.
+385,The Little Nell,United States,Americas,https://www.thelittlenell.com/,@thelittlenell,https://www.instagram.com/thelittlenell,Forbes,,IG from official site footer.
+386,"The Lodge at Blue Sky, Auberge Collection",United States,Americas,https://auberge.com/blue-sky/,@blueskyauberge,https://www.instagram.com/blueskyauberge,Forbes,,Property page on parent auberge.com.
+387,"The Lodge at Primland, Auberge Collection",United States,Americas,https://auberge.com/primland/,@primlandauberge,https://www.instagram.com/primlandauberge,Gold List,"US 2026, UK 2026",Property page on Auberge site.
+388,The Lodge at Sea Island,United States,Americas,https://www.seaisland.com/stay/the-lodge/,@seaisland,https://www.instagram.com/seaisland,Forbes,,The Lodge is part of Sea Island Resort; resort account used (consistent with The Cloister).
+389,The Londoner Hotel,China,Asia-Pacific,https://www.londonermacao.com/hotels/londoner-hotel.html,@the_londoner_macao,https://www.instagram.com/the_londoner_macao,Forbes,,Part of The Londoner Macao; resort account used.
+390,The Lowell,United States,Americas,https://www.lowellhotel.com/,@thelowellhotel,https://www.instagram.com/thelowellhotel,Gold List,"US 2026, UK 2026",
+391,The Mark,United States,Americas,https://www.themarkhotel.com/,@themarkhotelny,https://www.instagram.com/themarkhotelny,World's 50 Best,,From official site footer.
+392,The Maybourne Beverly Hills,United States,Americas,https://www.maybournebeverlyhills.com/,@themaybournebh,https://www.instagram.com/themaybournebh,Forbes,,
+393,The Maybourne Riviera,France,Europe,https://www.maybourneriviera.com/,@themaybourneriviera,https://www.instagram.com/themaybourneriviera,Forbes,,
+394,"The Mulia - Nusa Dua, Bali",Indonesia,Asia-Pacific,https://www.themulia.com/bali/themulia,@themuliabali,https://www.instagram.com/themuliabali,Forbes,,Official account covering the resort complex; no suites-only account.
+395,The Nautilus,Maldives,Asia-Pacific,https://www.thenautilusmaldives.com/,@thenautilusisland,https://www.instagram.com/thenautilusisland,Gold List,"US 2026, UK 2026",
+396,The Newt in Somerset,United Kingdom,Europe,https://thenewtinsomerset.com/,@thenewtinsomerset,https://www.instagram.com/thenewtinsomerset,Manual add,,From official site footer.
+397,"The Oberoi Amarvilas, Agra",India,Asia-Pacific,https://www.oberoihotels.com/hotels-in-agra-amarvilas-resort/,@oberoiamarvilas,https://www.instagram.com/oberoiamarvilas,Gold List,"US 2025, UK 2025",Property page on Oberoi site.
+398,"The Oberoi Beach Resort, Mauritius",Mauritius,Africa,https://www.oberoihotels.com/hotels-in-mauritius/,@theoberoimauritius,https://www.instagram.com/theoberoimauritius,Forbes,,
+399,"The Oberoi, Mumbai",India,Asia-Pacific,https://www.oberoihotels.com/hotels-in-mumbai/,@theoberoimumbai,https://www.instagram.com/theoberoimumbai,Gold List,"US 2026, UK 2026",Property page on Oberoi site.
+400,The Okura Tokyo,Japan,Asia-Pacific,https://theokuratokyo.jp/en/,@theokuratokyo,https://www.instagram.com/theokuratokyo,Forbes,,
+401,The Paiza Collection at Marina Bay Sands,Singapore,Asia-Pacific,https://www.marinabaysands.com/hotel/the-paiza-collection.html,,,Forbes,,Suite product within Marina Bay Sands; no property-specific IG. Left blank.
+402,The Peninsula Bangkok,Thailand,Asia-Pacific,https://www.peninsula.com/en/bangkok/5-star-luxury-hotel-riverside,@thepeninsulabangkok,https://www.instagram.com/thepeninsulabangkok,Forbes,,
+403,The Peninsula Beijing,China,Asia-Pacific,https://www.peninsula.com/en/beijing/5-star-luxury-hotel-wangfujing,@thepeninsulabeijing,https://www.instagram.com/thepeninsulabeijing,Forbes,,
+404,The Peninsula Chicago,United States,Americas,https://www.peninsula.com/en/chicago,@thepeninsulachi,https://www.instagram.com/thepeninsulachi,Forbes,,
+405,The Peninsula Hong Kong,China,Asia-Pacific,https://www.peninsula.com/en/hong-kong,@peninsulahongkong,https://www.instagram.com/peninsulahongkong,"Forbes, Gold List","US 2025, UK 2025",
+406,The Peninsula Manila,Philippines,Asia-Pacific,https://www.peninsula.com/en/manila/5-star-luxury-hotel-makati,@thepeninsulamanila,https://www.instagram.com/thepeninsulamanila,"Forbes, Gold List","US 2026, UK 2026",
+407,The Peninsula New York,United States,Americas,https://www.peninsula.com/en/new-york,@thepeninsulanyc,https://www.instagram.com/thepeninsulanyc,Forbes,,
+408,The Peninsula Shanghai,China,Asia-Pacific,https://www.peninsula.com/en/shanghai/5-star-luxury-hotel-bund,@thepeninsulashanghai,https://www.instagram.com/thepeninsulashanghai,Forbes,,
+409,The Peninsula Tokyo,Japan,Asia-Pacific,https://www.peninsulatokyo.com/,@thepeninsulatokyo,https://www.instagram.com/thepeninsulatokyo,Forbes,,
+410,The Point,United States,Americas,https://thepointresort.com/,@the_pointresort,https://www.instagram.com/the_pointresort,"Forbes, Gold List","US 2026, UK 2026",
+411,The Post Oak Hotel at Uptown Houston,United States,Americas,https://www.thepostoakhotel.com/,@postoakuptown,https://www.instagram.com/postoakuptown,Forbes,,
+412,The Prince Akatoki London,United Kingdom,Europe,https://www.theprinceakatokilondon.com/,@theprinceakatokilondon,https://www.instagram.com/theprinceakatokilondon,Forbes,,
+413,"The Prince Gallery Tokyo Kioicho, a Luxury Collection Hotel",Japan,Asia-Pacific,https://www.marriott.com/en-us/hotels/tyolc-the-prince-gallery-tokyo-kioicho-a-luxury-collection-hotel/overview/,@princegallerytokyokioicho,https://www.instagram.com/princegallerytokyokioicho,Forbes,,Marriott Luxury Collection property page.
+414,The Ranch at Rock Creek,United States,Americas,https://theranchatrockcreek.com/,@theranchatrockcreek,https://www.instagram.com/theranchatrockcreek,Forbes,,
+415,The Resort at Pelican Hill,United States,Americas,https://pelicanhill.com/,@pelicanhillresort,https://www.instagram.com/pelicanhillresort,Forbes,,
+416,"The Ritz-Carlton Maldives, Fari Islands",Maldives,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/overview/,@ritzcarltonmaldives,https://www.instagram.com/ritzcarltonmaldives,Forbes,,
+417,"The Ritz-Carlton New York, Central Park",United States,Americas,https://www.ritzcarlton.com/en/hotels/nyccp-the-ritz-carlton-new-york-central-park/overview/,@ritzcarltonnycentralpark,https://www.instagram.com/ritzcarltonnycentralpark,Forbes,,
+418,"The Ritz-Carlton New York, NoMad",United States,Americas,https://www.ritzcarlton.com/en/hotels/nycro-the-ritz-carlton-new-york-nomad/overview/,@ritzcarltonnewyorknomad,https://www.instagram.com/ritzcarltonnewyorknomad,Gold List,"US 2025, UK 2025",Ritz-Carlton (Marriott) property page.
+419,"The Ritz-Carlton Orlando, Grande Lakes",United States,Americas,https://www.ritzcarlton.com/en/hotels/mcorz-the-ritz-carlton-orlando-grande-lakes/overview/,@ritzcarltonorlando,https://www.instagram.com/ritzcarltonorlando,Forbes,,Resort umbrella account is @grandelakesorlando.
+420,"The Ritz-Carlton Ras Al Khaimah, Al Wadi Desert",United Arab Emirates,Middle East,https://www.ritzcarlton.com/en/hotels/rktrw-the-ritz-carlton-ras-al-khaimah-al-wadi-desert/overview/,@ritzcarltonalwadidesert,https://www.instagram.com/ritzcarltonalwadidesert,Gold List,"US 2026, UK 2026",Ritz-Carlton (Marriott) property page.
+421,"The Ritz-Carlton, Chengdu",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/cturz-the-ritz-carlton-chengdu/overview/,@theritzcarltonchengdu,https://www.instagram.com/theritzcarltonchengdu,Forbes,,
+422,"The Ritz-Carlton, Dallas",United States,Americas,https://www.ritzcarlton.com/en/hotels/dalrz-the-ritz-carlton-dallas/overview/,@ritzcarltondallas,https://www.instagram.com/ritzcarltondallas,Forbes,,"Distinct from Ritz-Carlton Dallas, Las Colinas."
+423,"The Ritz-Carlton, Dove Mountain",United States,Americas,https://www.ritzcarlton.com/en/hotels/tusrz-the-ritz-carlton-dove-mountain/overview/,@ritzcarltondovemountain,https://www.instagram.com/ritzcarltondovemountain,Forbes,,
+424,"The Ritz-Carlton, Dubai",United Arab Emirates,Middle East,https://www.ritzcarlton.com/en/hotels/dxbrz-the-ritz-carlton-dubai/overview/,@ritzcarltondubai,https://www.instagram.com/ritzcarltondubai,Forbes,,"JBR property; distinct from The Ritz-Carlton, DIFC."
+425,"The Ritz-Carlton, Grand Cayman",Cayman Islands,Americas,https://www.ritzcarlton.com/en/hotels/gcmrz-the-ritz-carlton-grand-cayman/overview/,@ritzcarltongrandcayman,https://www.instagram.com/ritzcarltongrandcayman,Forbes,,
+426,"The Ritz-Carlton, Guangzhou",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/canrz-the-ritz-carlton-guangzhou/overview/,@ritzcarltonguangzhou,https://www.instagram.com/ritzcarltonguangzhou,Forbes,,
+427,"The Ritz-Carlton, Half Moon Bay",United States,Americas,https://www.ritzcarlton.com/en/hotels/hafrz-the-ritz-carlton-half-moon-bay/overview/,@ritzcarltonhmb,https://www.instagram.com/ritzcarltonhmb,Forbes,,
+428,"The Ritz-Carlton, Hong Kong",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/hkgkw-the-ritz-carlton-hong-kong/overview/,@ritzcarltonhongkong,https://www.instagram.com/ritzcarltonhongkong,Forbes,,
+429,"The Ritz-Carlton, Kyoto",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/ukyrz-the-ritz-carlton-kyoto/overview/,@ritzcarltonkyoto,https://www.instagram.com/ritzcarltonkyoto,"Forbes, Gold List","US 2026, UK 2026",
+430,"The Ritz-Carlton, Macau",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/mfmmr-the-ritz-carlton-macau/overview/,@ritzcarltonmacau,https://www.instagram.com/ritzcarltonmacau,Forbes,,
+431,"The Ritz-Carlton, Nikko",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/tyonz-the-ritz-carlton-nikko/overview/,@ritzcarltonnikko,https://www.instagram.com/ritzcarltonnikko,"Forbes, Gold List","US 2025, UK 2025",
+432,"The Ritz-Carlton, Osaka",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/osarz-the-ritz-carlton-osaka/overview/,@ritzcarlton.osaka,https://www.instagram.com/ritzcarlton.osaka,Forbes,,
+433,"The Ritz-Carlton, Riyadh",Saudi Arabia,Middle East,https://www.ritzcarlton.com/en/hotels/ruhrz-the-ritz-carlton-riyadh/overview/,@theritzcarltonruh,https://www.instagram.com/theritzcarltonruh,Forbes,,
+434,"The Ritz-Carlton, Tokyo",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/tyorz-the-ritz-carlton-tokyo/overview/,@ritzcarltontokyo,https://www.instagram.com/ritzcarltontokyo,Forbes,,
+435,The Sanctuary at Kiawah Island Golf Resort,United States,Americas,https://kiawahresort.com/,@kiawahresort,https://www.instagram.com/kiawahresort,Forbes,,The Sanctuary is the hotel within Kiawah Island Golf Resort; resort account used.
+436,The Savoy,United Kingdom,Europe,https://www.thesavoylondon.com/,@thesavoylondon,https://www.instagram.com/thesavoylondon,Forbes,,
+437,"The Setai, Miami Beach",United States,Americas,https://www.thesetaihotel.com/,@thesetaimiamibeach,https://www.instagram.com/thesetaimiamibeach,Forbes,,
+438,The Shilla Seoul,South Korea,Asia-Pacific,https://www.shilla.net/seoul/,@theshillaseoul,https://www.instagram.com/theshillaseoul,Forbes,,
+439,The St. Regis Abu Dhabi,United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/auhrx-the-st-regis-abu-dhabi/overview/,@stregisabudhabi,https://www.instagram.com/stregisabudhabi,Forbes,,St. Regis (Marriott) property page.
+440,The St. Regis Atlanta,United States,Americas,https://www.marriott.com/en-us/hotels/atlxr-the-st-regis-atlanta/overview/,@stregisatl,https://www.instagram.com/stregisatl,Forbes,,St. Regis (Marriott) property page.
+441,The St. Regis Bal Harbour Resort,United States,Americas,https://www.marriott.com/en-us/hotels/miarz-the-st-regis-bal-harbour-resort/overview/,@stregisbalharbour,https://www.instagram.com/stregisbalharbour,Forbes,,St. Regis (Marriott) property page; confirm exact Marriott property code.
+442,"The St. Regis Dubai, The Palm",United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/dxbpx-the-st-regis-dubai-the-palm/overview/,@stregisdubaithepalm,https://www.instagram.com/stregisdubaithepalm,Forbes,,St. Regis (Marriott) property page.
+443,The St. Regis Hong Kong,China,Asia-Pacific,https://www.marriott.com/en-us/hotels/hkgxr-the-st-regis-hong-kong/overview/,@stregishk,https://www.instagram.com/stregishk,Forbes,,St. Regis (Marriott) property page.
+444,The St. Regis Macao,China,Asia-Pacific,https://www.marriott.com/en-us/hotels/mfmxr-the-st-regis-macao/overview/,@stregismacao,https://www.instagram.com/stregismacao,Forbes,,St. Regis (Marriott) property page.
+445,The St. Regis Maldives Vommuli Resort,Maldives,Asia-Pacific,https://www.marriott.com/en-us/hotels/mlexr-the-st-regis-maldives-vommuli-resort/overview/,@stregismaldives,https://www.instagram.com/stregismaldives,Forbes,,St. Regis (Marriott) property page.
+446,The St. Regis New York,United States,Americas,https://www.marriott.com/en-us/hotels/nycxr-the-st-regis-new-york/overview/,@stregisnewyork,https://www.instagram.com/stregisnewyork,Forbes,,St. Regis (Marriott) property page.
+447,"The St. Regis Saadiyat Island Resort, Abu Dhabi",United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/auhxr-the-st-regis-saadiyat-island-resort-abu-dhabi/overview/,@stregissaadiyatisland,https://www.instagram.com/stregissaadiyatisland,"Forbes, Gold List","US 2026, UK 2026",St. Regis (Marriott) property page.
+448,The St. Regis San Francisco,United States,Americas,https://www.marriott.com/en-us/hotels/sfoxr-the-st-regis-san-francisco/overview/,@stregissf,https://www.instagram.com/stregissf,Forbes,,St. Regis (Marriott) property page.
+449,The St. Regis Toronto,Canada,Americas,https://www.marriott.com/en-us/hotels/yyzxr-the-st-regis-toronto/overview/,@stregistoronto,https://www.instagram.com/stregistoronto,Forbes,,St. Regis (Marriott) property page.
+450,The Taj Mahal Palace,India,Asia-Pacific,https://www.tajhotels.com/en-in/hotels/taj-mahal-palace-mumbai,@tajmahalmumbai,https://www.instagram.com/tajmahalmumbai,World's 50 Best,,Property account preferred over group @tajhotels.
+451,"The Tokyo EDITION, Toranomon",Japan,Asia-Pacific,https://www.editionhotels.com/tokyo-toranomon/,@toranomonedition,https://www.instagram.com/toranomonedition,World's 50 Best,,Property account (distinct from global @editionhotels).
+452,The Umstead Hotel and Spa,United States,Americas,https://www.theumstead.com/,@theumstead,https://www.instagram.com/theumstead,Forbes,,
+453,The Upper House,China,Asia-Pacific,https://www.upperhouse.com/en/hongkong/,@upperhouse_hkg,https://www.instagram.com/upperhouse_hkg,World's 50 Best,,From official site footer.
+454,The Venice Venice Hotel,Italy,Europe,https://venicevenice.com/,@venicevenicehotel,https://www.instagram.com/venicevenicehotel,Gold List,"US 2026, UK 2026",Official site; property IG confirmed.
+455,Tierra Patagonia,Chile,Americas,https://tierrapatagonia.com/,@tierrahotels,https://www.instagram.com/tierrahotels,Gold List,"US 2025, UK 2025",Group account only (Tierra Patagonia + Atacama); no property-specific IG.
+456,Trisara,Thailand,Asia-Pacific,https://trisara.com/,@trisararesort,https://www.instagram.com/trisararesort,Gold List,"US 2025, UK 2025",
+457,Trump International Hotel & Tower Chicago,United States,Americas,https://www.trumphotels.com/chicago,@trumpchicago,https://www.instagram.com/trumpchicago,Forbes,,
+458,Trump International Hotel & Tower New York,United States,Americas,https://www.trumphotels.com/central-park,@trumpnyc,https://www.instagram.com/trumpnyc,Forbes,,
+459,Trump Turnberry,United Kingdom,Europe,https://www.trumphotels.com/turnberry,@trumpturnberryscotland,https://www.instagram.com/trumpturnberryscotland,Forbes,,
+460,Turtle Inn,Belize,Americas,https://thecoppolahideaways.com/resort/turtle-inn,@turtleinn,https://www.instagram.com/turtleinn,Gold List,"US 2025, UK 2025",Property page on Coppola Hideaways site.
+461,Twin Farms,United States,Americas,https://www.twinfarms.com/,@twinfarms,https://www.instagram.com/twinfarms,Forbes,,
+462,Uxua Casa Hotel & Spa,Brazil,Americas,https://uxua.com/,@uxua,https://www.instagram.com/uxua,Gold List,US 2026,Official site; property IG @uxua.
+463,Velaa Private Island,Maldives,Asia-Pacific,https://www.velaaprivateisland.com/,@velaaprivateisland,https://www.instagram.com/velaaprivateisland,Forbes,,
+464,Verina Astra,Greece,Europe,https://verinahotelsifnos.com/accommodation/verina-astra/,@verinasifnos,https://www.instagram.com/verinasifnos,Gold List,"US 2026, UK 2026",Collection account for Verina Hotels Sifnos; no Astra-only account.
+465,Waldorf Astoria Amsterdam,Netherlands,Europe,https://www.hilton.com/en/hotels/amswawa-waldorf-astoria-amsterdam/,@waldorfamsterdam,https://www.instagram.com/waldorfamsterdam,Forbes,,Waldorf Astoria (Hilton) property page.
+466,Waldorf Astoria Beverly Hills,United States,Americas,https://waldorfastoriabeverlyhills.com/,@waldorfbevhills,https://www.instagram.com/waldorfbevhills,Forbes,,
+467,Waldorf Astoria Dubai International Financial Centre,United Arab Emirates,Middle East,https://www.hilton.com/en/hotels/dxbwawa-waldorf-astoria-dubai-international-financial-centre/,@waldorfdifc,https://www.instagram.com/waldorfdifc,Forbes,,Waldorf Astoria (Hilton) property page confirmed (code dxbwawa).
+468,Waldorf Astoria Kuwait,Kuwait,Middle East,https://www.hilton.com/en/hotels/kwiwawa-waldorf-astoria-kuwait/,@waldorfastoriakuwait,https://www.instagram.com/waldorfastoriakuwait,Forbes,,Waldorf Astoria (Hilton) property page.
+469,Waldorf Astoria Los Cabos Pedregal,Mexico,Americas,https://www.waldorfastorialoscabospedregal.com/,@wapedregal,https://www.instagram.com/wapedregal,Forbes,,
+470,Waldorf Astoria Maldives Ithaafushi,Maldives,Asia-Pacific,https://www.waldorfastoriamaldives.com/,@waldorfastoriamaldives,https://www.instagram.com/waldorfastoriamaldives,"Forbes, Gold List","US 2025, UK 2025",
+471,Waldorf Astoria Seychelles Platte Island,Seychelles,Africa,https://www.hilton.com/en/hotels/sezpiwa-waldorf-astoria-seychelles-platte-island/,@waldorfastoriaplatteisland,https://www.instagram.com/waldorfastoriaplatteisland,Forbes,,Waldorf Astoria (Hilton) property page.
+472,Weekapaug Inn,United States,Americas,https://weekapauginn.com/,@weekapauginn,https://www.instagram.com/weekapauginn,Forbes,,
+473,Weissenhaus Private Nature Luxury Resort,Germany,Europe,https://www.weissenhaus.de/en/index.html,@weissenhaus,https://www.instagram.com/weissenhaus,Gold List,"US 2026, UK 2026",
+474,"Welcomhotel By ITC Hotels, Pine N Peak, Pahalgam",India,Asia-Pacific,https://www.itchotels.com/in/en/welcomhotelpinenpeak-pahalgam,@welcomhotel.pinenpeak_pahalgam,https://www.instagram.com/welcomhotel.pinenpeak_pahalgam,Gold List,"US 2026, UK 2026",Property page on ITC Hotels site.
+475,Wequassett Resort and Golf Club,United States,Americas,https://wequassett.com/,@wequassett,https://www.instagram.com/wequassett,Forbes,,
+476,Wickaninnish Inn,Canada,Americas,https://www.wickinn.com/,@wickinnbc,https://www.instagram.com/wickinnbc,Gold List,"US 2026, UK 2026",
+477,Wilderness Bisate Lodge,Rwanda,Africa,https://www.wildernessdestinations.com/africa/rwanda/volcanoes-national-park/bisate-lodge,@wearewilderness,https://www.instagram.com/wearewilderness,Gold List,"US 2026, UK 2026",Group account across all Wilderness camps; no Bisate-only account.
+478,Woodstock Inn & Resort,United States,Americas,https://www.woodstockinn.com/,@woodstock.inn,https://www.instagram.com/woodstock.inn,Gold List,"US 2025, UK 2025",
+479,"Wymara Villas, Sunset Cove",Turks & Caicos,Americas,https://www.wymara.com/wymara_villas_and_beach_club,@wymaravillas,https://www.instagram.com/wymaravillas,Forbes,,"Villas-specific account, distinct from resort @wymaraturks."
+480,Wynn Las Vegas,United States,Americas,https://www.wynnlasvegas.com/,@wynnlasvegas,https://www.instagram.com/wynnlasvegas,Gold List,"US 2025, UK 2025",Shared Wynn & Encore Las Vegas account.
+481,Wynn Macau,China,Asia-Pacific,https://www.wynnresortsmacau.com/en,@wynn.macau,https://www.instagram.com/wynn.macau,Forbes,,
+482,Wynn Palace,China,Asia-Pacific,https://www.wynnresortsmacau.com/en/wynn-palace/,@wynn.palace,https://www.instagram.com/wynn.palace,Forbes,,
+483,Wynn Tower Suites,United States,Americas,https://www.wynnlasvegas.com/rooms-and-suites/wynn-tower-suites,,,Forbes,,Room product within Wynn Las Vegas; no Tower Suites-specific IG. Left blank.
+484,Yacht Club at The Boca Raton,United States,Americas,https://www.thebocaraton.com/suites-rooms/yacht-club/,@thebocaraton,https://www.instagram.com/thebocaraton,Forbes,,Yacht Club is a tower within The Boca Raton; resort account used (consistent with id 19).
+485,"Zadún, a Ritz-Carlton Reserve",Mexico,Americas,https://www.ritzcarlton.com/en/hotels/sjdzr-zadun-los-cabos-a-ritz-carlton-reserve/overview/,@zadunreserve,https://www.instagram.com/zadunreserve,Forbes,,Ritz-Carlton Reserve (Marriott) property page.
+486,Zannier Hotels Bãi San Hô,Vietnam,Asia-Pacific,https://www.zannierhotels.com/hotels/bai-san-ho/,@zannierbaisanho,https://www.instagram.com/zannierbaisanho,Gold List,"US 2026, UK 2026",Property page on Zannier Hotels site.
+487,Zero George,United States,Americas,https://zerogeorge.com/,@zerogeorgest,https://www.instagram.com/zerogeorgest,Gold List,"US 2025, UK 2025",
+488,Çırağan Palace Kempinski Istanbul,Turkey,Europe,https://www.kempinski.com/en/ciragan-palace,@cpkempinski,https://www.instagram.com/cpkempinski,Forbes,,region assigned by judgement (transcontinental country)

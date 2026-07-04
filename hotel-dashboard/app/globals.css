@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+/* ═══ Content Radar — design tokens (DASHBOARD.md §3) ═══════════════════════ */
+:root {
+  /* ── Surfaces ── */
+  --page:          #E7E3D9;   /* body background (warm sand) */
+  --surface:       #F7F6F2;   /* cards, top bar, table bodies */
+  --surface-alt:   #FBFAF7;   /* zebra rows / stat sub-cells */
+  --surface-alt-2: #EFEBE3;   /* toggle pill track, chips */
+  --ink:           #262420;   /* primary text, dark cards, table header */
+  --ink-deep:      #1D1B17;   /* hero + footer bands */
+  --panel-dark:    #232019;   /* hero "by the numbers" panel */
+
+  /* ── Signal (Aston racing green = THE accent, spend sparingly) ── */
+  --signal:        #2E7357;   /* hero numeral, stat figures, bar fills, mark centre */
+  --signal-deep:   #1B4A37;   /* green on light: multipliers, deltas, links, interactive */
+  --signal-light:  #7FC1A2;   /* green on dark: feature pill, statement accent */
+
+  /* ── Text ── */
+  --muted:         #9A8F7E;   /* eyebrows / secondary on light */
+  --muted-dark:    #8C867B;   /* labels on dark surfaces */
+  --faint:         #B7AF9F;   /* tertiary, "soon" tags, empty ranks */
+  --body-soft:     #6F685C;   /* paragraphs */
+  --body-strong:   #4F4A41;   /* card descriptions */
+  --body-mid:      #8C8577;   /* supporting text */
+  --on-dark:       #F7F6F2;   /* text on ink / ink-deep */
+  --on-dark-soft:  #A49D92;   /* paragraphs on dark */
+
+  /* ── Hairlines & fills ── */
+  --line:          #E4E0D7;   /* card borders */
+  --line-soft:     #EFEBE3;   /* row dividers */
+  --line-rule:     #E0DBD1;   /* section rules */
+  --line-dark:     rgba(245, 240, 232, 0.12);  /* dividers on dark */
+  --row-hover:     #EDE9E1;   /* leaderboard row hover */
+  --top3-tint:     #E9F1EC;   /* leaderboard ranks 1–3 (green tint) */
+  --track:         #EAE6DE;   /* bar-chart tracks */
+  --bar-mid:       #c8c0b2;   /* bar ramp: 2nd */
+  --bar-low:       #ddd5c6;   /* bar ramp: 3rd+ */
+  --bar-grey:      #b8b0a2;   /* leaderboard non-signal bar fill */
+
+  /* ── Structure ── */
+  --radius:        14px;
+  --shadow-card:   0 1px 2px rgba(38, 36, 32, 0.04), 0 14px 40px -14px rgba(38, 36, 32, 0.12);
+  --shadow-hover:  0 1px 2px rgba(38, 36, 32, 0.05), 0 22px 54px -16px rgba(38, 36, 32, 0.20);
+  --shadow-nav:    0 10px 34px -10px rgba(20, 18, 15, 0.55);
+
+  /* Legacy aliases — referenced by unused reference components only */
+  --bg:            #E7E3D9;
+  --card:          #F7F6F2;
+  --card-soft:     #EFEBE3;
+  --line-strong:   #D6D2C8;
+  --sage:          #8A9079;
+  --text-muted:    #9A8F7E;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  /* Labels share the body family now (Hanken Grotesk 600) — no separate mono.
+     Aliased here on <body> so it resolves against next/font's --font-body. */
+  --font-label: var(--font-body);
+  font-family: var(--font-body), 'Hanken Grotesk', sans-serif;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+
+::selection { background: var(--signal); color: var(--on-dark); }
+
+/* Ambient board glows — teal top-left, sage mid-right, slow drift.
+   background-size > 100% is required: at the default size each layer exactly
+   fills the area, so animating background-position would move nothing. */
+.cr-board {
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 700px at 12% 0%, rgba(46, 115, 87, 0.08), transparent 60%),
+    radial-gradient(900px 640px at 88% 42%, rgba(138, 144, 121, 0.07), transparent 55%);
+  background-size: 160% 160%;
+  background-attachment: fixed;
+  animation: crdrift 30s ease-in-out infinite alternate;
+}
+@keyframes crdrift {
+  from { background-position: 0% 22%; }
+  to   { background-position: 100% 78%; }
+}
+
+/* ── Landing-page motion (see components/Landing.tsx) ── */
+@keyframes cr-pop  { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
+@keyframes cr-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(46, 115, 87, 0.5); }
+  70%  { box-shadow: 0 0 0 11px rgba(46, 115, 87, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 115, 87, 0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-star] { animation: cr-pop .5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  .cr-cta-arrow { transition: transform .18s cubic-bezier(0.16, 1, 0.3, 1); display: inline-block; }
+  a:hover .cr-cta-arrow { transform: translateX(4px); }
+}
+
+/* Landing hovers (inline styles can't express :hover) */
+.cr-navcta:hover     { background: #2E2B24; }
+.cr-cta-primary:hover { background: #2E2B24; transform: translateY(-2px); }
+.cr-cta-light:hover  { background: #FFFFFF; transform: translateY(-2px); }
+.cr-footlink:hover   { color: var(--surface); }
+[data-card] { transition: transform .16s ease, box-shadow .16s ease; }
+[data-card]:hover    { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+@media (prefers-reduced-motion: reduce) { [data-card]:hover { transform: none; } }
+
+/* Scroll anchors clear the sticky top bar */
+section[id], div[id] { scroll-margin-top: 86px; }
+
+/* ── Shared type utilities ── */
+.cr-eyebrow {
+  font-family: var(--font-label), 'Space Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.cr-display {
+  font-family: var(--font-display), 'Space Grotesk', sans-serif;
+  font-weight: 700;
+}
+
+/* ── Interaction utilities ── */
+.cr-lift { transition: transform 0.16s ease, box-shadow 0.16s ease; }
+.cr-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+
+.cr-post-row { transition: background 0.12s; }
+.cr-post-row:hover { background: var(--surface-alt); }
+
+.cr-lb-body-row { transition: background 0.12s; }
+.cr-lb-body-row:hover { background: var(--row-hover) !important; }
+
+.cr-navlink { transition: background 0.12s, color 0.12s; }
+.cr-navlink:hover { background: rgba(245, 240, 232, 0.08); color: #F7F6F2; }
+
+.cr-feature-pill { transition: background 0.12s; }
+.cr-feature-pill:hover { background: rgba(139, 189, 201, 0.12); }
+
+.cr-expander { transition: background 0.12s; }
+.cr-expander:hover { background: #EEF3F3; }
+
+a.cr-link:hover { text-decoration: underline; }
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--signal-deep);
+  outline-offset: 2px;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .cr-board { animation: none; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ═══ Responsive (prototype is desktop-only; mobile designed here) ═════════ */
+
+/* Hero: stack the numeral column above the by-the-numbers panel */
+@media (max-width: 900px) {
+  .cr-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+  .cr-hero-numeral { font-size: 88px !important; }
+}
+
+/* Breakout cards: media on top, content below */
+@media (max-width: 820px) {
+  .cr-card-grid { grid-template-columns: 1fr !important; }
+  .cr-card-media { min-height: 0 !important; aspect-ratio: 16 / 10; }
+  .cr-card-body { padding: 24px 22px !important; }
+  .cr-row-date, .cr-row-engage { display: none !important; }
+}
+
+/* Stat + chart grids collapse */
+@media (max-width: 820px) {
+  .cr-stat-grid  { grid-template-columns: 1fr !important; }
+  .cr-chart-grid { grid-template-columns: 1fr !important; }
+  .cr-stack-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Leaderboard: drop Region / Posts-wk / Last-posted, keep rank·hotel·followers·ER */
+@media (max-width: 820px) {
+  .cr-lb-row { grid-template-columns: 32px 2fr 0.9fr 1.3fr !important; gap: 12px !important; }
+  .cr-lb-region, .cr-lb-ppw, .cr-lb-last { display: none !important; }
+}
+
+/* Floating nav: hide section links on small screens, keep the feature pill */
+@media (max-width: 700px) {
+  .cr-nav-links { display: none !important; }
+  /* Top bar: drop the disabled "soon" channels — no room next to the lockup */
+  .cr-topbar .cr-pill-soon { display: none !important; }
+}
+@media (max-width: 480px) {
+  .cr-hero-numeral { font-size: 72px !important; }
+  .cr-inner { padding-left: 20px !important; padding-right: 20px !important; }
+}
+
+/* Landing "what you get" — fixed 2-col that drops to 1 on narrow screens */
+@media (max-width: 720px) {
+  .cr-whatyouget-grid { grid-template-columns: 1fr !important; }
+}

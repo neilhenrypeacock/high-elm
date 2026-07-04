@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- High Elm Studio pitch deck · michael-zingraf · generated 2026-04-02 -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Michaël Zingraf Demo</title>
+<link rel="icon" type="image/svg+xml" href="/hes-favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!--
+  FONTS: Replace with the prospect's actual fonts.
+  https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Barlow:wght@300;400;500;600&display=swap = Google Fonts URL for their typefaces
+  Libre Baskerville = their display/headline font name (e.g. 'Cormorant Garamond')
+  Barlow = their body/UI font name (e.g. 'Montserrat')
+-->
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+
+/* ============================================================
+   COLOUR VARIABLES
+   Replace ALL values below with the prospect's brand palette.
+   #C41230   = their primary brand colour (e.g. navy, deep green, charcoal)
+   #9E0F27 = darker version of primary
+   #C41230    = their accent/highlight colour (e.g. red, gold, teal)
+   #9E0F27 = darker version of accent
+   #C9A96E = warm neutral (e.g. gold, sand, champagne) — used sparingly
+   #FAF9F7     = lightest background
+   #F2EFEA = secondary light background
+   #1A0A0E      = darkest background (deepest section)
+   #1A0A0E   = primary body text
+   #3D2028 = secondary body text
+   #9A8A8E     = muted/caption text
+============================================================ */
+:root {
+  --primary:        #C41230;
+  --primary-deep:   #9E0F27;
+  --accent:         #C41230;
+  --accent-dark:    #9E0F27;
+  --highlight:      #FFFFFF;
+  --cream:          #FAF9F7;
+  --cream-dark:     #F2EFEA;
+  --white:          #ffffff;
+  --dark:           #1A0A0E;
+  --text-primary:   #1A0A0E;
+  --text-secondary: #3D2028;
+  --text-muted:     #9A8A8E;
+}
+
+/* ============================================================
+   RESET & BASE
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  overflow-y: scroll;
+  font-family: 'Barlow', sans-serif;
+}
+
+body { background: var(--dark); }
+
+/* DEV: slide numbers — remove before shipping */
+.dev-slide-num { position: absolute; top: 12px; left: 12px; z-index: 9999; background: rgba(0,0,0,0.7); color: #0f0; font: 600 13px/1 monospace; padding: 4px 8px; border-radius: 4px; pointer-events: none; }
+
+/* ============================================================
+   SECTIONS
+============================================================ */
+section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 100px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================
+   SHARED TYPOGRAPHY
+============================================================ */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.eyebrow.light { color: rgba(var(--accent-rgb), 0.75); }
+.eyebrow.light::before { background: rgba(var(--accent-rgb), 0.75); }
+
+.h1 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(40px,6vw,70px);
+  font-weight: 400;
+  line-height: 1.08;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+}
+.h1 em { font-style: italic; color: var(--accent); }
+.h1.light { color: white; }
+
+.h2 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(30px,4.5vw,52px);
+  font-weight: 400;
+  line-height: 1.12;
+  color: var(--primary);
+}
+.h2 em { font-style: italic; color: var(--accent); }
+.h2.light { color: white; }
+
+.rule     { width: 56px; height: 1px; background: var(--highlight); margin: 28px 0; }
+.rule-red { width: 56px; height: 1px; background: var(--accent);    margin: 28px 0; }
+.rule-red.dim { background: rgba(var(--accent-rgb), 0.4); }
+
+.body-large {
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--text-secondary);
+  max-width: 620px;
+}
+.body-large.light { color: rgba(255,255,255,0.72); }
+.body { font-size: 14px; font-weight: 400; line-height: 1.8; color: var(--text-secondary); }
+.body.light { color: rgba(255,255,255,0.65); }
+
+.container      { max-width: 900px;  margin: 0 auto; padding: 0 48px; width: 100%; }
+.container-wide { max-width: 1100px; margin: 0 auto; padding: 0 48px; width: 100%; }
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseDot {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.6); opacity: 0.4; }
+}
+@keyframes nudge {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
+}
+@keyframes logoBlurIn {
+  from { opacity: 0; filter: brightness(0) invert(1) blur(10px); transform: scale(1.04); }
+  to   { opacity: 1; filter: brightness(0) invert(1) blur(0px);  transform: scale(1); }
+}
+@keyframes wipeRight {
+  from { clip-path: inset(0 100% 0 0); opacity: 0; }
+  to   { clip-path: inset(0 0% 0 0);   opacity: 1; }
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); opacity: 0.65; }
+  50%      { transform: scale(1.5); opacity: 1; }
+}
+
+/* ============================================================
+   FU (s0 fade-up system)
+============================================================ */
+.fu {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.62s ease, transform 0.62s ease;
+}
+.fu.on { opacity: 1; transform: translateY(0); }
+.fu:nth-child(1) { transition-delay: 0.00s; }
+.fu:nth-child(2) { transition-delay: 0.10s; }
+.fu:nth-child(3) { transition-delay: 0.20s; }
+.fu:nth-child(4) { transition-delay: 0.30s; }
+.fu:nth-child(5) { transition-delay: 0.40s; }
+.fu:nth-child(6) { transition-delay: 0.50s; }
+.fu:nth-child(7) { transition-delay: 0.60s; }
+
+/* ============================================================
+   FADE-UP (content slide system)
+============================================================ */
+.fade-up { opacity: 1; transform: translateY(0); transition: opacity 0.8s ease, transform 0.8s ease; }
+.fade-up.animate { opacity: 0; transform: translateY(24px); }
+.fade-up.animate.visible { opacity: 1; transform: translateY(0); }
+.d1 { transition-delay: 0.1s; }
+.d2 { transition-delay: 0.2s; }
+.d3 { transition-delay: 0.3s; }
+.d4 { transition-delay: 0.45s; }
+
+/* ============================================================
+   NAV DOTS
+============================================================ */
+.nav-dots {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.nav-dot.active {
+  background: var(--highlight);
+  transform: scale(1.4);
+}
+
+/* ============================================================
+   THE INDUSTRY — stat bank section
+============================================================ */
+#industry { background: var(--cream-dark); }
+.industry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 48px;
+}
+@media (max-width: 600px) { .industry-grid { grid-template-columns: 1fr; } }
+.stat-card {
+  background: var(--white);
+  border: 0.5px solid rgba(0,0,0,0.07);
+  border-radius: 12px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stat-card.quote {
+  grid-column: 1 / -1;
+  background: var(--primary);
+  border-color: transparent;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 32px 36px;
+}
+.stat-source {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.stat-card.quote .stat-source { color: rgba(255,255,255,0.4); }
+.stat-number {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(48px, 6vw, 72px);
+  font-weight: 300;
+  color: var(--primary);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.stat-context {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-top: 4px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
+}
+.stat-card:hover .stat-context {
+  max-height: 120px;
+  opacity: 1;
+}
+.stat-card { cursor: default; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.stat-quote-mark {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 80px;
+  color: rgba(255,255,255,0.15);
+  line-height: 0.8;
+  flex-shrink: 0;
+  margin-top: -8px;
+}
+.stat-quote-body { flex: 1; }
+.stat-quote-text {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 400;
+  font-style: italic;
+  color: white;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.stat-quote-attribution {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
+/* ============================================================
+   COST BOX — red accent block inside problem section
+============================================================ */
+.cost-box {
+  margin-top: 40px;
+  border: 1px solid rgba(196,18,48,0.2);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  padding: 28px 32px;
+  background: rgba(196,18,48,0.04);
+  max-width: 580px;
+}
+.cost-box-number {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(38px, 5vw, 58px);
+  font-weight: 400;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.cost-box-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+.cost-box-sub {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+/* ============================================================
+   PROBLEM PROSE
+============================================================ */
+.problem-prose {
+  margin-top: 32px;
+  max-width: 620px;
+}
+.problem-prose p {
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.problem-prose ul {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.problem-prose ul li {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  padding: 10px 0 10px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  position: relative;
+}
+.problem-prose ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 19px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ============================================================
+   DEMO OVERLAY
+============================================================ */
+.demo-overlay {
+  position: absolute;
+  inset: 0;
+  background: #152840;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 0 12px 12px;
+  transition: opacity 0.6s ease;
+}
+.demo-overlay.fading { opacity: 0; pointer-events: none; }
+.demo-overlay.hidden { display: none; }
+.demo-start-btn {
+  background: var(--accent);
+  color: white;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transition: all 0.2s;
+}
+.demo-start-btn:hover { transform: translateY(-2px); }
+
+/* ============================================================
+   SCROLL HINT
+============================================================ */
+.scroll-hint {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 10;
+}
+.scroll-hint span {
+  font-family: 'Barlow', sans-serif;
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: white;
+}
+.scroll-hint svg { animation: nudge 2s ease-in-out infinite; }
+
+/* ============================================================
+   MOUNTAIN SVG / STARS / GOLD GLOW
+============================================================ */
+.mountain-bg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.gold-glow {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,169,110,0.11) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+.stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 38%, rgba(255,255,255,0.3)  0%, transparent 100%),
+    radial-gradient(1px 1px at 42% 8%,  rgba(255,255,255,0.5)  0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 22%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 72% 44%, rgba(255,255,255,0.4)  0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 12%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 55%, rgba(255,255,255,0.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 62%, rgba(255,255,255,0.38) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 75%, rgba(255,255,255,0.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 68%, rgba(255,255,255,0.32) 0%, transparent 100%),
+    radial-gradient(1px 1px at 66% 80%, rgba(255,255,255,0.2)  0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 30%, rgba(255,255,255,0.4)  0%, transparent 100%),
+    radial-gradient(2px 2px at 48% 18%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 72%, rgba(255,255,255,0.3)  0%, transparent 100%),
+    radial-gradient(1px 1px at 5%  48%, rgba(255,255,255,0.35) 0%, transparent 100%);
+}
+
+/* ============================================================
+   SLIDE 0 — WELCOME
+============================================================ */
+#s0 {
+  background: var(--primary);
+  flex-direction: column;
+  text-align: center;
+  padding: 0 0 23vw;
+  align-items: center;
+  justify-content: center;
+}
+#s0 .gold-glow { top: -160px; left: 50%; transform: translateX(-50%); }
+
+.s0-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+  max-width: 700px;
+}
+#s0-logo {
+  height: 60px;
+  animation: logoBlurIn 1.4s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+}
+#s0-eyebrow {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--highlight);
+  animation: wipeRight 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+  margin: 26px 0 18px;
+}
+#s0-heading {
+  font-family: 'Libre Baskerville', serif;
+  font-weight: 400;
+  font-size: clamp(34px,4.5vw,54px);
+  line-height: 1.12;
+  color: white;
+  margin-bottom: 22px;
+  letter-spacing: -0.01em;
+  text-align: center;
+  animation: fadeUp 1s ease 0.75s both;
+}
+#s0-heading em { font-style: italic; color: var(--highlight); }
+
+/* ============================================================
+   DREAM OUTCOME
+============================================================ */
+#dream { background: var(--white); }
+.dream-list { list-style: none; margin-top: 36px; padding: 0; max-width: 640px; }
+.dream-list li {
+  padding: 14px 0 14px 22px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  position: relative;
+}
+.dream-list li:last-child { border-bottom: none; }
+.dream-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 24px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.dream-statement {
+  margin-top: 40px;
+  padding: 32px 36px;
+  border-left: 2px solid var(--accent);
+  background: rgba(0,0,0,0.02);
+  border-radius: 0 12px 12px 0;
+}
+.dream-statement-text {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(20px,2.5vw,28px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--primary);
+  font-style: italic;
+}
+
+/* ============================================================
+   PROBLEM
+============================================================ */
+#problem { background: var(--cream); }
+.sean-card {
+  background: var(--white);
+  border: 0.5px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-top: 40px;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.08);
+}
+.sean-hdr {
+  background: var(--primary);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sean-av {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: white; flex-shrink: 0;
+}
+.sean-meta { flex: 1; }
+.sean-name  { font-size: 13px; font-weight: 600; color: white; letter-spacing: 0.02em; }
+.sean-badge { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.38); letter-spacing: 0.08em; text-transform: uppercase; }
+.sean-online { width: 7px; height: 7px; border-radius: 50%; background: #4CAF50; }
+.sean-body { padding: 20px; max-height: 340px; overflow-y: auto; }
+.sean-body::-webkit-scrollbar { width: 3px; }
+.sean-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+.msg { margin-bottom: 10px; display: flex; gap: 8px; align-items: flex-start; }
+.msg.u { flex-direction: row-reverse; }
+.mav {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary); color: white;
+  font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.mav.u { background: var(--cream-dark); color: var(--primary); }
+.mbbl {
+  background: #f0f0f0; border-radius: 12px 12px 12px 2px;
+  padding: 8px 12px; max-width: 75%;
+  font-size: 13px; line-height: 1.65; color: var(--text-primary);
+}
+.msg.u .mbbl { background: var(--primary); color: white; border-radius: 12px 12px 2px 12px; }
+.sean-vrd {
+  background: rgba(0,0,0,0.03);
+  border-top: 0.5px solid rgba(0,0,0,0.08);
+  padding: 14px 20px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.vrd-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+.vrd-text { font-size: 12px; font-style: italic; color: var(--accent-dark); line-height: 1.65; }
+
+/* ============================================================
+   AGITATE / REAL COST
+============================================================ */
+#agitate { background: var(--primary-deep); }
+.agitate-stmt {
+  margin-top: 40px;
+  padding: 32px 36px;
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.03);
+}
+.agitate-stmt-text { font-family: 'Libre Baskerville', serif; font-size: clamp(20px,2.5vw,28px); font-weight: 400; line-height: 1.6; color: rgba(255,255,255,0.85); }
+.agitate-stmt-text em { font-style: italic; color: var(--accent); }
+
+/* ============================================================
+   DEMO
+============================================================ */
+#demo { background: var(--cream-dark); text-align: center; }
+.demo-frame {
+  margin-top: 48px;
+  background: var(--white);
+  border-radius: 20px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.1);
+  text-align: left;
+}
+.demo-bar { background: var(--primary); padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+.bdots { display: flex; gap: 6px; }
+.bdot { width: 10px; height: 10px; border-radius: 50%; }
+.bdot:nth-child(1) { background: #FF5F57; }
+.bdot:nth-child(2) { background: #FEBC2E; }
+.bdot:nth-child(3) { background: #28C840; }
+.burl { flex: 1; background: rgba(255,255,255,0.07); border-radius: 5px; padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,0.38); letter-spacing: 0.02em; }
+.demo-wrap { height: 620px; }
+.demo-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+
+/* ============================================================
+   PROOF
+============================================================ */
+#proof { background: var(--white); }
+.proof-stmt {
+  margin-top: 40px;
+  padding: 32px 36px;
+  border-left: 2px solid var(--primary);
+  background: rgba(0,0,0,0.02);
+  border-radius: 0 12px 12px 0;
+}
+.proof-stmt-text {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(20px,2.5vw,28px);
+  font-weight: 400; line-height: 1.6;
+  color: var(--primary); font-style: italic;
+}
+
+/* ============================================================
+   TIMELINE
+============================================================ */
+#timeline { background: var(--primary-deep); min-height: 50vh; padding: 80px 0; }
+
+/* ============================================================
+   VALUE STACK
+============================================================ */
+#value { background: var(--cream); }
+.vs-sec { margin-bottom: 28px; }
+.vs-hdr { display: flex; align-items: center; gap: 14px; padding: 11px 16px; border-radius: 10px; margin-bottom: 6px; }
+.vs-hdr.c1 { background: rgba(0,0,0,0.04); border: 0.5px solid rgba(0,0,0,0.1); }
+.vs-hdr.c2 { background: rgba(0,0,0,0.03); border: 0.5px solid rgba(0,0,0,0.08); }
+.vs-hdr.c3 { background: rgba(0,0,0,0.03); border: 0.5px solid rgba(0,0,0,0.08); }
+.vs-hdr.c4 { background: rgba(0,0,0,0.03); border: 0.5px solid rgba(0,0,0,0.08); }
+.vs-hdr.c5 { background: rgba(0,0,0,0.03); border: 0.5px solid rgba(0,0,0,0.08); }
+.vs-n { font-family: 'Libre Baskerville', serif; font-size: 21px; font-weight: 400; opacity: 0.35; flex-shrink: 0; color: var(--primary); }
+.vs-hb { flex: 1; }
+.vs-ht { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; color: var(--primary); }
+.vs-hs { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.vs-item {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 9px 16px; border-radius: 8px; margin-bottom: 4px;
+  background: var(--white); border: 0.5px solid rgba(0,0,0,0.06);
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+.vs-item:hover { border-color: rgba(0,0,0,0.14); }
+.vs-item--timeline { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+.vs-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; background: var(--primary); }
+.vs-ib { flex: 1; }
+.vs-it { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 0; display: flex; align-items: center; gap: 8px; }
+.vs-it::after {
+  content: '›';
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 300;
+  margin-left: auto;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+.vs-item.open .vs-it::after { transform: rotate(90deg); }
+.vs-is {
+  font-size: 13px; font-weight: 300; color: var(--text-secondary);
+  line-height: 1.65; margin-top: 8px;
+  display: none;
+}
+.vs-item.open .vs-is { display: block; }
+.vs-iv { font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; padding-top: 1px; flex-shrink: 0; }
+.vs-subtotal { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.08); }
+.vs-subtotal-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.vs-subtotal-value { font-size: 16px; font-weight: 700; color: var(--primary); font-family: 'Libre Baskerville', serif; }
+.vs-grand-total { margin-top: 32px; padding: 28px; border-radius: 14px; background: var(--primary); text-align: center; }
+.vs-grand-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.vs-grand-value { font-family: 'Libre Baskerville', serif; font-size: 52px; font-weight: 400; color: #fff; line-height: 1; }
+.vs-grand-priceless { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 6px; font-style: italic; }
+.vs-grand-div { width: 48px; height: 1px; background: rgba(255,255,255,0.15); margin: 20px auto; }
+.vs-grand-price-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+.vs-grand-cards { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.vs-grand-card { flex: 1; max-width: 150px; }
+.vs-grand-card-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.vs-grand-card-price { font-family: 'Libre Baskerville', serif; font-size: 38px; font-weight: 400; color: var(--highlight); line-height: 1; }
+.vs-grand-card-price span { font-size: 18px; font-weight: 300; }
+.vs-grand-card-note { font-size: 11px; color: rgba(255,255,255,0.22); margin-top: 5px; font-weight: 300; }
+.vs-grand-card-sep { font-family: 'Libre Baskerville', serif; font-size: 28px; color: rgba(255,255,255,0.18); flex-shrink: 0; margin-bottom: 16px; }
+.vs-grand-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 16px; font-weight: 300; }
+
+/* ============================================================
+   INVESTMENT
+============================================================ */
+#investment { background: var(--primary-deep); }
+.inv-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
+.inv-card { border: 0.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; background: rgba(255,255,255,0.03); }
+.inv-card.ft { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+.inv-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-bottom: 18px; }
+.inv-tag.ft { color: rgba(255,255,255,0.6); }
+.inv-price { font-family: 'Libre Baskerville', serif; font-size: 53px; font-weight: 300; color: white; line-height: 1; margin-bottom: 6px; }
+.inv-freq { font-size: 13px; color: rgba(255,255,255,0.50); margin-bottom: 22px; font-weight: 300; }
+.inv-desc { font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.60); line-height: 1.75; }
+.roi-block { margin-top: 32px; padding: 32px; background: rgba(255,255,255,0.02); border: 0.5px solid rgba(255,255,255,0.07); border-radius: 16px; }
+.roi-title { font-family: 'Libre Baskerville', serif; font-size: 27px; font-weight: 400; color: white; margin-bottom: 24px; }
+.roi-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 0.5px solid rgba(255,255,255,0.05); }
+.roi-rl { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 300; }
+.roi-rn { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.75); }
+.roi-div { border: none; border-top: 0.5px solid rgba(255,255,255,0.07); margin: 20px 0; }
+.roi-res { padding: 20px 22px; background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 10px; margin-bottom: 12px; }
+.roi-res-lbl { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.roi-res-num { font-family: 'Libre Baskerville', serif; font-size: 61px; font-weight: 300; color: white; line-height: 1; margin-bottom: 5px; }
+.roi-res-sub { font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 300; line-height: 1.65; }
+.roi-ref { padding: 18px 22px; background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 10px; }
+.roi-ref-lbl { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.roi-ref-num { font-family: 'Libre Baskerville', serif; font-size: 53px; font-weight: 300; color: white; line-height: 1; margin-bottom: 4px; }
+.roi-ref-sub { font-size: 13px; color: rgba(255,255,255,0.35); font-weight: 300; line-height: 1.65; }
+
+/* ============================================================
+   GUARANTEES / RISK REVERSAL
+============================================================ */
+#guarantees { background: var(--white); }
+.guar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 48px; }
+.guar-card { padding: 28px 24px; border: 0.5px solid rgba(0,0,0,0.08); border-radius: 12px; background: var(--cream); }
+.guar-card.full { grid-column: 1 / -1; background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.1); }
+.guar-icon { font-size: 23px; margin-bottom: 14px; }
+.guar-title { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 8px; }
+.guar-body { font-size: 13px; font-weight: 300; color: var(--text-secondary); line-height: 1.75; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin-bottom 0.3s ease; }
+.guar-card:hover .guar-body { max-height: 300px; opacity: 1; margin-bottom: 4px; }
+.guar-card { cursor: default; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.guar-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.guar-badge {
+  display: inline-block; margin-top: 12px;
+  padding: 4px 10px; background: rgba(0,0,0,0.06);
+  border-radius: 100px; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary);
+}
+
+/* ============================================================
+   WHAT HAPPENS NEXT (Section 9)
+============================================================ */
+#nextsteps { background: var(--cream); }
+.next-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 48px;
+}
+@media (max-width: 768px) { .next-grid { grid-template-columns: 1fr; } }
+.next-card {
+  padding: 32px 28px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 0.5px solid rgba(0,0,0,0.07);
+  position: relative;
+}
+.next-card.full { grid-column: 1 / -1; background: var(--primary); }
+.next-num {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.next-card.full .next-num { color: rgba(255,255,255,0.45); }
+.next-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.next-card.full .next-title { color: white; }
+.next-body {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+.next-card.full .next-body { color: rgba(255,255,255,0.55); }
+.next-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+.next-body ul li {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  padding: 6px 0 6px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: relative;
+}
+.next-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 14px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.next-card.full .next-body ul li { color: rgba(255,255,255,0.55); border-bottom-color: rgba(255,255,255,0.08); }
+.next-card.full .next-body ul li::before { background: var(--accent); }
+.next-badge {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.next-card.full .next-badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+
+/* Next steps dropdowns */
+.next-summary {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.next-card.full .next-summary { color: rgba(255,255,255,0.65); }
+.next-card.alt .next-summary { color: var(--text-secondary); }
+.next-chevron {
+  font-size: 14px;
+  color: var(--accent);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+.next-card.open .next-chevron { transform: rotate(90deg); }
+.next-detail {
+  display: none;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.next-card.full .next-detail { color: rgba(255,255,255,0.55); border-top-color: rgba(255,255,255,0.08); }
+.next-card.alt .next-detail { color: var(--text-secondary); border-top-color: rgba(0,0,0,0.06); }
+.next-card.open .next-detail { display: block; }
+
+/* ============================================================
+   CLOSE
+============================================================ */
+#close { background: var(--primary); justify-content: center; align-items: center; text-align: center; padding-top: 120px; }
+.close-inner { max-width: 680px; margin: 0 auto; padding: 0 48px 100px; position: relative; z-index: 3; }
+.close-logo { margin-bottom: 64px; }
+.close-logo img { height: 30px; filter: brightness(0) invert(1); opacity: 0.5; }
+.close-rule { width: 36px; height: 1px; background: rgba(255,255,255,0.2); margin: 36px auto; }
+.urgency-pills { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 0 0 44px; }
+.upill { display: flex; align-items: center; gap: 7px; padding: 10px 18px; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 100px; background: rgba(255,255,255,0.03); }
+.upill-dot { width: 5px; height: 5px; border-radius: 50%; background: #4CAF50; flex-shrink: 0; }
+.upill-dot.r { background: var(--accent); }
+.upill-text { font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.38); letter-spacing: 0.02em; }
+.close-cta-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.22em;
+  text-transform: uppercase; color: rgba(255,255,255,0.35);
+  margin-bottom: 20px; text-align: center;
+}
+.contact-row { display: flex; gap: 12px; margin-bottom: 0; flex-wrap: wrap; justify-content: center; }
+.contact-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 32px; border-radius: 10px; min-width: 240px;
+  text-decoration: none; cursor: pointer; position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: white; border: none; background: none;
+}
+.contact-card:hover { transform: translateY(-2px); }
+.contact-card.wa { background: #25D366; box-shadow: 0 8px 28px rgba(37,211,102,0.22); }
+.contact-card.wa:hover { box-shadow: 0 12px 36px rgba(37,211,102,0.32); }
+.contact-card.em { background: rgba(255,255,255,0.08); border: 0.5px solid rgba(255,255,255,0.2); }
+.contact-card.em:hover { background: rgba(255,255,255,0.12); }
+.contact-card.wa:hover .wa-number { max-height: 24px; opacity: 1; margin-top: 2px; }
+.contact-info { display: flex; flex-direction: column; align-items: flex-start; }
+.contact-label { font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; color: white; display: block; text-align: left; }
+.contact-value { font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.65); display: block; text-align: left; margin-top: 2px; }
+
+/* ============================================================
+   QR POPOVER
+============================================================ */
+.qr-popover {
+  position: absolute; bottom: calc(100% + 10px); left: 50%;
+  transform: translateX(-50%); background: white; padding: 12px;
+  border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.22);
+  display: none; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 200; pointer-events: auto;
+}
+.qr-popover.show { display: flex; }
+.qr-popover span { font-family: 'Barlow', sans-serif; font-size: 9.5px; font-weight: 600; color: var(--primary); letter-spacing: 0.04em; }
+.qr-divider { width: 100%; height: 1px; background: rgba(0,0,0,0.1); margin: 2px 0; }
+.qr-desktop-link { font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; color: #25D366; letter-spacing: 0.04em; text-decoration: none; white-space: nowrap; }
+.qr-desktop-link:hover { text-decoration: underline; }
+
+/* ============================================================
+   STUDIO CREDIT
+============================================================ */
+.studio-credit { margin-top: 52px; display: flex; align-items: center; justify-content: center; }
+.studio-credit-wordmark { display: flex; align-items: center; gap: 9px; opacity: 0.38; transition: opacity 0.25s; text-decoration: none; }
+.studio-credit-wordmark:hover { opacity: 0.62; }
+
+/* ============================================================
+   COVER SPLASH
+============================================================ */
+#cover {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #F5F0E8;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.cover-inner { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 40px; }
+.cover-eyebrow {
+  font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase; color: #5B9BAA; margin-bottom: 28px;
+}
+.cover-name {
+  font-family: 'Libre Baskerville', serif; font-size: clamp(64px, 9vw, 104px);
+  font-weight: 300; font-style: italic; color: #1c1c1c;
+  line-height: 1; margin-bottom: 28px; letter-spacing: -0.01em;
+}
+.cover-divider { width: 52px; height: 1px; background: #5B9BAA; margin-bottom: 24px; }
+.cover-by { font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 400; letter-spacing: 0.12em; color: #8a9aa0; margin-bottom: 24px; }
+.cover-hint {
+  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+  font-family: 'Barlow', sans-serif; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase; color: #5B9BAA;
+  white-space: nowrap; pointer-events: none;
+}
+
+/* ============================================================
+   DEMO MODAL
+============================================================ */
+#demo-modal {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(10,22,40,0.88);
+  display: none; align-items: center; justify-content: center; padding: 32px;
+}
+#demo-modal.open { display: flex; }
+.demo-modal-inner { position: relative; width: 100%; max-width: 1200px; height: 94vh; border-radius: 16px; overflow: hidden; box-shadow: 0 40px 120px rgba(0,0,0,0.5); }
+.demo-modal-close {
+  position: absolute; top: 16px; right: 16px; z-index: 9001;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  color: white; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s; backdrop-filter: blur(4px);
+}
+.demo-modal-close:hover { background: rgba(255,255,255,0.28); }
+.demo-modal-iframe { width: 100%; height: 100%; border: none; display: block; }
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 768px) {
+  .container, .container-wide { padding: 0 20px; }
+  section { padding: 80px 0 60px; }
+  .inv-cards, .guar-grid { grid-template-columns: 1fr; }
+  .guar-card.full { grid-column: 1; }
+  .close-inner { padding: 0 24px 60px; }
+}
+
+</style>
+<script>
+const qrGenerated = {};
+const qrHideTimers = {};
+
+function showQR(popoverId) {
+  clearTimeout(qrHideTimers[popoverId]);
+  const popover = document.getElementById(popoverId);
+  if (!popover) return;
+  popover.classList.add('show');
+  const canvasId = popoverId + '-canvas';
+  if (!qrGenerated[canvasId]) {
+    const canvas = document.getElementById(canvasId);
+    if (canvas && typeof QRCode !== 'undefined') {
+      new QRCode(canvas, {
+        text: 'https://wa.me/447786572258?text=Hi%20Neil%2C%20I%27ve%20seen%20the%20Micha%C3%ABl%20Zingraf%20pitch%20and%20I%27d%20like%20to%20talk.',
+        width: 120, height: 120,
+        colorDark: '#1B3A5C',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      qrGenerated[canvasId] = true;
+    }
+  }
+}
+
+function scheduleHideQR(popoverId) {
+  qrHideTimers[popoverId] = setTimeout(() => hideQR(popoverId), 250);
+}
+
+function hideQR(popoverId) {
+  const popover = document.getElementById(popoverId);
+  if (popover) popover.classList.remove('show');
+}
+</script>
+</head>
+<body>
+
+<!-- COVER SPLASH
+     Heathcliff = first name of the person receiving this pitch (e.g. "Roman")
+-->
+<div id="cover" onclick="(function(el){el.style.transition='opacity 0.5s ease';el.style.opacity='0';setTimeout(function(){el.style.display='none'},520);})(this)">
+  <div class="cover-inner">
+    <p class="cover-eyebrow">This demo has been prepared for</p>
+    <h1 class="cover-name">Heathcliff.</h1>
+    <div class="cover-divider"></div>
+    <p class="cover-by">by neil peacock</p>
+    <div style="display:flex;align-items:center;gap:9px;justify-content:center;">
+      <!-- High Elm Studio leaf SVG — do not change -->
+      <svg width="26" height="44" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/>
+        <line x1="30" y1="5" x2="30" y2="92" stroke="rgba(245,240,232,0.75)" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="30" y1="25" x2="44" y2="32" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="40" x2="49" y2="48" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="55" x2="50" y2="62" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="70" x2="46" y2="76" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="25" x2="16" y2="32" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="40" x2="11" y2="48" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="55" x2="10" y2="62" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="70" x2="14" y2="76" stroke="rgba(245,240,232,0.6)" stroke-width="0.7"/>
+      </svg>
+      <span style="font-family:'League Spartan',sans-serif;font-weight:600;font-size:20px;letter-spacing:-0.05em;color:#2a3540;">high elm studio.</span>
+    </div>
+  </div>
+  <p class="cover-hint">Click anywhere to continue</p>
+</div>
+
+<!-- NAV DOTS — 11 sections (0–10) -->
+<nav class="nav-dots" aria-label="Slide navigation">
+  <button class="nav-dot active" onclick="scrollToSlide(0)"  aria-label="Introduction"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(1)"  aria-label="The Dream"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(2)"  aria-label="The Problem"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(3)"  aria-label="The Industry"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(4)"  aria-label="The Solution"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(5)"  aria-label="The Proof"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(6)"  aria-label="The Offer"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(7)"  aria-label="The Investment"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(8)"  aria-label="The Guarantees"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(9)"  aria-label="What Happens Next"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(10)" aria-label="Close"></button>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     0. WELCOME — dark branded hero with prospect logo
+     https://www.michaelzingraf.com/images/logo-mzre-mobile.svg = direct URL to their logo (PNG, light background works on dark)
+     Michaël Zingraf Real Estate = company name (e.g. "Athena Advisers")
+     The first impression = first line of hero headline
+     that sets every = second line (plain)
+     impression that follows. = third line in italic/accent colour
+═══════════════════════════════════════════════════════════ -->
+<section id="s0"><div class="dev-slide-num">0 — cover</div>
+  <div class="stars"></div>
+  <div class="gold-glow"></div>
+  <!-- Slide 0 atmosphere — abstract light gradient, no illustration -->
+  <svg class="mountain-bg" style="opacity:1;pointer-events:none;" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+    <defs>
+      <!-- Soft warm glow rising from base — implied horizon light -->
+      <radialGradient id="horizonGlow" cx="50%" cy="100%" r="65%" fx="50%" fy="100%">
+        <stop offset="0%"   stop-color="rgba(255,255,255,0.07)"/>
+        <stop offset="55%"  stop-color="rgba(255,255,255,0.02)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.00)"/>
+      </radialGradient>
+      <!-- Faint left warmth — morning light from east -->
+      <radialGradient id="leftWarm" cx="18%" cy="80%" r="45%">
+        <stop offset="0%"   stop-color="rgba(255,255,255,0.05)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.00)"/>
+      </radialGradient>
+      <!-- Horizon line gradient — fades to nothing at edges -->
+      <linearGradient id="horizonLine" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="rgba(255,255,255,0.00)"/>
+        <stop offset="20%"  stop-color="rgba(255,255,255,0.12)"/>
+        <stop offset="50%"  stop-color="rgba(255,255,255,0.18)"/>
+        <stop offset="80%"  stop-color="rgba(255,255,255,0.12)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.00)"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Base atmosphere — wide horizon glow -->
+    <rect width="1200" height="400" fill="url(#horizonGlow)"/>
+
+    <!-- Secondary warmth — asymmetric, prevents flatness -->
+    <rect width="1200" height="400" fill="url(#leftWarm)"/>
+
+    <!-- Horizon line — single, precise, calm -->
+    <line x1="0" y1="268" x2="1200" y2="268" stroke="url(#horizonLine)" stroke-width="0.6"/>
+
+    <!-- Very faint reflection below horizon — water implied, not drawn -->
+    <rect x="0" y="269" width="1200" height="131"
+          fill="rgba(255,255,255,0.015)"/>
+  </svg>
+  <div class="s0-content">
+    <img id="s0-logo" src="/zingraf-logo-white.svg" alt="Michaël Zingraf">
+    <p id="s0-eyebrow">A Proposal for Michaël Zingraf</p>
+    <h1 id="s0-heading">
+      The first impression<br>
+      that sets every<br>
+      <em>impression that follows.</em>
+    </h1>
+  </div>
+  <div class="scroll-hint">
+    <svg width="14" height="22" viewBox="0 0 14 22" fill="none"><rect x="1" y="1" width="12" height="20" rx="6" stroke="white" stroke-width="1.2"/><circle cx="7" cy="6" r="2" fill="white"/></svg>
+    <span>scroll</span>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     1. DREAM OUTCOME
+     Sell the result. Name the life they want — specific to their world.
+     Every conversation your buyer wants to have. = bold result (e.g. "Additional revenue.")
+     Handled before your advisers arrive in the morning. = italic qualifier (e.g. "Zero additional effort.")
+     Your international buyers enquire when the moment moves them — late at night, across time zones, on a Sunday. Right now, most of those moments go unanswered until Monday. What if Michaël Zingraf was there for every one of them? Not a form. A welcome so immediate that the buyer knows — before a single adviser picks up the phone — that this agency operates at a different level. = 3–4 sentence paragraph. Name buyer type, channel, hour, outcome. No abstract claims. No bullets — prose only.
+     That first impression is the one they remember. It's why they don't look anywhere else. = the closing pull-quote. One sentence. Italic. Devastating.
+═══════════════════════════════════════════════════════════ -->
+<section id="dream"><div class="dev-slide-num">1 — dream</div>
+  <div class="container">
+    <div class="eyebrow fade-up">The Dream Outcome</div>
+    <div class="h1 fade-up d1">Imagine every buyer that arrives on your site has found their property<br><em>and been inspired by what Michaël Zingraf can do — within three minutes.</em></div>
+    <div class="rule fade-up d2"></div>
+    <p class="body-large fade-up d2">Your international buyers enquire when the moment moves them — late at night, across time zones, on a Sunday. Right now, most of those moments go unanswered until Monday. What if Michaël Zingraf was there for every one of them? Not a form. A welcome so immediate that the buyer knows — before a single adviser picks up the phone — that this agency operates at a different level.</p>
+
+    <div class="dream-statement fade-up d3">
+      <div class="dream-statement-text">"That first impression is the one they remember. It's why they don't look anywhere else."</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     2. THE PROBLEM
+     Show the gap. Grounded in what Neil personally experienced or observed.
+     NEVER fabricate a chat transcript. Use real interactions only.
+
+     A buyer arrives at midnight = the missed moment (e.g. "A buyer arrives at midnight")
+     with a serious budget. = the consequence (e.g. "with a serious budget.")
+     It's 11pm in Dubai. A client has seen the Saint-Jean Cap Ferrat listing at €8.5m. He opens the website. No chat. A contact form. = framing sentence. What a high-value buyer encounters right now.
+     <p>The moment his interest is highest, the website offers silence — and a promise someone will be in touch during business hours.</p><p>62% of your buyers are international. The window is open every evening, every weekend, across every timezone they live in. Every unanswered moment is a conversation lost — at €200,000 commission per sale.</p> = prose or short bullets describing the actual buyer experience.
+                        If Neil had a real chat/form interaction, render it in the .sean-card below.
+                        If not, use prose only — set  to false and leave the card out.
+     By Monday, he has a signed NDA with another agency. = closing verdict. Blunt. True. One or two sentences.
+
+     TO USE CHAT CARD: include the .sean-card block and populate:
+       , , , 
+     TO USE PROSE ONLY: remove the .sean-card block entirely and expand <p>The moment his interest is highest, the website offers silence — and a promise someone will be in touch during business hours.</p><p>62% of your buyers are international. The window is open every evening, every weekend, across every timezone they live in. Every unanswered moment is a conversation lost — at €200,000 commission per sale.</p>
+═══════════════════════════════════════════════════════════ -->
+<section id="problem"><div class="dev-slide-num">2 — problem</div>
+  <div class="container">
+    <div class="h1 fade-up">A buyer arrives at midnight<br><em>with a serious budget.</em></div>
+    <div class="rule-red fade-up d1"></div>
+    <p class="body-large fade-up d2">It's 11pm in Dubai. A client has seen the Saint-Jean Cap Ferrat listing at €8.5m. He opens the website. No chat. A contact form. The moment his interest is highest, the website offers silence. By Monday, he has a signed NDA with another agency.</p>
+
+    <div class="cost-box fade-up d3">
+      <div class="cost-box-number">€200,000</div>
+      <div class="cost-box-label">the value of one missed conversation</div>
+      <div class="cost-box-sub">At €5m average and 4% commission. Not a lead — a conversation that never happened because nobody was there. 62% of your buyers are international. The window is open every evening, across every timezone they live in.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     2b. THE INDUSTRY
+     Stats: D (62% after hours) · A (21x response) · C (78% first responder) + F (UHNWI pull-quote)
+═══════════════════════════════════════════════════════════ -->
+<section id="industry"><div class="dev-slide-num">3 — industry</div>
+  <div class="container">
+    <div class="eyebrow fade-up">The Industry</div>
+    <div class="h2 fade-up d1">What the data says<br><em>about the gap.</em></div>
+    <div class="rule fade-up d2"></div>
+
+    <div class="industry-grid fade-up d2">
+
+      <div class="stat-card">
+        <div class="stat-source">NAR · Zillow Group Research</div>
+        <div class="stat-number">62%</div>
+        <div class="stat-label">of real estate enquiries arrive outside business hours</div>
+        <div class="stat-context">Peak times are evenings and weekends — when your advisers are unavailable and your website is silent.</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-source">MIT · InsideSales.com · Real Trends 2025</div>
+        <div class="stat-number">21×</div>
+        <div class="stat-label">more likely to qualify a lead when responded to within 5 minutes</div>
+        <div class="stat-context">vs. waiting just 30 minutes. The average estate agency takes 15 hours.</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-source">Velocify · replicated across sectors</div>
+        <div class="stat-number">78%</div>
+        <div class="stat-label">of buyers go with the first agency that responds</div>
+        <div class="stat-context">Not the best agency. Not the most reputable. The fastest. The one that was there.</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-source">Forrester Research</div>
+        <div class="stat-number">2.8×</div>
+        <div class="stat-label">more likely to convert — visitors who engage via live chat</div>
+        <div class="stat-context">vs. those who submit a form and wait. The conversation is the conversion.</div>
+      </div>
+
+      <div class="stat-card quote" style="flex-direction:column;align-items:flex-start;gap:12px;">
+        <div class="stat-source" style="color:rgba(255,255,255,0.5);">Journal of Product &amp; Brand Management · Klaus, Ph. (2021)</div>
+        <div style="font-family:'Libre Baskerville',serif;font-size:clamp(16px,2vw,20px);font-weight:400;color:white;line-height:1.6;">The primary driver of UHNWI purchasing and repurchasing behaviour is convenience-driven time savings. Not the property. Not the price. The experience of being handled efficiently.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     4. THE SOLUTION / DEMO
+     Short. The demo speaks.
+     Same buyer. = callback to Section 2 reversed (e.g. "Same buyer.")
+     A completely different experience. = the reversal (e.g. "Different outcome.")
+     Met instantly. At any hour. In any language. With the depth of your best adviser. = one sentence. What the AI does. Plain language.
+     michaelzingraf.com — AI Property Adviser · Live = the URL shown in the fake browser bar (e.g. "athenaadvisers.com — AI Property Adviser · Live")
+     https://michael-zingraf-demo.vercel.app = the URL of the deployed chatbot demo (e.g. "https://company-demo.vercel.app")
+═══════════════════════════════════════════════════════════ -->
+<section id="demo"><div class="dev-slide-num">4 — demo</div>
+  <div class="container-wide">
+    <div class="eyebrow fade-up" style="justify-content:center">The Solution</div>
+    <div class="h2 fade-up d1" style="text-align:center">The same buyer.<br><em>A completely different experience.</em></div>
+    <p class="body-large fade-up d2" style="text-align:center;margin:18px auto 0;max-width:700px">Met instantly. At any hour. In any language. With the depth of your best adviser.</p>
+
+    <div class="demo-frame fade-up d3">
+      <div class="demo-bar">
+        <div class="bdots"><div class="bdot"></div><div class="bdot"></div><div class="bdot"></div></div>
+        <div class="burl">michaelzingraf.com — AI Property Adviser · Live</div>
+      </div>
+      <div class="demo-wrap">
+        <div class="demo-overlay" id="demo-overlay">
+          <button class="demo-start-btn" onclick="openDemoModal()">Start demo</button>
+        </div>
+        <iframe src="/chat.html" title="Michaël Zingraf AI Adviser" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     5. THAT IS THE EXPERIENCE / PROOF
+     Increase perceived likelihood. Baseline was built on nothing.
+     Built without a single = "Built without a single" (or equivalent)
+     piece of information = "piece of information"
+     from Michaël Zingraf. = "from Michaël Zingraf Real Estate." in italic
+     No briefing. No internal documents. Public information only. Now imagine it trained on 47 years of Michaël Zingraf knowledge — every property, every market, every buyer type your advisers have spent careers learning to read. = what was used (public info only), what full training unlocks
+     The best first impression on the Riviera is there for the taking. Right now, it belongs to whoever moves first. = the pull-quote. One sentence. Italic. Calm confidence.
+═══════════════════════════════════════════════════════════ -->
+<section id="proof"><div class="dev-slide-num">5 — proof</div>
+  <div class="container">
+    <div class="eyebrow fade-up">That Is the Experience</div>
+    <div class="h2 fade-up d1">Built without a single<br>piece of information<br><em>from Michaël Zingraf.</em></div>
+    <div class="rule fade-up d2"></div>
+    <p class="body-large fade-up d2">No briefing. No internal documents. Public information only. Now imagine it trained on 47 years of Michaël Zingraf knowledge — every property, every market, every buyer type your advisers have spent careers learning to read.</p>
+  </div>
+</section>
+
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     7. THE OFFER / VALUE STACK
+     Grand Slam Offer. Stack every deliverable with its market value.
+     Total first, price second. Done-for-you language throughout.
+     Sell the result of each item, not the feature.
+
+     STRUCTURE: Six .vs-sec blocks (01–06)
+     Each item: {{VS_IT}} = title (result, not feature) | {{VS_IS}} = description | {{VS_IV}} = value (£X,000+)
+     €23,400+ = total value stack (e.g. £50,000+)
+     €4,000 = build fee (e.g. £4,000)
+     €400 = monthly retainer (e.g. £400)
+     Or €333/mo over 12 months = alternative payment option (e.g. or £4,800 over 12 monthly payments)
+     the AI-forward prestige agency on the Côte d'Azur = what's priceless (e.g. "industry leaders and pioneers in AI")
+═══════════════════════════════════════════════════════════ -->
+<section id="value"><div class="dev-slide-num">6 — value</div>
+  <div class="container">
+    <div class="eyebrow fade-up">The Offer</div>
+    <div class="h2 fade-up d1">Everything <em>Michaël Zingraf gets.</em></div>
+    <div class="rule fade-up d2"></div>
+    <p class="body-large fade-up d2" style="max-width:640px;font-style:italic;border-left:3px solid #C41230;padding-left:20px;margin-bottom:16px;color:#3D2028;">That is not a product you subscribe to. It is an asset you commission, own outright, and keep — sitting on the asset side of your balance sheet, appreciating as it learns, compounding as the market moves.</p>
+    <p class="body-large fade-up d2" style="max-width:640px;margin-bottom:40px;color:#3D2028;">Live on your website in <strong>seven days</strong>. All that is needed: access to your listings, your brand guidelines, and a single Q&amp;A session with your advisers. Everything else is on us.</p>
+
+    <!-- 01 THE PRODUCT -->
+    <div class="vs-sec fade-up d2">
+      <div class="vs-hdr c1"><div class="vs-n c1">01</div><div class="vs-hb"><div class="vs-ht c1">The product</div><div class="vs-hs">What gets built. Every component a standalone asset with real market value.</div></div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">Your portfolio expertise, available to every visitor at any hour</div><div class="vs-is">Fully trained on your 2,000+ properties, your markets, your buying process — responding with the depth of your most experienced adviser.</div></div><div class="vs-iv">£3,500+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">Your sales methodology and voice, consistent at scale</div><div class="vs-is">Michaël Zingraf's approach — the discretion, the confidence, the expertise — built in and consistent across every conversation, every day.</div></div><div class="vs-iv">£2,000+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">Fully branded — indistinguishable from your own team</div><div class="vs-is">Every response looks, sounds, and feels like Michaël Zingraf. No AI disclaimers. No generic tone. Your brand, your standard.</div></div><div class="vs-iv">£1,500+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">Always on — every timezone, every hour, every day</div><div class="vs-is">Dubai at 11pm. New York on Sunday morning. Scandinavia at the weekend. The window is never closed again.</div></div><div class="vs-iv">£2,500+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">Responds fluently in your buyer's language — from the first message</div><div class="vs-is">French, English, German, Arabic, Russian — detected automatically. For a group where 70% of buyers are international, this is not a feature. It is a signal about who you are.</div></div><div class="vs-iv">£2,000+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">Full buyer profile delivered before the first adviser conversation</div><div class="vs-is">Budget, brief, timeline, language, property preferences — all captured and ready for your adviser before they pick up the phone.</div></div><div class="vs-iv">£1,500+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">Internal version for your sales team</div><div class="vs-is">Your advisers get their own AI tool — instant answers on stock, pricing, market context, ownership structures. Knowledge at their fingertips during client calls.</div></div><div class="vs-iv">£1,500+</div></div>
+      <div class="vs-subtotal"><span class="vs-subtotal-label">Section value</span><span class="vs-subtotal-value">£14,500+</span></div>
+    </div>
+
+    <!-- 02 WHAT THE RETAINER ACTUALLY MEANS -->
+    <div class="vs-sec fade-up">
+      <div class="vs-hdr c2"><div class="vs-n c2">02</div><div class="vs-hb"><div class="vs-ht c2">What the retainer actually means</div><div class="vs-hs">£400/month is not a subscription. It is a development partnership.</div></div></div>
+      <div class="vs-item vs-item--timeline" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c2"></div><div class="vs-ib"><div class="vs-it">First 30 days — daily management and weekly performance reporting</div><div class="vs-is">Every conversation monitored. Every week, a clear report on what's working, what's being asked, and where to refine.</div></div><div class="vs-iv">£1,200+</div></div>
+      <div class="vs-item vs-item--timeline" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c2"></div><div class="vs-ib"><div class="vs-it">Days 31–90 — weekly review and continuous refinement</div><div class="vs-is">The system gets sharper with every week of real buyer conversations. Refinements made proactively, not reactively.</div></div><div class="vs-iv">£1,200+</div></div>
+      <div class="vs-item vs-item--timeline" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c2"></div><div class="vs-ib"><div class="vs-it">From month four — self-learning, self-improving</div><div class="vs-is">The system trains on its own conversation history. It becomes, over time, the most knowledgeable property adviser Michaël Zingraf has ever had.</div></div><div class="vs-iv">Compounds</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c2"></div><div class="vs-ib"><div class="vs-it">Half a day of dedicated development every month, included</div><div class="vs-is">New properties, market shifts, seasonal inventory changes — the system stays current without any effort from your team.</div></div><div class="vs-iv">£600+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c2"></div><div class="vs-ib"><div class="vs-it">New features as the product evolves — automatically</div><div class="vs-is">As AI capabilities advance, Michaël Zingraf's system advances with them. No upgrade fees. No separate contracts.</div></div><div class="vs-iv">£500+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c2"></div><div class="vs-ib"><div class="vs-it">Priority support — direct access to Neil, no queues</div><div class="vs-is">Direct line to Neil. Questions answered same day. Issues resolved immediately.</div></div><div class="vs-iv">£400+</div></div>
+      <div class="vs-subtotal"><span class="vs-subtotal-label">Section value</span><span class="vs-subtotal-value">£3,900+</span></div>
+    </div>
+
+    <!-- 03 THE SOPHISTICATION ENGINE -->
+    <div class="vs-sec fade-up">
+      <div class="vs-hdr c3"><div class="vs-n c3">03</div><div class="vs-hb"><div class="vs-ht c3">The sophistication engine</div><div class="vs-hs">How Michaël Zingraf is experienced — long after the conversation ends.</div></div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c3"></div><div class="vs-ib"><div class="vs-it">Every buyer leaves impressed — whether they buy or not</div><div class="vs-is">The experience is so considered that buyers who don't convert still remember Michaël Zingraf as the agency that treated them like they had already bought.</div></div><div class="vs-iv">Priceless</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c3"></div><div class="vs-ib"><div class="vs-it">Hyper-personalised follow-up for every prospect</div><div class="vs-is">No generic communications. Every follow-up references the specific property, the specific conversation, the specific brief — automatically.</div></div><div class="vs-iv">£1,500+</div></div>
+      <div class="vs-subtotal"><span class="vs-subtotal-label">Section value</span><span class="vs-subtotal-value">£1,500+</span></div>
+    </div>
+
+    <!-- 04 INDUSTRY LEADERSHIP -->
+    <div class="vs-sec fade-up">
+      <div class="vs-hdr c1"><div class="vs-n c1">04</div><div class="vs-hb"><div class="vs-ht c1">Industry leadership</div><div class="vs-hs">How Michaël Zingraf is perceived — by customers, partners, and the entire ecosystem.</div></div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">The first prestige agency on the Riviera to offer this experience</div><div class="vs-is">The agency that moves first sets the standard. Every competitor who doesn't have this is now being measured against Michaël Zingraf.</div></div><div class="vs-iv">Priceless</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c1"></div><div class="vs-ib"><div class="vs-it">First-mover advantage that compounds every month</div><div class="vs-is">Every month live, every buyer who experiences it, every competitor who falls further behind. The gap widens automatically.</div></div><div class="vs-iv">Priceless</div></div>
+      <div class="vs-subtotal"><span class="vs-subtotal-label">Section value</span><span class="vs-subtotal-value">Priceless</span></div>
+    </div>
+
+    <!-- 05 SECTOR-SPECIFIC MODULE (the "unexpected bonus") -->
+    <div class="vs-sec fade-up">
+      <div class="vs-hdr c3"><div class="vs-n c3">05</div><div class="vs-hb"><div class="vs-ht c3">The multilingual advantage</div><div class="vs-hs">Not a translation tool. A signal about the calibre of business Michaël Zingraf operates.</div></div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c3"></div><div class="vs-ib"><div class="vs-it">French, English, German, Arabic, Russian — automatic</div><div class="vs-is">The system detects the language your buyer writes in and responds fluently from the very first message. No settings to change. No flags to select.</div></div><div class="vs-iv">£2,000+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c3"></div><div class="vs-ib"><div class="vs-it">The right first impression for every international buyer</div><div class="vs-is">A Gulf buyer arriving in Arabic. A Scandinavian couple in English. A German investor in German. Each one met in their language, with the same depth and sophistication.</div></div><div class="vs-iv">£1,500+</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c3"></div><div class="vs-ib"><div class="vs-it">A statement about who Michaël Zingraf is — before the adviser speaks</div><div class="vs-is">For an agency where 70% of buyers are international, responding fluently in their language is not a feature. It is the first chapter of the relationship.</div></div><div class="vs-iv">Priceless</div></div>
+      <div class="vs-subtotal"><span class="vs-subtotal-label">Section value</span><span class="vs-subtotal-value">£3,500+</span></div>
+    </div>
+
+    <!-- 06 THE REFERRAL PARTNERSHIP -->
+    <div class="vs-sec fade-up">
+      <div class="vs-hdr c5"><div class="vs-n c5">06</div><div class="vs-hb"><div class="vs-ht c5">The referral partnership — an investment that pays Michaël Zingraf back</div><div class="vs-hs">A passive revenue model that puts Michaël Zingraf at the centre of the industry.</div></div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c5"></div><div class="vs-ib"><div class="vs-it">10% of everything — permanently, on the first five referrals</div><div class="vs-is">Every business or partner introduced earns Michaël Zingraf 10% of their build fee, retainer and revenue share — permanently, for the first five referrals. 5% thereafter. No effort beyond the introduction.</div></div><div class="vs-iv">£40/mo per referral, permanently</div></div>
+      <div class="vs-item" onclick="this.classList.toggle(\'open\')"><div class="vs-dot c5"></div><div class="vs-ib"><div class="vs-it">Your position at the centre of the AI-forward property market</div><div class="vs-is">The developers, notaires, wealth managers, and international partners in your network — every introduction strengthens Michaël Zingraf's position as the group that led this shift.</div></div><div class="vs-iv">Priceless</div></div>
+      <div class="vs-subtotal"><span class="vs-subtotal-label">Section value</span><span class="vs-subtotal-value">Income + influence</span></div>
+    </div>
+
+    <!-- GRAND TOTAL -->
+    <div class="vs-grand-total fade-up">
+      <div class="vs-grand-label">Estimated total value</div>
+      <div class="vs-grand-value">£23,400+</div>
+      <div class="vs-grand-priceless">Plus intangible value as the AI-forward prestige agency on the Côte d'Azur</div>
+      <div class="vs-grand-sub" style="margin-top:16px;">Pricing in the next section.</div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     8. THE INVESTMENT + ROI
+     Simple pricing. Undeniable maths. Make one deal cover everything.
+     €4,000 = build fee (e.g. £4,000)
+     €400 = retainer (e.g. £400)
+     Or spread over 12 months — €333/mo = split option (e.g. or £4,800 over 12 monthly payments of £400)
+     Côte d'Azur sale = what one deal is called in their world (e.g. "Alpine sale", "booking", "project")
+     €5,000,000 = average deal value (e.g. €2,500,000)
+     Agency commission at 4% = commission/margin description (e.g. "Your agency commission at 3%")
+     €200,000 = commission value (e.g. €75,000)
+     €8,800 = build + 12× retainer (e.g. £8,800)
+     2,172% = return on investment % (e.g. 616%)
+     One sale. One conversation that would have gone dark. The entire investment returned — 22 times over. = the one-liner (e.g. "One deal. One year. Against the full cost of the product.")
+     €120/mo (€1,440/yr) = income from three referrals (e.g. £2,640)
+     €7,360 year one = net cost after referrals (e.g. £6,160)
+     2,619% = new ROI % with referrals (e.g. 923%)
+     Three introductions to partners you already know. The product pays Michaël Zingraf back while it works. = the referral close line
+═══════════════════════════════════════════════════════════ -->
+<section id="investment"><div class="dev-slide-num">7 — investment</div>
+  <div class="container">
+    <div class="eyebrow light fade-up">The Investment</div>
+    <div class="h2 light fade-up d1">Simple. Fixed.<br><em>Founder pricing.</em></div>
+    <div class="rule-red dim fade-up d2"></div>
+
+    <div class="inv-cards fade-up d2">
+      <div class="inv-card">
+        <div class="inv-tag">The build</div>
+        <div class="inv-price">£4,000</div>
+        <div class="inv-freq">One payment</div>
+        <div class="inv-desc" style="color:rgba(255,255,255,0.28);font-size:13px;font-weight:300;margin-top:12px;">Or spread over 12 months — £333/mo</div>
+      </div>
+      <div class="inv-card ft">
+        <div class="inv-tag ft">The retainer</div>
+        <div class="inv-price">£400<span style="font-size:21px;font-weight:300;">/month</span></div>
+        <div class="inv-freq">Three-month rolling contract from go-live</div>
+        <div class="inv-desc" style="color:rgba(255,255,255,0.28);font-size:13px;font-weight:300;margin-top:12px;">Refer a partner — earn 10% back, permanently</div>
+      </div>
+    </div>
+
+    <div class="roi-block fade-up d3">
+      <div class="roi-title">If this generates just one additional Côte d'Azur sale this year</div>
+      <p style="font-size:14px;color:rgba(255,255,255,0.38);font-weight:300;margin-bottom:20px;line-height:1.7">It will do more than that. But if the only improvement on your current experience is a single additional conversion — here is what that looks like.</p>
+      <div class="roi-row"><div class="roi-rl">Average Côte d'Azur sale value</div><div class="roi-rn">€5,000,000</div></div>
+      <div class="roi-row"><div class="roi-rl">Agency commission at 4%</div><div class="roi-rn">€200,000</div></div>
+      <div class="roi-row"><div class="roi-rl">Year one product cost</div><div class="roi-rn">£8,800</div></div>
+      <div class="roi-res" style="margin-top:20px">
+        <div class="roi-res-lbl">Year one return on investment</div>
+        <div class="roi-res-num">2,172%</div>
+        <div class="roi-res-sub">One sale. One conversation that would have gone dark. The entire investment returned — 22 times over.</div>
+      </div>
+      <div class="roi-div"></div>
+      <div class="roi-row"><div class="roi-rl">Refer three partners — year one referral income</div><div class="roi-rn">£120/mo (£1,440/yr)</div></div>
+      <div class="roi-row"><div class="roi-rl">Net cost after three referrals</div><div class="roi-rn">£7,360 year one</div></div>
+      <div class="roi-ref">
+        <div class="roi-ref-lbl">Refer three partners — return on investment becomes</div>
+        <div class="roi-ref-num">2,619%</div>
+        <div class="roi-ref-sub">Three introductions to partners you already know. The product pays Michaël Zingraf back while it works.</div>
+      </div>
+    </div>
+
+    <p class="body fade-up" style="color:rgba(255,255,255,0.3);margin-top:24px;font-style:italic;text-align:center">One Côte d'Azur sale covers the cost. Everything after that is margin.</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     9. RISK REVERSAL / GUARANTEES
+     Name every hesitation. Destroy it before they raise it.
+     Five commitments. All in writing. Exposure minimal. Commitment total. = one sentence. Their exposure is minimal. Our commitment is total.
+     Côte d'Azur exclusivity — written into the contract = exclusivity card title (adapt to their market)
+     While Michaël Zingraf is a client, High Elm does not build this product for any direct competitor on the Côte d'Azur. Not a promise. A contractual commitment. The first-mover position is protected from day one. = exclusivity card body (name their specific market/sector)
+     Riviera Exclusivity = badge label (e.g. "Exclusivity")
+     Michaël Zingraf = prospect company name (used in body copy)
+     your website = their platform/website (e.g. "your website", "your app")
+═══════════════════════════════════════════════════════════ -->
+<section id="guarantees"><div class="dev-slide-num">8 — guarantees</div>
+  <div class="container">
+    <div class="eyebrow fade-up">Risk Reversal</div>
+    <div class="h2 fade-up d1">Built to last.<br><em>Backed completely.</em></div>
+    <div class="rule fade-up d2"></div>
+    <p class="body-large fade-up d2">Five commitments. All in writing. Exposure minimal. Commitment total.</p>
+
+    <div class="guar-grid fade-up d3">
+      <div class="guar-card">
+        <div class="guar-icon">🔒</div>
+        <div class="guar-title">You own the asset outright — forever</div>
+        <div class="guar-body">Not SaaS. Not a licence. A capital asset belonging to Michaël Zingraf outright — sitting on the asset side of your balance sheet, not the liability side. Every line of code, every training document, every piece of data is yours. It appreciates as it learns. It compounds as the market moves. Walk away at any point with everything intact.</div>
+        <div class="guar-badge">Ownership</div>
+      </div>
+      <div class="guar-card">
+        <div class="guar-icon">⚡</div>
+        <div class="guar-title">Live on your website by Monday</div>
+        <div class="guar-body">One session. Access to your website. Everything else is on us. No project management, no developer briefings, no back and forth. We take full responsibility for delivery.</div>
+        <div class="guar-badge">Speed</div>
+      </div>
+      <div class="guar-card">
+        <div class="guar-icon">🛡️</div>
+        <div class="guar-title">Zero operational lift</div>
+        <div class="guar-body">No IT, no training. Michaël Zingraf's team does what they are brilliant at. The AI handles everything before that moment, with the sophistication Michaël Zingraf's customers expect.</div>
+        <div class="guar-badge">Simplicity</div>
+      </div>
+      <div class="guar-card">
+        <div class="guar-icon">📋</div>
+        <div class="guar-title">Three months. Never more, never less.</div>
+        <div class="guar-body">The contract is three months. That is the time it takes to train the system properly, see what is working, make the refinements that matter, and have something truly dialled in. After three months, Michaël Zingraf decides. No pressure, no lock-in beyond that.</div>
+        <div class="guar-badge">Three-month contract</div>
+      </div>
+      <div class="guar-card full">
+        <div class="guar-icon">🏆</div>
+        <div class="guar-title">Côte d'Azur exclusivity — written into the contract</div>
+        <div class="guar-body">While Michaël Zingraf is a client, High Elm does not build this product for any direct competitor on the Côte d'Azur. Not a promise. A contractual commitment. The first-mover position is protected from day one.</div>
+        <div class="guar-badge">Riviera Exclusivity</div>
+      </div>
+      <div class="guar-card full" style="background:var(--primary);border-color:transparent;">
+        <div class="guar-icon">🌿</div>
+        <div class="guar-title" style="color:white;">High Elm Studio</div>
+        <div class="guar-body" style="color:rgba(255,255,255,0.7);">Over 12 years of experience working with pioneering ultra-high-net-worth brands, creating communications and automations. Your audience and your brand come before any technology.</div>
+        <div class="guar-badge" style="background:rgba(255,255,255,0.12);color:white;">Who builds this</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     9. WHAT HAPPENS NEXT
+     Remove every remaining trace of uncertainty.
+     One conversation. = e.g. "One conversation."
+     Seven days. A fully working system. = e.g. "Seven days. A fully working system."
+     One conversation. Neil answers any questions. No deck, no presentation — a direct conversation confirming what gets built and how. By the end of it, everything is agreed and the clock starts. = the 20-minute call description
+     <ul><li>Access to your website</li><li>Internal materials — property briefs, market guides, anything your advisers use to answer buyer questions</li><li>For each adviser who wants to contribute: a 20-minute chatbot interview. It asks how they approach a new buyer, what matters most, how Michaël Zingraf handles the moments that count. Their voice goes directly into the system.</li></ul><p style="margin-top:10px;font-size:13px;font-weight:300;color:#9A8A8E;">That is the total involvement required from your team.</p> = what we need from their team (three things)
+     Neil is hands-on every working day. The system is trained on your portfolio, your markets, your methodology. Your brand applied throughout. CRM connection live from day one — every lead profile delivered directly into your existing system the moment a buyer engages. = days one to seven
+     At the end of day seven, Neil presents the fully working system. You see it before it goes live. You approve it. It is then installed on your website. = go-live description
+     In the first two weeks after go-live, Neil analyses your website traffic and conversion data. From that, he builds a 90-day performance plan — a specific target for additional enquiries and a clear roadmap for hitting it. Neil presents that plan as a short presentation: day zero to day ninety, what the weekly rhythm looks like, and what the ongoing cadence becomes after that. Then he answers any questions. = the 90-day presentation description
+     Every week without exception: a performance report. Conversations. Leads. Languages. Properties mentioned most. Questions that recurred — because recurring questions reveal what buyers need that the website isn't currently giving them. Progress tracked against the 90-day target every week. Drop in a document, a new brief, a market update — the system processes it, understands it, embeds it. The loop runs automatically. The system gets sharper. The results compound. = weekly report and ongoing cadence
+═══════════════════════════════════════════════════════════ -->
+<section id="nextsteps"><div class="dev-slide-num">9 — nextsteps</div>
+  <div class="container">
+    <div class="eyebrow fade-up">What Happens Next</div>
+    <div class="h2 fade-up d1">One conversation.<br><em>Seven days. A fully working system.</em></div>
+    <div class="rule fade-up d2"></div>
+
+    <div class="next-grid fade-up d2">
+
+      <div class="next-card" onclick="this.classList.toggle('open')">
+        <div class="next-num">Step 01</div>
+        <div class="next-title">The call — 20 minutes</div>
+        <div class="next-summary">One conversation. Everything agreed. The clock starts. <span class="next-chevron">›</span></div>
+        <div class="next-detail">Neil answers any questions you have. No deck, no presentation — a direct conversation confirming what gets built and how. By the end, everything is agreed and work begins.</div>
+        <div class="next-badge">No obligation</div>
+      </div>
+
+      <div class="next-card" onclick="this.classList.toggle('open')">
+        <div class="next-num">Step 02</div>
+        <div class="next-title">What we need from your team</div>
+        <div class="next-summary">Three things. Nothing more. <span class="next-chevron">›</span></div>
+        <div class="next-detail"><ul style="list-style:none;padding:0;margin:0"><li style="padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);">Access to your website</li><li style="padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);">Internal materials — property briefs, market guides, anything advisers use to answer buyers</li><li style="padding:5px 0;">A 20-minute chatbot interview for each adviser who wants to contribute their voice to the system</li></ul></div>
+        <div class="next-badge">Three things only</div>
+      </div>
+
+      <div class="next-card" onclick="this.classList.toggle('open')">
+        <div class="next-num">Step 03</div>
+        <div class="next-title">Days one to seven — we build</div>
+        <div class="next-summary">Neil hands-on every day. CRM live from day one. <span class="next-chevron">›</span></div>
+        <div class="next-detail">The system is trained on your portfolio, your markets, your methodology. Your brand applied throughout. CRM connection is live from day one — every lead profile delivered into your existing system the moment a buyer engages. Nothing lost. Nothing waiting.</div>
+        <div class="next-badge">Neil hands-on every working day</div>
+      </div>
+
+      <div class="next-card" onclick="this.classList.toggle('open')">
+        <div class="next-num">Step 04</div>
+        <div class="next-title">Go-live</div>
+        <div class="next-summary">You see it. You approve it. It goes live. <span class="next-chevron">›</span></div>
+        <div class="next-detail">At the end of day seven, Neil presents the fully working system. You review it before anything goes live. Once approved, it is installed on your website and any other channel you choose.</div>
+        <div class="next-badge">Day seven</div>
+      </div>
+
+      <div class="next-card full" onclick="this.classList.toggle('open')">
+        <div class="next-num">Step 05</div>
+        <div class="next-title">The 90-day presentation</div>
+        <div class="next-summary">A target. A plan. A presentation showing exactly how we get there. <span class="next-chevron">›</span></div>
+        <div class="next-detail">In the first two weeks after go-live, Neil analyses your traffic and conversion data. From that he builds and presents a 90-day performance plan — a specific target for additional enquiries, a weekly roadmap for hitting it, and a clear picture of what the ongoing cadence becomes beyond day 90.</div>
+      </div>
+
+      <div class="next-card full alt" style="background: var(--cream-dark); border-color: rgba(0,0,0,0.06);" onclick="this.classList.toggle('open')">
+        <div class="next-num" style="color: var(--accent);">Every week thereafter</div>
+        <div class="next-title" style="color: var(--primary);">Full visibility. Always.</div>
+        <div class="next-summary" style="color:var(--text-secondary);">Weekly performance report. Progress against target. System always improving. <span class="next-chevron" style="color:var(--accent)">›</span></div>
+        <div class="next-detail" style="color:var(--text-secondary);border-top-color:rgba(0,0,0,0.06)">Conversations. Leads. Languages. Properties most enquired about. Questions that keep coming up — because recurring questions reveal what buyers need that your website isn't giving them. Drop in a new brief or market update and the system processes it automatically. The loop runs itself. The results compound.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     10. CLOSE — SCARCITY + URGENCY + CTA
+     The most considered first impression in prestige property on the Riviera = the big closing statement (e.g. "The most sophisticated AI property experience in the French Alps")
+     is there for the taking. = the italicised close (e.g. "is there for the taking.")
+     Founder pricing — first clients only = urgency pill 1 (e.g. "Founder pricing — first clients only")
+     Côte d'Azur exclusivity in writing = urgency pill 2 (e.g. "French Alps & Portugal exclusivity in writing")
+     One agency. One window. One decision. = urgency pill 3 (e.g. "One agency. One window. One decision.")
+     https://www.michaelzingraf.com/images/logo-mzre-mobile.svg = company logo (used again at close)
+     https://wa.me/447786572258?text=Hi%20Neil%2C%20I%27ve%20seen%20the%20Micha%C3%ABl%20Zingraf%20pitch%20and%20I%27d%20like%20to%20talk. = WhatsApp deep link (e.g. https://wa.me/447786572258)
+     Michaël Zingraf — AI Adviser Enquiry = pre-filled email subject
+═══════════════════════════════════════════════════════════ -->
+<section id="close"><div class="dev-slide-num">10 — close</div>
+  <div id="close-snow-back"></div>
+  <div id="close-snow-front"></div>
+  <div class="close-inner">
+    <div class="close-logo fade-up"><img src="/zingraf-logo-white.svg" alt="Michaël Zingraf"></div>
+
+    <div class="h1 light fade-up d1" style="font-size:clamp(34px,5vw,58px);margin-bottom:32px">
+      The most considered first impression in prestige property on the Riviera <em>is there for the taking.</em>
+    </div>
+
+    <div class="close-rule fade-up d2"></div>
+
+    <div class="urgency-pills fade-up d3">
+      <div class="upill"><div class="upill-dot"></div><div class="upill-text">Founder pricing — first clients only</div></div>
+      <div class="upill"><div class="upill-dot"></div><div class="upill-text">Côte d'Azur exclusivity in writing</div></div>
+      <div class="upill"><div class="upill-dot r"></div><div class="upill-text">One agency. One window. One decision.</div></div>
+    </div>
+
+    <p class="close-cta-label fade-up d4">Speak to Neil.</p>
+    <div class="contact-row fade-up d4">
+      <button class="contact-card wa" onmouseenter="showQR('close-qr')" onmouseleave="scheduleHideQR('close-qr')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <div class="contact-info">
+          <span class="contact-label">WhatsApp Neil</span>
+          <span class="contact-value wa-number" style="max-height:0;overflow:hidden;opacity:0;transition:max-height 0.3s ease,opacity 0.3s ease;margin:0;">+44 7786 572258</span>
+        </div>
+        <div class="qr-popover" id="close-qr" onmouseenter="showQR('close-qr')" onmouseleave="scheduleHideQR('close-qr')">
+          <div id="close-qr-canvas"></div>
+          <span>Scan to open WhatsApp</span>
+          <div class="qr-divider"></div>
+          <a href="https://wa.me/447786572258?text=Hi%20Neil%2C%20I%27ve%20seen%20the%20Micha%C3%ABl%20Zingraf%20pitch%20and%20I%27d%20like%20to%20talk." target="_blank" class="qr-desktop-link">Open on desktop →</a>
+        </div>
+      </button>
+      <a href="mailto:neil@highelmstudio.com?subject=Micha%C3%ABl%20Zingraf%20%E2%80%94%20AI%20Adviser%20Enquiry" class="contact-card em">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        <div class="contact-info">
+          <span class="contact-label">Email Neil</span>
+          <span class="contact-value">neil@highelmstudio.com</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="studio-credit fade-up">
+      <div class="studio-credit-wordmark">
+        <svg width="16" height="27" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="white"/>
+          <line x1="30" y1="5" x2="30" y2="92" stroke="rgba(15,34,56,0.4)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="30" y1="25" x2="44" y2="32" stroke="rgba(15,34,56,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="40" x2="49" y2="48" stroke="rgba(15,34,56,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="55" x2="50" y2="62" stroke="rgba(15,34,56,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="25" x2="16" y2="32" stroke="rgba(15,34,56,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="40" x2="11" y2="48" stroke="rgba(15,34,56,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="55" x2="10" y2="62" stroke="rgba(15,34,56,0.3)" stroke-width="0.8"/>
+        </svg>
+        <span style="font-family:'League Spartan',sans-serif;font-weight:600;font-size:15px;letter-spacing:-0.04em;color:white;">high elm studio.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- DEMO MODAL -->
+<div id="demo-modal">
+  <button class="demo-modal-close" onclick="closeDemoModal()">✕</button>
+  <div class="demo-modal-inner">
+    <iframe class="demo-modal-iframe" src="" title="Michaël Zingraf AI Adviser"></iframe>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     JAVASCRIPT — do not modify
+============================================================ -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+
+function startDemo() {
+  var overlay = document.getElementById('demo-overlay');
+  overlay.classList.add('fading');
+  setTimeout(function() { overlay.classList.add('hidden'); }, 600);
+}
+
+function openDemoModal() {
+  var modal = document.getElementById('demo-modal');
+  var iframe = modal.querySelector('iframe');
+  if (!iframe.src || iframe.src === window.location.href) iframe.src = '/chat.html';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDemoModal() {
+  document.getElementById('demo-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('demo-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDemoModal();
+  });
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDemoModal();
+});
+
+history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+
+document.addEventListener('DOMContentLoaded', function() {
+  var iframe = document.querySelector('.demo-wrap iframe');
+  if (iframe) {
+    iframe.addEventListener('load', function() {
+      try { this.contentWindow.scrollTo(0, 0); } catch(e) {}
+    });
+  }
+});
+
+// QR functions moved to head script block
+
+const sections = ['s0','dream','problem','industry','demo','proof','value','investment','guarantees','nextsteps','close'];
+const dots = document.querySelectorAll('.nav-dot');
+
+function scrollToSlide(index) {
+  const el = document.getElementById(sections[index]);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+document.querySelectorAll('.fade-up').forEach(el => el.classList.add('animate'));
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const id = e.target.id;
+    const idx = sections.indexOf(id);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    if (id === 's0') {
+      e.target.querySelectorAll('.fu').forEach(el => el.classList.add('on'));
+    }
+    e.target.querySelectorAll('.fade-up.animate').forEach(el => el.classList.add('visible'));
+  });
+}, { threshold: 0.05 });
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) io.observe(el);
+});
+
+window.addEventListener('load', () => {
+  const s0 = document.getElementById('s0');
+  if (s0) {
+    s0.querySelectorAll('.fu').forEach(el => el.classList.add('on'));
+    if (dots[0]) dots[0].classList.add('active');
+  }
+});
+
+// Value stack dropdowns handled via inline onclick
+
+(function() {
+  function makeFlake(container, sizeScale, opacScale) {
+    const flake = document.createElement('span');
+    flake.className = 'snowflake';
+    const size  = Math.random() * 2 * sizeScale + 1.2 * sizeScale;
+    const left  = Math.random() * 100;
+    const delay = Math.random() * 2;
+    const dur   = Math.random() * 5 + 8;
+    const opac  = (Math.random() * 0.15 + 0.08) * opacScale;
+    flake.style.cssText = `width:${size}px;height:${size}px;left:${left}%;opacity:${opac};animation-duration:${dur}s;animation-delay:${delay}s;`;
+    container.appendChild(flake);
+  }
+
+  function initSnow(backId, frontId, sectionId) {
+    const back  = document.getElementById(backId);
+    const front = document.getElementById(frontId);
+    if (!back || !front) return;
+    for (let i = 0; i < 18; i++) makeFlake(back,  0.7, 0.75);
+    for (let i = 0; i < 18; i++) makeFlake(front, 1.0, 1.00);
+    const snowObs = new IntersectionObserver(([entry]) => {
+      back.classList.toggle('snow-paused',  !entry.isIntersecting);
+      front.classList.toggle('snow

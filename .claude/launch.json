@@ -1,0 +1,54 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "firefly-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/demos/firefly && vercel dev --yes --listen $PORT"],
+      "port": 3456,
+      "autoPort": true
+    },
+    {
+      "name": "firefly-demo-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/demos/firefly-demo && npx serve -p $PORT ."],
+      "port": 3457,
+      "autoPort": true
+    },
+    {
+      "name": "high-elm-studio",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/website && python3 -m http.server $PORT"],
+      "port": 8765,
+      "autoPort": true
+    },
+    {
+      "name": "chat-demo-template",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/templates/chat-demo && npx serve -p $PORT ."],
+      "port": 4321,
+      "autoPort": true
+    },
+    {
+      "name": "industry-watch",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/industry-watch && npm run dev -- --port $PORT"],
+      "port": 3100,
+      "autoPort": true
+    },
+    {
+      "name": "hotel-dashboard",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/hotel-dashboard && npm run dev -- --port $PORT"],
+      "port": 3200,
+      "autoPort": true
+    },
+    {
+      "name": "hotel-dashboard-prod",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/hotel-dashboard && npx next start --port $PORT"],
+      "port": 3201,
+      "autoPort": true
+    }
+  ]
+}

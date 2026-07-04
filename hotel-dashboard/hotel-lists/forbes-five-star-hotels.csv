@@ -1,0 +1,344 @@
+id,hotel_name,country,region,website,instagram_handle,instagram_url,notes
+1,Acqualina Resort and Residences on the Beach,United States,Americas,https://www.acqualinaresort.com/,@acqualinaresort,https://www.instagram.com/acqualinaresort,
+2,Adare Manor,Ireland,Europe,https://www.adaremanor.com,@theadaremanor,https://www.instagram.com/theadaremanor,
+3,Address Beach Resort Dubai,United Arab Emirates,Middle East,https://www.addresshotels.com/en/resorts/address-beach-resort/,@addressbeachresort,https://www.instagram.com/addressbeachresort,
+4,Address Istanbul,Turkey,Europe,https://www.addresshotels.com/en/hotels/address-istanbul/,@addresshotelistanbul,https://www.instagram.com/addresshotelistanbul,region assigned by judgement (transcontinental country)
+5,"Airelles Courchevel, Les Airelles",France,Europe,https://airelles.com/en/destination/courchevel-hotel,@airellescourchevel,https://www.instagram.com/airellescourchevel,
+6,"Airelles Gordes, La Bastide",France,Europe,https://airelles.com/en/destination/gordes-hotel,@airellesgordes,https://www.instagram.com/airellesgordes,
+7,Altira Macau,China,Asia-Pacific,https://www.altiramacau.com/en,@altira.macau,https://www.instagram.com/altira.macau,
+8,Amansara,Cambodia,Asia-Pacific,https://www.aman.com/resorts/amansara,@amansara,https://www.instagram.com/amansara,
+9,Andronis Luxury Suites,Greece,Europe,https://www.andronis.com/hotels/andronis-luxury-suites,,,"Instagram needs review: @andronisluxurysuites vs @andronissuites both plausible, plus group @andronis_hotels. Confirm via hotel site."
+10,ARIA Sky Suites,United States,Americas,https://aria.mgmresorts.com,,,ARIA Sky Suites is a suite product within ARIA Resort & Casino; no property-specific Instagram found. Website is ARIA resort site.
+11,Armani Hotel Dubai,United Arab Emirates,Middle East,https://www.armanihotels.com/en/hotels/armani-hotel-dubai,@armanihoteldxb,https://www.instagram.com/armanihoteldxb,
+12,Ashford Castle,Ireland,Europe,https://ashfordcastle.com,@ashfordcastle,https://www.instagram.com/ashfordcastle,
+13,"Atlantis, The Royal",United Arab Emirates,Middle East,https://www.atlantis.com/atlantis-the-royal,@atlantistheroyal,https://www.instagram.com/atlantistheroyal,
+14,"Auberge du Soleil, Auberge Collection",United States,Americas,https://auberge.com/auberge-du-soleil/,@aubergedusoleil,https://www.instagram.com/aubergedusoleil,
+15,Baccarat Hotel New York,United States,Americas,https://www.baccarathotels.com/,@baccarathotels,https://www.instagram.com/baccarathotels,@baccarathotels is the New York flagship's account (brand HQ is this property).
+16,Badrutt's Palace Hotel,Switzerland,Europe,https://badruttspalace.com,@badruttspalace,https://www.instagram.com/badruttspalace,
+17,"The Balmoral, a Rocco Forte Hotel",United Kingdom,Europe,https://www.roccofortehotels.com/hotels-and-resorts/the-balmoral-hotel/,@thebalmoral,https://www.instagram.com/thebalmoral,
+18,Banyan Tree Macau,China,Asia-Pacific,https://www.banyantree.com/china/macau,@banyantreemacau,https://www.instagram.com/banyantreemacau,
+19,Beach Club at The Boca Raton,United States,Americas,https://www.thebocaraton.com/suites-rooms/beach-club/,,,Part of The Boca Raton resort. IG unclear: resort account @thebocaraton vs small property account @bocabeachclub (~2k). Needs review.
+20,The Berkeley,United Kingdom,Europe,https://www.maybourne.com/en/hotels/the-berkeley,@the_berkeley,https://www.instagram.com/the_berkeley,
+21,The Beverly Hills Hotel,United States,Americas,https://www.dorchestercollection.com/los-angeles/the-beverly-hills-hotel,@bevhillshotel,https://www.instagram.com/bevhillshotel,
+22,BLESS Hotel Madrid,Spain,Europe,https://www.blesscollectionhotels.com/en/bless-hotel-madrid/,@blesshotelmadrid,https://www.instagram.com/blesshotelmadrid,
+23,BLESS Ibiza Cala Nova,Spain,Europe,https://www.blesscollectionhotels.com/en/bless-hotel-ibiza/,,,Two plausible IG accounts: @blessibizacalanova and @blesshotelibiza. Needs confirmation via hotel site.
+24,Boston Harbor Hotel,United States,Americas,https://www.bostonharborhotel.com/,@bostonharborhotel,https://www.instagram.com/bostonharborhotel,
+25,The Brando,French Polynesia,Asia-Pacific,https://thebrando.com,@thebrandoresort,https://www.instagram.com/thebrandoresort,
+26,The Broadmoor,United States,Americas,https://www.broadmoor.com,@thebroadmoor,https://www.instagram.com/thebroadmoor,
+27,"Brown's Hotel, a Rocco Forte Hotel",United Kingdom,Europe,https://www.roccofortehotels.com/hotels-and-resorts/brown-s-hotel/,@browns_hotel,https://www.instagram.com/browns_hotel,
+28,Bvlgari Hotel Beijing,China,Asia-Pacific,https://www.bulgarihotels.com/en_US/beijing,,,No property-specific IG confirmed; Bvlgari group account @bvlgarihotels exists. Needs check on hotel page.
+29,Bvlgari Hotel London,United Kingdom,Europe,https://www.bulgarihotels.com/en_US/london,@bvlgarihotellondon,https://www.instagram.com/bvlgarihotellondon,
+30,Bvlgari Hotel Shanghai,China,Asia-Pacific,https://www.bulgarihotels.com/en_US/shanghai,,,No property-specific IG confirmed in search; Bvlgari group account @bvlgarihotels exists. Needs check on hotel page.
+31,Bvlgari Hotel Tokyo,Japan,Asia-Pacific,https://www.bulgarihotels.com/en_US/tokyo,@bvlgarihoteltokyo,https://www.instagram.com/bvlgarihoteltokyo,
+32,Bvlgari Resort and Residences Dubai,United Arab Emirates,Middle East,https://www.bulgarihotels.com/en_US/dubai,@bvlgariresortdubai,https://www.instagram.com/bvlgariresortdubai,
+33,Bvlgari Resort Bali,Indonesia,Asia-Pacific,https://www.bulgarihotels.com/en_US/bali,@bvlgariresortbali,https://www.instagram.com/bvlgariresortbali,
+34,"The Cadogan, A Belmond Hotel, London",United Kingdom,Europe,https://www.belmond.com/hotels/europe/uk/london/belmond-cadogan-hotel/,@belmondcadogan,https://www.instagram.com/belmondcadogan,
+35,"The Canyon Suites at The Phoenician,  A Luxury Collection Resort",United States,Americas,https://www.canyonsuites.com/,@canyonsuitesscottsdale,https://www.instagram.com/canyonsuitesscottsdale,Property account now redirects followers to parent resort @phoenicianscottsdale.
+36,"Cap Juluca, A Belmond Hotel, Anguilla",Anguilla,Americas,https://www.belmond.com/hotels/north-america/caribbean/anguilla/belmond-cap-juluca/,@belmondcapjuluca,https://www.instagram.com/belmondcapjuluca,
+37,Capella at Galaxy Macau,China,Asia-Pacific,https://capellahotels.com/en/capella-galaxy-macau,@capellamacau,https://www.instagram.com/capellamacau,
+38,Capella Bangkok,Thailand,Asia-Pacific,https://capellahotels.com/en/capella-bangkok,@capellabangkok,https://www.instagram.com/capellabangkok,
+39,Capella Hanoi,Vietnam,Asia-Pacific,https://capellahotels.com/en/capella-hanoi,@capellahanoi,https://www.instagram.com/capellahanoi,
+40,"Capella Shanghai, Jian Ye Li",China,Asia-Pacific,https://capellahotels.com/en/capella-shanghai,@capellashanghai,https://www.instagram.com/capellashanghai,
+41,Capella Singapore,Singapore,Asia-Pacific,https://www.capella-singapore.com/,@capellasingapore,https://www.instagram.com/capellasingapore,
+42,The Capitol Hotel Tokyu,Japan,Asia-Pacific,https://www.tokyuhotels.co.jp/en/capitol-h/index.html,@thecapitolhoteltokyu,https://www.instagram.com/thecapitolhoteltokyu,
+43,"Carlton Cannes, a Regent Hotel",France,Europe,https://carltoncannes.com/en/,@carltoncannes,https://www.instagram.com/carltoncannes,
+44,Carlton Hotel St. Moritz,Switzerland,Europe,https://tschuggencollection.ch/en/hotel/carlton-hotel,@carltonstmoritz,https://www.instagram.com/carltonstmoritz,
+45,"Caruso, A Belmond Hotel, Amalfi Coast",Italy,Europe,https://www.belmond.com/hotels/europe/italy/amalfi-coast/belmond-hotel-caruso/,@belmondhotelcaruso,https://www.instagram.com/belmondhotelcaruso,
+46,Casa Angelina,Italy,Europe,https://www.casangelina.com/,@casaangelinalifestyle,https://www.instagram.com/casaangelinalifestyle,
+47,Castelfalfi,Italy,Europe,https://www.castelfalfi.com/,@castelfalfi,https://www.instagram.com/castelfalfi,
+48,"Castiglion del Bosco, A Rosewood Hotel",Italy,Europe,https://www.rosewoodhotels.com/en/castiglion-del-bosco,@rosewoodcastigliondelbosco,https://www.instagram.com/rosewoodcastigliondelbosco,
+49,The Chanler at Cliff Walk,United States,Americas,https://www.thechanler.com/,@thechanler,https://www.instagram.com/thechanler,
+50,The Chateau at Nemacolin,United States,Americas,https://www.nemacolin.com/properties/the-chateau/,,,No property-specific IG for The Chateau; Nemacolin resort uses @nemacolin. Needs confirmation.
+51,Chatham Bars Inn,United States,Americas,https://www.chathambarsinn.com/,@chathambarsinn,https://www.instagram.com/chathambarsinn,
+52,Chatham Inn,United States,Americas,https://www.chathaminn.com/,@chatham.inn,https://www.instagram.com/chatham.inn,
+53,The Chedi Andermatt,Switzerland,Europe,https://www.thechediandermatt.com/,@thechediandermatt,https://www.instagram.com/thechediandermatt,
+54,Cheval Blanc Paris,France,Europe,https://www.chevalblanc.com/en/maison/paris/,@chevalblancparis,https://www.instagram.com/chevalblancparis,
+55,Cheval Blanc Randheli,Maldives,Asia-Pacific,https://www.chevalblanc.com/en/maison/randheli/,@chevalblancrandheli,https://www.instagram.com/chevalblancrandheli,
+56,Cheval Blanc St-Barth,St Barts,Americas,https://www.chevalblanc.com/en/maison/st-barth/,@chevalblancstbarth,https://www.instagram.com/chevalblancstbarth,
+57,"Chileno Bay Resort & Residences, Auberge Collection",Mexico,Americas,https://auberge.com/chileno-bay/,@chilenobayauberge,https://www.instagram.com/chilenobayauberge,
+58,"Cipriani, A Belmond Hotel, Venice",Italy,Europe,https://www.belmond.com/hotels/europe/italy/venice/belmond-hotel-cipriani/,@belmondhotelcipriani,https://www.instagram.com/belmondhotelcipriani,
+59,Claridge's,United Kingdom,Europe,https://www.maybourne.com/en/hotels/claridges,@claridgeshotel,https://www.instagram.com/claridgeshotel,
+60,The Cloister at Sea Island,United States,Americas,https://www.seaisland.com/stay/the-cloister/,@seaisland,https://www.instagram.com/seaisland,Sea Island resort account (covers The Cloister and The Lodge); no separate property account.
+61,The Connaught,United Kingdom,Europe,https://www.maybourne.com/en/hotels/the-connaught,@theconnaught,https://www.instagram.com/theconnaught,
+62,Conrad Abu Dhabi Etihad Towers,United Arab Emirates,Middle East,,@conradetihadtowers,https://www.instagram.com/conradetihadtowers,Instagram confirmed. Website: Conrad/Hilton property page on hilton.com to confirm exact URL.
+63,Crockfords at Resorts World Genting,Malaysia,Asia-Pacific,https://www.rwgenting.com/en/hotels/crockfords.html,@resortsworldgenting,https://www.instagram.com/resortsworldgenting,Resort-level account; no Crockfords-specific IG found.
+64,Çırağan Palace Kempinski Istanbul,Turkey,Europe,https://www.kempinski.com/en/ciragan-palace,@cpkempinski,https://www.instagram.com/cpkempinski,region assigned by judgement (transcontinental country)
+65,Delaire Graff Lodge,South Africa,Africa,https://www.delaire.co.za/,@delairegraff,https://www.instagram.com/delairegraff,
+66,The Dolder Grand,Switzerland,Europe,https://www.thedoldergrand.com/en/,@thedoldergrand,https://www.instagram.com/thedoldergrand,
+67,Dolphin Island,Fiji,Asia-Pacific,https://www.dolphinislandfiji.com/,@dolphinislandfiji,https://www.instagram.com/dolphinislandfiji,
+68,"Dorado Beach, a Ritz-Carlton Reserve",Puerto Rico,Americas,https://www.ritzcarlton.com/en/hotels/sjudo-dorado-beach-a-ritz-carlton-reserve/overview/,@doradobeachreserve,https://www.instagram.com/doradobeachreserve,
+69,The Dorchester,United Kingdom,Europe,https://www.dorchestercollection.com/london/the-dorchester,@thedorchester,https://www.instagram.com/thedorchester,Instagram taken from the official site footer.
+70,Eden Rock - St Barths,St Barts,Americas,https://www.oetkerhotels.com/hotels/eden-rock-st-barths/,@er_stbarths,https://www.instagram.com/er_stbarths,Property page on parent Oetker Collection site. Instagram published in footer.
+71,The Egerton House Hotel,United Kingdom,Europe,https://egertonhousehotel.com/,@egerton_house,https://www.instagram.com/egerton_house,Red Carnation property. Instagram published in footer.
+72,Emerald Tower at MGM COTAI,China,Asia-Pacific,https://www.mgm.mo/en/stay/mgm-cotai/emerald-tower,,,"Emerald Tower is the luxury tower within MGM Cotai; no property-specific Instagram, only resort account @mgm.mo. Left blank per property rule."
+73,"Emirates Palace Mandarin Oriental, Abu Dhabi",United Arab Emirates,Middle East,https://www.mandarinoriental.com/en/abu-dhabi/emirates-palace,@mo_emiratespalace,https://www.instagram.com/mo_emiratespalace,Instagram published in MO property-page footer.
+74,Encore Boston Harbor,United States,Americas,https://www.encorebostonharbor.com/,@encorebostonharbor,https://www.instagram.com/encorebostonharbor,Instagram published in footer.
+75,Encore Macau,China,Asia-Pacific,https://www.wynnresortsmacau.com/en/wynn-macau/,,,Encore is the second tower of Wynn Macau; no Encore-specific Instagram. Shared resort account @wynn.macau. Left blank.
+76,Encore Tower Suites,United States,Americas,https://www.wynnlasvegas.com/rooms-and-suites/encore-tower-suites,,,Encore Tower Suites is a suite product within Wynn/Encore Las Vegas; no property-specific Instagram. Left blank.
+77,Epic Tower at Studio City Macau,China,Asia-Pacific,https://www.studiocity-macau.com/en/hotels/epic-tower,,,"Epic Tower is a tower within Studio City Macau; no tower-specific Instagram, only @studiocitymacau. Left blank."
+78,ESPACIO The Jewel of Waikiki,United States,Americas,https://www.espaciowaikiki.com/,@espaciowaikiki,https://www.instagram.com/espaciowaikiki,Instagram published in footer.
+79,"Esperanza, Auberge Collection",Mexico,Americas,https://auberge.com/esperanza,@esperanzaauberge,https://www.instagram.com/esperanzaauberge,Property page on Auberge Collection site; IG published on page.
+80,Faena Hotel Miami Beach,United States,Americas,https://www.faena.com/miami-beach,@faenamiamibeach,https://www.instagram.com/faenamiamibeach,Property-specific account used over global @faena.
+81,Fairmont Pacific Rim,Canada,Americas,https://www.fairmontpacificrim.com/,@fairmontpacific,https://www.instagram.com/fairmontpacific,Instagram published in footer.
+82,Falling Rock at Nemacolin,United States,Americas,https://www.nemacolin.com/properties/falling-rock/,,,"Falling Rock is a hotel within Nemacolin; no property-specific Instagram, only @nemacolin. Left blank."
+83,Four Seasons Astir Palace Hotel Athens,Greece,Europe,https://www.fourseasons.com/athens/,@fsathens,https://www.instagram.com/fsathens,
+84,Four Seasons Hotel Abu Dhabi at Al Maryah Island,United Arab Emirates,Middle East,https://www.fourseasons.com/abudhabi/,@fsabudhabi,https://www.instagram.com/fsabudhabi,
+85,Four Seasons Hotel at The Surf Club,United States,Americas,https://www.fourseasons.com/surfside/,@fssurfside,https://www.instagram.com/fssurfside,
+86,Four Seasons Hotel Baku,Azerbaijan,Europe,https://www.fourseasons.com/baku/,@fsbaku,https://www.instagram.com/fsbaku,
+87,Four Seasons Hotel Boston,United States,Americas,https://www.fourseasons.com/boston/,@fsboston,https://www.instagram.com/fsboston,Distinct from @fsbostondalton (One Dalton).
+88,Four Seasons Hotel des Bergues Geneva,Switzerland,Europe,https://www.fourseasons.com/geneva/,@fsgeneva,https://www.instagram.com/fsgeneva,
+89,Four Seasons Hotel Doha,Qatar,Middle East,https://www.fourseasons.com/doha/,@fsdoha,https://www.instagram.com/fsdoha,
+90,Four Seasons Hotel Dubai International Financial Centre,United Arab Emirates,Middle East,https://www.fourseasons.com/dubaidifc/,@fsdubaidifc,https://www.instagram.com/fsdubaidifc,
+91,Four Seasons Hotel Firenze,Italy,Europe,https://www.fourseasons.com/florence/,@fsflorence,https://www.instagram.com/fsflorence,
+92,"Four Seasons Hotel George V, Paris",France,Europe,https://www.fourseasons.com/paris/,@fsgeorgevparis,https://www.instagram.com/fsgeorgevparis,
+93,Four Seasons Hotel Gresham Palace Budapest,Hungary,Europe,https://www.fourseasons.com/budapest/,@fsbudapest,https://www.instagram.com/fsbudapest,
+94,Four Seasons Hotel Hong Kong,China,Asia-Pacific,https://www.fourseasons.com/hongkong/,@fshongkong,https://www.instagram.com/fshongkong,
+95,Four Seasons Hotel Istanbul at Sultanahmet,Turkey,Europe,https://www.fourseasons.com/istanbul/,@fssultanahmet,https://www.instagram.com/fssultanahmet,
+96,Four Seasons Hotel Istanbul at the Bosphorus,Turkey,Europe,https://www.fourseasons.com/bosphorus/,@fsbosphorus,https://www.instagram.com/fsbosphorus,
+97,Four Seasons Hotel Kuwait at Burj Alshaya,Kuwait,Middle East,https://www.fourseasons.com/kuwait/,@fskuwait,https://www.instagram.com/fskuwait,
+98,Four Seasons Hotel London at Park Lane,United Kingdom,Europe,https://www.fourseasons.com/london/,@fslondon,https://www.instagram.com/fslondon,
+99,Four Seasons Hotel London at Tower Bridge,United Kingdom,Europe,https://www.fourseasons.com/towerbridge/,@fstowerbridge,https://www.instagram.com/fstowerbridge,
+100,Four Seasons Hotel Macao,China,Asia-Pacific,https://www.fourseasons.com/macau/,@fsmacau,https://www.instagram.com/fsmacau,
+101,Four Seasons Hotel Madrid,Spain,Europe,https://www.fourseasons.com/madrid/,@fsmadrid,https://www.instagram.com/fsmadrid,
+102,Four Seasons Hotel New York Downtown,United States,Americas,https://www.fourseasons.com/newyorkdowntown/,@fsnydowntown,https://www.instagram.com/fsnydowntown,Distinct from @fsnewyork (Midtown).
+103,"Four Seasons Hotel One Dalton Street, Boston",United States,Americas,https://www.fourseasons.com/onedalton/,@fsbostondalton,https://www.instagram.com/fsbostondalton,
+104,Four Seasons Hotel Prague,Czech Republic,Europe,https://www.fourseasons.com/prague/,@fsprague,https://www.instagram.com/fsprague,
+105,Four Seasons Hotel Ritz Lisbon,Portugal,Europe,https://www.fourseasons.com/lisbon/,@fslisbon,https://www.instagram.com/fslisbon,
+106,Four Seasons Hotel Riyadh at Kingdom Centre,Saudi Arabia,Middle East,https://www.fourseasons.com/riyadh/,@fsriyadh,https://www.instagram.com/fsriyadh,
+107,Four Seasons Hotel Seoul,South Korea,Asia-Pacific,https://www.fourseasons.com/seoul/,@fsseoul,https://www.instagram.com/fsseoul,
+108,Four Seasons Hotel Toronto,Canada,Americas,https://www.fourseasons.com/toronto/,@fstoronto,https://www.instagram.com/fstoronto,
+109,"Four Seasons Hotel Washington, D.C.",United States,Americas,https://www.fourseasons.com/washington/,@fswashington,https://www.instagram.com/fswashington,
+110,Four Seasons Resort and Residences Anguilla,Anguilla,Americas,https://www.fourseasons.com/anguilla/,@fsanguilla,https://www.instagram.com/fsanguilla,
+111,Four Seasons Resort and Residences Napa Valley,United States,Americas,https://www.fourseasons.com/napavalley/,@fsnapavalley,https://www.instagram.com/fsnapavalley,
+112,Four Seasons Resort Bali at Jimbaran Bay,Indonesia,Asia-Pacific,https://www.fourseasons.com/jimbaranbay/,@fsbali,https://www.instagram.com/fsbali,@fsbali is the shared Four Seasons Resorts Bali account (Jimbaran Bay + Sayan).
+113,Four Seasons Resort Bali at Sayan,Indonesia,Asia-Pacific,https://www.fourseasons.com/sayan/,@fsbali,https://www.instagram.com/fsbali,@fsbali is the shared Four Seasons Resorts Bali account (Sayan + Jimbaran Bay).
+114,Four Seasons Resort Dubai at Jumeirah Beach,United Arab Emirates,Middle East,https://www.fourseasons.com/dubaijb/,@fsdubai,https://www.instagram.com/fsdubai,
+115,Four Seasons Resort Hualalai,United States,Americas,https://www.fourseasons.com/hualalai/,@fshualalai,https://www.instagram.com/fshualalai,
+116,Four Seasons Resort Lanai,United States,Americas,https://www.fourseasons.com/lanai/,@fslanai,https://www.instagram.com/fslanai,Covers Four Seasons Resort Lanai and sister Sensei Lanai.
+117,Four Seasons Resort Maldives at Kuda Huraa,Maldives,Asia-Pacific,https://www.fourseasons.com/maldiveskh/,@fsmaldives,https://www.instagram.com/fsmaldives,Shared Four Seasons Resorts Maldives account; no Kuda Huraa-specific account.
+118,Four Seasons Resort Maui at Wailea,United States,Americas,https://www.fourseasons.com/maui/,@fsmaui,https://www.instagram.com/fsmaui,
+119,Four Seasons Resort Palm Beach,United States,Americas,https://www.fourseasons.com/palmbeach/,@fspalmbeach,https://www.instagram.com/fspalmbeach,
+120,"Four Seasons Resort Peninsula Papagayo, Costa Rica",Costa Rica,Americas,https://www.fourseasons.com/costarica/,@fscostarica,https://www.instagram.com/fscostarica,
+121,"Four Seasons Resort Punta Mita, Mexico",Mexico,Americas,https://www.fourseasons.com/puntamita/,@fspuntamita,https://www.instagram.com/fspuntamita,
+122,"Four Seasons Resort The Nam Hai, Hoi An",Vietnam,Asia-Pacific,https://www.fourseasons.com/hoian/,@fsnamhai,https://www.instagram.com/fsnamhai,
+123,Galaxy Hotel Macau,China,Asia-Pacific,https://www.galaxymacau.com/hotels/galaxy-hotel/,@galaxymacau,https://www.instagram.com/galaxymacau,Integrated-resort account; no Galaxy Hotel-specific account.
+124,Gardena Grödnerhof,Italy,Europe,https://www.gardena.it/en/,@gardenagroednerhof,https://www.instagram.com/gardenagroednerhof,
+125,The Goring,United Kingdom,Europe,https://www.thegoring.com/,@thegoring,https://www.instagram.com/thegoring,
+126,Grand Lisboa Hotel,China,Asia-Pacific,https://www.grandlisboahotel.com/,,,"Two plausible accounts (@grandlisboamacau, @grandlisboahotel); official site publishes no Instagram link. Left blank for review."
+127,Grand Lisboa Palace Macau,China,Asia-Pacific,https://www.grandlisboapalace.com/en/hotels/grand-lisboa-palace-macau,@grandlisboapalace,https://www.instagram.com/grandlisboapalace,
+128,The Grand Suites at Four Seasons,China,Asia-Pacific,https://www.fourseasons.com/grandsuitesmacau/,@grandsuitesmacau,https://www.instagram.com/grandsuitesmacau,
+129,Grand Velas Los Cabos,Mexico,Americas,https://loscabos.grandvelas.com/,@grandvelascabos,https://www.instagram.com/grandvelascabos,
+130,"Grand-Hôtel du Cap-Ferrat, A Four Seasons Hotel",France,Europe,https://www.fourseasons.com/capferrat/,@fscapferrat,https://www.instagram.com/fscapferrat,
+131,"Grosvenor House, a Luxury Collection Hotel, Dubai",United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/dxbgl-grosvenor-house-a-luxury-collection-hotel-dubai/overview/,@grosvenorhouse,https://www.instagram.com/grosvenorhouse,Official page on Marriott (Luxury Collection).
+132,Halekulani Okinawa,Japan,Asia-Pacific,https://www.okinawa.halekulani.com/en/,@halekulani_okinawa,https://www.instagram.com/halekulani_okinawa,
+133,Hassler Roma,Italy,Europe,https://www.hotelhasslerroma.com/,@hotelhasslerroma,https://www.instagram.com/hotelhasslerroma,
+134,The Hazelton Hotel,Canada,Americas,https://www.thehazeltonhotel.com/,@hazeltonto,https://www.instagram.com/hazeltonto,
+135,Hotel 41,United Kingdom,Europe,https://41hotel.com/,@41hotel,https://www.instagram.com/41hotel,
+136,"Hotel das Cataratas, A Belmond Hotel, Iguassu Falls",Brazil,Americas,https://www.belmond.com/hotels/south-america/brazil/iguassu-falls/belmond-hotel-das-cataratas/,@belmondhoteldascataratas,https://www.instagram.com/belmondhoteldascataratas,
+137,"Hôtel de Crillon, A Rosewood Hotel",France,Europe,https://www.rosewoodhotels.com/en/hotel-de-crillon,@rosewoodhoteldecrillon,https://www.instagram.com/rosewoodhoteldecrillon,
+138,"Hotel de la Ville, a Rocco Forte Hotel",Italy,Europe,https://www.roccofortehotels.com/hotels-and-resorts/hotel-de-la-ville/,@hoteldelavillerome,https://www.instagram.com/hoteldelavillerome,
+139,Hôtel de Paris Monte-Carlo,Monaco,Europe,https://www.montecarlosbm.com/en/hotel-monaco/hotel-paris-monte-carlo,@hoteldeparismc,https://www.instagram.com/hoteldeparismc,Page within Monte-Carlo SBM (parent) site.
+140,"Hotel de Russie, a Rocco Forte Hotel",Italy,Europe,https://www.roccofortehotels.com/hotels-and-resorts/hotel-de-russie/,@hotelderussie,https://www.instagram.com/hotelderussie,
+141,Hotel du Cap-Eden-Roc,France,Europe,https://www.oetkerhotels.com/hotels/hotel-du-cap-eden-roc/,@hotelducapedenroc,https://www.instagram.com/hotelducapedenroc,
+142,Hotel Eden,Italy,Europe,https://www.dorchestercollection.com/rome/hotel-eden,@hoteledenrome,https://www.instagram.com/hoteledenrome,
+143,Hotel Esencia,Mexico,Americas,https://hotelesencia.com/,@hotelesencia,https://www.instagram.com/hotelesencia,
+144,Hotel Il Pellicano,Italy,Europe,https://www.pellicanohotels.com/en/hotels/hotel-il-pellicano/,@hotelilpellicano,https://www.instagram.com/hotelilpellicano,Page within Pellicano Hotels group site.
+145,Hotel New Otani Tokyo Executive House Zen,Japan,Asia-Pacific,https://www.newotani.co.jp/en/tokyo/stay/exe/,@executivehousezen,https://www.instagram.com/executivehousezen,"Executive House Zen, the Forbes Five-Star floors within Hotel New Otani Tokyo."
+146,Hotel Okura Macau,China,Asia-Pacific,https://www.okura-nikko.com/china/macau/hotel-okura-macau/,@hotelokuramacau,https://www.instagram.com/hotelokuramacau,Official page on Okura Nikko brand site.
+147,Hotel Plaza Athénée Paris,France,Europe,https://www.dorchestercollection.com/paris/hotel-plaza-athenee,@plaza_athenee,https://www.instagram.com/plaza_athenee,
+148,"Hotel Savoy, a Rocco Forte Hotel",Italy,Europe,https://www.roccofortehotels.com/hotels-and-resorts/hotel-savoy/,@hotelsavoyflorence,https://www.instagram.com/hotelsavoyflorence,
+149,"HOTEL THE MITSUI KYOTO, A Luxury Collection Hotel & Spa",Japan,Asia-Pacific,https://www.hotelthemitsui.com/en/kyoto/,@hotel_the_mitsui_kyoto,https://www.instagram.com/hotel_the_mitsui_kyoto,IG from official site footer.
+150,Hurawalhi Island Resort,Maldives,Asia-Pacific,https://www.hurawalhi.com/,@hurawalhi,https://www.instagram.com/hurawalhi,"Handle confirmed via search (248K, references 5.8 Undersea Restaurant)."
+151,Iniala Valletta,Malta,Europe,https://www.iniala.com/iniala-valletta,@inialavalletta,https://www.instagram.com/inialavalletta,IG from official site footer.
+152,The Inn at Little Washington,United States,Americas,https://www.theinnatlittlewashington.com/,@innatlittlewash,https://www.instagram.com/innatlittlewash,IG from official site footer.
+153,J.K. Place Capri,Italy,Europe,https://www.jkplaces.com/jkcapri/,@jkplacecapri,https://www.instagram.com/jkplacecapri,IG from official site footer.
+154,J.K. Place Roma,Italy,Europe,https://www.jkplaces.com/jkroma/,@jkplaceroma,https://www.instagram.com/jkplaceroma,IG from official site footer.
+155,JOALI BEING,Maldives,Asia-Pacific,https://www.joali.com/joali-being/,@joalibeing,https://www.instagram.com/joalibeing,
+156,JOALI Maldives,Maldives,Asia-Pacific,https://www.joali.com/joali-maldives/,@joalimaldives,https://www.instagram.com/joalimaldives,
+157,Jumeirah Al Naseem,United Arab Emirates,Middle East,https://www.jumeirah.com/en/stay/dubai/jumeirah-al-naseem,@jumeirahalnaseem,https://www.instagram.com/jumeirahalnaseem,Property page on parent jumeirah.com.
+158,Jumeirah Burj Al Arab,United Arab Emirates,Middle East,https://www.jumeirah.com/en/stay/dubai/jumeirah-burj-al-arab,@jumeirahburjalarab,https://www.instagram.com/jumeirahburjalarab,Bio notes phased restoration as of 2026.
+159,THE KARL LAGERFELD,China,Asia-Pacific,https://www.thekarllagerfeld.mo/en,@thekarllagerfeld,https://www.instagram.com/thekarllagerfeld,IG from official site footer.
+160,Kimpton Seafire Resort + Spa,Cayman Islands,Americas,https://www.seafireresortandspa.com/,@seafireresort,https://www.instagram.com/seafireresort,IG from official site footer.
+161,Kudadoo Maldives Private Island,Maldives,Asia-Pacific,https://www.kudadoo.com/,@kudadoomaldives,https://www.instagram.com/kudadoomaldives,Handle confirmed via search (property-specific).
+162,"The Langham, Chicago",United States,Americas,https://www.langhamhotels.com/en/the-langham/chicago/,@langhamchicago,https://www.instagram.com/langhamchicago,Property page on parent site.
+163,"Las Ventanas al Paraíso, A Rosewood Resort",Mexico,Americas,https://www.rosewoodhotels.com/en/las-ventanas-los-cabos,@lasventanasalparaiso,https://www.instagram.com/lasventanasalparaiso,IG from Rosewood property-page footer.
+164,La Casa de la Playa,Mexico,Americas,https://www.lacasadelaplaya.com/en/,@lacasadelaplaya,https://www.instagram.com/lacasadelaplaya,Grupo Xcaret boutique hotel.
+165,Le Bristol Paris,France,Europe,https://www.oetkerhotels.com/hotels/le-bristol-paris/,@lebristolparis,https://www.instagram.com/lebristolparis,IG from Oetker property-page footer.
+166,"Le Meurice, Dorchester Collection",France,Europe,https://www.dorchestercollection.com/paris/le-meurice,@lemeuriceparis,https://www.instagram.com/lemeuriceparis,IG from Dorchester property-page footer.
+167,Le Sirenuse,Italy,Europe,https://sirenuse.it/en/,@lesirenuse,https://www.instagram.com/lesirenuse,IG from official site footer.
+168,The Little Nell,United States,Americas,https://www.thelittlenell.com/,@thelittlenell,https://www.instagram.com/thelittlenell,IG from official site footer.
+169,"The Lodge at Blue Sky, Auberge Collection",United States,Americas,https://auberge.com/blue-sky/,@blueskyauberge,https://www.instagram.com/blueskyauberge,Property page on parent auberge.com.
+170,The Lodge at Sea Island,United States,Americas,https://www.seaisland.com/stay/the-lodge/,@seaisland,https://www.instagram.com/seaisland,The Lodge is part of Sea Island Resort; resort account used (consistent with The Cloister).
+171,Londoner Court,China,Asia-Pacific,https://www.londonermacao.com/hotels/londoner-court.html,@the_londoner_macao,https://www.instagram.com/the_londoner_macao,Londoner Court is a suite product within The Londoner Macao; resort account used.
+172,The Londoner Hotel,China,Asia-Pacific,https://www.londonermacao.com/hotels/londoner-hotel.html,@the_londoner_macao,https://www.instagram.com/the_londoner_macao,Part of The Londoner Macao; resort account used.
+173,La Réserve Paris,France,Europe,https://www.lareserve-paris.com/en/,@lareserveparis,https://www.instagram.com/lareserveparis,IG from official site footer.
+174,LUX* Belle Mare,Mauritius,Africa,https://www.luxresorts.com/en/mauritius/hotel/luxbellemare,@luxbellemare,https://www.instagram.com/luxbellemare,IG from LUX* property-page footer.
+175,LUX* Grand Baie,Mauritius,Africa,https://www.luxresorts.com/en/mauritius/hotel/luxgrandbaie,@luxgrandbaie,https://www.instagram.com/luxgrandbaie,IG from LUX* property-page footer.
+176,LUX* South Ari Atoll,Maldives,Asia-Pacific,https://www.luxresorts.com/en/maldives/resort/luxsouthariatoll,@luxsouthari,https://www.instagram.com/luxsouthari,IG from LUX* property-page footer.
+177,"Mandapa, a Ritz-Carlton Reserve",Indonesia,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/dpsub-mandapa-a-ritz-carlton-reserve/overview/,@mandapareserve,https://www.instagram.com/mandapareserve,Property page on parent ritzcarlton.com.
+178,"Mandarin Oriental, Bangkok",Thailand,Asia-Pacific,https://www.mandarinoriental.com/en/bangkok/chao-phraya-river,@mo_bangkok,https://www.instagram.com/mo_bangkok,
+179,"Mandarin Oriental, Barcelona",Spain,Europe,https://www.mandarinoriental.com/en/barcelona/passeig-de-gracia,@mo_barcelona,https://www.instagram.com/mo_barcelona,
+180,"Mandarin Oriental, Bodrum",Turkey,Europe,https://www.mandarinoriental.com/en/bodrum/paradise-bay,@mo_bodrum,https://www.instagram.com/mo_bodrum,
+181,"Mandarin Oriental Bosphorus, Istanbul",Turkey,Europe,https://www.mandarinoriental.com/en/istanbul/bosphorus,@mo_istanbul,https://www.instagram.com/mo_istanbul,
+182,"Mandarin Oriental, Boston",United States,Americas,https://www.mandarinoriental.com/en/boston/back-bay,@mo_boston,https://www.instagram.com/mo_boston,
+183,"Mandarin Oriental, Canouan",Saint Vincent and the Grenadines,Americas,https://www.mandarinoriental.com/en/canouan/caribbean,@mo_canouan,https://www.instagram.com/mo_canouan,
+184,"Mandarin Oriental, Costa Navarino",Greece,Europe,https://www.mandarinoriental.com/en/costa-navarino/messenia,@mo_costanavarino,https://www.instagram.com/mo_costanavarino,
+185,"Mandarin Oriental, Doha",Qatar,Middle East,https://www.mandarinoriental.com/en/doha/qatar,@mo_doha,https://www.instagram.com/mo_doha,
+186,"Mandarin Oriental, Geneva",Switzerland,Europe,https://www.mandarinoriental.com/en/geneva/rhone-river,@mo_geneva,https://www.instagram.com/mo_geneva,
+187,"Mandarin Oriental, Hong Kong",China,Asia-Pacific,https://www.mandarinoriental.com/en/hong-kong/victoria-harbour,@mo_hkg,https://www.instagram.com/mo_hkg,Distinct from Landmark MO @mo_landmarkhk.
+188,"Mandarin Oriental, Hyde Park, London",United Kingdom,Europe,https://www.mandarinoriental.com/en/london/hyde-park,@mo_hydepark,https://www.instagram.com/mo_hydepark,
+189,"Mandarin Oriental Jumeira, Dubai",United Arab Emirates,Middle East,https://www.mandarinoriental.com/en/dubai/jumeira-beach,@mo_jumeira,https://www.instagram.com/mo_jumeira,
+190,"Mandarin Oriental, Lago di Como",Italy,Europe,https://www.mandarinoriental.com/en/lake-como/blevio,@mo_lagodicomo,https://www.instagram.com/mo_lagodicomo,
+191,"Mandarin Oriental, Marrakech",Morocco,Africa,https://www.mandarinoriental.com/en/marrakech/la-mamounia,@mo_marrakech,https://www.instagram.com/mo_marrakech,
+192,"Mandarin Oriental, Milan",Italy,Europe,https://www.mandarinoriental.com/en/milan/la-scala,@mo_milan,https://www.instagram.com/mo_milan,
+193,"Mandarin Oriental, New York",United States,Americas,https://www.mandarinoriental.com/en/new-york/manhattan,@mo_newyork,https://www.instagram.com/mo_newyork,
+194,"Mandarin Oriental Palace, Luzern",Switzerland,Europe,https://www.mandarinoriental.com/en/luzern/palace,@mo_luzern,https://www.instagram.com/mo_luzern,
+195,"Mandarin Oriental, Paris",France,Europe,https://www.mandarinoriental.com/en/paris/place-vendome,@mo_paris,https://www.instagram.com/mo_paris,
+196,"Mandarin Oriental Pudong, Shanghai",China,Asia-Pacific,https://www.mandarinoriental.com/en/shanghai/pudong,@mo_pudong,https://www.instagram.com/mo_pudong,
+197,"Mandarin Oriental Qianmen, Beijing",China,Asia-Pacific,https://www.mandarinoriental.com/en/beijing/qianmen,@mo_qianmen,https://www.instagram.com/mo_qianmen,
+198,"Mandarin Oriental Ritz, Madrid",Spain,Europe,https://www.mandarinoriental.com/en/madrid/hotel-ritz,@mo_ritzmadrid,https://www.instagram.com/mo_ritzmadrid,
+199,"Mandarin Oriental Savoy, Zurich",Switzerland,Europe,https://www.mandarinoriental.com/en/zurich/savoy,@mo_savoyzurich,https://www.instagram.com/mo_savoyzurich,
+200,"Mandarin Oriental, Shenzhen",China,Asia-Pacific,https://www.mandarinoriental.com/en/shenzhen/futian,@mo_shenzhen_,https://www.instagram.com/mo_shenzhen_,Handle has trailing underscore.
+201,"Mandarin Oriental The Landmark, Hong Kong",China,Asia-Pacific,https://www.mandarinoriental.com/en/hong-kong/the-landmark,@mo_landmarkhk,https://www.instagram.com/mo_landmarkhk,Distinct from @mo_hkg.
+202,"Mandarin Oriental, Tokyo",Japan,Asia-Pacific,https://www.mandarinoriental.com/en/tokyo/nihonbashi,@mo_tokyo,https://www.instagram.com/mo_tokyo,
+203,"Mandarin Oriental Wangfujing, Beijing",China,Asia-Pacific,https://www.mandarinoriental.com/en/beijing/wangfujing,@mo_wangfujing,https://www.instagram.com/mo_wangfujing,
+204,"Maroma, A Belmond Hotel, Riviera Maya",Mexico,Americas,https://www.belmond.com/hotels/north-america/mexico/riviera-maya/belmond-maroma-resort-and-spa/,@belmondmaroma,https://www.instagram.com/belmondmaroma,
+205,The Maybourne Beverly Hills,United States,Americas,https://www.maybournebeverlyhills.com/,@themaybournebh,https://www.instagram.com/themaybournebh,
+206,The Maybourne Riviera,France,Europe,https://www.maybourneriviera.com/,@themaybourneriviera,https://www.instagram.com/themaybourneriviera,
+207,Meadowood Napa Valley,United States,Americas,https://meadowood.com/,@meadowoodnapavalley,https://www.instagram.com/meadowoodnapavalley,
+208,MGM MACAU,China,Asia-Pacific,https://www.mgm.mo/en/stay/mgm-macau,,,No MGM Macau-specific IG; @mgm.mo is shared across MGM Macau and MGM Cotai. Left blank.
+209,Mii amo,United States,Americas,https://miiamo.com/,@mii_amo_spa,https://www.instagram.com/mii_amo_spa,Destination spa-hotel account.
+210,Montage Big Sky,United States,Americas,https://www.montage.com/bigsky/,@montagebigsky,https://www.instagram.com/montagebigsky,
+211,Montage Deer Valley,United States,Americas,https://www.montage.com/deervalley/,@montagedeervalley,https://www.instagram.com/montagedeervalley,
+212,Montage Healdsburg,United States,Americas,https://www.montage.com/healdsburg/,@montagehealdsburg,https://www.instagram.com/montagehealdsburg,
+213,Montage Laguna Beach,United States,Americas,https://www.montage.com/lagunabeach/,@montagelaguna,https://www.instagram.com/montagelaguna,
+214,Montage Los Cabos,Mexico,Americas,https://www.montage.com/loscabos/,@montageloscabos,https://www.instagram.com/montageloscabos,
+215,Montage Palmetto Bluff,United States,Americas,https://www.montage.com/palmettobluff/,@montagepalmettobluff,https://www.instagram.com/montagepalmettobluff,
+216,Morpheus,China,Asia-Pacific,https://www.cityofdreamsmacau.com/en/hotels/morpheus,,,No confirmed Morpheus-specific IG; only resort-wide @cityofdreamsmacau. Left blank.
+217,"Mount Nelson, A Belmond Hotel, Cape Town",South Africa,Africa,https://www.belmond.com/hotels/africa/south-africa/cape-town/belmond-mount-nelson-hotel/,@belmondmountnelsonhotel,https://www.instagram.com/belmondmountnelsonhotel,
+218,"The Mulia - Nusa Dua, Bali",Indonesia,Asia-Pacific,https://www.themulia.com/bali/themulia,@themuliabali,https://www.instagram.com/themuliabali,Official account covering the resort complex; no suites-only account.
+219,Nizuc Resort & Spa,Mexico,Americas,https://www.nizuc.com/,@nizucresort,https://www.instagram.com/nizucresort,
+220,"Nujuma, a Ritz-Carlton Reserve",Saudi Arabia,Middle East,https://www.ritzcarlton.com/en/hotels/ejhrz-nujuma-a-ritz-carlton-reserve/overview/,@nujumareserve,https://www.instagram.com/nujumareserve,
+221,Nüwa Macau,China,Asia-Pacific,https://www.cityofdreamsmacau.com/en/hotels/nuwa,,,No confirmed Nuwa Macau-specific IG; only resort-wide @cityofdreamsmacau. Left blank.
+222,Nüwa Manila at City of Dreams,Philippines,Asia-Pacific,https://www.cityofdreamsmanila.com/en/stay/nuwa,,,"Two plausible small accounts (@nuwahotelmanila, @nuwaph); could not confirm official. Left blank."
+223,"The Oberoi Beach Resort, Mauritius",Mauritius,Africa,https://www.oberoihotels.com/hotels-in-mauritius/,@theoberoimauritius,https://www.instagram.com/theoberoimauritius,
+224,Ocean House,United States,Americas,https://www.oceanhouseri.com/,@oceanhouseri,https://www.instagram.com/oceanhouseri,
+225,Okada Manila,Philippines,Asia-Pacific,https://okadamanila.com/,@okadamanila,https://www.instagram.com/okadamanila,
+226,The Okura Tokyo,Japan,Asia-Pacific,https://theokuratokyo.jp/en/,@theokuratokyo,https://www.instagram.com/theokuratokyo,
+227,One&Only Gorilla's Nest,Rwanda,Africa,https://www.oneandonlyresorts.com/gorillas-nest,@oorwanda,https://www.instagram.com/oorwanda,@oorwanda is the official One&Only Rwanda account (Gorilla's Nest + Nyungwe House); no property-only account.
+228,One&Only Le Saint Géran,Mauritius,Africa,https://www.oneandonlyresorts.com/le-saint-geran,@oolesaintgeran,https://www.instagram.com/oolesaintgeran,
+229,One&Only Nyungwe House,Rwanda,Africa,https://www.oneandonlyresorts.com/nyungwe-house,@oonyungwehouse,https://www.instagram.com/oonyungwehouse,Property-specific account.
+230,"One&Only Palmilla, Los Cabos Resort",Mexico,Americas,https://www.oneandonlyresorts.com/palmilla,@oneandonlypalmilla,https://www.instagram.com/oneandonlypalmilla,
+231,One&Only Portonovi,Montenegro,Europe,https://www.oneandonlyresorts.com/portonovi,@ooportonovi,https://www.instagram.com/ooportonovi,
+232,One&Only Reethi Rah,Maldives,Asia-Pacific,https://www.oneandonlyresorts.com/reethi-rah,@ooreethirah,https://www.instagram.com/ooreethirah,
+233,One&Only Royal Mirage - The Residence,United Arab Emirates,Middle East,https://www.oneandonlyresorts.com/royal-mirage/accommodation/the-residence,@ooroyalmirage,https://www.instagram.com/ooroyalmirage,The Residence is within One&Only Royal Mirage; resort account used.
+234,The Paiza Collection at Marina Bay Sands,Singapore,Asia-Pacific,https://www.marinabaysands.com/hotel/the-paiza-collection.html,,,The Paiza Collection is a suite product within Marina Bay Sands; no property-specific IG. Left blank.
+235,Paiza Grand,China,Asia-Pacific,https://www.londonermacao.com/hotels/paiza-grand.html,@the_londoner_macao,https://www.instagram.com/the_londoner_macao,Paiza Grand is within The Londoner Macao; resort account used.
+236,Paiza Lofts,China,Asia-Pacific,https://www.parisianmacao.com/paiza-lofts.html,@parisian_macao,https://www.instagram.com/parisian_macao,Paiza Lofts is within The Parisian Macao; resort account used.
+237,Palace Hotel Tokyo,Japan,Asia-Pacific,https://www.palacehoteltokyo.com/,@palacehoteltokyo,https://www.instagram.com/palacehoteltokyo,
+238,Palazzo Versace Macau,China,Asia-Pacific,https://www.palazzoversace.mo/en,@palazzoversacemacau,https://www.instagram.com/palazzoversacemacau,
+239,Pan Pacific London,United Kingdom,Europe,https://www.panpacific.com/en/hotels-and-resorts/pp-london.html,@panpacificlondon,https://www.instagram.com/panpacificlondon,
+240,Park Hotel Vitznau,Switzerland,Europe,https://www.parkhotel-vitznau.ch/en/,@parkhotelvitznau,https://www.instagram.com/parkhotelvitznau,
+241,"Patina Maldives, Fari Islands",Maldives,Asia-Pacific,https://patinahotels.com/maldives,@patinamaldives,https://www.instagram.com/patinamaldives,
+242,The Peninsula Bangkok,Thailand,Asia-Pacific,https://www.peninsula.com/en/bangkok/5-star-luxury-hotel-riverside,@thepeninsulabangkok,https://www.instagram.com/thepeninsulabangkok,
+243,The Peninsula Beijing,China,Asia-Pacific,https://www.peninsula.com/en/beijing/5-star-luxury-hotel-wangfujing,@thepeninsulabeijing,https://www.instagram.com/thepeninsulabeijing,
+244,The Peninsula Chicago,United States,Americas,https://www.peninsula.com/en/chicago,@thepeninsulachi,https://www.instagram.com/thepeninsulachi,
+245,The Peninsula Hong Kong,China,Asia-Pacific,https://www.peninsula.com/en/hong-kong,@peninsulahongkong,https://www.instagram.com/peninsulahongkong,
+246,The Peninsula Manila,Philippines,Asia-Pacific,https://www.peninsula.com/en/manila/5-star-luxury-hotel-makati,@thepeninsulamanila,https://www.instagram.com/thepeninsulamanila,
+247,The Peninsula New York,United States,Americas,https://www.peninsula.com/en/new-york,@thepeninsulanyc,https://www.instagram.com/thepeninsulanyc,
+248,The Peninsula Shanghai,China,Asia-Pacific,https://www.peninsula.com/en/shanghai/5-star-luxury-hotel-bund,@thepeninsulashanghai,https://www.instagram.com/thepeninsulashanghai,
+249,The Peninsula Tokyo,Japan,Asia-Pacific,https://www.peninsulatokyo.com/,@thepeninsulatokyo,https://www.instagram.com/thepeninsulatokyo,
+250,The Point,United States,Americas,https://thepointresort.com/,@the_pointresort,https://www.instagram.com/the_pointresort,
+251,Portrait Firenze  — Lungarno Collection,Italy,Europe,https://www.lungarnocollection.com/portrait-firenze/,@portraitfirenze,https://www.instagram.com/portraitfirenze,
+252,The Post Oak Hotel at Uptown Houston,United States,Americas,https://www.thepostoakhotel.com/,@postoakuptown,https://www.instagram.com/postoakuptown,
+253,The Prince Akatoki London,United Kingdom,Europe,https://www.theprinceakatokilondon.com/,@theprinceakatokilondon,https://www.instagram.com/theprinceakatokilondon,
+254,"The Prince Gallery Tokyo Kioicho, a Luxury Collection Hotel",Japan,Asia-Pacific,https://www.marriott.com/en-us/hotels/tyolc-the-prince-gallery-tokyo-kioicho-a-luxury-collection-hotel/overview/,@princegallerytokyokioicho,https://www.instagram.com/princegallerytokyokioicho,Marriott Luxury Collection property page.
+255,Raffles at Galaxy Macau,China,Asia-Pacific,https://www.raffles.com/macau/,@raffles.galaxymacau,https://www.instagram.com/raffles.galaxymacau,Property opened 2024; newer account.
+256,Raffles Doha,Qatar,Middle East,https://www.raffles.com/doha/,@rafflesdoha,https://www.instagram.com/rafflesdoha,
+257,Raffles Hotel Singapore,Singapore,Asia-Pacific,https://www.raffles.com/singapore/,@raffleshotelsingapore,https://www.instagram.com/raffleshotelsingapore,
+258,Raffles Istanbul,Turkey,Europe,https://www.raffles.com/istanbul/,@rafflesistanbul,https://www.instagram.com/rafflesistanbul,
+259,Raffles London at The OWO,United Kingdom,Europe,https://www.raffles.com/london/,@raffleslondon.theowo,https://www.instagram.com/raffleslondon.theowo,
+260,The Ranch at Rock Creek,United States,Americas,https://theranchatrockcreek.com/,@theranchatrockcreek,https://www.instagram.com/theranchatrockcreek,
+261,Rancho Valencia Resort & Spa,United States,Americas,https://ranchovalencia.com/,@ranchovalencia,https://www.instagram.com/ranchovalencia,
+262,Regent Hong Kong,China,Asia-Pacific,https://hongkong.regenthotels.com/,@hongkongregent,https://www.instagram.com/hongkongregent,
+263,The Resort at Pelican Hill,United States,Americas,https://pelicanhill.com/,@pelicanhillresort,https://www.instagram.com/pelicanhillresort,
+264,Ritz Paris,France,Europe,https://www.ritzparis.com/,@ritzparis,https://www.instagram.com/ritzparis,
+265,"The Ritz-Carlton, Chengdu",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/cturz-the-ritz-carlton-chengdu/overview/,@theritzcarltonchengdu,https://www.instagram.com/theritzcarltonchengdu,
+266,"The Ritz-Carlton, Dallas",United States,Americas,https://www.ritzcarlton.com/en/hotels/dalrz-the-ritz-carlton-dallas/overview/,@ritzcarltondallas,https://www.instagram.com/ritzcarltondallas,"Distinct from Ritz-Carlton Dallas, Las Colinas."
+267,"The Ritz-Carlton, Dove Mountain",United States,Americas,https://www.ritzcarlton.com/en/hotels/tusrz-the-ritz-carlton-dove-mountain/overview/,@ritzcarltondovemountain,https://www.instagram.com/ritzcarltondovemountain,
+268,"The Ritz-Carlton, Dubai",United Arab Emirates,Middle East,https://www.ritzcarlton.com/en/hotels/dxbrz-the-ritz-carlton-dubai/overview/,@ritzcarltondubai,https://www.instagram.com/ritzcarltondubai,"JBR property; distinct from The Ritz-Carlton, DIFC."
+269,"The Ritz-Carlton, Grand Cayman",Cayman Islands,Americas,https://www.ritzcarlton.com/en/hotels/gcmrz-the-ritz-carlton-grand-cayman/overview/,@ritzcarltongrandcayman,https://www.instagram.com/ritzcarltongrandcayman,
+270,"The Ritz-Carlton, Guangzhou",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/canrz-the-ritz-carlton-guangzhou/overview/,@ritzcarltonguangzhou,https://www.instagram.com/ritzcarltonguangzhou,
+271,"The Ritz-Carlton, Half Moon Bay",United States,Americas,https://www.ritzcarlton.com/en/hotels/hafrz-the-ritz-carlton-half-moon-bay/overview/,@ritzcarltonhmb,https://www.instagram.com/ritzcarltonhmb,
+272,"The Ritz-Carlton, Hong Kong",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/hkgkw-the-ritz-carlton-hong-kong/overview/,@ritzcarltonhongkong,https://www.instagram.com/ritzcarltonhongkong,
+273,"The Ritz-Carlton, Kyoto",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/ukyrz-the-ritz-carlton-kyoto/overview/,@ritzcarltonkyoto,https://www.instagram.com/ritzcarltonkyoto,
+274,"The Ritz-Carlton, Macau",China,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/mfmmr-the-ritz-carlton-macau/overview/,@ritzcarltonmacau,https://www.instagram.com/ritzcarltonmacau,
+275,"The Ritz-Carlton Maldives, Fari Islands",Maldives,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/mlera-the-ritz-carlton-maldives-fari-islands/overview/,@ritzcarltonmaldives,https://www.instagram.com/ritzcarltonmaldives,
+276,"The Ritz-Carlton New York, Central Park",United States,Americas,https://www.ritzcarlton.com/en/hotels/nyccp-the-ritz-carlton-new-york-central-park/overview/,@ritzcarltonnycentralpark,https://www.instagram.com/ritzcarltonnycentralpark,
+277,"The Ritz-Carlton, Nikko",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/tyonz-the-ritz-carlton-nikko/overview/,@ritzcarltonnikko,https://www.instagram.com/ritzcarltonnikko,
+278,"The Ritz-Carlton Orlando, Grande Lakes",United States,Americas,https://www.ritzcarlton.com/en/hotels/mcorz-the-ritz-carlton-orlando-grande-lakes/overview/,@ritzcarltonorlando,https://www.instagram.com/ritzcarltonorlando,Resort umbrella account is @grandelakesorlando.
+279,"The Ritz-Carlton, Osaka",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/osarz-the-ritz-carlton-osaka/overview/,@ritzcarlton.osaka,https://www.instagram.com/ritzcarlton.osaka,
+280,"The Ritz-Carlton, Riyadh",Saudi Arabia,Middle East,https://www.ritzcarlton.com/en/hotels/ruhrz-the-ritz-carlton-riyadh/overview/,@theritzcarltonruh,https://www.instagram.com/theritzcarltonruh,
+281,"The Ritz-Carlton, Tokyo",Japan,Asia-Pacific,https://www.ritzcarlton.com/en/hotels/tyorz-the-ritz-carlton-tokyo/overview/,@ritzcarltontokyo,https://www.instagram.com/ritzcarltontokyo,
+282,RiverView Ranch,United States,Americas,https://www.riverviewranch.com/,@riverviewranchretreat,https://www.instagram.com/riverviewranchretreat,"Independent Forbes Five-Star guest ranch (SLH member), Montana — not a Ritz-Carlton despite list name."
+283,"ROKU KYOTO, LXR Hotels & Resorts",Japan,Asia-Pacific,https://www.rokukyoto.com/,@roku.kyoto,https://www.instagram.com/roku.kyoto,
+284,Rosewood Doha,Qatar,Middle East,https://www.rosewoodhotels.com/en/doha,@rosewooddoha,https://www.instagram.com/rosewooddoha,
+285,Rosewood Guangzhou,China,Asia-Pacific,https://www.rosewoodhotels.com/en/guangzhou,@rosewoodguangzhou,https://www.instagram.com/rosewoodguangzhou,
+286,Rosewood London,United Kingdom,Europe,https://www.rosewoodhotels.com/en/london,@rosewoodlondon,https://www.instagram.com/rosewoodlondon,
+287,Rosewood Mayakoba,Mexico,Americas,https://www.rosewoodhotels.com/en/mayakoba-riviera-maya,@rwmayakoba,https://www.instagram.com/rwmayakoba,
+288,Rosewood Miramar Beach,United States,Americas,https://www.rosewoodhotels.com/en/miramar-beach-montecito,@rosewoodmiramarbeach,https://www.instagram.com/rosewoodmiramarbeach,
+289,Rosewood San Miguel de Allende,Mexico,Americas,https://www.rosewoodhotels.com/en/san-miguel-de-allende,@rosewoodsanmiguel,https://www.instagram.com/rosewoodsanmiguel,
+290,Rosewood Sand Hill,United States,Americas,https://www.rosewoodhotels.com/en/sand-hill-menlo-park,@rosewoodsandhill,https://www.instagram.com/rosewoodsandhill,
+291,Rosewood Villa Magna,Spain,Europe,https://www.rosewoodhotels.com/en/villa-magna,@rosewoodvillamagna,https://www.instagram.com/rosewoodvillamagna,
+292,Royal Champagne Hotel & Spa,France,Europe,https://royalchampagne.com/,@royalchampagne,https://www.instagram.com/royalchampagne,
+293,Royal Mansour Marrakech,Morocco,Africa,https://www.royalmansour.com/en/marrakech/,@royalmansourmarrakech,https://www.instagram.com/royalmansourmarrakech,Distinct from group @royalmansourcollection.
+294,Royal Palm Beachcomber Luxury,Mauritius,Africa,https://www.beachcomber-hotels.com/en/hotel/royal-palm-beachcomber-luxury,@royalpalmbeachcomber,https://www.instagram.com/royalpalmbeachcomber,Property page within parent Beachcomber site.
+295,Salamander Middleburg,United States,Americas,https://salamanderresort.com/,@salamanderresort,https://www.instagram.com/salamanderresort,Distinct from group @salamanderhotels.
+296,The Sanctuary at Kiawah Island Golf Resort,United States,Americas,https://kiawahresort.com/,@kiawahresort,https://www.instagram.com/kiawahresort,The Sanctuary is the hotel within Kiawah Island Golf Resort; resort account used.
+297,Sandy Lane Hotel,Barbados,Americas,https://www.sandylane.com/,@sandylanehotel,https://www.instagram.com/sandylanehotel,
+298,The Savoy,United Kingdom,Europe,https://www.thesavoylondon.com/,@thesavoylondon,https://www.instagram.com/thesavoylondon,
+299,"Saxon Hotel, Villas and Spa",South Africa,Africa,https://www.saxon.co.za/,@thesaxonhotel,https://www.instagram.com/thesaxonhotel,
+300,"The Setai, Miami Beach",United States,Americas,https://www.thesetaihotel.com/,@thesetaimiamibeach,https://www.instagram.com/thesetaimiamibeach,
+301,"Shangri-La Hotel, Toronto",Canada,Americas,https://www.shangri-la.com/toronto/shangrila/,@shangrilato,https://www.instagram.com/shangrilato,
+302,Shangri-La Paris,France,Europe,https://www.shangri-la.com/paris/shangrila/,@shangrilaparis,https://www.instagram.com/shangrilaparis,
+303,"Shangri-La The Shard, London",United Kingdom,Europe,https://www.shangri-la.com/london/shangrila/,@shangrilalondon,https://www.instagram.com/shangrilalondon,
+304,The Shilla Seoul,South Korea,Asia-Pacific,https://www.shilla.net/seoul/,@theshillaseoul,https://www.instagram.com/theshillaseoul,
+305,Sky Tower at Solaire Resort Entertainment City,Philippines,Asia-Pacific,https://www.skytowerspins.com/,@solaireresort,https://www.instagram.com/solaireresort,Sky Tower is the prestige tower within Solaire Resort; resort account used.
+306,Skylofts at MGM COTAI,China,Asia-Pacific,https://www.mgm.mo/en/cotai/rooms/skylofts,,,"Skylofts is a room product within MGM Cotai; @mgm.mo is shared, not property-specific. Left blank."
+307,Skylofts at MGM Grand,United States,Americas,https://mgmgrand.mgmresorts.com/en/hotel/skylofts.html,,,Skylofts is a suite product within MGM Grand Las Vegas; no Skylofts-specific IG. Exact URL to confirm.
+308,Soneva Jani,Maldives,Asia-Pacific,https://soneva.com/resorts/soneva-jani/,@soneva,https://www.instagram.com/soneva,Official site footer links group @soneva; a purported @sonevajaniofficial could not be confirmed. Group account used.
+309,The St. Regis Abu Dhabi,United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/auhrx-the-st-regis-abu-dhabi/overview/,@stregisabudhabi,https://www.instagram.com/stregisabudhabi,St. Regis (Marriott) property page.
+310,The St. Regis Atlanta,United States,Americas,https://www.marriott.com/en-us/hotels/atlxr-the-st-regis-atlanta/overview/,@stregisatl,https://www.instagram.com/stregisatl,St. Regis (Marriott) property page.
+311,The St. Regis Bal Harbour Resort,United States,Americas,https://www.marriott.com/en-us/hotels/miarz-the-st-regis-bal-harbour-resort/overview/,@stregisbalharbour,https://www.instagram.com/stregisbalharbour,St. Regis (Marriott) property page; confirm exact Marriott property code.
+312,"The St. Regis Dubai, The Palm",United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/dxbpx-the-st-regis-dubai-the-palm/overview/,@stregisdubaithepalm,https://www.instagram.com/stregisdubaithepalm,St. Regis (Marriott) property page.
+313,The St. Regis Hong Kong,China,Asia-Pacific,https://www.marriott.com/en-us/hotels/hkgxr-the-st-regis-hong-kong/overview/,@stregishk,https://www.instagram.com/stregishk,St. Regis (Marriott) property page.
+314,The St. Regis Macao,China,Asia-Pacific,https://www.marriott.com/en-us/hotels/mfmxr-the-st-regis-macao/overview/,@stregismacao,https://www.instagram.com/stregismacao,St. Regis (Marriott) property page.
+315,The St. Regis Maldives Vommuli Resort,Maldives,Asia-Pacific,https://www.marriott.com/en-us/hotels/mlexr-the-st-regis-maldives-vommuli-resort/overview/,@stregismaldives,https://www.instagram.com/stregismaldives,St. Regis (Marriott) property page.
+316,The St. Regis New York,United States,Americas,https://www.marriott.com/en-us/hotels/nycxr-the-st-regis-new-york/overview/,@stregisnewyork,https://www.instagram.com/stregisnewyork,St. Regis (Marriott) property page.
+317,"The St. Regis Saadiyat Island Resort, Abu Dhabi",United Arab Emirates,Middle East,https://www.marriott.com/en-us/hotels/auhxr-the-st-regis-saadiyat-island-resort-abu-dhabi/overview/,@stregissaadiyatisland,https://www.instagram.com/stregissaadiyatisland,St. Regis (Marriott) property page.
+318,The St. Regis San Francisco,United States,Americas,https://www.marriott.com/en-us/hotels/sfoxr-the-st-regis-san-francisco/overview/,@stregissf,https://www.instagram.com/stregissf,St. Regis (Marriott) property page.
+319,The St. Regis Toronto,Canada,Americas,https://www.marriott.com/en-us/hotels/yyzxr-the-st-regis-toronto/overview/,@stregistoronto,https://www.instagram.com/stregistoronto,St. Regis (Marriott) property page.
+320,Star Tower at Studio City Macau,China,Asia-Pacific,https://www.studiocity-macau.com/en/hotels/star-tower,,,"Star Tower is a tower within Studio City Macau; no Star Tower-specific IG, only @studiocitymacau. Left blank."
+321,Stein Eriksen Lodge Deer Valley,United States,Americas,https://www.steinlodge.com/,@steinlodge,https://www.instagram.com/steinlodge,
+322,Takanawa Hanakohro,Japan,Asia-Pacific,https://www.princehotels.com/hanakohro/,@takanawa_hanakohro,https://www.instagram.com/takanawa_hanakohro,IG confirmed via official Seibu Prince site footer.
+323,Trump International Hotel & Tower Chicago,United States,Americas,https://www.trumphotels.com/chicago,@trumpchicago,https://www.instagram.com/trumpchicago,
+324,Trump International Hotel & Tower New York,United States,Americas,https://www.trumphotels.com/central-park,@trumpnyc,https://www.instagram.com/trumpnyc,
+325,Trump Turnberry,United Kingdom,Europe,https://www.trumphotels.com/turnberry,@trumpturnberryscotland,https://www.instagram.com/trumpturnberryscotland,
+326,Twin Farms,United States,Americas,https://www.twinfarms.com/,@twinfarms,https://www.instagram.com/twinfarms,
+327,The Umstead Hotel and Spa,United States,Americas,https://www.theumstead.com/,@theumstead,https://www.instagram.com/theumstead,
+328,Velaa Private Island,Maldives,Asia-Pacific,https://www.velaaprivateisland.com/,@velaaprivateisland,https://www.instagram.com/velaaprivateisland,
+329,Waldorf Astoria Amsterdam,Netherlands,Europe,https://www.hilton.com/en/hotels/amswawa-waldorf-astoria-amsterdam/,@waldorfamsterdam,https://www.instagram.com/waldorfamsterdam,Waldorf Astoria (Hilton) property page.
+330,Waldorf Astoria Beverly Hills,United States,Americas,https://waldorfastoriabeverlyhills.com/,@waldorfbevhills,https://www.instagram.com/waldorfbevhills,
+331,Waldorf Astoria Dubai International Financial Centre,United Arab Emirates,Middle East,,@waldorfdifc,https://www.instagram.com/waldorfdifc,Instagram confirmed (@waldorfdifc). Website: Waldorf Astoria DIFC page on hilton.com — exact URL to confirm.
+332,Waldorf Astoria Kuwait,Kuwait,Middle East,https://www.hilton.com/en/hotels/kwiwawa-waldorf-astoria-kuwait/,@waldorfastoriakuwait,https://www.instagram.com/waldorfastoriakuwait,Waldorf Astoria (Hilton) property page.
+333,Waldorf Astoria Los Cabos Pedregal,Mexico,Americas,https://www.waldorfastorialoscabospedregal.com/,@wapedregal,https://www.instagram.com/wapedregal,
+334,Waldorf Astoria Maldives Ithaafushi,Maldives,Asia-Pacific,https://www.waldorfastoriamaldives.com/,@waldorfastoriamaldives,https://www.instagram.com/waldorfastoriamaldives,
+335,Waldorf Astoria Seychelles Platte Island,Seychelles,Africa,https://www.hilton.com/en/hotels/sezpiwa-waldorf-astoria-seychelles-platte-island/,@waldorfastoriaplatteisland,https://www.instagram.com/waldorfastoriaplatteisland,Waldorf Astoria (Hilton) property page.
+336,Weekapaug Inn,United States,Americas,https://weekapauginn.com/,@weekapauginn,https://www.instagram.com/weekapauginn,
+337,Wequassett Resort and Golf Club,United States,Americas,https://wequassett.com/,@wequassett,https://www.instagram.com/wequassett,
+338,"Wymara Villas, Sunset Cove",Turks & Caicos,Americas,https://www.wymara.com/wymara_villas_and_beach_club,@wymaravillas,https://www.instagram.com/wymaravillas,"Villas-specific account, distinct from resort @wymaraturks."
+339,Wynn Macau,China,Asia-Pacific,https://www.wynnresortsmacau.com/en,@wynn.macau,https://www.instagram.com/wynn.macau,
+340,Wynn Palace,China,Asia-Pacific,https://www.wynnresortsmacau.com/en/wynn-palace/,@wynn.palace,https://www.instagram.com/wynn.palace,
+341,Wynn Tower Suites,United States,Americas,https://www.wynnlasvegas.com/rooms-and-suites/wynn-tower-suites,,,Wynn Tower Suites is a room product within Wynn Las Vegas; no Tower Suites-specific IG. Left blank.
+342,Yacht Club at The Boca Raton,United States,Americas,https://www.thebocaraton.com/suites-rooms/yacht-club/,@thebocaraton,https://www.instagram.com/thebocaraton,Yacht Club is a tower within The Boca Raton; resort account used (consistent with id 19).
+343,"Zadún, a Ritz-Carlton Reserve",Mexico,Americas,https://www.ritzcarlton.com/en/hotels/sjdzr-zadun-los-cabos-a-ritz-carlton-reserve/overview/,@zadunreserve,https://www.instagram.com/zadunreserve,Ritz-Carlton Reserve (Marriott) property page.

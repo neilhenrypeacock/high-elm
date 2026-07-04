@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<!-- High Elm Studio pitch deck · pelorus-travel · for Jake -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Jake</title>
+<link rel="icon" type="image/svg+xml" href="/hes-favicon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* ============================================================
+   BRAND TOKENS — Pelorus
+============================================================ */
+:root {
+  --primary:        #43464B;   /* slate */
+  --primary-deep:   #2F3236;   /* deeper slate */
+  --accent:         #F38B00;   /* Pelorus orange */
+  --accent-dark:    #DB7E08;
+  --stone:          #66665D;   /* warm body-text grey */
+  --cream:          #EBE9E6;   /* parchment */
+  --cream-dark:     #E0DDD7;   /* slightly deeper cream */
+  --white:          #ffffff;
+  --dark:           #2F3236;
+  --text-primary:   #43464B;
+  --text-secondary: #66665D;
+  --text-muted:     #9A968F;
+}
+
+/* ============================================================
+   RESET & BASE
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  overflow-y: scroll;
+  font-family: 'Montserrat', sans-serif;
+}
+
+body { background: var(--dark); }
+
+/* ============================================================
+   SECTIONS
+============================================================ */
+section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 100px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================
+   SHARED TYPOGRAPHY
+============================================================ */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.eyebrow.light { color: rgba(255,255,255,0.55); }
+.eyebrow.light::before { background: rgba(255,255,255,0.4); }
+
+.h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px,4.5vw,56px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--primary);
+  letter-spacing: -0.005em;
+}
+.h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.h1.light { color: white; }
+
+.h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(24px,3.2vw,42px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--primary);
+}
+.h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.h2.light { color: white; }
+
+.rule     { width: 56px; height: 1px; background: var(--accent); margin: 28px 0; opacity: 0.5; }
+.rule.dim { background: rgba(255,255,255,0.25); }
+
+.body-large {
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--text-secondary);
+  max-width: 620px;
+}
+.body-large.light { color: rgba(255,255,255,0.6); }
+
+.container      { max-width: 900px;  margin: 0 auto; padding: 0 48px; width: 100%; }
+.container-wide { max-width: 1100px; margin: 0 auto; padding: 0 48px; width: 100%; }
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes nudge {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(6px); }
+}
+@keyframes logoBlurIn {
+  from { opacity: 0; filter: blur(10px); transform: scale(1.04); }
+  to   { opacity: 1; filter: blur(0px);  transform: scale(1); }
+}
+@keyframes wipeRight {
+  from { clip-path: inset(0 100% 0 0); opacity: 0; }
+  to   { clip-path: inset(0 0% 0 0);   opacity: 1; }
+}
+
+/* Content fade-up */
+.fade-up { opacity: 1; transform: translateY(0); transition: opacity 0.8s ease, transform 0.8s ease; }
+.fade-up.animate { opacity: 0; transform: translateY(24px); }
+.fade-up.animate.visible { opacity: 1; transform: translateY(0); }
+.d1 { transition-delay: 0.1s; }
+.d2 { transition-delay: 0.2s; }
+.d3 { transition-delay: 0.3s; }
+.d4 { transition-delay: 0.45s; }
+
+/* ============================================================
+   NAV DOTS
+============================================================ */
+.nav-dots {
+  position: fixed; right: 20px; top: 50%;
+  transform: translateY(-50%); z-index: 999;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.nav-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer; border: none; padding: 0;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.nav-dot.active { background: var(--accent); transform: scale(1.4); }
+
+/* ============================================================
+   STICKY WATERMARK
+============================================================ */
+.studio-watermark {
+  position: fixed; bottom: 24px; right: 28px; z-index: 997;
+  display: flex; align-items: center; gap: 7px; text-decoration: none;
+}
+.studio-watermark:hover span,
+.studio-watermark:hover svg { opacity: 0.5 !important; }
+.studio-watermark span {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 600; font-size: 12.5px; letter-spacing: -0.03em;
+  color: rgba(255,255,255,0.35); transition: color 0.4s ease, opacity 0.3s;
+}
+.studio-watermark svg path { fill: rgba(255,255,255,0.35); transition: fill 0.4s ease; }
+.studio-watermark.on-light span { color: rgba(0,0,0,0.25); }
+.studio-watermark.on-light svg path { fill: rgba(0,0,0,0.25); }
+
+/* ============================================================
+   FLOATING DEMO BUTTON
+============================================================ */
+.float-demo-btn {
+  position: fixed; top: 20px; right: 44px; z-index: 998;
+  background: var(--accent); color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase;
+  padding: 10px 20px; border-radius: 100px;
+  border: none; cursor: pointer; transition: all 0.2s;
+}
+.float-demo-btn:hover { transform: translateY(-1px); background: var(--accent-dark); }
+
+/* ============================================================
+   SCROLL HINT
+============================================================ */
+.scroll-hint {
+  position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  opacity: 0.25; pointer-events: none; z-index: 10;
+}
+.scroll-hint span {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 8.5px; font-weight: 500; letter-spacing: 0.16em;
+  text-transform: uppercase; color: white;
+}
+.scroll-hint svg { animation: nudge 2s ease-in-out infinite; }
+
+/* ============================================================
+   HERO BACKGROUND (stars + glow only)
+============================================================ */
+.glow {
+  position: absolute; width: 520px; height: 520px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(243,139,0,0.08) 0%, transparent 70%);
+  pointer-events: none; z-index: 1;
+}
+.stars {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 38%, rgba(255,255,255,0.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 42% 8%,  rgba(255,255,255,0.4)  0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 22%, rgba(255,255,255,0.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 72% 44%, rgba(255,255,255,0.3)  0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 12%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 55%, rgba(255,255,255,0.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 62%, rgba(255,255,255,0.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 72%, rgba(255,255,255,0.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5%  48%, rgba(255,255,255,0.28) 0%, transparent 100%);
+}
+
+/* ============================================================
+   SLIDE 0 — HERO / FOR JAKE
+============================================================ */
+#s0 {
+  background: var(--primary-deep);
+  flex-direction: column; text-align: center;
+  padding: 80px 0; align-items: center; justify-content: center;
+}
+#s0 .glow { top: -160px; left: 50%; transform: translateX(-50%); }
+
+.s0-content {
+  position: relative; z-index: 3;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 24px; max-width: 700px;
+}
+#s0-logo {
+  height: 56px;
+  width: auto;
+  margin-bottom: 40px;
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
+  animation: logoBlurIn 1.2s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+}
+#s0-eyebrow {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--accent);
+  animation: wipeRight 0.8s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+  margin: 0 0 22px;
+}
+#s0-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400; font-size: clamp(28px,3.6vw,46px);
+  line-height: 1.18; color: white; margin-bottom: 30px;
+  letter-spacing: -0.005em;
+  animation: fadeUp 1s ease 0.55s both;
+}
+#s0-heading em { font-style: italic; color: var(--accent); }
+
+#s0-sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px; font-weight: 300; line-height: 1.85;
+  color: rgba(255,255,255,0.55);
+  max-width: 480px;
+  animation: fadeUp 1s ease 0.85s both;
+}
+
+/* ============================================================
+   DREAM OUTCOME
+============================================================ */
+#dream { background: var(--white); }
+.dream-body { max-width: 620px; margin-top: 28px; display: flex; flex-direction: column; gap: 16px; }
+.dream-body p { font-size: 17px; font-weight: 300; line-height: 1.85; color: var(--text-secondary); margin: 0; }
+.dream-statement {
+  margin-top: 40px; padding: 32px 36px;
+  border-left: 2px solid var(--accent);
+  background: rgba(243,139,0,0.04); border-radius: 0 12px 12px 0;
+}
+.dream-statement-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(17px,2vw,24px); font-weight: 400;
+  line-height: 1.55; color: var(--primary); font-style: italic;
+}
+
+/* ============================================================
+   PROBLEM — screenshot of the form
+============================================================ */
+#problem { background: var(--cream); }
+
+.form-screenshot-wrap {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+.form-screenshot {
+  max-width: 100%;
+  width: 720px;
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.12);
+  border: 0.5px solid rgba(0,0,0,0.08);
+  display: block;
+}
+
+.problem-caption {
+  margin-top: 28px;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 300;
+}
+
+/* ============================================================
+   DEMO / SOLUTION
+============================================================ */
+#demo { background: var(--cream-dark); text-align: center; }
+.demo-frame {
+  margin-top: 40px; background: var(--white);
+  border-radius: 16px; border: 0.5px solid rgba(0,0,0,0.08);
+  overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.12); text-align: left;
+}
+.demo-bar { background: var(--primary); padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+.bdots { display: flex; gap: 6px; }
+.bdot { width: 10px; height: 10px; border-radius: 50%; }
+.bdot:nth-child(1) { background: #FF5F57; }
+.bdot:nth-child(2) { background: #FEBC2E; }
+.bdot:nth-child(3) { background: #28C840; }
+.burl { flex: 1; background: rgba(255,255,255,0.07); border-radius: 5px; padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,0.42); letter-spacing: 0.02em; font-family: 'Montserrat', sans-serif; }
+.demo-wrap { height: 620px; position: relative; }
+.demo-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+
+.demo-overlay {
+  position: absolute; inset: 0; background: var(--primary-deep); z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.6s ease;
+}
+.demo-overlay.fading { opacity: 0; pointer-events: none; }
+.demo-overlay.hidden { display: none; }
+.demo-start-btn {
+  background: var(--accent); color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; padding: 14px 32px; border-radius: 100px;
+  border: none; cursor: pointer; transition: all 0.2s;
+}
+.demo-start-btn:hover { transform: translateY(-2px); background: var(--accent-dark); }
+
+.demo-cap { padding: 18px 26px; background: var(--primary); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.demo-cap-text { font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.5); font-style: italic; font-family: 'Cormorant Garamond', serif; }
+.demo-cta {
+  background: var(--accent); color: white;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase;
+  padding: 10px 20px; border-radius: 6px; text-decoration: none; white-space: nowrap; transition: opacity 0.2s;
+}
+.demo-cta:hover { opacity: 0.85; }
+
+/* ============================================================
+   OFFER — what gets built (no pricing)
+============================================================ */
+#offer { background: var(--white); }
+
+.offer-list {
+  margin-top: 40px;
+  display: flex; flex-direction: column;
+  gap: 0;
+  max-width: 720px;
+}
+.offer-section-header {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 28px 0 10px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.06);
+}
+.offer-section-header:first-child { padding-top: 8px; }
+.offer-item {
+  padding: 16px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: padding 0.25s ease;
+}
+.offer-item:hover .offer-title { color: var(--accent); }
+.offer-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 26px;
+  font-style: italic;
+  line-height: 1.6;
+  padding-top: 2px;
+}
+.offer-body { flex: 1; }
+.offer-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--primary);
+  line-height: 1.4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  transition: color 0.2s ease;
+}
+.offer-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+.offer-item.open .offer-toggle { transform: rotate(180deg); opacity: 0.8; }
+.offer-desc {
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.25s ease;
+}
+.offer-item.open .offer-desc {
+  max-height: 400px;
+  opacity: 1;
+  margin-top: 10px;
+}
+
+/* ============================================================
+   CLOSE — for jake
+============================================================ */
+#close { background: var(--primary-deep); justify-content: center; align-items: center; text-align: center; padding-top: 120px; }
+.close-inner { max-width: 640px; margin: 0 auto; padding: 0 48px 100px; position: relative; z-index: 3; }
+
+.close-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(26px,3.4vw,42px);
+  font-weight: 400;
+  line-height: 1.18;
+  color: white;
+  margin-bottom: 40px;
+}
+.close-heading em { font-style: italic; color: var(--accent); }
+
+.close-body {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 17px; font-weight: 300; line-height: 1.85;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 48px;
+}
+
+.close-line {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(17px,2vw,26px);
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 48px;
+  letter-spacing: -0.005em;
+}
+
+.contact-row { display: flex; gap: 12px; margin-bottom: 0; flex-wrap: wrap; justify-content: center; }
+.contact-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 28px; border-radius: 10px;
+  min-width: 220px;
+  text-decoration: none; cursor: pointer;
+  transition: transform 0.2s ease;
+  color: white; border: none;
+}
+.contact-card:hover { transform: translateY(-2px); }
+.contact-card.wa { background: #25D366; }
+.contact-card.em { background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.18); }
+.contact-card.em:hover { background: rgba(255,255,255,0.1); }
+.contact-info { display: flex; flex-direction: column; align-items: flex-start; }
+.contact-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px; font-weight: 600;
+  color: white;
+  text-align: left;
+}
+.contact-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px; font-weight: 300;
+  color: rgba(255,255,255,0.65);
+  text-align: left;
+  margin-top: 2px;
+}
+
+.close-signoff {
+  margin-top: 56px;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+}
+
+.studio-credit { margin-top: 52px; display: flex; align-items: center; justify-content: center; }
+.studio-credit-wordmark { display: flex; align-items: center; gap: 9px; opacity: 0.38; transition: opacity 0.25s; text-decoration: none; }
+.studio-credit-wordmark:hover { opacity: 0.62; }
+
+/* ============================================================
+   SPLASH COVER
+============================================================ */
+#cover {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--cream);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.cover-inner { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 40px; }
+.cover-logo {
+  height: 36px;
+  width: auto;
+  margin-bottom: 56px;
+  opacity: 0.55;
+}
+.cover-eyebrow {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--primary); opacity: 0.5;
+  margin-bottom: 32px;
+}
+.cover-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(72px,10vw,120px); font-weight: 400; font-style: italic;
+  color: var(--primary); line-height: 1; margin-bottom: 28px;
+  letter-spacing: -0.005em;
+}
+.cover-divider { width: 52px; height: 1px; background: var(--accent); margin-bottom: 24px; }
+.cover-by {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px; font-weight: 400; letter-spacing: 0.12em;
+  color: var(--text-muted); margin-bottom: 32px;
+}
+.cover-hint {
+  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--text-muted);
+  white-space: nowrap; pointer-events: none;
+}
+
+/* ============================================================
+   DEMO MODAL
+============================================================ */
+#demo-modal { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.88); display: none; align-items: center; justify-content: center; padding: 32px; }
+#demo-modal.open { display: flex; }
+.demo-modal-inner { position: relative; width: 100%; max-width: 1200px; height: 94vh; border-radius: 16px; overflow: hidden; box-shadow: 0 40px 120px rgba(0,0,0,0.5); }
+.demo-modal-close { position: absolute; top: 16px; right: 16px; z-index: 9001; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; backdrop-filter: blur(4px); }
+.demo-modal-close:hover { background: rgba(255,255,255,0.28); }
+.demo-modal-iframe { width: 100%; height: 100%; border: none; display: block; }
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 768px) {
+  .container, .container-wide { padding: 0 20px; }
+  section { padding: 80px 0 60px; }
+  .close-inner { padding: 0 24px 60px; }
+  .float-demo-btn { display: none; }
+  .offer-item { gap: 16px; padding: 20px 0; }
+  .offer-num { font-size: 24px; width: 32px; }
+  .offer-title { font-size: 19px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     COVER SPLASH — Prepared for Jake
+═══════════════════════════════════════════════════════════════ -->
+<div id="cover" onclick="(function(el){el.style.transition='opacity 0.5s ease';el.style.opacity='0';setTimeout(function(){el.style.display='none'},520);})(this)">
+  <div class="cover-inner">
+    <img class="cover-logo" src="pelorus-logo.svg" alt="Pelorus" onerror="this.style.display='none'">
+    <p class="cover-eyebrow">Prepared for</p>
+    <div class="cover-name">Jake</div>
+    <div class="cover-divider"></div>
+    <p class="cover-by">by neil peacock</p>
+    <a href="https://highelmstudio.com" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:9px;justify-content:center;text-decoration:none;">
+      <svg width="26" height="44" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#43464B"/>
+        <line x1="30" y1="5" x2="30" y2="92" stroke="rgba(235,233,230,0.75)" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="30" y1="25" x2="44" y2="32" stroke="rgba(235,233,230,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="40" x2="49" y2="48" stroke="rgba(235,233,230,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="55" x2="50" y2="62" stroke="rgba(235,233,230,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="25" x2="16" y2="32" stroke="rgba(235,233,230,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="40" x2="11" y2="48" stroke="rgba(235,233,230,0.6)" stroke-width="0.7"/>
+        <line x1="30" y1="55" x2="10" y2="62" stroke="rgba(235,233,230,0.6)" stroke-width="0.7"/>
+      </svg>
+      <span style="font-family:'League Spartan',sans-serif;font-weight:600;font-size:20px;letter-spacing:-0.05em;color:var(--primary);">high elm studio.</span>
+    </a>
+  </div>
+  <p class="cover-hint">Click anywhere to continue</p>
+</div>
+
+<!-- STICKY WATERMARK -->
+<a href="https://highelmstudio.com" target="_blank" rel="noopener" class="studio-watermark" id="studioWatermark">
+  <svg width="16" height="26" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="white"/>
+    <line x1="30" y1="5" x2="30" y2="92" stroke="rgba(0,0,0,0.25)" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="30" y1="40" x2="49" y2="48" stroke="rgba(0,0,0,0.2)" stroke-width="0.8"/>
+    <line x1="30" y1="55" x2="50" y2="62" stroke="rgba(0,0,0,0.2)" stroke-width="0.8"/>
+    <line x1="30" y1="25" x2="16" y2="32" stroke="rgba(0,0,0,0.2)" stroke-width="0.8"/>
+    <line x1="30" y1="40" x2="11" y2="48" stroke="rgba(0,0,0,0.2)" stroke-width="0.8"/>
+    <line x1="30" y1="55" x2="10" y2="62" stroke="rgba(0,0,0,0.2)" stroke-width="0.8"/>
+  </svg>
+  <span>high elm studio.</span>
+</a>
+
+
+<!-- NAV DOTS -->
+<nav class="nav-dots" aria-label="Slide navigation">
+  <button class="nav-dot active" onclick="scrollToSlide(0)" aria-label="Intro"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(1)" aria-label="Dream"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(2)" aria-label="Problem"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(3)" aria-label="Solution"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(4)" aria-label="What gets built"></button>
+  <button class="nav-dot"        onclick="scrollToSlide(5)" aria-label="Close"></button>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 0 — HERO
+═══════════════════════════════════════════════════════════════ -->
+<section id="s0">
+  <div class="stars"></div>
+  <div class="glow"></div>
+
+  <div class="s0-content">
+    <img id="s0-logo" src="pelorus-logo.svg" alt="Pelorus" onerror="this.style.display='none'">
+    <p id="s0-eyebrow">For Jake</p>
+    <h1 id="s0-heading">
+      2026 AI. <em>2015 websites.</em>
+    </h1>
+  </div>
+  <div class="scroll-hint">
+    <svg width="14" height="22" viewBox="0 0 14 22" fill="none"><rect x="1" y="1" width="12" height="20" rx="6" stroke="white" stroke-width="1.2"/><circle cx="7" cy="6" r="2" fill="white"/></svg>
+    <span>scroll</span>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 — DREAM OUTCOME
+═══════════════════════════════════════════════════════════════ -->
+<section id="dream">
+  <div class="container">
+    <div class="eyebrow fade-up">The first impression</div>
+    <div class="h1 fade-up d1">The concierge experience<br>shouldn't start when they arrive<br><em>in person.</em><br>It should start when they<br><em>arrive online.</em></div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 — THE PROBLEM (the form)
+═══════════════════════════════════════════════════════════════ -->
+<section id="problem">
+  <div class="container">
+    <div class="eyebrow fade-up">What sits between them and you</div>
+    <div class="h2 fade-up d1">A form was the answer. But when does that stop? And who positions themselves at the front when simple smart tech like this becomes the industry norm?</div>
+    <div class="rule fade-up d2"></div>
+    <div class="dream-body fade-up d3">
+      <p>The guest who's curious about a Pelorus trip has spent the last hour talking to ChatGPT about it. Asking, refining, getting answers in seconds. Then they land on a website and meet a textarea labelled "tell us about your plans" and a "Schedule a Call" button. The next slot is seven days away.</p>
+      <p>The competition is no longer other travel companies. It's the standard the guest just experienced thirty seconds ago.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 — THE SOLUTION (the demo)
+═══════════════════════════════════════════════════════════════ -->
+<section id="demo">
+  <div class="container-wide">
+    <div class="eyebrow fade-up" style="justify-content:center">The same first impression</div>
+    <div class="h2 fade-up d1" style="text-align:center">Same guest. <em>Different feeling.</em></div>
+    <p class="body-large fade-up d2" style="text-align:center;margin:18px auto 0;max-width:480px">A conversation, not a form.</p>
+
+    <div class="demo-frame fade-up d3">
+      <div class="demo-bar">
+        <div class="bdots"><div class="bdot"></div><div class="bdot"></div><div class="bdot"></div></div>
+        <div class="burl">pelorustravel.com — Travel Designer · Live</div>
+      </div>
+      <div class="demo-wrap">
+        <div class="demo-overlay" id="demo-overlay">
+          <button class="demo-start-btn" onclick="startDemo()">Start the demo</button>
+        </div>
+        <iframe src="" id="demo-iframe" title="Pelorus Travel Designer" loading="lazy"></iframe>
+      </div>
+      <div class="demo-cap">
+        <span class="demo-cap-text">Try it as a guest would.</span>
+        <a href="#" class="demo-cta" onclick="openDemoModal();return false;">Open full screen →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 — OFFER (what gets built — no pricing)
+═══════════════════════════════════════════════════════════════ -->
+<section id="offer">
+  <div class="container">
+    <div class="eyebrow fade-up">What it does</div>
+    <div class="h2 fade-up d1">A communication system,<br><em>not a chatbot.</em></div>
+    <div class="rule fade-up d2"></div>
+    <p class="body-large fade-up d2">Click any item for more.</p>
+
+    <div class="offer-list fade-up d3">
+
+      <div class="offer-item">
+        <div class="offer-num">01</div>
+        <div class="offer-body">
+          <div class="offer-title">Trained on Pelorus's voice, philosophy and access<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">The AI carries the brand into every conversation. The way Pelorus talks, the way the team thinks, the places it can open. Not a generic assistant with a logo on top.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">02</div>
+        <div class="offer-body">
+          <div class="offer-title">A real conversation, not a form<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">The guest gives detail because they want to, not because a textarea demands it. The asymmetry of value flips.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">03</div>
+        <div class="offer-body">
+          <div class="offer-title">Always on. Any hour. Any timezone.<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">The 11pm Sunday enquiry. The 6am Singapore enquiry. The late-night-after-the-Svalbard-article enquiry. All met, properly, in the moment.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">04</div>
+        <div class="offer-body">
+          <div class="offer-title">A hyper-personalised brief, delivered after every conversation<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">Who, when, what kind of landscape, what matters, budget, the specific moments they want engineered in. Delivered to the team before they pick up the phone.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">05</div>
+        <div class="offer-body">
+          <div class="offer-title">Honest pushback when the numbers don't add up<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">Tight budgets, wrong season, mismatched destinations — the AI says so. A form can't do this. The single biggest signal of expertise.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">06</div>
+        <div class="offer-body">
+          <div class="offer-title">Listens more than it speaks<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">Expert without ego. The visitor leaves feeling heard, not informed. Designed for the kind of person who doesn't need things explained.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">07</div>
+        <div class="offer-body">
+          <div class="offer-title">Gets sharper the more it's used<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">Every conversation refines the next. The model learns the way Pelorus talks. Not the other way around.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">08</div>
+        <div class="offer-body">
+          <div class="offer-title">Removes the friction between curiosity and commitment<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">No form. No scheduling link. No one-week wait. The moment a guest is curious — late at night, mid-conversation, after an article — there is something to engage with. Captured interest converts. Interest that had to wait, doesn't.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">09</div>
+        <div class="offer-body">
+          <div class="offer-title">Positions Pelorus at the forefront of the industry<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">Every luxury travel brand will have some version of this within a few years. The ones who move now define what good looks like. The ones who wait inherit someone else's standard — and the comparison will not be flattering.</div>
+        </div>
+      </div>
+
+      <div class="offer-item">
+        <div class="offer-num">10</div>
+        <div class="offer-body">
+          <div class="offer-title">The team walks into every call already knowing the client<span class="offer-toggle"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="offer-desc">No cold open. No "tell me about yourself." The structured brief — who, when, where, what matters, budget, occasion — lands before the adviser picks up the phone. The first call becomes a second conversation. Deeper, faster, and far more likely to convert.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — CLOSE (for Jake)
+═══════════════════════════════════════════════════════════════ -->
+<section id="close">
+  <div class="close-inner">
+
+    <p class="close-line fade-up">Thoughts welcome.</p>
+
+    <div class="contact-row fade-up d1">
+      <a href="https://wa.me/447786572258" target="_blank" class="contact-card wa">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <div class="contact-info">
+          <span class="contact-label">WhatsApp</span>
+          <span class="contact-value">+44 7786 572258</span>
+        </div>
+      </a>
+
+      <a href="mailto:neil@highelm.studio" class="contact-card em">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        <div class="contact-info">
+          <span class="contact-label">Email</span>
+          <span class="contact-value">neil@highelm.studio</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="studio-credit fade-up">
+      <a href="https://highelmstudio.com" target="_blank" rel="noopener" class="studio-credit-wordmark">
+        <svg width="16" height="27" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="white"/>
+          <line x1="30" y1="5" x2="30" y2="92" stroke="rgba(67,70,75,0.4)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="30" y1="40" x2="49" y2="48" stroke="rgba(67,70,75,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="55" x2="50" y2="62" stroke="rgba(67,70,75,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="25" x2="16" y2="32" stroke="rgba(67,70,75,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="40" x2="11" y2="48" stroke="rgba(67,70,75,0.3)" stroke-width="0.8"/>
+          <line x1="30" y1="55" x2="10" y2="62" stroke="rgba(67,70,75,0.3)" stroke-width="0.8"/>
+        </svg>
+        <span style="font-family:'League Spartan',sans-serif;font-weight:600;font-size:15px;letter-spacing:-0.04em;color:white;">high elm studio.</span>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- DEMO MODAL -->
+<div id="demo-modal">
+  <button class="demo-modal-close" onclick="closeDemoModal()">✕</button>
+  <div class="demo-modal-inner">
+    <iframe class="demo-modal-iframe" src="" title="Pelorus Travel Designer"></iframe>
+  </div>
+</div>
+
+
+<script>
+
+// ═══════════════════════════════════════════════════════════
+// IMPORTANT: Replace PLACEHOLDER_DEMO_URL with the live Vercel URL
+// once the demo is deployed (e.g. https://pelorus-demo.vercel.app)
+// ═══════════════════════════════════════════════════════════
+const DEMO_URL = 'https://pelorus-demo.vercel.app/demo';
+
+// Demo overlay — load iframe on click (avoids loading wasted resources before user wants to see it)
+function startDemo() {
+  var overlay = document.getElementById('demo-overlay');
+  var iframe = document.getElementById('demo-iframe');
+  if (!iframe.src || iframe.src === window.location.href) {
+    iframe.src = DEMO_URL;
+  }
+  overlay.classList.add('fading');
+  setTimeout(function() { overlay.classList.add('hidden'); }, 600);
+}
+
+// Demo modal
+function openDemoModal() {
+  var modal = document.getElementById('demo-modal');
+  var iframe = modal.querySelector('iframe');
+  if (!iframe.src || iframe.src === window.location.href) iframe.src = DEMO_URL;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDemoModal() {
+  document.getElementById('demo-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('demo-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDemoModal();
+  });
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDemoModal();
+});
+
+// Always start at top
+history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+
+// Section IDs + nav dots
+const sections = ['s0','dream','problem','demo','offer','close'];
+const dots = document.querySelectorAll('.nav-dot');
+function scrollToSlide(index) {
+  const el = document.getElementById(sections[index]);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Fade-up init
+document.querySelectorAll('.fade-up').forEach(el => el.classList.add('animate'));
+
+// IntersectionObserver
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const id = e.target.id;
+    const idx = sections.indexOf(id);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    e.target.querySelectorAll('.fade-up.animate').forEach(el => el.classList.add('visible'));
+  });
+}, { threshold: 0.05 });
+sections.forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
+
+// Watermark colour adaptation
+(function() {
+  var wm = document.getElementById('studioWatermark');
+  if (!wm) return;
+  var lightSections = ['dream','problem','demo','offer'];
+  function update() {
+    var y = window.innerHeight - 36;
+    var hit = document.elementFromPoint(window.innerWidth / 2, y);
+    if (!hit) return;
+    var sec = hit.closest('section');
+    var isLight = sec && lightSections.indexOf(sec.id) !== -1;
+    wm.classList.toggle('on-light', isLight);
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
+// Offer accordion — click any item to expand
+document.addEventListener('DOMContentLoaded', function() {
+  var offerItems = document.querySelectorAll('.offer-item');
+  offerItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      var isOpen = item.classList.contains('open');
+      offerItems.forEach(function(i) { i.classList.remove('open'); });
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Guidelines — High Elm Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;600&family=Raleway:wght@200;300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand:     #F5F0E8;
+      --stone:    #E0D8CC;
+      --mid:      #C8BFB0;
+      --ocean:    #5B9BAA;
+      --ocean-lt: #8BBDC9;
+      --ocean-d:  #3D7A8A;
+      --storm:    #243D4F;
+      --night:    #111C26;
+      --ink:      #0C1520;
+    }
+
+    body {
+      background: var(--sand);
+      color: var(--ink);
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.85;
+    }
+
+    /* ── Noise texture ── */
+    .noise {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 9999;
+      opacity: 0.022;
+    }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 64px; }
+    @media (max-width: 700px) { .wrap { padding: 0 24px; } }
+
+    /* ── Header ── */
+    header {
+      padding: 64px 0 80px;
+      border-bottom: 1px solid var(--stone);
+    }
+    .header-logo {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 48px;
+    }
+    .header-logo span {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -0.05em;
+      color: var(--ink);
+    }
+    header h1 {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: clamp(42px, 6vw, 80px);
+      letter-spacing: -0.05em;
+      line-height: 0.96;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+    header p {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ocean);
+    }
+
+    /* ── Section ── */
+    section { padding: 80px 0; border-bottom: 1px solid var(--stone); }
+    section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ocean);
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: clamp(32px, 4vw, 52px);
+      letter-spacing: -0.05em;
+      line-height: 1.0;
+      color: var(--ink);
+      margin-bottom: 40px;
+    }
+    h3 {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: var(--storm);
+      margin-bottom: 16px;
+      margin-top: 40px;
+    }
+    h3:first-child { margin-top: 0; }
+
+    p { margin-bottom: 16px; color: var(--storm); }
+    p:last-child { margin-bottom: 0; }
+
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      background: var(--stone);
+      padding: 2px 6px;
+      border-radius: 2px;
+      color: var(--ink);
+    }
+
+    /* ── Color palette ── */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 2px;
+      margin-top: 8px;
+    }
+    .swatch {
+      display: flex; flex-direction: column;
+    }
+    .swatch-block {
+      height: 100px;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .swatch-info {
+      padding: 10px 0 4px;
+    }
+    .swatch-name {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      display: block;
+    }
+    .swatch-token {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--ocean-d);
+      display: block;
+      margin-top: 2px;
+    }
+    .swatch-hex {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--mid);
+      display: block;
+    }
+
+    /* ── Typography specimens ── */
+    .type-specimens { display: flex; flex-direction: column; gap: 48px; }
+    .type-block {
+      padding: 40px;
+      background: white;
+      border: 1px solid var(--stone);
+    }
+    .type-meta {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ocean);
+      margin-bottom: 20px;
+    }
+    .specimen-display {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: clamp(36px, 5vw, 64px);
+      letter-spacing: -0.05em;
+      line-height: 0.96;
+      color: var(--ink);
+    }
+    .specimen-body {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 18px;
+      line-height: 1.9;
+      color: var(--storm);
+    }
+    .specimen-ui {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: 21px;
+      letter-spacing: -0.05em;
+      color: var(--ink);
+    }
+    .specimen-ui-sm {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ocean);
+      margin-top: 12px;
+    }
+
+    /* ── Logo display ── */
+    .logo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+    @media (max-width: 600px) { .logo-grid { grid-template-columns: 1fr; } }
+    .logo-cell {
+      padding: 64px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 32px;
+    }
+    .logo-cell.light { background: var(--sand); }
+    .logo-cell.dark  { background: var(--night); }
+    .logo-cell.stone { background: var(--stone); }
+    .logo-cell.ink   { background: var(--ink); }
+    .logo-meta {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .logo-cell.light .logo-meta,
+    .logo-cell.stone .logo-meta { color: var(--ocean); }
+    .logo-cell.dark .logo-meta,
+    .logo-cell.ink .logo-meta   { color: var(--ocean-lt); }
+
+    .logo-size-row {
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .logo-size-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .logo-size-label {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    /* ── Buttons demo ── */
+    .button-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+    .btn-demo {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      padding: 18px 36px;
+      cursor: default;
+      border: none;
+    }
+    .btn-dark { background: var(--night); color: var(--sand); }
+    .btn-outline { background: transparent; color: var(--sand); border: 1px solid rgba(245,240,232,0.35); }
+    .btn-outline-dark { background: transparent; color: var(--ink); border: 1px solid rgba(12,21,32,0.25); }
+
+    /* ── Spacing scale ── */
+    .spacing-row { display: flex; align-items: flex-end; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .spacing-block-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .spacing-block { background: var(--ocean); opacity: 0.5; width: 24px; }
+    .spacing-val {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--ocean-d);
+    }
+
+    /* ── Code block ── */
+    pre {
+      background: var(--night);
+      color: var(--sand);
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      padding: 28px 32px;
+      overflow-x: auto;
+      border-radius: 2px;
+      margin-top: 16px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 48px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .f-logo { display: flex; align-items: center; gap: 8px; }
+    .f-logo span {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: -0.05em;
+      color: var(--ink);
+    }
+    footer p {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--mid);
+    }
+
+    /* ── Divider ── */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: var(--ocean);
+      opacity: 0.4;
+      margin: 32px 0;
+    }
+
+    /* ── Do / Don't ── */
+    .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    @media (max-width: 600px) { .rules-grid { grid-template-columns: 1fr; } }
+    .rule-group { }
+    .rule-heading {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .rule-heading.do { color: var(--ocean-d); }
+    .rule-heading.dont { color: #8B4A4A; }
+    .rule-list { list-style: none; }
+    .rule-list li {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--storm);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--stone);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .rule-list li::before {
+      flex-shrink: 0;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+    .rule-list.do li::before { content: '✓'; color: var(--ocean); }
+    .rule-list.dont li::before { content: '✕'; color: #8B4A4A; }
+  </style>
+</head>
+<body>
+
+<!-- Noise texture -->
+<svg class="noise" xmlns="http://www.w3.org/2000/svg">
+  <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
+
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="header-logo">
+      <svg width="13" height="22" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/>
+        <line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+        <line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="40" x2="49" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="55" x2="50" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="70" x2="46" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="40" x2="11" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="55" x2="10" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+        <line x1="30" y1="70" x2="14" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+      </svg>
+      <span>high elm studio.</span>
+    </div>
+    <h1>Brand<br>Guidelines.</h1>
+    <p>Visual identity · Tone of voice · Assets</p>
+  </header>
+
+
+  <!-- ═══ LOGO ═══ -->
+  <section>
+    <div class="section-label">
+      <svg width="11" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.7"/>
+      </svg>
+      01 — Logo
+    </div>
+    <h2>The mark and<br><span style="font-style:normal;font-weight:300;">the word.</span></h2>
+    <p>The elm leaf is the brand mark — an organic form representing High Elm Farm, Norfolk, the origin of the name. It is always accompanied by the veining detail. The wordmark "high elm studio." is always lowercase with a trailing period.</p>
+
+    <div style="margin-top: 40px;">
+      <div class="logo-grid">
+        <div class="logo-cell light">
+          <div class="logo-meta">Primary — light background</div>
+          <!-- Wordmark -->
+          <svg width="208" height="56" viewBox="0 0 260 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><style>@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@600&amp;display=swap');</style></defs>
+            <svg x="0" y="7" width="34" height="56" viewBox="0 0 60 100" overflow="visible">
+              <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/>
+              <line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+              <line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+              <line x1="30" y1="40" x2="49" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+              <line x1="30" y1="55" x2="50" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+              <line x1="30" y1="70" x2="46" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+              <line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+              <line x1="30" y1="40" x2="11" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+              <line x1="30" y1="55" x2="10" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+              <line x1="30" y1="70" x2="14" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+            </svg>
+            <text x="46" y="42" style="font-family:'League Spartan',Helvetica,Arial,sans-serif;font-weight:600;font-size:21px;letter-spacing:-0.05em;fill:#0C1520;">high elm studio.</text>
+          </svg>
+          <!-- Mark sizes -->
+          <div>
+            <div class="logo-meta" style="margin-bottom: 16px;">Mark sizes</div>
+            <div class="logo-size-row">
+              <div class="logo-size-item">
+                <svg width="11" height="18" viewBox="0 0 60 100" fill="none"><path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/></svg>
+                <span class="logo-size-label">footer</span>
+              </div>
+              <div class="logo-size-item">
+                <svg width="13" height="22" viewBox="0 0 60 100" fill="none"><path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/><line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/></svg>
+                <span class="logo-size-label">nav</span>
+              </div>
+              <div class="logo-size-item">
+                <svg width="18" height="30" viewBox="0 0 60 100" fill="none"><path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/><line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/><line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/></svg>
+                <span class="logo-size-label">section</span>
+              </div>
+              <div class="logo-size-item">
+                <svg width="22" height="37" viewBox="0 0 60 100" fill="none"><path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/><line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/><line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="40" x2="49" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="40" x2="11" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/></svg>
+                <span class="logo-size-label">cta</span>
+              </div>
+              <div class="logo-size-item">
+                <svg width="60" height="100" viewBox="0 0 60 100" fill="none"><path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/><line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/><line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="40" x2="49" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="55" x2="50" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="70" x2="46" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="40" x2="11" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="55" x2="10" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/><line x1="30" y1="70" x2="14" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/></svg>
+                <span class="logo-size-label">full</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="logo-cell dark">
+          <div class="logo-meta">Reversed — dark background</div>
+          <!-- Wordmark reversed -->
+          <svg width="208" height="56" viewBox="0 0 260 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><style>@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@600&amp;display=swap');</style></defs>
+            <svg x="0" y="7" width="34" height="56" viewBox="0 0 60 100" overflow="visible">
+              <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#F5F0E8"/>
+              <line x1="30" y1="5" x2="30" y2="92" stroke="#5B9BAA" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+              <line x1="30" y1="25" x2="44" y2="32" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              <line x1="30" y1="40" x2="49" y2="48" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              <line x1="30" y1="55" x2="50" y2="62" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              <line x1="30" y1="70" x2="46" y2="76" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              <line x1="30" y1="25" x2="16" y2="32" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              <line x1="30" y1="40" x2="11" y2="48" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              <line x1="30" y1="55" x2="10" y2="62" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              <line x1="30" y1="70" x2="14" y2="76" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+            </svg>
+            <text x="46" y="42" style="font-family:'League Spartan',Helvetica,Arial,sans-serif;font-weight:600;font-size:21px;letter-spacing:-0.05em;fill:#F5F0E8;">high elm studio.</text>
+          </svg>
+          <!-- Stacked -->
+          <div>
+            <div class="logo-meta" style="margin-bottom:16px;">Stacked format</div>
+            <svg width="120" height="90" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs><style>@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@600&amp;display=swap');</style></defs>
+              <svg x="70" y="4" width="60" height="100" viewBox="0 0 60 100" overflow="visible">
+                <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#F5F0E8"/>
+                <line x1="30" y1="5" x2="30" y2="92" stroke="#5B9BAA" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+                <line x1="30" y1="25" x2="44" y2="32" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+                <line x1="30" y1="40" x2="49" y2="48" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+                <line x1="30" y1="55" x2="50" y2="62" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+                <line x1="30" y1="70" x2="46" y2="76" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+                <line x1="30" y1="25" x2="16" y2="32" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+                <line x1="30" y1="40" x2="11" y2="48" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+                <line x1="30" y1="55" x2="10" y2="62" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+                <line x1="30" y1="70" x2="14" y2="76" stroke="#5B9BAA" stroke-width="0.7" opacity="0.55"/>
+              </svg>
+              <text x="100" y="136" text-anchor="middle" style="font-family:'League Spartan',Helvetica,Arial,sans-serif;font-weight:600;font-size:18px;letter-spacing:-0.05em;fill:#F5F0E8;">high elm studio.</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo do / don't -->
+    <div style="margin-top: 48px;">
+      <h3>Logo rules</h3>
+      <div class="rules-grid">
+        <div class="rule-group">
+          <div class="rule-heading do">Do</div>
+          <ul class="rule-list do">
+            <li>Use primary (teal) mark on sand, stone, or white backgrounds</li>
+            <li>Use reversed (sand) mark on night or ink backgrounds</li>
+            <li>Keep the trailing period in "high elm studio."</li>
+            <li>Maintain veining lines — they are part of the mark</li>
+            <li>Preserve the leaf's aspect ratio (60:100)</li>
+          </ul>
+        </div>
+        <div class="rule-group">
+          <div class="rule-heading dont">Don't</div>
+          <ul class="rule-list dont">
+            <li>Recolour the leaf in non-brand colours</li>
+            <li>Write "High Elm Studio" with capital letters</li>
+            <li>Omit the trailing period from the wordmark</li>
+            <li>Add drop shadows, gradients, or effects</li>
+            <li>Stretch, skew, or distort the leaf form</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ COLOUR ═══ -->
+  <section>
+    <div class="section-label">
+      <svg width="11" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.7"/>
+      </svg>
+      02 — Colour
+    </div>
+    <h2>Warm, grounded,<br><span style="font-style:normal;">with one calm accent.</span></h2>
+    <p>The palette is built around earthy neutrals — sand, stone, mid — with a single teal accent (ocean) used for emphasis. Never use pure black or pure white.</p>
+
+    <div class="color-grid" style="margin-top: 40px;">
+      <div class="swatch">
+        <div class="swatch-block" style="background: #F5F0E8;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Sand</span>
+          <span class="swatch-token">--sand</span>
+          <span class="swatch-hex">#F5F0E8</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #E0D8CC;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Stone</span>
+          <span class="swatch-token">--stone</span>
+          <span class="swatch-hex">#E0D8CC</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #C8BFB0;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Mid</span>
+          <span class="swatch-token">--mid</span>
+          <span class="swatch-hex">#C8BFB0</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #5B9BAA;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Ocean</span>
+          <span class="swatch-token">--ocean</span>
+          <span class="swatch-hex">#5B9BAA</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #8BBDC9;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Ocean Light</span>
+          <span class="swatch-token">--ocean-lt</span>
+          <span class="swatch-hex">#8BBDC9</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #3D7A8A;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Ocean Dark</span>
+          <span class="swatch-token">--ocean-d</span>
+          <span class="swatch-hex">#3D7A8A</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #243D4F;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Storm</span>
+          <span class="swatch-token">--storm</span>
+          <span class="swatch-hex">#243D4F</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #111C26;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Night</span>
+          <span class="swatch-token">--night</span>
+          <span class="swatch-hex">#111C26</span>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-block" style="background: #0C1520;"></div>
+        <div class="swatch-info">
+          <span class="swatch-name">Ink</span>
+          <span class="swatch-token">--ink</span>
+          <span class="swatch-hex">#0C1520</span>
+        </div>
+      </div>
+    </div>
+
+    <pre>:root {
+  --sand:     #F5F0E8;  /* primary background */
+  --stone:    #E0D8CC;  /* secondary background, dividers */
+  --mid:      #C8BFB0;  /* tertiary surface */
+  --ocean:    #5B9BAA;  /* primary accent — logo, CTAs */
+  --ocean-lt: #8BBDC9;  /* hover, secondary accent */
+  --ocean-d:  #3D7A8A;  /* strong emphasis */
+  --storm:    #243D4F;  /* body text on light */
+  --night:    #111C26;  /* dark section background */
+  --ink:      #0C1520;  /* primary text, darkest bg */
+}</pre>
+  </section>
+
+
+  <!-- ═══ TYPOGRAPHY ═══ -->
+  <section>
+    <div class="section-label">
+      <svg width="11" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.7"/>
+      </svg>
+      03 — Typography
+    </div>
+    <h2>Two fonts,<br><span style="letter-spacing:-0.05em;">two distinct roles.</span></h2>
+
+    <div class="type-specimens">
+
+      <div class="type-block">
+        <div class="type-meta">League Spartan · 600 · Display / Headlines</div>
+        <div class="specimen-display">Grounded thinking<br>for an unsteady moment.</div>
+        <div class="divider"></div>
+        <p style="font-size:14px;color:var(--mid);">Use for: hero headlines, section titles, the wordmark. Always lowercase. Weight 600. Tight letter spacing (-0.05em).</p>
+      </div>
+
+      <div class="type-block">
+        <div class="type-meta">Raleway · Weight 200 · Body / Paragraphs</div>
+        <div class="specimen-body">The businesses who communicate clearly, automate intelligently, and act decisively are the ones who pull ahead. AI is just the latest — and most powerful — tool to make that possible.</div>
+        <div class="divider"></div>
+        <p style="font-size:14px;color:var(--mid);">Use for: all body copy, paragraphs, longer explanatory text. Weight 200–300. Line height 1.85–1.95.</p>
+      </div>
+
+      <div class="type-block">
+        <div class="type-meta">League Spartan · Weight 600 · UI / Interface</div>
+        <div class="specimen-ui">high elm studio.</div>
+        <div class="specimen-ui-sm">ai implementation · london</div>
+        <div class="button-row" style="margin-top: 20px;">
+          <button class="btn-demo btn-dark">shall we begin →</button>
+          <button class="btn-demo btn-outline-dark">how it works →</button>
+        </div>
+        <div class="divider"></div>
+        <p style="font-size:14px;color:var(--mid);">Use for: navigation, buttons, labels, captions, all interactive UI. Always lowercase. Tight letter spacing (-0.01em to -0.05em). Weights 300/400/600.</p>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══ BUTTONS ═══ -->
+  <section>
+    <div class="section-label">
+      <svg width="11" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.7"/>
+      </svg>
+      04 — Buttons & UI
+    </div>
+    <h2>Minimal,<br><span style="font-style:normal;">directive.</span></h2>
+
+    <h3>On light backgrounds</h3>
+    <div class="button-row">
+      <button class="btn-demo btn-dark">shall we begin →</button>
+      <button class="btn-demo btn-outline-dark">how it works →</button>
+    </div>
+
+    <div style="background: var(--night); padding: 48px 40px; margin-top: 2px;">
+      <div style="font-family:'League Spartan',sans-serif;font-size:11px;font-weight:300;letter-spacing:0.1em;text-transform:uppercase;color:var(--ocean-lt);margin-bottom:20px;">On dark backgrounds</div>
+      <div class="button-row">
+        <button class="btn-demo btn-dark" style="background:var(--sand);color:var(--ink);">shall we begin →</button>
+        <button class="btn-demo btn-outline">how it works →</button>
+      </div>
+    </div>
+
+    <pre>/* Primary button */
+.btn-begin {
+  background: var(--night);  /* #111C26 */
+  color: var(--sand);        /* #F5F0E8 */
+  font-family: 'League Spartan', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  padding: 18px 36px;
+  border: none;
+}
+
+/* Outline button */
+.btn-outline {
+  background: transparent;
+  color: var(--sand);
+  border: 1px solid rgba(245, 240, 232, 0.3);
+}</pre>
+  </section>
+
+
+  <!-- ═══ SPACING ═══ -->
+  <section>
+    <div class="section-label">
+      <svg width="11" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.7"/>
+      </svg>
+      05 — Spacing
+    </div>
+    <h2>Room to<br><span style="font-style:normal;">breathe.</span></h2>
+    <p>The brand uses generous whitespace. Section padding starts at 80px and scales to 100px on desktop. Grid gaps are kept tight (2px) or generous (60–80px) — never in between.</p>
+
+    <div class="spacing-row">
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 2px;"></div>
+        <span class="spacing-val">2px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">grid gap</span>
+      </div>
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 20px;"></div>
+        <span class="spacing-val">20px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">nav (scrolled)</span>
+      </div>
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 32px;"></div>
+        <span class="spacing-val">32px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">mobile pad</span>
+      </div>
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 36px;"></div>
+        <span class="spacing-val">36px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">nav (normal)</span>
+      </div>
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 60px;"></div>
+        <span class="spacing-val">60px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">content gap</span>
+      </div>
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 64px;"></div>
+        <span class="spacing-val">64px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">side pad</span>
+      </div>
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 80px;"></div>
+        <span class="spacing-val">80px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">section (min)</span>
+      </div>
+      <div class="spacing-block-wrap">
+        <div class="spacing-block" style="height: 100px;"></div>
+        <span class="spacing-val">100px</span>
+        <span class="spacing-val" style="font-size:10px;color:var(--mid);">section (desktop)</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ VOICE ═══ -->
+  <section>
+    <div class="section-label">
+      <svg width="11" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.7"/>
+      </svg>
+      06 — Tone of Voice
+    </div>
+    <h2>Measured, expert,<br><span style="font-style:normal;">never corporate.</span></h2>
+    <p>The brand sounds like someone who has done the work — not someone selling the work. Plain over clever. Concrete over abstract. Human over corporate.</p>
+
+    <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px;">
+      <div style="background: var(--stone); padding: 40px;">
+        <div style="font-family:'League Spartan',sans-serif;font-size:11px;font-weight:300;letter-spacing:0.1em;text-transform:uppercase;color:#8B4A4A;margin-bottom:16px;">Don't write</div>
+        <p style="font-family:'Raleway',sans-serif;font-weight:300;font-size:16px;line-height:1.7;color:var(--storm);">"We leverage cutting-edge AI solutions to transform your enterprise workflow and deliver synergistic outcomes."</p>
+      </div>
+      <div style="background: var(--night); padding: 40px;">
+        <div style="font-family:'League Spartan',sans-serif;font-size:11px;font-weight:300;letter-spacing:0.1em;text-transform:uppercase;color:var(--ocean-lt);margin-bottom:16px;">Write this instead</div>
+        <p style="font-family:'Raleway',sans-serif;font-weight:300;font-size:16px;line-height:1.7;color:var(--sand);">"We find where AI creates genuine leverage in your business — and build it so your team can actually use it."</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 48px;">Never use</h3>
+    <p style="font-family:'Courier New',monospace;font-size:14px;color:var(--ocean-d);line-height:2;">
+      "cutting-edge" · "bleeding-edge" · "revolutionary" · "game-changing"<br>
+      "solutions" · "synergy" · "ecosystem" · "seamless" · "robust"<br>
+      "leverage" (as a verb) · exclamation marks
+    </p>
+
+    <h3>Key phrases</h3>
+    <p>
+      <strong>"Grounded thinking for an unsteady moment."</strong> — tagline<br>
+      <strong>"No pitch. No retainer required."</strong> — engagement model<br>
+      <strong>"The gap is growing. Let's close it."</strong> — closing<br>
+      <strong>"AI for business solutions. Not AI for AI's sake."</strong> — positioning
+    </p>
+  </section>
+
+
+  <!-- Footer -->
+  <footer>
+    <div class="f-logo">
+      <svg width="11" height="18" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA" opacity="0.5"/>
+      </svg>
+      <span>high elm studio.</span>
+    </div>
+    <p>high elm productions ltd · company #15336186 · england & wales</p>
+  </footer>
+
+</div>
+</body>
+</html>

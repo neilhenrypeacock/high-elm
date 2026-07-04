@@ -1,0 +1,739 @@
+<!-- FIREFLY COLLECTION — AI HOLIDAY ADVISER DEMO -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firefly Collection — Holiday Adviser</title>
+<link rel="icon" type="image/svg+xml" href="/hes-favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:       #222222;
+  --navy-dark:  #111111;
+  --gold:       #f48700;
+  --gold-dark:  #d4702a;
+  --sand:       #fdfeff;
+  --sand-dark:  #f5f3f0;
+  --white:      #ffffff;
+  --text:       #222222;
+  --muted:      #69727d;
+  --light:      #a0a8b0;
+  --border:     rgba(34,34,34,0.1);
+  --border-red: rgba(244,135,0,0.2);
+  --line:       #e5e5e5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Open Sans', sans-serif;
+  background: #1a1614;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overscroll-behavior: none;
+  padding: 20px;
+}
+.topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; }
+.powered { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; font-family: 'Montserrat', sans-serif; text-transform: uppercase; }
+.shell {
+  background: var(--sand); border-radius: 20px; overflow: hidden;
+  box-shadow: 0 8px 60px rgba(0,0,0,0.35); display: flex; flex-direction: column; height: 700px;
+}
+.head { background: var(--navy); padding: 16px 22px; display: flex; align-items: center; gap: 13px; flex-shrink: 0; }
+.hav { height: 34px; flex-shrink: 0; display: flex; align-items: center; }
+.hav img { height: 100%; width: auto; object-fit: contain; max-width: 140px; }
+.hav-fallback { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); display: none; }
+.hname { font-family: 'Libre Baskerville', serif; font-size: 16px; color: #fff; font-weight: 400; }
+.hsub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; display: flex; align-items: center; gap: 5px; font-family: 'Open Sans', sans-serif; }
+.hdot { width: 6px; height: 6px; border-radius: 50%; background: #4cd964; animation: pulse 2s infinite; flex-shrink: 0; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.hbadge { margin-left: auto; font-size: 10px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35); letter-spacing: 0.05em; font-family: 'Montserrat', sans-serif; text-transform: uppercase; }
+.msgs { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; overscroll-behavior: contain; background: var(--sand); }
+.msgs::-webkit-scrollbar { width: 3px; }
+.msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.msg { display: flex; gap: 10px; align-items: flex-start; animation: up 0.22s ease; }
+.msg.user { flex-direction: row-reverse; }
+@keyframes up { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.mav { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
+.mav.ai { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: var(--gold); font-family: 'Montserrat', sans-serif; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mav.user { width: 30px; height: 30px; border-radius: 50%; background: var(--gold); color: #fff; font-family: 'Open Sans', sans-serif; font-size: 11px; }
+.bub { max-width: 82%; padding: 12px 15px; font-size: 14px; line-height: 1.7; }
+.bub.ai { background: var(--white); color: var(--text); border-radius: 16px 16px 16px 4px; border: 1px solid var(--border-red); font-family: 'Open Sans', sans-serif; }
+.bub.user { background: var(--gold); color: #fff; border-radius: 16px 16px 4px 16px; font-family: 'Open Sans', sans-serif; }
+/* Typing indicator */
+.typing { display: flex; gap: 5px; align-items: center; padding: 12px 15px; background: var(--white); border: 1px solid var(--border-red); border-radius: 16px 16px 16px 4px; }
+.tdot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: td 1.3s infinite; }
+.tdot:nth-child(2){animation-delay:.2s} .tdot:nth-child(3){animation-delay:.4s}
+@keyframes td { 0%,60%,100%{transform:translateY(0);opacity:0.35} 30%{transform:translateY(-6px);opacity:1} }
+/* Guided flow steps */
+.flow-step { padding: 4px 0 6px; animation: up 0.25s ease; }
+.flow-q { font-size: 11px; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.flow-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.flow-chip { font-size: 13px; padding: 8px 16px; border-radius: 24px; border: 1px solid var(--border-red); background: var(--white); cursor: pointer; color: var(--text); font-family: 'Open Sans', sans-serif; transition: all 0.12s; }
+.flow-chip:hover:not(:disabled) { background: var(--gold); color: #fff; border-color: var(--gold); }
+.flow-chip.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.flow-chip.selected { background: var(--gold); color: #fff; border-color: var(--gold); opacity: 0.8; }
+.flow-chip:disabled { cursor: default; }
+.flow-confirm { padding: 8px 20px; background: var(--navy); color: #fff; border: none; border-radius: 24px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; transition: background 0.15s; margin-top: 4px; display: inline-block; }
+.flow-confirm:hover { background: var(--gold); }
+.flow-confirm:disabled { opacity: 0.4; cursor: default; }
+/* AI choice pills */
+.sugs { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.sug { font-size: 12px; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-red); background: var(--white); cursor: pointer; color: var(--muted); font-family: 'Open Sans', sans-serif; transition: all 0.12s; }
+.sug:hover { background: var(--gold); color: #fff; border-color: var(--gold); }
+/* Chalet card */
+.chalet-card { display: block; margin-top: 12px; text-decoration: none; background: var(--white); border: 1px solid var(--border-red); border-radius: 14px; overflow: hidden; transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s; }
+.chalet-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(244,135,0,0.12); }
+.cc-hero { height: 110px; position: relative; overflow: hidden; background-size: cover; background-position: center; }
+.cc-hero-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cc-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(20,16,12,0.5) 100%); }
+.cc-body { padding: 12px 14px 14px; }
+.cc-name { font-family: 'Libre Baskerville', serif; font-size: 16px; font-weight: 400; color: var(--navy); margin-bottom: 2px; }
+.cc-resort { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-family: 'Open Sans', sans-serif; letter-spacing: 0.02em; }
+.cc-detail { font-size: 12px; color: var(--text); line-height: 1.55; margin-bottom: 10px; font-family: 'Open Sans', sans-serif; }
+.cc-foot { display: flex; justify-content: space-between; align-items: center; padding-top: 9px; border-top: 1px solid var(--line); }
+.cc-stats { font-size: 11px; color: var(--muted); font-family: 'Open Sans', sans-serif; }
+.cc-hint { font-size: 11px; color: var(--gold); letter-spacing: 0.02em; font-family: 'Open Sans', sans-serif; }
+/* Enquiry form */
+.enquiry-cta { margin-top: 16px; background: var(--sand-dark); border: 1px solid var(--border-red); border-radius: 12px; padding: 16px; }
+.enquiry-cta input { display: block; width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid var(--border-red); border-radius: 8px; font-size: 13px; font-family: 'Open Sans', sans-serif; color: var(--text); background: var(--white); margin-bottom: 8px; outline: none; transition: border-color 0.15s; }
+.enquiry-cta input:focus { border-color: var(--gold); }
+.enquiry-cta input::placeholder { color: var(--light); }
+.enquiry-send { display: block; width: 100%; box-sizing: border-box; padding: 10px 16px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; transition: background 0.15s; text-align: center; margin-top: 4px; }
+.enquiry-send:hover { background: var(--gold); }
+.enquiry-send:disabled { opacity: 0.5; cursor: default; }
+/* Multi-select */
+.ms-wrap { margin-top: 10px; }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+.ms-chip { font-size: 12px; padding: 6px 13px; border-radius: 20px; border: 1px solid var(--border-red); background: var(--white); cursor: pointer; color: var(--muted); font-family: 'Open Sans', sans-serif; transition: all 0.12s; user-select: none; }
+.ms-chip.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.ms-confirm { padding: 7px 18px; background: var(--gold); color: #fff; border: none; border-radius: 20px; font-size: 12px; font-family: 'Open Sans', sans-serif; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.ms-confirm:hover { background: var(--gold-dark); }
+/* Input bar */
+.ibar { padding: 13px 16px; border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; flex-shrink: 0; background: var(--white); }
+.ibar input { flex: 1; padding: 11px 16px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; font-family: 'Open Sans', sans-serif; color: var(--text); background: var(--sand); outline: none; transition: all 0.15s; }
+.ibar input:focus { border-color: var(--gold); background: var(--white); }
+.ibar input::placeholder { color: var(--light); }
+.sbtn { width: 40px; height: 40px; border-radius: 50%; background: var(--gold); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+.sbtn:hover { background: var(--gold-dark); }
+.sbtn:disabled { opacity: 0.3; cursor: default; }
+/* Bubble paragraph spacing */
+.bub p { margin: 0 0 0.6em; }
+.bub p:last-child { margin-bottom: 0; }
+/* Layout */
+.wrapper { width: 100%; max-width: 1060px; position: relative; z-index: 1; }
+.chat-row { display: flex; gap: 16px; align-items: flex-start; }
+.shell { flex: 1; min-width: 0; }
+/* Profile panel */
+.profile-panel { width: 240px; flex-shrink: 0; height: 700px; border-radius: 20px; background: var(--navy); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 60px rgba(0,0,0,0.3); }
+.pp-head { padding: 16px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.pp-title { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+.pp-body { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+.pp-body::-webkit-scrollbar { width: 2px; }
+.pp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+.pp-empty { font-size: 11px; color: rgba(255,255,255,0.18); font-style: italic; text-align: center; margin-top: 24px; line-height: 1.7; font-family: 'Open Sans', sans-serif; }
+.pp-row { display: flex; flex-direction: column; gap: 4px; animation: up 0.25s ease; }
+.pp-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.28); font-family: 'Montserrat', sans-serif; }
+.pp-value { font-size: 12px; color: rgba(255,255,255,0.78); font-weight: 400; line-height: 1.45; font-family: 'Open Sans', sans-serif; }
+/* High Elm closing screen */
+#high-elm-screen {
+  position: fixed; inset: 0; background: var(--sand); display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; opacity: 0; transition: opacity 0.7s ease;
+  padding: 40px 24px; text-align: center;
+}
+.he-wordmark { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; color: var(--muted); margin-bottom: 40px; }
+.he-headline { font-family: 'Libre Baskerville', serif; font-size: 32px; font-weight: 400; color: var(--navy); line-height: 1.2; margin-bottom: 16px; max-width: 540px; }
+.he-subhead { font-family: 'Open Sans', sans-serif; font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 480px; margin-bottom: 28px; }
+.he-divider { width: 40px; height: 1px; background: var(--gold); margin: 0 auto 28px; }
+.he-body { font-family: 'Open Sans', sans-serif; font-size: 14px; color: var(--muted); line-height: 1.75; max-width: 420px; margin-bottom: 36px; }
+.he-ctabtn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; border-radius: 40px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; transition: all 0.15s; cursor: pointer; border: none; }
+.he-ctabtn.primary { background: var(--navy); color: #fff; margin-right: 10px; }
+.he-ctabtn.primary:hover { background: var(--gold); }
+.he-ctabtn.secondary { background: transparent; color: var(--navy); border: 1px solid var(--navy); }
+.he-ctabtn.secondary:hover { background: var(--navy); color: #fff; }
+.he-ctas { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+@media (max-width: 820px) { .profile-panel { display: none; } .wrapper { max-width: 720px; } .he-headline { font-size: 26px; } }
+/* Embedded */
+html.embedded body { padding: 12px; height: 100vh; overflow: hidden; }
+html.embedded .topbar { display: none; }
+html.embedded #mountain-bg { display: none; }
+html.embedded .shell { height: calc(100vh - 24px); }
+html.embedded .profile-panel { height: calc(100vh - 24px); }
+</style>
+</head>
+<body>
+<script>if (window !== window.top) document.documentElement.classList.add('embedded');</script>
+
+<!-- MOUNTAIN BACKGROUND -->
+<svg id="mountain-bg" style="position:fixed;bottom:0;left:0;width:100%;pointer-events:none;z-index:0;" viewBox="0 0 800 186" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+  <polygon points="95,8    30,186  160,186"  fill="#221f1c"/>
+  <polygon points="255,18  145,186 375,186"  fill="#221f1c"/>
+  <polygon points="415,0   340,186 490,186"  fill="#221f1c"/>
+  <polygon points="570,14  475,186 665,186"  fill="#221f1c"/>
+  <polygon points="720,10  660,186 780,186"  fill="#221f1c"/>
+  <polygon points="95,8    73,67   117,67"   fill="#e8ddd0" opacity="0.7"/>
+  <polygon points="255,18  217,74  293,74"   fill="#e8ddd0" opacity="0.7"/>
+  <polygon points="415,0   390,62  440,62"   fill="#e8ddd0" opacity="0.7"/>
+  <polygon points="570,14  539,71  601,71"   fill="#e8ddd0" opacity="0.7"/>
+  <polygon points="720,10  700,69  740,69"   fill="#e8ddd0" opacity="0.7"/>
+  <polygon points="40,42   0,186   120,186"  fill="#1a1714"/>
+  <polygon points="175,25  110,186 240,186"  fill="#1a1714"/>
+  <polygon points="335,30  230,186 440,186"  fill="#1a1714"/>
+  <polygon points="500,20  440,186 560,186"  fill="#1a1714"/>
+  <polygon points="645,35  555,186 735,186"  fill="#1a1714"/>
+  <polygon points="40,42   20,90   60,90"    fill="#e8ddd0" opacity="0.78"/>
+  <polygon points="175,25  153,79  197,79"   fill="#e8ddd0" opacity="0.78"/>
+  <polygon points="335,30  300,82  370,82"   fill="#e8ddd0" opacity="0.78"/>
+  <polygon points="500,20  480,75  520,75"   fill="#e8ddd0" opacity="0.78"/>
+  <polygon points="645,35  615,85  675,85"   fill="#e8ddd0" opacity="0.78"/>
+  <polygon points="70,80   0,186   185,186"  fill="#141210"/>
+  <polygon points="220,60  130,186 315,186"  fill="#141210"/>
+  <polygon points="410,68  275,186 545,186"  fill="#141210"/>
+  <polygon points="580,55  490,186 665,186"  fill="#141210"/>
+  <polygon points="730,75  645,186 800,186"  fill="#141210"/>
+  <polygon points="70,80   40,115  100,115"  fill="#e8ddd0" opacity="0.88"/>
+  <polygon points="220,60  189,102 251,102"  fill="#e8ddd0" opacity="0.88"/>
+  <polygon points="410,68  365,107 455,107"  fill="#e8ddd0" opacity="0.88"/>
+  <polygon points="580,55  551,99  609,99"   fill="#e8ddd0" opacity="0.88"/>
+  <polygon points="730,75  704,112 756,112"  fill="#e8ddd0" opacity="0.88"/>
+</svg>
+
+<!-- HIGH ELM STUDIO CLOSING SCREEN -->
+<div id="high-elm-screen" style="display:none">
+  <div class="he-wordmark">High Elm Studio</div>
+  <div class="he-headline">This is what your website could feel like.</div>
+  <div class="he-subhead">A digital adviser, trained on your team, your inventory and your voice — answering at any hour, qualifying every visitor, and handing your team a warm conversation, not a cold form.</div>
+  <div class="he-divider"></div>
+  <div class="he-body">The conversation you just had was built in two weeks for Firefly Collection.<br>It runs on their site, in their voice, on their inventory — and never sleeps.<br><br>If you'd like to see one built for your business, get in touch.</div>
+  <div class="he-ctas">
+    <a href="https://wa.me/447786572258" target="_blank" class="he-ctabtn primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp Neil
+    </a>
+    <a href="mailto:neil@neilpeacock.co.uk?subject=High%20Elm%20Studio%20x%20Firefly%20Collection%20Demo" class="he-ctabtn secondary">Email Neil</a>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="topbar">
+    <div class="powered">AI Holiday Intelligence · Demo</div>
+  </div>
+  <div class="chat-row">
+    <div class="shell">
+      <div class="head">
+        <div class="hav" id="logoWrap">
+          <img id="logoImg" src="https://fd505970.delivery.rocketcdn.me/wp-content/themes/FDRY-version-2/images/Firefly-logo-nobg.svg" alt="Firefly Collection" onerror="document.getElementById('logoImg').style.display='none';document.getElementById('logoFallback').style.display='block'" />
+          <span id="logoFallback" class="hav-fallback">Firefly Collection</span>
+        </div>
+        <div>
+          <div class="hname">Firefly Collection</div>
+          <div class="hsub"><div class="hdot"></div>Holiday Adviser</div>
+        </div>
+        <span class="hbadge">firefly-collection.com</span>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="ibar" id="ibar" style="display:none">
+        <input id="inp" placeholder="Any questions? Type here…" onkeydown="if(event.key==='Enter')send()"/>
+        <button class="sbtn" id="sbtn" onclick="send()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M2 12L22 2L12 22L10 14L2 12Z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="profile-panel" id="profilePanel">
+      <div class="pp-head"><div class="pp-title">Your profile</div></div>
+      <div class="pp-body" id="ppBody"><div class="pp-empty">Building your profile…</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Property inventory ── */
+const L = [
+  { id:1, slug:"marco-polo-val-disere",  name:"Chalet Marco Polo",        resort:"Val d'Isère, France",     bedrooms:8, sleeps:16, summary:"Flagship Val d'Isère chalet with indoor pool, spa, cinema and lift access throughout. Ski-in/ski-out and walkable to the village.", image:"https://fd505970.delivery.rocketcdn.me/wp-content/uploads/2026/02/Val-dIsere-town-photo.png" },
+  { id:2, slug:"hibou-chamonix",          name:"Chalet Hibou",              resort:"Chamonix, France",        bedrooms:6, sleeps:12, summary:"Mont Blanc views from floor-to-ceiling windows in Le Moussoux, 700m from the Brévent lifts. Heated pool, sauna, private chef.", image:null },
+  { id:3, slug:"lorne-verbier",           name:"Chalet Lorne",              resort:"Verbier, Switzerland",    bedrooms:6, sleeps:14, summary:"Catered chalet in the heart of Verbier, walking distance to the Médran lift. Spa, chef, in-resort driver.", image:"https://fd505970.delivery.rocketcdn.me/wp-content/uploads/2026/02/Verbier-town-photo.png" },
+  { id:4, slug:"lech-flagship",           name:"Chalet in Oberlech",        resort:"Lech, Austria",           bedrooms:7, sleeps:14, summary:"Quiet Oberlech setting, ski-in/ski-out, traditional Austrian craftsmanship with full chef and butler service.", image:"https://fd505970.delivery.rocketcdn.me/wp-content/uploads/2026/02/Lech-at-night.png" },
+  { id:5, slug:"courchevel-1850",         name:"Chalet in Courchevel 1850", resort:"Courchevel 1850, France", bedrooms:6, sleeps:12, summary:"Boutique-quality finishes in the most prestigious of the Three Valleys. Direct ski access, indoor pool, cinema.", image:null },
+  { id:6, slug:"zermatt-flagship",        name:"Chalet in Zermatt",         resort:"Zermatt, Switzerland",    bedrooms:6, sleeps:14, summary:"Matterhorn views, walkable to the Sunnegga lift, full catered package with chef and concierge.", image:"https://fd505970.delivery.rocketcdn.me/wp-content/uploads/2026/02/Family-walking-in-front-of-the-Matterhorn.png" },
+  { id:7, slug:"meribel-flagship",        name:"Chalet in Méribel",         resort:"Méribel, France",         bedrooms:7, sleeps:14, summary:"Heart of the Three Valleys, ski-in/ski-out, ideal for mixed-ability family groups. Private chef and concierge.", image:null },
+  { id:8, slug:"dolomites-flagship",      name:"Chalet in the Dolomites",   resort:"Dolomiti Superski, Italy",bedrooms:8, sleeps:16, summary:"Italian Alpine character, the largest linked ski area in the world, exceptional food culture.", image:"https://fd505970.delivery.rocketcdn.me/wp-content/uploads/2026/02/Dolomites-through-luxury-chalet-window.png" }
+];
+
+/* ── Guided flow steps ── */
+const STEPS = [
+  { id:'resort', q:'Where are you thinking?',
+    opts:["Val d'Isère","Verbier","Courchevel 1850","Chamonix","Lech","Zermatt","Méribel","Open to suggestions"] },
+  { id:'group',  q:"Who's coming?",
+    opts:['Just us two','Small group (3–5)','Family with kids','Large group (8–12)','Big celebration (12+)'] },
+  { id:'when',   q:'When are you thinking?',
+    opts:['Christmas week','New Year','January','February half-term','Easter','Flexible on timing'] },
+  { id:'service',q:'Catered or self-catered?',
+    opts:['Fully catered — chef, host, the lot','Self-catered — we\'ll do our own thing','Either works for us'] },
+  { id:'priorities', q:'What matters most? Pick as many as you like.',
+    multi:true,
+    opts:['Ski-in / ski-out','Pool or spa','Big kitchen','Cinema room','Walkable to village','Privacy & seclusion','Family-friendly','Exceptional food'] }
+];
+
+/* ── Short AI prompt for flow-step warmth responses ── */
+const SYS_FLOW = `You are the holiday adviser for Firefly Collection, a luxury ski chalet rental company.
+
+The visitor just selected an option from a guided booking form. Respond in exactly 1–2 sentences. Be warm and specific — reference their exact choice by name. Show quiet, genuine enthusiasm. Sound like someone who has actually been there.
+
+Examples of good responses:
+- To "Val d'Isère": "Val d'Isère is a brilliant choice — the snow record is one of the best in the Alps and the village still has proper Savoyard charm."
+- To "Family with kids": "Family weeks are some of the best — the Alps at that age leaves a real impression on kids."
+- To "Christmas week": "Christmas in the Alps is genuinely magical — the village atmosphere, the first snow of the season, the whole thing."
+- To "Fully catered — chef, host, the lot": "A fully catered chalet transforms the whole holiday — coming back to a set table and a chef who's thought about dinner so you don't have to is one of those things you quickly wonder how you skied without."
+- To "Ski-in / ski-out": "True ski-in/ski-out makes a real difference — it's the most over-promised phrase in the industry, so when we say it we mean it."
+
+Rules: No exclamation marks. No emoji. No questions. No bullet points. No markdown. Under 40 words.`;
+
+/* ── Full AI system prompt ── */
+const SYS = `You are the digital adviser for Firefly Collection — a hand-picked portfolio of luxury ski chalets and villas, founded by Tim Latimer in 2011 and built on the principle that "nothing is too much trouble."
+
+You are not a chatbot. You are a digital extension of the small Firefly team — same warmth, same first-hand knowledge of the resorts, same quietly expert tone. The team is famously not a call centre, and you must never sound like one.
+
+YOUR JOB
+Your single job is to learn enough about the visitor's plans that the team can come back to them with a tailored shortlist and live availability. You are not closing the booking. You are not matching properties as the endpoint. You are warming the lead so the team picks up a real conversation, not a cold enquiry.
+
+You succeed when the visitor gives you their name, email and phone number and asks the team to be in touch — because they want it, not because you pushed.
+
+VOICE
+Warm. Quietly expert. First-name energy. No exclamation marks. No emoji. No "I'm here to help!". No "great question!". No salesy language. Short sentences. Read like someone who has actually been to Verbier in February.
+
+GUIDED FLOW MODE — IMPORTANT
+This demo uses a structured click-through flow. The visitor has already selected: resort, group, timing, service preference, and priorities via interactive chips. When they say "Perfect — what would you put on our shortlist?" it means all qualifying questions are complete.
+
+At that point, go directly to:
+1. A warm 2–3 sentence synthesis that references what they've told you specifically
+2. Recommend the 2–3 most relevant chalets using [SHOW:N] tags (numeric IDs 1–8)
+3. A natural close inviting them to share their contact details: "This is the kind of week the team would want to look at properly — they'll have specific properties in mind and live availability. Shall I get one of them to come back to you today? Just your name, email and number, and they'll pick up where we've left off."
+4. [EMAIL] to trigger the contact form
+
+Do NOT ask for information already provided. Do NOT emit [CHOICES:] at this stage. Do NOT ask follow-up qualifying questions.
+
+After email submission (handled by the frontend), the system will show a confirmation — you do not need to handle this.
+
+WHAT YOU NEVER DO
+- Never quote a specific price. If pressed: "the team will have live pricing — most weeks at this kind of property sit between [rough range], depending on resort and timing."
+- Never promise a specific chalet is available. Always: "subject to availability — the team will confirm."
+- Never compare Firefly to named competitors.
+- Never use exclamation marks, emoji, or AI-tells like "great question" or "I'd love to help".
+- Never push for the email. Earn it by being useful first.
+- Never sound like a form.
+
+WHAT YOU CAN MENTION (FACTUAL ANCHORS)
+- Founded 2011 by Tim Latimer. Over 1,000 hand-picked properties.
+- Tim and the team have first-hand experience of every resort and most of the chalets.
+- Nominated 10 years running as Best Ski Travel Agent in the World Ski Awards.
+- The brand promise: "nothing is too much trouble."
+- Self-catered apartments through to fully-staffed catered chalets with chef, concierge, in-resort driver.
+- Catered chalet weeks typically include private chef (six nights of dinner, breakfast, afternoon tea), housekeeping, concierge, and a stocked bar with welcome champagne.
+
+FORMAT RULES
+- No bullet points. No numbered lists. Prose only.
+- No **bold**. No markdown formatting of any kind.
+- Keep responses to 3–5 sentences.
+- When recommending properties, use [SHOW:N] with the numeric ID.
+- Use [EMAIL] once only, at the close.
+- Use [PROFILE:key=value] silently to record values — stripped from display.
+
+TAG SYSTEM
+- [SHOW:N] — surfaces a property card. Numeric ID (1–8).
+- [EMAIL] — renders the contact form. Use once, at the close.
+- [PROFILE:key=value|key2=value2] — silent profile update.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROPERTIES REFERENCE — use numeric IDs in [SHOW:] tags
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1 — Chalet Marco Polo · Val d'Isère, France · Sleeps 16 · 8 bedrooms · Ski-in/ski-out · Pool · Spa · Cinema
+2 — Chalet Hibou · Chamonix, France · Sleeps 12 · 6 bedrooms · Mont Blanc views · Pool · Sauna · Chef
+3 — Chalet Lorne · Verbier, Switzerland · Sleeps 14 · 6 bedrooms · Walkable to Médran lift · Spa · Chef
+4 — Chalet in Oberlech · Lech, Austria · Sleeps 14 · 7 bedrooms · Ski-in/ski-out · Chef · Butler
+5 — Chalet in Courchevel 1850 · France · Sleeps 12 · 6 bedrooms · Direct ski access · Pool · Cinema
+6 — Chalet in Zermatt · Switzerland · Sleeps 14 · 6 bedrooms · Matterhorn views · Chef · Concierge
+7 — Chalet in Méribel · France · Sleeps 14 · 7 bedrooms · Ski-in/ski-out · Family groups · Chef
+8 — Chalet in the Dolomites · Dolomiti Superski, Italy · Sleeps 16 · 8 bedrooms · Italian character
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESORT QUICK REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Val d'Isère — Best snow record in the Alps. Espace Killy. Authentic Savoyard village. Ski-in/ski-out chalets available.
+Verbier — 4 Vallées, one of the largest ski areas in the world. Lively. Great for mixed-ability groups.
+Courchevel 1850 — Most boutique-heavy of the Three Valleys. Ski-in/ski-out is the differentiator. Michelin restaurants.
+Méribel — Heart of the Three Valleys. 600km pisted. Easy for mixed abilities. Great family infrastructure.
+Lech — Quieter than St Anton. Very Austrian. Beautiful village atmosphere. Linked to Zürs.
+Zermatt — Matterhorn views from almost everywhere. Car-free village. Cross-border skiing to Cervinia.
+Chamonix — Mont Blanc on your doorstep. More town than ski village. Best for advanced and adventurous skiers.
+Tignes — Glacier skiing, snow-sure, linked to Val d'Isère via Espace Killy.
+Megève — Lower altitude. Charm-led. Best in mid-season. French village atmosphere.
+St Anton — The Arlberg. Serious skiers' resort. Strong après. Traditional Tyrolean village.
+Dolomites — Largest linked ski area in the world. Exceptional Italian food culture.`;
+
+/* ── State ── */
+let hist = [], busy = false;
+let capturedEmail = null, capturedName = null;
+let flowStep = 0, flowActive = true;
+let afterAI = null;
+const profile = { resort:'', group:'', dates:'', service:'', priorities:'' };
+
+/* ── Avatar ── */
+function aiAv() {
+  const av = document.createElement('div'); av.className = 'mav ai';
+  av.textContent = 'FC';
+  return av;
+}
+
+/* ── Chalet gradients for imageless cards ── */
+const chaletGrads = {
+  1:'linear-gradient(135deg,#1a1614 0%,#2a1a0a 100%)',
+  2:'linear-gradient(135deg,#0a1a2a 0%,#1a2030 100%)',
+  3:'linear-gradient(135deg,#1a1614 0%,#0a1a1a 100%)',
+  4:'linear-gradient(135deg,#141a0a 0%,#1a1614 100%)',
+  5:'linear-gradient(135deg,#1a0a0a 0%,#1a1614 100%)',
+  6:'linear-gradient(135deg,#0a0a1a 0%,#1a1614 100%)',
+  7:'linear-gradient(135deg,#0a1a0a 0%,#1a1614 100%)',
+  8:'linear-gradient(135deg,#1a1614 0%,#2a1a08 100%)',
+};
+
+function mkCard(l) {
+  const wrap = document.createElement('div'); wrap.className = 'chalet-card';
+  const hero = document.createElement('div'); hero.className = 'cc-hero';
+  if (l.image) {
+    const img = document.createElement('img');
+    img.className = 'cc-hero-img';
+    img.src = l.image; img.alt = l.name;
+    img.onerror = () => { img.style.display='none'; hero.style.background = chaletGrads[l.id]||'linear-gradient(135deg,#1a1614 0%,#2a1a0a 100%)'; };
+    hero.appendChild(img);
+  } else {
+    hero.style.background = chaletGrads[l.id] || 'linear-gradient(135deg,#1a1614 0%,#2a1a0a 100%)';
+  }
+  const overlay = document.createElement('div'); overlay.className = 'cc-hero-overlay';
+  hero.appendChild(overlay);
+  const body = document.createElement('div'); body.className = 'cc-body';
+  body.innerHTML = `
+    <div class="cc-name">${l.name}</div>
+    <div class="cc-resort">${l.resort}</div>
+    <div class="cc-detail">${l.summary}</div>
+    <div class="cc-foot">
+      <span class="cc-stats">${l.bedrooms} bedrooms &nbsp;·&nbsp; sleeps ${l.sleeps}</span>
+      <span class="cc-hint">Subject to availability</span>
+    </div>`;
+  wrap.appendChild(hero); wrap.appendChild(body);
+  return wrap;
+}
+
+/* ── Contact form ── */
+function mkContactForm() {
+  const wrap = document.createElement('div'); wrap.className = 'enquiry-cta';
+  const uid = 'cf' + Date.now();
+  wrap.innerHTML = `
+    <input type="text"  id="${uid}-name"  placeholder="Your name" autocomplete="name" />
+    <input type="email" id="${uid}-email" placeholder="Email address" autocomplete="email" />
+    <input type="tel"   id="${uid}-phone" placeholder="Phone number (optional)" autocomplete="tel" />
+    <button class="enquiry-send" onclick="submitContact('${uid}',this)">Get in touch →</button>`;
+  return wrap;
+}
+
+function submitContact(uid, btn) {
+  const name  = (document.getElementById(uid+'-name') ||{}).value||'';
+  const email = (document.getElementById(uid+'-email')||{}).value||'';
+  if (!name.trim()||!email.trim()) return;
+  capturedEmail = email.trim();
+  capturedName  = name.trim();
+  btn.disabled = true; btn.textContent = 'Sending…';
+  btn.closest('.enquiry-cta').innerHTML = `<span style="font-size:12px;color:var(--muted);line-height:1.6">Sent — the team will be in touch today.</span>`;
+  const firstName = capturedName.split(' ')[0];
+  const confirmation = `Perfect, ${firstName}. The team will come back to you today with a tailored shortlist and live availability. They've already got everything we've talked through, so there's no need to repeat any of it.`;
+  addMsg('ai', confirmation);
+  hist.push({role:'assistant', content: confirmation});
+  setTimeout(showHighElmScreen, 2200);
+}
+
+/* ── Profile panel ── */
+function updateProfile() {
+  const body = document.getElementById('ppBody');
+  if (!body) return;
+  const labels = { resort:'Resort', group:'Group', dates:'Timing', service:'Service', priorities:'Priorities' };
+  const rows = Object.entries(labels).filter(([k]) => profile[k]);
+  if (!rows.length) { body.innerHTML = '<div class="pp-empty">Building your profile…</div>'; return; }
+  body.innerHTML = rows.map(([k, label]) =>
+    `<div class="pp-row"><div class="pp-label">${label}</div><div class="pp-value">${profile[k]}</div></div>`
+  ).join('');
+}
+
+/* ── High Elm closing screen ── */
+function showHighElmScreen() {
+  const screen = document.getElementById('high-elm-screen');
+  if (!screen) return;
+  screen.style.display = 'flex';
+  requestAnimationFrame(() => requestAnimationFrame(() => { screen.style.opacity = '1'; }));
+}
+
+/* ── Core chat ── */
+function addMsg(role, text, ids=[], choices=[], collect=false, multiSelect=null) {
+  const msgs = document.getElementById('msgs');
+  const row = document.createElement('div'); row.className = 'msg ' + role;
+  const av = role==='ai' ? aiAv() : document.createElement('div');
+  if (role !== 'ai') { av.className = 'mav user'; av.textContent = 'You'; }
+  const b = document.createElement('div'); b.className = 'bub ' + role;
+  b.innerHTML = text.split(/\n\n+/).map(chunk =>
+    `<p>${chunk.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+)\*/g,'<em>$1</em>').replace(/\n/g,'<br>')}</p>`
+  ).join('');
+  row.appendChild(av); row.appendChild(b); msgs.appendChild(row);
+  if (ids && ids.length) ids.forEach(id => { const l=L.find(x=>x.id===id); if(l) b.appendChild(mkCard(l)); });
+  if (choices && choices.length) {
+    const cd = document.createElement('div'); cd.className = 'sugs'; cd.style.marginTop = '10px';
+    choices.forEach(c => { const btn=document.createElement('button'); btn.className='sug'; btn.textContent=c; btn.onclick=()=>qs(c); cd.appendChild(btn); });
+    b.appendChild(cd);
+  }
+  if (multiSelect) renderMultiSelect(multiSelect, b);
+  if (collect) b.appendChild(mkContactForm());
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showT() {
+  const msgs = document.getElementById('msgs');
+  const r = document.createElement('div'); r.className = 'msg ai'; r.id = 'TY';
+  const t = document.createElement('div'); t.className = 'typing';
+  t.innerHTML = '<div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>';
+  r.appendChild(aiAv()); r.appendChild(t);
+  msgs.appendChild(r); msgs.scrollTop = msgs.scrollHeight;
+}
+function hideT() { const t = document.getElementById('TY'); if(t) t.remove(); }
+
+/* ── Tag parser ── */
+function parse(text) {
+  let clean = text.trim(), ids=[], choices=[], collect=false, multiSelect=null;
+
+  const showMatches = [...clean.matchAll(/\[SHOW:([^\]]+)\]/g)];
+  if (showMatches.length) {
+    ids = showMatches.flatMap(m => m[1].split(',').map(n => {
+      const trimmed = n.trim();
+      const num = parseInt(trimmed);
+      if (!isNaN(num)) return num;
+      const bySlug = L.find(x => x.slug === trimmed);
+      return bySlug ? bySlug.id : null;
+    }).filter(n => n !== null));
+    clean = clean.replace(/\[SHOW:[^\]]+\]/g,'').trim();
+  }
+
+  const choiceM = clean.match(/\[CHOICE:([^\]]+)\]/);
+  if (choiceM) {
+    const opts = choiceM[1].split('|').map(s=>s.trim()).filter(Boolean);
+    if (opts.length >= 2) choices = opts;
+    clean = clean.replace(/\[CHOICE:[^\]]+\]/,'').trim();
+  }
+
+  const choicesM = clean.match(/\[CHOICES:([^\]]+)\]/);
+  if (choicesM) {
+    choices = choicesM[1].split('|').map(s=>s.trim()).filter(Boolean);
+    clean = clean.replace(/\[CHOICES:[^\]]+\]/,'').trim();
+  }
+
+  if (clean.includes('[EMAIL]')) { collect=true; clean=clean.replace(/\[EMAIL\]/g,'').trim(); }
+
+  const msm = clean.match(/\[MULTISELECT:([^\]]+)\]/);
+  if (msm) { multiSelect = msm[1].split('|').map(s=>s.trim()).filter(Boolean); clean = clean.replace(/\[MULTISELECT:[^\]]+\]/,'').trim(); }
+
+  const profileTags = clean.match(/\[PROFILE:([^\]]+)\]/g);
+  if (profileTags) {
+    profileTags.forEach(tag => {
+      const inner = tag.slice(9, -1);
+      inner.split('|').forEach(pair => {
+        const eq = pair.indexOf('=');
+        if (eq > -1) { const k = pair.slice(0,eq).trim(), v = pair.slice(eq+1).trim(); if (k && v && profile.hasOwnProperty(k)) profile[k] = v; }
+      });
+    });
+    clean = clean.replace(/\[PROFILE:[^\]]+\]/g,'').trim();
+    updateProfile();
+  }
+
+  clean = clean.replace(/\[[A-Z_]+(?::[^\]]+)?\]/g,'').trim();
+  return {clean, ids, choices, collect, multiSelect};
+}
+
+/* ── AI call — flowMode uses short SYS_FLOW prompt ── */
+async function callAI(flowMode = false) {
+  busy = true;
+  if (!flowMode) document.getElementById('sbtn').disabled = true;
+  showT();
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 1000));
+    try {
+      const res = await fetch('/api/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens: flowMode ? 80 : 500,
+          system: flowMode ? SYS_FLOW : SYS,
+          messages: hist
+        })
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error.message);
+      const raw = (d.content?.[0]?.text||'').trim();
+      hideT();
+      const {clean, ids, choices, collect, multiSelect} = parse(raw);
+      addMsg('ai', clean, ids, choices, collect, multiSelect);
+      hist.push({role:'assistant', content:raw});
+      lastErr = null;
+      break;
+    } catch(e) { lastErr = e; }
+  }
+  if (lastErr) { hideT(); addMsg('ai', 'Sorry, there was a connection issue — please try again.'); }
+  busy = false;
+  if (!flowMode) document.getElementById('sbtn').disabled = false;
+  if (afterAI) { const fn = afterAI; afterAI = null; fn(); }
+}
+
+/* ── Free-text send (post-flow only) ── */
+async function send() {
+  const inp = document.getElementById('inp');
+  const msg = inp.value.trim();
+  if (!msg||busy) return;
+  inp.value='';
+  addMsg('user', msg);
+  hist.push({role:'user', content:msg});
+  await callAI(false);
+  if (window === window.top) inp.focus();
+}
+
+/* ── qs — AI passthrough for AI-generated choice pills ── */
+function qs(t) {
+  addMsg('user', t);
+  hist.push({role:'user', content: t});
+  callAI(false);
+}
+
+/* ── Multi-select (for AI-generated multiselects) ── */
+function renderMultiSelect(opts, parent) {
+  const wrap = document.createElement('div'); wrap.className = 'ms-wrap';
+  const chips = document.createElement('div'); chips.className = 'ms-chips';
+  opts.forEach(opt => {
+    const c = document.createElement('div'); c.className = 'ms-chip'; c.textContent = opt;
+    c.onclick = () => c.classList.toggle('on');
+    chips.appendChild(c);
+  });
+  const btn = document.createElement('button'); btn.className = 'ms-confirm'; btn.textContent = 'Done →';
+  btn.onclick = () => {
+    const sel = [...chips.querySelectorAll('.ms-chip.on')].map(c => c.textContent);
+    if (!sel.length) return;
+    const msg = sel.join(', ');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${msg}</span>`;
+    qs(msg);
+  };
+  wrap.appendChild(chips); wrap.appendChild(btn);
+  parent.appendChild(wrap);
+}
+
+/* ── Guided flow ── */
+function showStep(n) {
+  if (n >= STEPS.length) { synthesize(); return; }
+  flowStep = n;
+  const step = STEPS[n];
+  const msgs = document.getElementById('msgs');
+  const wrap = document.createElement('div');
+  wrap.className = 'flow-step';
+  wrap.dataset.step = n;
+
+  const qlabel = document.createElement('div');
+  qlabel.className = 'flow-q';
+  qlabel.textContent = step.q;
+  wrap.appendChild(qlabel);
+
+  const chipsWrap = document.createElement('div');
+  chipsWrap.className = 'flow-chips';
+
+  if (step.multi) {
+    step.opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'flow-chip';
+      btn.textContent = opt;
+      btn.onclick = () => btn.classList.toggle('on');
+      chipsWrap.appendChild(btn);
+    });
+    wrap.appendChild(chipsWrap);
+
+    const confirm = document.createElement('button');
+    confirm.className = 'flow-confirm';
+    confirm.textContent = 'Find my chalet →';
+    confirm.onclick = () => {
+      const sel = [...chipsWrap.querySelectorAll('.flow-chip.on')].map(b => b.textContent);
+      const value = sel.length ? sel.join(', ') : 'No specific priorities';
+      chipsWrap.querySelectorAll('.flow-chip').forEach(b => { b.disabled = true; });
+      confirm.disabled = true;
+      pickOption(n, value);
+    };
+    wrap.appendChild(confirm);
+  } else {
+    step.opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'flow-chip';
+      btn.textContent = opt;
+      btn.onclick = () => {
+        chipsWrap.querySelectorAll('.flow-chip').forEach(b => { b.disabled = true; b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        pickOption(n, opt);
+      };
+      chipsWrap.appendChild(btn);
+    });
+    wrap.appendChild(chipsWrap);
+  }
+
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function pickOption(stepIdx, value) {
+  const step = STEPS[stepIdx];
+
+  // Update profile directly as selections come in
+  if      (step.id === 'resort')     profile.resort    = value;
+  else if (step.id === 'group')      profile.group     = value;
+  else if (step.id === 'when')       profile.dates     = value;
+  else if (step.id === 'service')    profile.service   = value.replace(' — chef, host, the lot','').replace(' — we\'ll do our own thing','').trim();
+  else if (step.id === 'priorities') profile.priorities = value;
+  updateProfile();
+
+  // Show user selection as a chat bubble
+  addMsg('user', value);
+  hist.push({role:'user', content: value});
+
+  // After AI responds warmly, advance to next step
+  afterAI = () => showStep(stepIdx + 1);
+  callAI(true);
+}
+
+function synthesize() {
+  flowActive = false;
+  document.getElementById('ibar').style.display = 'flex';
+
+  // Natural synthesis trigger — AI has all context in hist already
+  const synthMsg = "Perfect — what would you put on our shortlist?";
+  addMsg('user', synthMsg);
+  hist.push({role:'user', content: synthMsg});
+  callAI(false);
+
+  if (window === window.top) {
+    setTimeout(() => document.getElementById('inp').focus(), 600);
+  }
+}
+
+/* ── Init ── */
+(function init(){
+  const opening = "Whether it's Christmas in Val d'Isère, New Year in Verbier or a milestone week in Lech — tell me a little about what you have in mind.";
+  addMsg('ai', opening);
+  hist.push({role:'assistant', content: opening});
+  setTimeout(() => showStep(0), 500);
+})();
+</script>
+</body>
+</html>

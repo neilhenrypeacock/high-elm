@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  ═══════════════════════════════════════════════════════
+  HIGH ELM STUDIO — CHAT DEMO TEMPLATE v2
+  ═══════════════════════════════════════════════════════
+
+  Fill every [PLACEHOLDER] before deploying.
+  Do not change any structure, CSS variables names,
+  or JavaScript logic. Content only.
+
+  PLACEHOLDERS IN THIS FILE:
+  ───────────────────────────
+  [SPLASH_COMPANY_NAME]   Prospect company name on splash screen
+  [BRAND_NAME]            Company name throughout UI and emails
+  [BRAND_TAGLINE]         Short descriptor e.g. "French Alps · Est. 1998"
+  [BRAND_URL]             Company website URL
+  [ADVISER_INITIALS]      2-letter adviser avatar e.g. "HW"
+  [INPUT_PLACEHOLDER]     Chat input hint text
+  [TOPBAR_DESCRIPTOR]     e.g. "Alpine Property Intelligence · Demo"
+  [OPENING_MESSAGE]       AI's first message verbatim
+  [PROPERTY_MATCH_OPENING] Opening message for property match mode (include [PROPERTY_NAME])
+  [FROM_EMAIL]            Verified Resend sender address
+  [NOTIFY_EMAIL]          Team inbox for lead notifications
+  [EMAIL_SUBJECT]         e.g. "Your Bramble Ski property shortlist"
+  [ADVISER_INITIAL]       Single letter for email avatar
+  [BRAND_BIO]             2-sentence brand description for email
+
+  CSS VARIABLES (in :root):
+  ──────────────────────────
+  --navy          Primary dark colour
+  --navy-dark     Hover/depth variant (~10% darker)
+  --gold          Accent colour
+  --gold-dark     Accent hover variant
+  --sand          Page background (warm off-white)
+
+  JAVASCRIPT CONFIGS (update per client):
+  ────────────────────────────────────────
+  const L              Property/listing inventory (8–12 items)
+  const SYS            Full system prompt
+  const BUDGET         Legacy budget slider config (for [BUDGET] tag)
+  const GROUP_OPTIONS  Group type cards (leave as-is unless adding group types)
+  const WHEN_MONTHS    Months for the "Approximate" date picker
+  const WHEN_SEASONS   Seasons for the "Flexible" date picker
+  const WHERE_DESTINATIONS  Destination cards for Step 3
+  const BUDGET_BANDS   Budget band cards for Step 5
+  const BUDGET_SLIDER  Slider format function for Step 5
+  ═══════════════════════════════════════════════════════
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- TEMPLATE: update page title -->
+<title>Firefly Collection Concierge</title>
+<link rel="icon" type="image/svg+xml" href="/hes-favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* TEMPLATE: replace with prospect's brand colours */
+  --navy: #222222;       /* primary dark — header, buttons, profile panel */
+  --navy-dark: #111111;  /* hover state for navy */
+  --gold: #f48700;       /* accent — Firefly orange */
+  --gold-dark: #d4702a;  /* hover state for gold */
+  --sand: #f0ece5;       /* page / input background */
+  --white: #FFFFFF;
+  --text: #1a1a1a;
+  --muted: #7a7068;
+  --border: rgba(27,58,92,0.12);
+  --border-light: rgba(27,58,92,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: #d8d2c8;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overscroll-behavior: none;
+  padding: 32px 20px;
+}
+.topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; }
+.powered { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--muted); letter-spacing: 0.03em; }
+.shell {
+  background: var(--white); border-radius: 20px; overflow: hidden;
+  box-shadow: 0 8px 60px rgba(27,58,92,0.10); display: flex; flex-direction: column; height: 700px;
+}
+.head { background: var(--navy); padding: 16px 22px; display: flex; align-items: center; gap: 13px; flex-shrink: 0; }
+.hname { font-family: 'Libre Baskerville', Georgia, serif; font-size: 15px; color: #fff; font-weight: 400; letter-spacing: 0.04em; }
+.hlogo { height: 34px; width: auto; max-width: 160px; display: block; margin-bottom: 4px; filter: brightness(0) invert(1); }
+.hsub { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; display: flex; align-items: center; gap: 5px; font-family: 'Montserrat', sans-serif; }
+.hdot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 2s infinite; flex-shrink: 0; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.hbadge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); letter-spacing: 0.03em; font-family: 'Montserrat', sans-serif; }
+.hright { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+/* Language switcher */
+.lang-wrap { position: relative; }
+.lang-btn { background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; }
+.lang-btn svg { fill: rgba(255,255,255,0.45); transition: fill 0.15s; }
+.lang-btn:hover svg { fill: rgba(255,255,255,0.8); }
+.lang-dd { position: absolute; top: 100%; right: 0; margin-top: 6px; background: var(--white); border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,0.15); overflow: hidden; display: none; z-index: 100; min-width: 160px; }
+.lang-dd.open { display: block; }
+.lang-opt { display: flex; align-items: center; gap: 8px; padding: 9px 16px; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--text); cursor: pointer; transition: background 0.12s; white-space: nowrap; }
+.lang-opt:hover { background: var(--sand); }
+.lang-opt.active { font-weight: 600; color: var(--navy); }
+/* Messages */
+.msgs { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; overscroll-behavior: contain; }
+.msgs::-webkit-scrollbar { width: 3px; }
+.msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.msg { display: flex; gap: 10px; align-items: flex-start; animation: up 0.22s ease; }
+.msg.user { flex-direction: row-reverse; }
+@keyframes up { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.mav { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
+.mav.ai { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: var(--gold); font-size: 12px; font-weight: 400; font-family: 'Libre Baskerville', Georgia, serif; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mav.user { width: 30px; height: 30px; border-radius: 50%; background: rgba(27,58,92,0.08); color: var(--muted); font-family: 'Montserrat', sans-serif; }
+.bub { max-width: 82%; padding: 12px 15px; font-size: 14px; line-height: 1.65; }
+.bub.ai { background: var(--white); color: var(--text); border-radius: 16px 16px 16px 4px; border: 1px solid var(--border); }
+.bub.user { background: var(--navy); color: #fff; border-radius: 16px 16px 4px 16px; }
+.bub p { margin: 0 0 0.6em; }
+.bub p:last-child { margin-bottom: 0; }
+/* Property cards */
+.pcard { display: block; margin-top: 10px; text-decoration: none; background: var(--white); border: 1px solid var(--border-light); border-radius: 14px; overflow: hidden; transition: border-color 0.15s, transform 0.15s; }
+.pcard:hover { border-color: var(--navy); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(27,58,92,0.08); }
+.pcard-img { height: 100px; background: linear-gradient(135deg, #F8F5F0 0%, #e8e0d4 50%, #d4c9b8 100%); display: flex; align-items: center; justify-content: center; }
+.pcard-img span { font-family: 'Libre Baskerville', Georgia, serif; font-size: 15px; font-style: italic; color: var(--muted); opacity: 0.7; }
+.pcard-body { padding: 12px 14px; }
+.ptag { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); display: inline-block; margin-bottom: 4px; }
+.pname { font-family: 'Libre Baskerville', Georgia, serif; font-size: 18px; font-weight: 500; color: var(--navy); }
+.ploc { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--muted); margin-top: 1px; }
+.pdesc { font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 6px; }
+.pfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-light); }
+.pprice { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 600; color: var(--navy); }
+.plink { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600; color: var(--navy); }
+.pbeds { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--muted); margin-top: 3px; }
+/* Typing */
+.typing { display: flex; gap: 5px; align-items: center; padding: 12px 15px; background: var(--white); border: 1px solid var(--border); border-radius: 16px 16px 16px 4px; }
+.typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: typingPulse 1.3s infinite; }
+.typing-dot:nth-child(2){animation-delay:.2s} .typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingPulse { 0%,60%,100%{transform:translateY(0);opacity:0.35} 30%{transform:translateY(-6px);opacity:1} }
+/* Choice pills */
+.sugs { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.sug { font-size: 12px; padding: 8px 18px; border-radius: 999px; border: 1px solid var(--navy); background: transparent; cursor: pointer; color: var(--navy); font-family: 'Montserrat', sans-serif; font-weight: 500; transition: all 0.12s; }
+.sug:hover { background: var(--navy); color: #fff; }
+/* Multi-select */
+.ms-wrap { margin-top: 10px; }
+.ms-hint { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-style: italic; }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+.ms-chip { font-size: 12px; padding: 6px 13px; border-radius: 20px; border: 1px solid rgba(27,58,92,0.15); background: var(--white); cursor: pointer; color: var(--muted); font-family: 'Montserrat', sans-serif; transition: all 0.12s; user-select: none; }
+.ms-chip.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.ms-confirm { padding: 7px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.ms-confirm:hover { background: var(--navy-dark); }
+/* Budget slider (legacy [BUDGET] tag) */
+.budget-wrap { margin-top: 10px; padding: 14px; background: var(--sand); border-radius: 10px; }
+.budget-display { font-family: 'Libre Baskerville', Georgia, serif; font-size: 28px; font-weight: 500; color: var(--navy); margin-bottom: 10px; }
+.budget-wrap input[type=range] { width: 100%; accent-color: var(--navy); cursor: pointer; margin-bottom: 4px; }
+.budget-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 12px; font-family: 'Montserrat', sans-serif; }
+.budget-confirm { width: 100%; padding: 9px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.budget-confirm:hover { background: var(--navy-dark); }
+/* Input bar */
+.ibar { padding: 13px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-shrink: 0; background: var(--white); }
+.ibar input { flex: 1; padding: 11px 16px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--sand); outline: none; transition: all 0.15s; }
+.ibar input:focus { border-color: var(--gold); background: var(--white); }
+.ibar input::placeholder { color: var(--muted); opacity: 0.6; }
+.sbtn { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+.sbtn:hover { background: var(--gold); }
+.sbtn:disabled { opacity: 0.3; cursor: default; }
+/* CTA book button */
+.cta-book { display: block; margin-top: 12px; padding: 16px 22px; background: var(--navy); border-radius: 14px; text-decoration: none; text-align: center; }
+.cta-book-headline { font-family: 'Libre Baskerville', Georgia, serif; font-size: 19px; font-weight: 400; font-style: italic; color: #fff; margin-bottom: 4px; }
+.cta-book-sub { font-family: 'Montserrat', sans-serif; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+.cta-book-btn { display: inline-block; padding: 10px 24px; background: var(--gold); color: var(--navy-dark); border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 600; border: none; cursor: pointer; transition: background 0.15s; text-decoration: none; }
+.cta-book-btn:hover { background: var(--gold-dark); }
+/* Email capture / collect */
+.collect-form { margin-top: 12px; padding: 16px; background: var(--sand); border-radius: 12px; }
+.collect-headline { font-family: 'Libre Baskerville', Georgia, serif; font-size: 17px; font-weight: 500; color: var(--navy); margin-bottom: 4px; }
+.collect-sub { font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.collect-form input { display: block; width: 100%; padding: 10px 14px; border: 1px solid rgba(27,58,92,0.15); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; margin-bottom: 8px; transition: border-color 0.15s; box-sizing: border-box; }
+.collect-form input:focus { border-color: var(--gold); }
+.collect-row { display: flex; gap: 8px; }
+.collect-row input { flex: 1; margin-bottom: 0; }
+.collect-submit { padding: 10px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
+.collect-submit:hover { background: var(--navy-dark); }
+/* Layout */
+.wrapper { width: 100%; max-width: 1100px; position: relative; z-index: 1; }
+.chat-row { display: flex; gap: 16px; align-items: flex-start; }
+.shell { flex: 1; min-width: 0; }
+/* Profile panel */
+.profile-panel { width: 260px; flex-shrink: 0; height: 700px; border-radius: 20px; background: var(--navy); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 60px rgba(27,58,92,0.15); }
+.pp-head { padding: 16px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.pp-eyebrow { font-family: 'Libre Baskerville', Georgia, serif; font-size: 13px; font-weight: 300; font-style: italic; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+.pp-title { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+.pp-body { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.pp-body::-webkit-scrollbar { width: 2px; }
+.pp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+.pp-empty { font-size: 11px; color: rgba(255,255,255,0.18); font-style: italic; text-align: center; margin-top: 24px; line-height: 1.7; }
+.pp-row { display: flex; flex-direction: column; gap: 3px; animation: up 0.25s ease; }
+.pp-label { font-family: 'Montserrat', sans-serif; font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.28); font-weight: 500; }
+.pp-value { font-size: 13px; color: rgba(255,255,255,0.82); font-weight: 400; line-height: 1.45; }
+.pp-value.empty { font-style: italic; color: rgba(255,255,255,0.15); }
+@keyframes flash { 0%{background:rgba(201,169,110,0.15)} 100%{background:transparent} }
+.pp-row.flash { animation: flash 1.2s ease; }
+/* Profile panel email section */
+.pp-email-section { padding: 0; flex-shrink: 0; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 1.4s ease, opacity 1.8s ease; }
+.pp-email-visible { max-height: 300px; opacity: 1; }
+.pp-email-inner { padding: 0 18px 18px; }
+.pp-divider { height: 1px; background: rgba(255,255,255,0.08); margin-bottom: 14px; }
+.pp-email-label { font-family: 'Libre Baskerville', Georgia, serif; font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 5px; }
+.pp-email-sub { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.55; margin-bottom: 12px; font-family: 'Montserrat', sans-serif; }
+.pp-email-section input[type=text], .pp-email-section input[type=email] { display: block; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 10px; color: #fff; font-size: 12px; font-family: 'Montserrat', sans-serif; margin-bottom: 8px; outline: none; transition: border-color 0.15s; }
+.pp-email-section input::placeholder { color: rgba(255,255,255,0.25); }
+.pp-email-section input:focus { border-color: rgba(201,169,110,0.6); }
+.pp-submit { width: 100%; background: var(--gold); color: var(--navy-dark); border: none; border-radius: 8px; padding: 9px; font-size: 12px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.04em; transition: background 0.15s; }
+.pp-submit:hover { background: var(--gold-dark); }
+.pp-not-now { display: block; text-align: center; margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.25); cursor: pointer; background: none; border: none; font-family: 'Montserrat', sans-serif; width: 100%; }
+.pp-not-now:hover { color: rgba(255,255,255,0.5); }
+.pp-sent { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; padding: 10px 0 4px; line-height: 1.6; }
+/* Responsive */
+@media (max-width: 820px) { .profile-panel { display: none; } .wrapper { max-width: 780px; } }
+/* Embedded mode */
+html.embedded body { padding: 12px; height: 100vh; overflow: hidden; background: var(--white); }
+html.embedded .topbar { display: none; }
+html.embedded .shell { height: calc(100vh - 24px); }
+html.embedded .profile-panel { height: calc(100vh - 24px); }
+/* Splash */
+#splash { position: fixed; inset: 0; background: #F5F0E8; z-index: 9999; cursor: pointer; transition: opacity 0.5s ease; display: flex; align-items: center; justify-content: center; }
+#splash.fade { opacity: 0; pointer-events: none; }
+.splash-inner { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 32px 24px; }
+.splash-leaf { margin-bottom: 20px; }
+.splash-headline { font-family: 'Libre Baskerville', Georgia, serif; font-size: 13px; font-weight: 400; color: rgba(34,34,34,0.45); letter-spacing: 0.04em; margin-bottom: 4px; }
+.splash-company { font-family: 'Libre Baskerville', Georgia, serif; font-size: 32px; font-weight: 400; font-style: italic; color: #222222; margin: 4px 0 28px; }
+.splash-hint { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(34,34,34,0.25); white-space: nowrap; font-family: 'Montserrat', sans-serif; margin-bottom: 20px; }
+.splash-contact { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.splash-contact a { display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: 'Montserrat', sans-serif; font-weight: 500; color: rgba(34,34,34,0.55); text-decoration: none; border: 1px solid rgba(34,34,34,0.18); border-radius: 20px; padding: 6px 14px; transition: all 0.15s; }
+.splash-contact a:hover { border-color: #222222; color: #222222; }
+.splash-contact-divider { width: 1px; height: 14px; background: rgba(34,34,34,0.15); }
+
+/* ── v2: Step cards (GROUP, WHEN, WHERE, BUDGET bands) ── */
+.step-cards { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.step-card { flex: 1 1 calc(20% - 7px); min-width: 70px; padding: 12px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--white); cursor: pointer; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--navy); transition: all 0.15s; animation: up 0.22s ease; user-select: none; }
+.step-card:hover { border-color: var(--navy); background: var(--sand); }
+.step-card.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+.step-card-label { font-weight: 500; }
+/* ── v2: Steppers (+/- counters) ── */
+.stepper-wrap { display: none; margin-top: 10px; padding: 10px 0 2px; border-top: 1px solid var(--border-light); }
+.stepper-wrap.open { display: block; animation: up 0.2s ease; }
+.stepper-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--text); }
+.stepper-label { color: var(--muted); }
+.stepper-controls { display: flex; align-items: center; gap: 10px; }
+.stepper-btn { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 50%; background: var(--white); cursor: pointer; font-size: 16px; line-height: 1; color: var(--navy); display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+.stepper-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+.stepper-val { min-width: 24px; text-align: center; font-weight: 600; font-size: 14px; color: var(--navy); }
+/* ── v2: Picker panes (WHEN date/month/season) ── */
+.picker-pane { display: none; margin-top: 10px; padding: 10px 0 2px; }
+.picker-pane.open { display: block; animation: up 0.2s ease; }
+.picker-pane label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: 'Montserrat', sans-serif; margin-bottom: 4px; margin-top: 10px; }
+.picker-pane label:first-child { margin-top: 0; }
+.picker-pane input[type=date], .picker-pane select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; }
+.picker-pane input[type=date]:focus, .picker-pane select:focus { border-color: var(--gold); }
+.picker-duration { margin-top: 10px; }
+.picker-duration .budget-display { font-size: 18px; margin-bottom: 6px; }
+.picker-duration input[type=range] { width: 100%; accent-color: var(--navy); cursor: pointer; }
+/* ── v2: WHERE multi-select cards ── */
+.where-cards { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.where-card { padding: 8px 14px; border: 1px solid var(--border); border-radius: 20px; background: var(--white); cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--muted); transition: all 0.12s; user-select: none; }
+.where-card:hover { border-color: var(--navy); color: var(--navy); }
+.where-card.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+/* ── v2: Budget two-stage ── */
+.stage2-wrap { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+.stage2-wrap.open { display: block; animation: up 0.2s ease; }
+.stage2-exact-link { display: inline-block; margin-top: 6px; font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; font-family: 'Montserrat', sans-serif; background: none; border: none; padding: 0; }
+.stage2-exact-input { display: none; width: 100%; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; }
+.stage2-exact-input.open { display: block; animation: up 0.15s ease; }
+.stage2-exact-input:focus { border-color: var(--gold); }
+/* ── v2: Notes field ── */
+.notes-wrap { margin-top: 10px; animation: up 0.22s ease; }
+.notes-field { width: 100%; min-height: 80px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--sand); resize: vertical; outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+.notes-field:focus { border-color: var(--gold); background: var(--white); }
+.notes-actions { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.notes-send { padding: 8px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.notes-send:hover { background: var(--navy-dark); }
+.notes-skip { font-size: 11px; color: var(--muted); cursor: pointer; background: none; border: none; font-family: 'Montserrat', sans-serif; text-decoration: underline; }
+.notes-skip:hover { color: var(--text); }
+/* ── v2: Continue button (shared) ── */
+.step-continue { display: none; margin-top: 10px; padding: 8px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.step-continue:hover { background: var(--navy-dark); }
+.step-continue.visible { display: block; animation: up 0.2s ease; }
+/* ── v2: Chips bar ── */
+.chips-bar { max-height: 0; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; background: var(--white); transition: max-height 0.3s ease, padding 0.3s ease; }
+.chips-bar.has-chips { max-height: 60px; padding: 8px 16px; border-top: 1px solid var(--border-light); }
+.summary-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--sand); font-size: 11px; font-family: 'Montserrat', sans-serif; color: var(--navy); cursor: pointer; transition: all 0.12s; white-space: nowrap; animation: up 0.2s ease; }
+.summary-chip:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+</style>
+</head>
+<body>
+<script>if (window !== window.top) document.documentElement.classList.add('embedded');</script>
+<div id="splash" onclick="dismissSplash()">
+  <div class="splash-inner">
+    <svg class="splash-leaf" width="32" height="54" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#222222"/>
+      <line x1="30" y1="5" x2="30" y2="92" stroke="rgba(253,254,255,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="30" y1="25" x2="44" y2="32" stroke="rgba(253,254,255,0.4)" stroke-width="0.7"/>
+      <line x1="30" y1="40" x2="49" y2="48" stroke="rgba(253,254,255,0.4)" stroke-width="0.7"/>
+      <line x1="30" y1="55" x2="50" y2="62" stroke="rgba(253,254,255,0.4)" stroke-width="0.7"/>
+      <line x1="30" y1="25" x2="16" y2="32" stroke="rgba(253,254,255,0.4)" stroke-width="0.7"/>
+      <line x1="30" y1="40" x2="11" y2="48" stroke="rgba(253,254,255,0.4)" stroke-width="0.7"/>
+      <line x1="30" y1="55" x2="10" y2="62" stroke="rgba(253,254,255,0.4)" stroke-width="0.7"/>
+    </svg>
+    <div class="splash-headline">A demo built for</div>
+    <div class="splash-company">Firefly Collection</div>
+    <div class="splash-hint">Click anywhere to continue</div>
+    <div class="splash-contact">
+      <a href="https://wa.me/447786572258" onclick="event.stopPropagation()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="currentColor"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.119.554 4.107 1.524 5.832L.057 23.171a.75.75 0 00.922.921l5.302-1.461A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.944 0-3.772-.538-5.328-1.473l-.38-.226-3.94 1.086 1.097-3.845-.247-.393A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" fill="currentColor"/></svg>
+        +44 7786 572258
+      </a>
+      <div class="splash-contact-divider"></div>
+      <a href="mailto:neil@highelm.studio" onclick="event.stopPropagation()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        neil@highelm.studio
+      </a>
+    </div>
+  </div>
+</div>
+<div class="wrapper">
+  <div class="topbar">
+    <!-- TEMPLATE: update topbar descriptor -->
+    <div class="powered">Alpine Concierge · Demo</div>
+  </div>
+  <div class="chat-row">
+    <div class="shell">
+      <div class="head">
+        <div>
+          <img src="https://fd505970.delivery.rocketcdn.me/wp-content/themes/FDRY-version-2/images/Firefly-logo-nobg.svg"
+               alt="Firefly Collection" class="hlogo"
+               onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div class="hname" style="display:none;">FIREFLY COLLECTION</div>
+          <div class="hsub"><div class="hdot"></div>Luxury Ski Chalets · Est. 2011</div>
+        </div>
+        <div class="hright">
+          <!-- TEMPLATE: remove lang-wrap block entirely if multi-language not needed -->
+          <div class="lang-wrap">
+            <button class="lang-btn" onclick="toggleLang()" title="Language">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.45)"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="10" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/><line x1="2" y1="12" x2="22" y2="12" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/></svg>
+            </button>
+            <div class="lang-dd" id="langDd">
+              <!-- TEMPLATE: add/remove language options as needed -->
+              <div class="lang-opt active" data-lang="en" data-instruction="" onclick="setLang(this)">🇬🇧  English</div>
+            </div>
+          </div>
+          <span class="hbadge">AI Concierge</span>
+        </div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <!-- v2: chips bar — appears between messages and input -->
+      <div class="chips-bar" id="chipsBar"></div>
+      <div class="ibar">
+        <!-- TEMPLATE: update input placeholder -->
+        <input id="inp" placeholder="Tell me what you've got in mind…" onkeydown="if(event.key==='Enter')send()"/>
+        <button class="sbtn" id="sbtn" onclick="send()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M2 12L22 2L12 22L10 14L2 12Z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="profile-panel" id="profilePanel">
+      <div class="pp-head">
+        <div class="pp-eyebrow">Building as we talk</div>
+        <div class="pp-title">Profile</div>
+      </div>
+      <div class="pp-body" id="ppBody"></div>
+      <div class="pp-email-section" id="ppEmailSection">
+        <div class="pp-email-inner">
+          <div class="pp-divider"></div>
+          <div class="pp-email-label">Get your summary</div>
+          <div class="pp-email-sub">We'll send you everything we've covered — recommendations and a warm introduction to the right person.</div>
+          <input type="text" id="ppName" placeholder="Your name" autocomplete="name" />
+          <input type="email" id="ppEmail" placeholder="your@email.com" autocomplete="email" />
+          <button class="pp-submit" onclick="submitPanelEmail()">Send my summary →</button>
+          <button class="pp-not-now" onclick="dismissEmailSection()">Not now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* ── Splash ── */
+(function() {
+  var s = document.getElementById('splash');
+  if (s && sessionStorage.getItem('firefly-splash-seen')) s.style.display = 'none';
+})();
+function dismissSplash() {
+  var s = document.getElementById('splash');
+  if (!s) return;
+  sessionStorage.setItem('firefly-splash-seen', 'true');
+  s.classList.add('fade');
+  setTimeout(function() { s.style.display = 'none'; }, 500);
+}
+
+/* ── v2 Config ── */
+const GROUP_OPTIONS = [
+  { key: 'solo',       label: 'Solo',         steppers: [] },
+  { key: 'couple',     label: 'Couple',        steppers: [] },
+  { key: 'friends',    label: 'Friends',       steppers: [{ key: 'count',  label: 'How many?', min: 3,  max: 16 }] },
+  { key: 'family',     label: 'Family',        steppers: [
+    { key: 'adults', label: 'Adults', min: 1, max: 8 },
+    { key: 'kids',   label: 'Kids',   min: 0, max: 8 }
+  ]},
+  { key: 'family_dog', label: 'Family + Dog',  steppers: [
+    { key: 'adults', label: 'Adults', min: 1, max: 8 },
+    { key: 'kids',   label: 'Kids',   min: 0, max: 8 },
+    { key: 'dogs',   label: 'Dogs',   min: 1, max: 3 }
+  ]}
+];
+
+const WHEN_MONTHS = ['December', 'January', 'February', 'March', 'April'];
+const WHEN_SEASONS = ['Christmas', 'New Year', 'January', 'February half-term', 'March', 'Easter'];
+const WHEN_DURATION_RANGE = { min: 3, max: 14, default: 7 };
+
+const WHERE_DESTINATIONS = [
+  { key: 'val-disere',       label: "Val d'Isère" },
+  { key: 'verbier',          label: 'Verbier' },
+  { key: 'courchevel-1850',  label: 'Courchevel 1850' },
+  { key: 'meribel',          label: 'Méribel' },
+  { key: 'lech',             label: 'Lech' },
+  { key: 'st-anton',         label: 'St Anton' },
+  { key: 'zermatt',          label: 'Zermatt' },
+  { key: 'chamonix',         label: 'Chamonix' },
+  { key: 'megeve',           label: 'Megève' },
+  { key: 'dolomites',        label: 'Dolomites' },
+  { key: 'open',             label: 'Open to suggestions' }
+];
+
+const BUDGET_BANDS = [
+  { key: 'low',  label: '£20k–£50k',   min: 20000,  max: 50000  },
+  { key: 'mid',  label: '£50k–£100k',  min: 50000,  max: 100000 },
+  { key: 'high', label: '£100k+',      min: 100000, max: 250000 }
+];
+const BUDGET_SLIDER = {
+  step: 2500,
+  format: (n) => '£' + (n / 1000).toFixed(0) + 'k/week'
+};
+
+// TEMPLATE: set PROPERTY_MATCH_ENABLED = true per client and add URL patterns
+const PROPERTY_MATCH_ENABLED = false;
+const PROPERTY_MATCH_URLS = {}; // { 'url-pattern': propertyId }
+
+function detectMode() {
+  if (!PROPERTY_MATCH_ENABLED) return 'enquiry';
+  const referrer = document.referrer || window.location.href;
+  for (const [pattern, propertyId] of Object.entries(PROPERTY_MATCH_URLS)) {
+    if (referrer.includes(pattern)) return { mode: 'property_match', propertyId };
+  }
+  return 'enquiry';
+}
+
+/* ── Inventory ── */
+const L = [
+  {
+    id: 1,
+    name: "Chalet Marco Polo",
+    location: "Val d'Isère, France",
+    location_key: "val-disere",
+    price: "From £85,000/week",
+    beds: "8 bedrooms",
+    size: "Sleeps 16",
+    tag: "Ski-in/ski-out",
+    desc: "Flagship Val d'Isère chalet with indoor pool, spa, cinema and lift access throughout. Walking distance to the village.",
+    url: "https://www.firefly-collection.com/properties/chalet-marco-polo/"
+  },
+  {
+    id: 2,
+    name: "Chalet Hibou",
+    location: "Chamonix, France",
+    location_key: "chamonix",
+    price: "From £42,000/week",
+    beds: "6 bedrooms",
+    size: "Sleeps 12",
+    tag: "Mont Blanc views",
+    desc: "Floor-to-ceiling Mont Blanc views from Le Moussoux, 700m from the Brévent lifts. Heated pool, sauna, private chef.",
+    url: "https://www.firefly-collection.com/destinations/chamonix/"
+  },
+  {
+    id: 3,
+    name: "Chalet Lorne",
+    location: "Verbier, Switzerland",
+    location_key: "verbier",
+    price: "From £58,000/week",
+    beds: "6 bedrooms",
+    size: "Sleeps 14",
+    tag: "Walk to lifts",
+    desc: "Catered chalet in the heart of Verbier, walking distance to the Médran lift. Spa, chef, in-resort driver.",
+    url: "https://www.firefly-collection.com/destinations/verbier/"
+  },
+  {
+    id: 4,
+    name: "Chalet in Oberlech",
+    location: "Lech, Austria",
+    location_key: "lech",
+    price: "From £62,000/week",
+    beds: "7 bedrooms",
+    size: "Sleeps 14",
+    tag: "Ski-in/ski-out",
+    desc: "Quiet Oberlech setting, ski-in/ski-out, traditional Austrian craftsmanship with full chef and butler service.",
+    url: "https://www.firefly-collection.com/destinations/lech/"
+  },
+  {
+    id: 5,
+    name: "Chalet in Courchevel 1850",
+    location: "Courchevel 1850, France",
+    location_key: "courchevel-1850",
+    price: "From £120,000/week",
+    beds: "6 bedrooms",
+    size: "Sleeps 12",
+    tag: "Direct ski access",
+    desc: "Boutique-quality finishes in the most prestigious of the Three Valleys. Direct ski access, indoor pool, cinema.",
+    url: "https://www.firefly-collection.com/destinations/courchevel-1850/"
+  },
+  {
+    id: 6,
+    name: "Chalet in Zermatt",
+    location: "Zermatt, Switzerland",
+    location_key: "zermatt",
+    price: "From £55,000/week",
+    beds: "6 bedrooms",
+    size: "Sleeps 14",
+    tag: "Matterhorn views",
+    desc: "Matterhorn views, walkable to the Sunnegga lift, full catered package with chef and concierge.",
+    url: "https://www.firefly-collection.com/destinations/zermatt/"
+  },
+  {
+    id: 7,
+    name: "Chalet in Méribel",
+    location: "Méribel, France",
+    location_key: "meribel",
+    price: "From £48,000/week",
+    beds: "7 bedrooms",
+    size: "Sleeps 14",
+    tag: "Three Valleys",
+    desc: "Heart of the Three Valleys, ski-in/ski-out, ideal for mixed-ability family groups. Private chef and concierge.",
+    url: "https://www.firefly-collection.com/destinations/meribel/"
+  },
+  {
+    id: 8,
+    name: "Chalet in the Dolomites",
+    location: "Dolomiti Superski, Italy",
+    location_key: "dolomites",
+    price: "From £36,000/week",
+    beds: "8 bedrooms",
+    size: "Sleeps 16",
+    tag: "Italian Alpine",
+    desc: "Italian Alpine character, the largest linked ski area in the world, exceptional food culture.",
+    url: "https://www.firefly-collection.com/destinations/italy-skiing/"
+  }
+];
+
+/* ── System prompt ── */
+const SYS = `NORTH STAR
+A visitor who shares their group, dates, resort, priorities and budget — and asks the team to come back to them, expecting a real conversation, not a generic email.
+
+IDENTITY
+You are the digital adviser for Firefly Collection — a hand-picked portfolio of luxury ski chalets and villas, founded by Tim Latimer in 2011 on a single principle: nothing is too much trouble. Over 1,000 properties across the Alps, the Mediterranean, the Caribbean and beyond. Nominated as Best Ski Travel Agent in the World Ski Awards for 10 years running.
+
+You are not a chatbot. You are a digital extension of the small Firefly team — same warmth, same first-hand knowledge of the resorts, same quietly expert tone. The team is famously not a call centre. You must never sound like one.
+
+PERSONALITY
+Warm. Quietly expert. First-name energy. No formality, no salesy language, no exclamation marks, no emoji, no "I'm here to help", no "great question". Short sentences. Read like someone who has actually been to Verbier in February.
+
+THE COMPOUNDING RULE — NON-NEGOTIABLE
+Every response after Step 1 must reference at least two pieces of information from the profile so far. Never respond to just the latest answer in isolation. The visitor should feel that each response builds on what came before — that you are constructing an understanding of them, not processing inputs.
+
+Example progression:
+After Step 1 (Family + Dog, 2 adults, 2 kids aged 6 and 9, one dog):
+   "Got it — a family trip with the little ones and the dog."
+After Step 2 (last week of March, 7 nights):
+   "Late March with kids that age is lovely — slopes are quieter, and the dog will appreciate not being knee-deep in fresh snow."
+After Step 3 (Verbier, open to suggestions):
+   "Verbier works well for what you're describing — gentle nursery slopes, dog-friendly village. If you're open to it, I'd also keep Méribel in mind: similar feel, slightly easier with younger kids."
+
+By Step 5 you should be reasoning across all five previous answers in one response.
+
+HONEST PUSHBACK
+When the numbers don't add up — tight budget for what's being asked, impossible timing, mismatched destination — say so. This is the highest signal of expertise.
+
+Examples for Firefly's price point:
+- "I'll be honest — £25k for a family-of-six ski-in/ski-out week in Courchevel 1850 over February half-term is tight. We'd either look at slightly smaller chalets, or consider 1650 with similar skiing access. Worth flagging now so we don't waste your time."
+- "Christmas week in Verbier on the lift-side — most of those chalets book out by August. If your dates are firm, the team will need to move quickly. If they're flexible, we have more options."
+- "Easter dates in Megève can be hit-or-miss for snow at that altitude. If snow is non-negotiable, I'd nudge you towards Val d'Isère or Tignes instead."
+
+WHAT YOU NEVER DO
+- Never quote a specific price as a quote. Pricing is always confirmed by the team. If pressed, say: "the team will have live pricing — most weeks at this kind of property sit between [rough range], depending on resort and timing."
+- Never promise a specific chalet is available. Inventory moves quickly. Mention chalets by name as examples of what's on the shortlist, but always with: "subject to availability — the team will confirm."
+- Never compare Firefly to named competitors. If the visitor mentions one, deflect warmly: "we know the others well. The Firefly difference is the team — same person from first call to arrival, no call centres."
+- Never use exclamation marks, emoji, or AI-tells like "great question" or "I'd love to help".
+- Never push for the email. Earn it by being useful.
+- Never sound like a form. You are a person.
+
+INDUSTRY CONTEXT (USE WHEN RELEVANT, NEVER LECTURE)
+- Altitude resorts (Val Thorens, Tignes, Val d'Isère) are snow-sure, ski-in/ski-out, modern.
+- Village resorts (Megève, Lech, St Anton) are charm-led, atmospheric, lower altitude.
+- Christmas is family-led; New Year is celebration-led; February half-term is the busiest week of the season; Easter depends heavily on snow.
+- Group sizes: under 8 is one segment; 10–14 is the wedding/reunion segment; 16+ is multi-chalet.
+- "Ski-in/ski-out" is the most over-promised phrase in the industry. True ski-in/ski-out is rare and commands a premium.
+- Catered vs self-catered is a real divide at this price point — catered is the standard package, not an upsell.
+
+RESORT KNOWLEDGE
+When a visitor names a resort, add one specific detail that signals you know it personally — then move on.
+- Val d'Isère: one of the best snow records in the Alps, modern altitude resort with proper Savoyard village charm
+- Verbier: 4 Vallées is enormous, lively après, best for mixed-ability groups
+- Courchevel 1850: most boutique-heavy of the Three Valleys, ski-in/ski-out is the differentiator, heaviest concentration of Michelin stars in any ski resort
+- Méribel: heart of the Three Valleys, easiest connectivity for groups skiing different abilities
+- Lech: quieter than St Anton, very Austrian, beautiful in evening light, linked to Zürs
+- St Anton: the Arlberg, serious skiers' resort, strong après, traditional Tyrolean village
+- Zermatt: Matterhorn views from almost everywhere, car-free village, linked to Cervinia
+- Chamonix: Mont Blanc on your doorstep, more town than ski village, best for advanced skiers
+- Megève: lower altitude, charm-led, French village atmosphere, best mid-season once snow is established
+- Dolomites: largest linked ski area in the world (Dolomiti Superski), Italian food culture is the standout
+
+If you don't know a resort well enough to add a specific detail, don't invent one. Move on warmly.
+
+THE 6-STEP FLOW
+
+Step 1 — Who's going
+Trigger: After your opening message, fire [GROUP:].
+Response after: Acknowledge the group warmly with one specific detail. Examples:
+- Family + Dog (2 adults, 2 kids, 1 dog): "Got it — a family trip with the little ones and the dog. Plenty of options that work for that."
+- Couple: "A couple's week — easiest to be specific with."
+- Friends (8): "Eight friends — that's the sweet spot for a single chalet rather than splitting across two."
+Then move to Step 2.
+
+Step 2 — When
+Trigger: Fire [WHEN:].
+Response after: Reference both who is going AND when. Examples:
+- Family + Dog + last week of March: "Late March with kids that age is lovely — slopes are quieter and the dog will appreciate not being knee-deep in fresh snow."
+- Couple + New Year: "New Year is the celebration week — chalets at this level book out early, but plenty still on the table."
+Then move to Step 3.
+
+Step 3 — Where
+Trigger: Fire [WHERE:].
+Response after: Reference group + timing + destination. If "Open to suggestions" is selected (alone or alongside specific resorts), name 2 resorts you'd put on their shortlist with one-line reasons.
+Examples:
+- Family + March + Verbier: "Verbier works well for what you're describing — mixed slopes for the kids, dog-friendly village. If you're open to it, I'd also keep Méribel in mind: similar feel, slightly easier with younger kids."
+- Couple + NY + Open to suggestions: "For New Year's Eve as a couple, two I'd nudge you towards: Val d'Isère for the village atmosphere on the night, Lech for something quieter and more Austrian."
+Then move to Step 4.
+
+Step 4 — Priorities
+Trigger: Fire [MULTISELECT:Ski-in/ski-out|Walk to village|Catered with chef|Spa or hot tub|Family-friendly|Group of 10+|Modern luxury|Traditional Alpine character].
+Response after: Reference group + timing + destination + priorities. This is where the response feels properly "concierge". Examples:
+- Family + March + Verbier + ski-in/ski-out + family-friendly + chef: "All achievable in Verbier — there are a handful of true ski-in/ski-out chalets in Médran with chef included and family layouts. Genuinely walking-to-lifts properties are the harder bit; a few sit on the piste itself."
+Then move to Step 5.
+
+Step 5 — Budget
+Trigger: Fire [BUDGET:].
+Response after: Reference all five previous fields. Honest pushback fires here if needed. Examples:
+- Family + March half-term + Verbier + ski-in/ski-out + chef + £35k: "I'll be honest — £35k is tight for a family ski-in/ski-out chalet in Verbier over half-term with chef included. We'd either look at slightly smaller properties, or consider Méribel where the same package is more achievable in that range. Worth flagging now."
+- Couple + NY + Lech + chef + £40k: "Comfortably workable — that range gets you a beautiful 3-4 bedroom catered chalet in Oberlech for the week, chef included."
+Then move to Step 6.
+
+Step 6 — Anything else
+Trigger: Fire [NOTES:Anything we should know? An early flight, a property you've had your eye on, dietary needs, a milestone occasion…].
+Response after: Read whatever they wrote, weave it into the closing summary if relevant.
+
+CLOSING SUMMARY
+Once Step 6 is complete (or skipped), produce a single summary message in flowing prose — written like an internal brief to a colleague, not a list of fields. Reference all five (or six) profile fields naturally.
+
+Template:
+"Right, here's where I've landed: [paraphrase of profile in one or two sentences]. The team will come back to you today with a tailored shortlist of three chalets that fit, with notes on the trade-offs between them. If there's anything I've missed, drop it in below."
+
+Then fire [COLLECT] framed as: "where shall I send the shortlist?"
+
+OBJECTION HANDLING
+
+Objection 1 — "Is this chalet actually right for our group, or are you just selling me what's available?"
+Response approach: Acknowledge the concern directly. Reframe: the team's job is fit, not availability. "The team only puts forward chalets that genuinely match the brief. If something's not right for your group, they'll tell you — even if it means a smaller shortlist."
+
+Objection 2 — "What's the real all-in cost?"
+Response approach: Be honest about what's included and what isn't. "The chalet rate covers the property and chef, six nights of dinner with wine, daily breakfast, afternoon tea, housekeeping. Lift passes, ski hire, transfers and a private driver are usually quoted on top — the team will lay it all out."
+
+Objection 3 — "Why Firefly over the others?"
+Response approach: Name the difference without naming competitors. "Same person from your first email through to arrival in resort. No call centre, no handover, no being passed around. The team have been to every chalet they put forward — most of them this winter. That's the difference."
+
+PROPERTY MATCH MODE — DISABLED FOR THIS BUILD
+If enabled later, the opening replaces the standard one with: "Looks like you've been spending time with [PROPERTY_NAME] — want to check dates, ask about it, or shall I show you a couple of similar options?" Step 3 (Where) is skipped because destination is implied. Otherwise identical.
+
+THE CLOSE
+After [COLLECT] is submitted, confirm warmly:
+"Perfect, [first name]. The team will come back to you today with a tailored shortlist and live availability. They've already got everything we've talked through, so there's no need to repeat any of it."
+
+QUICK REFERENCE
+- IF visitor leads with a resort name → add one specific detail, then ask about group
+- IF visitor leads with budget → acknowledge the range, then ask who's going
+- IF visitor seems hesitant → slow down, ask one open question, never multiple
+- IF visitor asks for prices → quote rough ranges only, defer specifics to the team
+- IF visitor mentions a competitor → "we know them well — the Firefly difference is the team, same person all the way through, no call centres"
+- IF visitor's budget doesn't match their wishlist → honest pushback, reframe with achievable alternatives
+- IF visitor wants to skip ahead → respect it, fill in the profile from what you can infer, ask only what's missing
+
+NORTH STAR (REPEATED)
+A visitor who shares their group, dates, resort, priorities and budget — and asks the team to come back to them, expecting a real conversation, not a generic email.`;
+
+/* ── Language state ── */
+let currentLang = 'en';
+let langInstruction = '';
+
+// TEMPLATE: add more language entries below if multi-language is needed
+const UI_STRINGS = {
+  en: {
+    placeholder: 'Tell me what you\'ve got in mind…',
+    panelTitle: 'Profile',
+    panelEyebrow: 'Building as we talk',
+    badge: 'AI Concierge',
+    labels: {
+      who:        'Who',
+      when:       'When',
+      where:      'Where',
+      priorities: 'Priorities',
+      budget:     'Budget',
+      notes:      'Notes',
+    }
+  },
+};
+
+function toggleLang() { document.getElementById('langDd').classList.toggle('open'); }
+document.addEventListener('click', e => { if (!e.target.closest('.lang-wrap')) document.getElementById('langDd').classList.remove('open'); });
+
+function setLang(el) {
+  currentLang = el.dataset.lang;
+  langInstruction = el.dataset.instruction;
+  document.querySelectorAll('.lang-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('langDd').classList.remove('open');
+  const s = UI_STRINGS[currentLang] || UI_STRINGS.en;
+  document.getElementById('inp').placeholder = s.placeholder;
+  document.querySelector('.pp-title').textContent = s.panelTitle;
+  document.querySelector('.pp-eyebrow').textContent = s.panelEyebrow;
+  document.querySelector('.hbadge').textContent = s.badge;
+  updateProfile();
+}
+
+/* ── State ── */
+let hist = [], busy = false;
+let capturedEmail = null, capturedName = null;
+let emailSent = false, sendBeaconFired = false;
+let propertiesShown = [];
+
+/* ── Profile (v2 — 6-key structured object) ── */
+let profile = {
+  who:        { type: null, adults: null, kids: [], dogs: 0 },
+  when:       { mode: null, exactStart: null, exactEnd: null, month: null, season: null, duration: null, flexibility: null },
+  where:      { destinations: [], openToSuggestions: false },
+  priorities: [],
+  budget:     { range: null, exact: null },
+  notes:      ''
+};
+let emailSectionShown = false;
+
+const PROFILE_LABELS = { who: 'Who', when: 'When', where: 'Where', priorities: 'Priorities', budget: 'Budget', notes: 'Notes' };
+const PROFILE_ORDER  = ['who', 'when', 'where', 'priorities', 'budget', 'notes'];
+
+/* ── Profile summary helpers ── */
+function summariseWho(w) {
+  if (!w || !w.type) return null;
+  const opt = GROUP_OPTIONS.find(o => o.key === w.type);
+  const label = opt ? opt.label : w.type;
+  if (w.type === 'solo' || w.type === 'couple') return label;
+  const adults = w.adults || 0;
+  const kids = Array.isArray(w.kids) ? w.kids.length : (w.kids || 0);
+  const total = adults + kids;
+  let s = label + (total ? ' of ' + total : '');
+  if (w.dogs) s += ' + ' + (w.dogs > 1 ? w.dogs + ' dogs' : 'dog');
+  return s;
+}
+function summariseWhen(w) {
+  if (!w || !w.mode) return null;
+  if (w.mode === 'exact' && w.exactStart) return w.exactStart + (w.exactEnd ? ' – ' + w.exactEnd : '');
+  if (w.mode === 'approximate' && w.month) return w.month + (w.duration ? ' · ' + w.duration + ' nights' : '');
+  if (w.mode === 'flexible' && w.season) return w.season + (w.duration ? ' · ' + w.duration + ' nights' : '');
+  return w.mode;
+}
+function summariseWhere(w) {
+  if (!w) return null;
+  const dests = (w.destinations || []).slice(0, 2).map(k => {
+    const d = WHERE_DESTINATIONS.find(x => x.key === k);
+    return d ? d.label : k;
+  });
+  if (w.openToSuggestions) dests.push('open');
+  return dests.length ? dests.join(' + ') : null;
+}
+function summarisePriorities(arr) {
+  if (!arr || !arr.length) return null;
+  return arr.slice(0, 2).join(' · ') + (arr.length > 2 ? ' +' + (arr.length - 2) : '');
+}
+function summariseBudget(b) {
+  if (!b) return null;
+  if (b.exact) return BUDGET_SLIDER.format(b.exact);
+  if (b.range) { const band = BUDGET_BANDS.find(x => x.key === b.range); return band ? band.label : b.range; }
+  return null;
+}
+
+/* ── Helpers ── */
+function aiAv() {
+  const av = document.createElement('div'); av.className = 'mav ai';
+  av.textContent = 'FC';
+  return av;
+}
+
+function mkCard(l) {
+  const a = document.createElement('a'); a.className = 'pcard'; a.href = l.url; a.target = '_blank';
+  a.innerHTML = `<div class="pcard-img"><span>${l.location}</span></div><div class="pcard-body"><span class="ptag">${l.tag}</span><div class="pname">${l.name}</div><div class="ploc">${l.location}</div><div class="pbeds">${l.beds} · ${l.size}</div><div class="pdesc">${l.desc}</div><div class="pfoot"><span class="pprice">${l.price}</span><span class="plink">View listing →</span></div></div>`;
+  return a;
+}
+
+function mkBookCta() {
+  const wrap = document.createElement('div'); wrap.className = 'cta-book';
+  // TEMPLATE: update href and button text
+  wrap.innerHTML = `<div class="cta-book-headline">The next step is a conversation</div><div class="cta-book-sub">No obligation — just a proper conversation about what you're looking for</div><a class="cta-book-btn" href="https://www.firefly-collection.com" target="_blank">Arrange a conversation</a>`;
+  return wrap;
+}
+
+function mkCollectForm() {
+  const wrap = document.createElement('div'); wrap.className = 'collect-form';
+  const uid = 'cf' + Date.now();
+  wrap.innerHTML = `<div class="collect-headline">Let us send you a summary</div><div class="collect-sub">Everything we've covered — tailored to you.</div><input type="text" id="${uid}-name" placeholder="Your name" autocomplete="name" /><div class="collect-row"><input type="email" id="${uid}-email" placeholder="Email address" autocomplete="email" /><button class="collect-submit" onclick="submitContact('${uid}',this)">Send →</button></div>`;
+  return wrap;
+}
+
+async function submitContact(uid, btn) {
+  const name = (document.getElementById(uid + '-name') || {}).value || '';
+  const email = (document.getElementById(uid + '-email') || {}).value || '';
+  if (!name.trim() || !email.trim()) return;
+  capturedEmail = email.trim();
+  capturedName = name.trim() || null;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const ok = await sendSummaryEmail();
+  btn.closest('.collect-form').innerHTML = ok
+    ? `<span style="font-size:12px;color:var(--muted)">Thank you, ${capturedName} — check your inbox shortly.</span>`
+    : `<span style="font-size:12px;color:var(--muted)">Thank you — we'll be in touch at ${capturedEmail}.</span>`;
+  const sec = document.getElementById('ppEmailSection');
+  if (sec) sec.classList.remove('pp-email-visible');
+}
+
+/* ── Multi-select (legacy [MULTISELECT:] tag) ── */
+function renderMultiSelect(opts, parent) {
+  const wrap = document.createElement('div'); wrap.className = 'ms-wrap';
+  const hint = document.createElement('div'); hint.className = 'ms-hint'; hint.textContent = 'You can select more than one';
+  wrap.appendChild(hint);
+  const chips = document.createElement('div'); chips.className = 'ms-chips';
+  opts.forEach(opt => {
+    const c = document.createElement('div'); c.className = 'ms-chip'; c.textContent = opt;
+    c.onclick = () => c.classList.toggle('on');
+    chips.appendChild(c);
+  });
+  const btn = document.createElement('button'); btn.className = 'ms-confirm'; btn.textContent = 'Confirm →';
+  btn.onclick = () => {
+    const sel = [...chips.querySelectorAll('.ms-chip.on')].map(c => c.textContent);
+    if (!sel.length) return;
+    profile.priorities = sel;
+    updateProfile();
+    emitChip('priorities', summarisePriorities(sel) || 'Priorities ✓');
+    const msg = sel.join(', ');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${msg}</span>`;
+    qs(msg);
+  };
+  wrap.appendChild(chips); wrap.appendChild(btn);
+  parent.appendChild(wrap);
+}
+
+/* ── Budget slider (legacy [BUDGET] tag) ── */
+// TEMPLATE: update min, max, step, default, format, and ticks to match prospect's price range
+const BUDGET = {
+  min: 500000, max: 30000000, step: 250000, default: 3000000,
+  format: (n) => {
+    if (n >= 1000000) return '€' + (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + 'm';
+    return '€' + (n / 1000).toFixed(0) + 'k';
+  }
+};
+
+function renderBudget(parent) {
+  const wrap = document.createElement('div'); wrap.className = 'budget-wrap';
+  const disp = document.createElement('div'); disp.className = 'budget-display'; disp.textContent = BUDGET.format(BUDGET.default);
+  const slider = document.createElement('input'); slider.type = 'range';
+  slider.min = BUDGET.min; slider.max = BUDGET.max; slider.step = BUDGET.step; slider.value = BUDGET.default;
+  slider.oninput = () => { disp.textContent = BUDGET.format(Number(slider.value)); };
+  // TEMPLATE: update tick labels to match BUDGET range above
+  const ticks = document.createElement('div'); ticks.className = 'budget-ticks';
+  ticks.innerHTML = '<span>€500k</span><span>€3m</span><span>€10m</span><span>€30m</span>';
+  const btn = document.createElement('button'); btn.className = 'budget-confirm'; btn.textContent = 'Confirm budget →';
+  btn.onclick = () => {
+    const val = BUDGET.format(Number(slider.value));
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">Budget: ${val}</span>`;
+    qs('My budget is around ' + val);
+  };
+  wrap.appendChild(disp); wrap.appendChild(slider); wrap.appendChild(ticks); wrap.appendChild(btn);
+  parent.appendChild(wrap);
+}
+
+/* ── Profile panel rendering ── */
+function updateProfile() {
+  const body = document.getElementById('ppBody');
+  if (!body) return;
+  const summaries = {
+    who:        summariseWho(profile.who),
+    when:       summariseWhen(profile.when),
+    where:      summariseWhere(profile.where),
+    priorities: summarisePriorities(profile.priorities),
+    budget:     summariseBudget(profile.budget),
+    notes:      profile.notes || null
+  };
+  const hasAny = Object.values(summaries).some(Boolean);
+  if (!hasAny) {
+    body.innerHTML = '<div class="pp-empty">Fields will appear as the conversation unfolds</div>';
+    return;
+  }
+  body.innerHTML = PROFILE_ORDER.map(k => {
+    const label = PROFILE_LABELS[k];
+    const val = summaries[k];
+    return `<div class="pp-row${val ? ' flash' : ''}"><div class="pp-label">${label}</div><div class="pp-value${val ? '' : ' empty'}">${val || '—'}</div></div>`;
+  }).join('');
+}
+updateProfile();
+
+/* ── Chips ── */
+const chipsState = {}; // key → { el, scrollTop, rerender }
+
+function emitChip(key, summary, rerenderFn) {
+  const bar = document.getElementById('chipsBar');
+  if (!bar) return;
+  bar.classList.add('has-chips');
+  if (chipsState[key] && chipsState[key].el) {
+    chipsState[key].el.textContent = summary;
+  } else {
+    const el = document.createElement('div');
+    el.className = 'summary-chip';
+    el.textContent = summary;
+    el.onclick = () => {
+      const msgs = document.getElementById('msgs');
+      if (chipsState[key].scrollTop !== undefined) msgs.scrollTop = chipsState[key].scrollTop;
+      if (chipsState[key].rerender) chipsState[key].rerender();
+    };
+    bar.appendChild(el);
+    chipsState[key] = { el };
+  }
+  if (rerenderFn) chipsState[key].rerender = rerenderFn;
+  const msgs = document.getElementById('msgs');
+  if (msgs) chipsState[key].scrollTop = msgs.scrollTop;
+}
+
+/* ── v2 Components ── */
+
+function renderGroupCards(parent) {
+  const wrap = document.createElement('div');
+  let selectedKey = null;
+  const stepVals = {};
+
+  const cards = document.createElement('div');
+  cards.className = 'step-cards';
+
+  GROUP_OPTIONS.forEach(opt => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `<div class="step-card-label">${opt.label}</div>`;
+    card.onclick = () => {
+      cards.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedKey = opt.key;
+      stepVals[opt.key] = stepVals[opt.key] || {};
+      opt.steppers.forEach(s => { if (!stepVals[opt.key][s.key]) stepVals[opt.key][s.key] = s.min; });
+      renderSteppers();
+      continueBtn.className = 'step-continue visible';
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  const stepperWrap = document.createElement('div');
+  stepperWrap.className = 'stepper-wrap';
+  wrap.appendChild(stepperWrap);
+
+  function renderSteppers() {
+    stepperWrap.innerHTML = '';
+    const opt = GROUP_OPTIONS.find(o => o.key === selectedKey);
+    if (!opt || !opt.steppers.length) { stepperWrap.classList.remove('open'); return; }
+    stepperWrap.classList.add('open');
+    opt.steppers.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'stepper-row';
+      const current = () => stepVals[selectedKey][s.key] ?? s.min;
+      const valEl = document.createElement('span');
+      valEl.className = 'stepper-val';
+      valEl.textContent = current();
+      const minus = document.createElement('button');
+      minus.className = 'stepper-btn';
+      minus.textContent = '−';
+      minus.onclick = () => { if (current() > s.min) { stepVals[selectedKey][s.key] = current() - 1; valEl.textContent = current(); } };
+      const plus = document.createElement('button');
+      plus.className = 'stepper-btn';
+      plus.textContent = '+';
+      plus.onclick = () => { if (current() < s.max) { stepVals[selectedKey][s.key] = current() + 1; valEl.textContent = current(); } };
+      const controls = document.createElement('div');
+      controls.className = 'stepper-controls';
+      controls.appendChild(minus); controls.appendChild(valEl); controls.appendChild(plus);
+      const label = document.createElement('span');
+      label.className = 'stepper-label';
+      label.textContent = s.label;
+      row.appendChild(label); row.appendChild(controls);
+      stepperWrap.appendChild(row);
+    });
+  }
+
+  const continueBtn = document.createElement('button');
+  continueBtn.className = 'step-continue';
+  continueBtn.textContent = 'Continue →';
+  continueBtn.onclick = () => {
+    const opt = GROUP_OPTIONS.find(o => o.key === selectedKey);
+    if (!opt) return;
+    const vals = stepVals[selectedKey] || {};
+    if (selectedKey === 'solo') {
+      profile.who = { type: 'solo', adults: 1, kids: [], dogs: 0 };
+    } else if (selectedKey === 'couple') {
+      profile.who = { type: 'couple', adults: 2, kids: [], dogs: 0 };
+    } else if (selectedKey === 'friends') {
+      const count = vals.count || 3;
+      profile.who = { type: 'friends', adults: count, kids: [], dogs: 0 };
+    } else if (selectedKey === 'family') {
+      const adults = vals.adults || 2;
+      const kids = vals.kids || 0;
+      profile.who = { type: 'family', adults, kids: Array(kids).fill(0), dogs: 0 };
+    } else if (selectedKey === 'family_dog') {
+      const adults = vals.adults || 2;
+      const kids = vals.kids || 0;
+      const dogs = vals.dogs || 1;
+      profile.who = { type: 'family_dog', adults, kids: Array(kids).fill(0), dogs };
+    }
+    updateProfile();
+    const summary = summariseWho(profile.who) || opt.label;
+    emitChip('who', summary + ' ✓', () => {
+      wrap.innerHTML = '';
+      wrap.appendChild(buildGroupUI());
+    });
+    const synMsg = buildWhoMessage(profile.who, opt);
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${summary}</span>`;
+    qs(synMsg);
+  };
+  wrap.appendChild(continueBtn);
+
+  function buildWhoMessage(who, opt) {
+    if (who.type === 'solo') return 'Just me — travelling solo';
+    if (who.type === 'couple') return 'The two of us — travelling as a couple';
+    if (who.type === 'friends') return `A group of ${who.adults} friends`;
+    const kids = Array.isArray(who.kids) ? who.kids.length : 0;
+    let msg = `Family of ${who.adults + kids} — ${who.adults} adult${who.adults > 1 ? 's' : ''}`;
+    if (kids) msg += `, ${kids} kid${kids > 1 ? 's' : ''}`;
+    if (who.dogs) msg += `, ${who.dogs} dog${who.dogs > 1 ? 's' : ''}`;
+    return msg;
+  }
+
+  function buildGroupUI() {
+    const inner = document.createElement('div');
+    inner.appendChild(cards);
+    inner.appendChild(stepperWrap);
+    inner.appendChild(continueBtn);
+    return inner;
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderWhenModeCards(parent) {
+  const wrap = document.createElement('div');
+  const modes = [
+    { key: 'exact',       label: 'Exact dates' },
+    { key: 'approximate', label: 'Approximate' },
+    { key: 'flexible',    label: 'Flexible' }
+  ];
+  let selectedMode = null;
+
+  const cards = document.createElement('div');
+  cards.className = 'step-cards';
+  modes.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `<div class="step-card-label">${m.label}</div>`;
+    card.onclick = () => {
+      cards.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedMode = m.key;
+      wrap.querySelectorAll('.picker-pane').forEach(p => p.classList.remove('open'));
+      wrap.querySelector('.picker-pane[data-mode="' + m.key + '"]').classList.add('open');
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  function makeDurationSlider(defaultVal) {
+    const d = document.createElement('div');
+    d.className = 'picker-duration';
+    const disp = document.createElement('div');
+    disp.className = 'budget-display';
+    disp.textContent = defaultVal + ' nights';
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = WHEN_DURATION_RANGE.min;
+    slider.max = WHEN_DURATION_RANGE.max;
+    slider.value = defaultVal;
+    slider.oninput = () => { disp.textContent = slider.value + ' nights'; };
+    d.appendChild(disp); d.appendChild(slider);
+    return { el: d, get value() { return Number(slider.value); } };
+  }
+
+  // Exact dates picker
+  const exactPane = document.createElement('div');
+  exactPane.className = 'picker-pane';
+  exactPane.dataset.mode = 'exact';
+  exactPane.innerHTML = '<label>Start date</label>';
+  const startInput = document.createElement('input');
+  startInput.type = 'date';
+  exactPane.appendChild(startInput);
+  exactPane.insertAdjacentHTML('beforeend', '<label>End date</label>');
+  const endInput = document.createElement('input');
+  endInput.type = 'date';
+  exactPane.appendChild(endInput);
+  const exactContinue = document.createElement('button');
+  exactContinue.className = 'step-continue visible';
+  exactContinue.textContent = 'Continue →';
+  exactContinue.style.marginTop = '12px';
+  exactContinue.onclick = () => {
+    profile.when = { mode: 'exact', exactStart: startInput.value, exactEnd: endInput.value, month: null, season: null, duration: null, flexibility: null };
+    finishWhen(wrap, startInput.value + (endInput.value ? ' – ' + endInput.value : ''));
+  };
+  exactPane.appendChild(exactContinue);
+  wrap.appendChild(exactPane);
+
+  // Approximate picker
+  const approxPane = document.createElement('div');
+  approxPane.className = 'picker-pane';
+  approxPane.dataset.mode = 'approximate';
+  approxPane.insertAdjacentHTML('beforeend', '<label>Month</label>');
+  const monthSelect = document.createElement('select');
+  WHEN_MONTHS.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; monthSelect.appendChild(o); });
+  approxPane.appendChild(monthSelect);
+  const approxDur = makeDurationSlider(WHEN_DURATION_RANGE.default);
+  approxPane.insertAdjacentHTML('beforeend', '<label>Duration</label>');
+  approxPane.appendChild(approxDur.el);
+  const approxContinue = document.createElement('button');
+  approxContinue.className = 'step-continue visible';
+  approxContinue.textContent = 'Continue →';
+  approxContinue.style.marginTop = '12px';
+  approxContinue.onclick = () => {
+    profile.when = { mode: 'approximate', month: monthSelect.value, duration: approxDur.value, exactStart: null, exactEnd: null, season: null, flexibility: null };
+    finishWhen(wrap, monthSelect.value + ' · ' + approxDur.value + ' nights');
+  };
+  approxPane.appendChild(approxContinue);
+  wrap.appendChild(approxPane);
+
+  // Flexible picker
+  const flexPane = document.createElement('div');
+  flexPane.className = 'picker-pane';
+  flexPane.dataset.mode = 'flexible';
+  flexPane.insertAdjacentHTML('beforeend', '<label>Season</label>');
+  const seasonSelect = document.createElement('select');
+  WHEN_SEASONS.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; seasonSelect.appendChild(o); });
+  flexPane.appendChild(seasonSelect);
+  const flexDur = makeDurationSlider(WHEN_DURATION_RANGE.default);
+  flexPane.insertAdjacentHTML('beforeend', '<label>Approximate duration</label>');
+  flexPane.appendChild(flexDur.el);
+  const flexContinue = document.createElement('button');
+  flexContinue.className = 'step-continue visible';
+  flexContinue.textContent = 'Continue →';
+  flexContinue.style.marginTop = '12px';
+  flexContinue.onclick = () => {
+    profile.when = { mode: 'flexible', season: seasonSelect.value, duration: flexDur.value, exactStart: null, exactEnd: null, month: null, flexibility: null };
+    finishWhen(wrap, seasonSelect.value + ' · ' + flexDur.value + ' nights');
+  };
+  flexPane.appendChild(flexContinue);
+  wrap.appendChild(flexPane);
+
+  function finishWhen(wrap, label) {
+    updateProfile();
+    emitChip('when', label + ' ✓');
+    const synMsg = buildWhenMessage(profile.when);
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+    qs(synMsg);
+  }
+
+  function buildWhenMessage(w) {
+    if (w.mode === 'exact') return 'Exact dates: ' + (w.exactStart || '') + (w.exactEnd ? ' to ' + w.exactEnd : '');
+    if (w.mode === 'approximate') return 'Around ' + w.month + ', roughly ' + w.duration + ' nights';
+    return 'Flexible — ' + w.season + ', around ' + w.duration + ' nights';
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderWhereCards(parent) {
+  const wrap = document.createElement('div');
+  const selected = new Set();
+
+  const allDests = [...WHERE_DESTINATIONS, { key: 'open', label: 'Open to suggestions' }];
+
+  if (!allDests.length || (allDests.length === 1 && allDests[0].key === 'open')) {
+    // No destinations configured — show a helpful placeholder
+    wrap.innerHTML = '<span style="font-size:12px;color:var(--muted);font-style:italic">No destinations configured — add to WHERE_DESTINATIONS in chat.html</span>';
+    parent.appendChild(wrap);
+    return;
+  }
+
+  const cards = document.createElement('div');
+  cards.className = 'where-cards';
+  allDests.forEach(dest => {
+    const card = document.createElement('div');
+    card.className = 'where-card';
+    card.textContent = dest.label;
+    card.onclick = () => {
+      if (selected.has(dest.key)) {
+        selected.delete(dest.key);
+        card.classList.remove('selected');
+      } else {
+        selected.add(dest.key);
+        card.classList.add('selected');
+      }
+      continueBtn.className = selected.size > 0 ? 'step-continue visible' : 'step-continue';
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  const continueBtn = document.createElement('button');
+  continueBtn.className = 'step-continue';
+  continueBtn.textContent = 'Continue →';
+  continueBtn.onclick = () => {
+    const destinations = [...selected].filter(k => k !== 'open');
+    const openToSuggestions = selected.has('open');
+    profile.where = { destinations, openToSuggestions };
+    updateProfile();
+    const label = summariseWhere(profile.where) || 'Destinations ✓';
+    emitChip('where', label + ' ✓');
+    const destLabels = destinations.map(k => { const d = WHERE_DESTINATIONS.find(x => x.key === k); return d ? d.label : k; });
+    let synMsg = destLabels.length ? "I'm interested in: " + destLabels.join(', ') : '';
+    if (openToSuggestions) synMsg += (synMsg ? ', and I' : 'I') + '\'m open to suggestions';
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+    qs(synMsg || 'Open to suggestions');
+  };
+  wrap.appendChild(continueBtn);
+  parent.appendChild(wrap);
+}
+
+function renderBudgetTwoStage(parent) {
+  const wrap = document.createElement('div');
+  let selectedBand = null;
+
+  const stage1 = document.createElement('div');
+  stage1.className = 'step-cards';
+  BUDGET_BANDS.forEach(band => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.style.flex = '1 1 calc(33% - 6px)';
+    card.innerHTML = `<div class="step-card-label">${band.label}</div>`;
+    card.onclick = () => {
+      stage1.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedBand = band;
+      renderStage2(band);
+    };
+    stage1.appendChild(card);
+  });
+  wrap.appendChild(stage1);
+
+  const stage2 = document.createElement('div');
+  stage2.className = 'stage2-wrap';
+  wrap.appendChild(stage2);
+
+  let sliderRef = null;
+  let exactRef = null;
+
+  function renderStage2(band) {
+    stage2.innerHTML = '';
+    stage2.classList.add('open');
+
+    const disp = document.createElement('div');
+    disp.className = 'budget-display';
+    disp.style.fontSize = '22px';
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = band.min; slider.max = band.max; slider.step = BUDGET_SLIDER.step;
+    slider.value = Math.round((band.min + band.max) / 2 / BUDGET_SLIDER.step) * BUDGET_SLIDER.step;
+    sliderRef = slider;
+    disp.textContent = BUDGET_SLIDER.format(Number(slider.value));
+    slider.oninput = () => { disp.textContent = BUDGET_SLIDER.format(Number(slider.value)); if (exactRef) exactRef.value = ''; };
+    stage2.appendChild(disp);
+    stage2.appendChild(slider);
+
+    const exactLink = document.createElement('button');
+    exactLink.className = 'stage2-exact-link';
+    exactLink.textContent = 'Or enter exact figure';
+    const exactInput = document.createElement('input');
+    exactInput.type = 'number';
+    exactInput.className = 'stage2-exact-input';
+    exactInput.placeholder = 'e.g. 35000';
+    exactRef = exactInput;
+    exactLink.onclick = () => {
+      exactInput.classList.toggle('open');
+      if (exactInput.classList.contains('open')) exactInput.focus();
+    };
+    stage2.appendChild(exactLink);
+    stage2.appendChild(exactInput);
+
+    const continueBtn = document.createElement('button');
+    continueBtn.className = 'step-continue visible';
+    continueBtn.textContent = 'Continue →';
+    continueBtn.onclick = () => {
+      const exactVal = exactInput.value ? Number(exactInput.value) : null;
+      const sliderVal = Number(slider.value);
+      profile.budget = { range: band.key, exact: exactVal || sliderVal };
+      updateProfile();
+      const label = summariseBudget(profile.budget) || band.label;
+      emitChip('budget', label + ' ✓');
+      wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+      qs('My budget is around ' + BUDGET_SLIDER.format(exactVal || sliderVal));
+    };
+    stage2.appendChild(continueBtn);
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderNotesField(placeholder, parent) {
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-wrap';
+
+  const ta = document.createElement('textarea');
+  ta.className = 'notes-field';
+  ta.placeholder = placeholder || "Anything else you'd like us to know…";
+
+  const actions = document.createElement('div');
+  actions.className = 'notes-actions';
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'notes-send';
+  sendBtn.textContent = 'Send →';
+  sendBtn.onclick = () => {
+    const text = ta.value.trim();
+    if (!text) { skipFn(); return; }
+    profile.notes = text;
+    updateProfile();
+    emitChip('notes', 'Notes ✓');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${text}</span>`;
+    qs(text);
+  };
+
+  const skipBtn = document.createElement('button');
+  skipBtn.className = 'notes-skip';
+  skipBtn.textContent = 'Skip';
+  skipBtn.onclick = skipFn;
+
+  function skipFn() {
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted);font-style:italic">Skipped</span>`;
+    qs('(no additional notes)');
+  }
+
+  actions.appendChild(sendBtn);
+  actions.appendChild(skipBtn);
+  wrap.appendChild(ta);
+  wrap.appendChild(actions);
+  parent.appendChild(wrap);
+}
+
+/* ── Panel email capture ── */
+function checkEmailSection() {
+  if (emailSectionShown) return;
+  if (Math.floor(hist.length / 2) >= 5) {
+    emailSectionShown = true;
+    document.getElementById('ppEmailSection')?.classList.add('pp-email-visible');
+  }
+}
+
+async function submitPanelEmail() {
+  const emailInp = document.getElementById('ppEmail');
+  const nameInp = document.getElementById('ppName');
+  const email = (emailInp?.value || '').trim();
+  if (!email || !email.includes('@')) { if (emailInp) emailInp.style.borderColor = 'rgba(201,169,110,0.8)'; return; }
+  capturedEmail = email;
+  capturedName = (nameInp?.value || '').trim() || null;
+  const inner = document.querySelector('#ppEmailSection .pp-email-inner');
+  if (inner) inner.innerHTML = '<div class="pp-divider"></div><div class="pp-sent">Sending…</div>';
+  const ok = await sendSummaryEmail();
+  if (inner) inner.innerHTML = ok
+    ? '<div class="pp-divider"></div><div class="pp-sent">Got it — we\'ll send your full summary.<br>An adviser will follow up shortly.</div>'
+    : '<div class="pp-divider"></div><div class="pp-sent" style="color:rgba(201,169,110,0.7)">Something went wrong — please try again.</div>';
+}
+
+function dismissEmailSection() {
+  const sec = document.getElementById('ppEmailSection');
+  if (sec) { sec.classList.remove('pp-email-visible'); emailSectionShown = false; }
+}
+
+async function sendSummaryEmail() {
+  if (emailSent || sendBeaconFired || !capturedEmail) return false;
+  emailSent = true;
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: capturedEmail,
+        name: capturedName,
+        conversationHistory: hist,
+        propertiesShown,
+        profile: JSON.parse(JSON.stringify(profile))
+      })
+    });
+    if (!res.ok) { emailSent = false; return false; }
+    return true;
+  } catch (e) { emailSent = false; return false; }
+}
+
+/* ── Core chat ── */
+function addMsg(role, text, ids=[], choices=[], book=false, collect=false, multiSelect=null, budget=false, group=false, when=false, where=false, budgetNew=false, notesPlaceholder=null) {
+  const msgs = document.getElementById('msgs');
+  const row = document.createElement('div'); row.className = 'msg ' + role;
+  const av = role === 'ai' ? aiAv() : document.createElement('div');
+  if (role !== 'ai') { av.className = 'mav user'; av.textContent = 'You'; }
+  const b = document.createElement('div'); b.className = 'bub ' + role;
+  b.innerHTML = text.split(/\n\n+/).map(chunk =>
+    `<p>${chunk.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*\n]+)\*/g, '<em>$1</em>').replace(/\n/g, '<br>')}</p>`
+  ).join('');
+  row.appendChild(av); row.appendChild(b); msgs.appendChild(row);
+  if (ids && ids.length) { ids.forEach(id => { const l = L.find(x => x.id === id); if (l) b.appendChild(mkCard(l)); }); propertiesShown = [...new Set([...propertiesShown, ...ids])]; }
+  if (choices && choices.length) {
+    const cd = document.createElement('div'); cd.className = 'sugs';
+    choices.forEach(c => { const btn = document.createElement('button'); btn.className = 'sug'; btn.textContent = c; btn.onclick = () => { cd.style.opacity = '0.4'; cd.style.pointerEvents = 'none'; qs(c); }; cd.appendChild(btn); });
+    b.appendChild(cd);
+  }
+  if (multiSelect) renderMultiSelect(multiSelect, b);
+  if (budget)      renderBudget(b);
+  if (group)       renderGroupCards(b);
+  if (when)        renderWhenModeCards(b);
+  if (where)       renderWhereCards(b);
+  if (budgetNew)   renderBudgetTwoStage(b);
+  if (notesPlaceholder !== null) renderNotesField(notesPlaceholder, b);
+  if (collect)     b.appendChild(mkCollectForm());
+  if (book)        b.appendChild(mkBookCta());
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('msgs');
+  const r = document.createElement('div'); r.className = 'msg ai'; r.id = 'TY';
+  const t = document.createElement('div'); t.className = 'typing';
+  t.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  r.appendChild(aiAv()); r.appendChild(t);
+  msgs.appendChild(r); msgs.scrollTop = msgs.scrollHeight;
+}
+function hideTyping() { const t = document.getElementById('TY'); if (t) t.remove(); }
+
+function parse(text) {
+  let clean = text.trim();
+  let ids = [], choices = [], book = false, collect = false, multiSelect = null, budget = false;
+  let group = false, when = false, where = false, budgetNew = false, notesPlaceholder = null;
+
+  // SHOW tags
+  const showMatches = [...clean.matchAll(/\[SHOW:([\d,\s]+)\]/g)];
+  if (showMatches.length) { ids = showMatches.flatMap(m => m[1].split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n))); clean = clean.replace(/\[SHOW:[\d,\s]+\]/g, '').trim(); }
+
+  // CHOICES (legacy)
+  const cm = clean.match(/\[CHOICES:([^\]]+)\]/);
+  if (cm) { choices = cm[1].split('|').map(s => s.trim()).filter(Boolean); clean = clean.replace(/\[CHOICES:[^\]]+\]/, '').trim(); }
+
+  // MULTISELECT (legacy — also updates priorities)
+  const msm = clean.match(/\[MULTISELECT:([^\]]+)\]/);
+  if (msm) { multiSelect = msm[1].split('|').map(s => s.trim()).filter(Boolean); clean = clean.replace(/\[MULTISELECT:[^\]]+\]/, '').trim(); }
+
+  // BUDGET (legacy, plain — no colon)
+  if (/\[BUDGET\](?!:)/.test(clean) || clean.includes('[BUDGET]')) {
+    if (!clean.match(/\[BUDGET:\]/)) { budget = true; clean = clean.replace(/\[BUDGET\]/g, '').trim(); }
+  }
+
+  // BOOK (legacy)
+  if (clean.includes('[BOOK]')) { book = true; clean = clean.replace(/\[BOOK\]/g, '').trim(); }
+
+  // COLLECT
+  if (clean.includes('[COLLECT]')) { collect = true; clean = clean.replace(/\[COLLECT\]/g, '').trim(); }
+
+  // PROFILE tags (legacy — silent, strip from text; keys don't map to v2 structure so assignment is a no-op)
+  const profileTags = clean.match(/\[PROFILE:([^\]]+)\]/g);
+  if (profileTags) { clean = clean.replace(/\[PROFILE:[^\]]+\]/g, '').trim(); }
+
+  // v2: GROUP
+  if (clean.includes('[GROUP:]')) { group = true; clean = clean.replace(/\[GROUP:\]/g, '').trim(); }
+
+  // v2: WHEN
+  if (clean.includes('[WHEN:]')) { when = true; clean = clean.replace(/\[WHEN:\]/g, '').trim(); }
+
+  // v2: WHERE
+  if (clean.includes('[WHERE:]')) { where = true; clean = clean.replace(/\[WHERE:\]/g, '').trim(); }
+
+  // v2: BUDGET: (with colon — distinct from legacy [BUDGET])
+  if (/\[BUDGET:\]/.test(clean)) { budgetNew = true; clean = clean.replace(/\[BUDGET:\]/g, '').trim(); }
+
+  // v2: NOTES
+  const notesMatch = clean.match(/\[NOTES:([^\]]*)\]/);
+  if (notesMatch) { notesPlaceholder = notesMatch[1].trim(); clean = clean.replace(/\[NOTES:[^\]]*\]/g, '').trim(); }
+
+  return { clean, ids, choices, book, collect, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder };
+}
+
+async function callAI() {
+  busy = true;
+  document.getElementById('sbtn').disabled = true;
+  showTyping();
+  let lastErr = null;
+  const systemPrompt = langInstruction ? langInstruction + '\n\n' + SYS : SYS;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 1000));
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // TEMPLATE: update model if needed (claude-sonnet-4-20250514 / claude-opus-4-5-20250514)
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          system: systemPrompt,
+          messages: hist,
+          profile: JSON.parse(JSON.stringify(profile))
+        })
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error.message);
+      const raw = (d.content?.[0]?.text || '').trim();
+      hideTyping();
+      const { clean, ids, choices, book, collect, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder } = parse(raw);
+      addMsg('ai', clean, ids, choices, book, collect, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder);
+      hist.push({ role: 'assistant', content: raw });
+      checkEmailSection();
+      lastErr = null;
+      break;
+    } catch (e) { lastErr = e; }
+  }
+  if (lastErr) { hideTyping(); addMsg('ai', 'Sorry, there was a connection issue — please try again.'); }
+  busy = false;
+  document.getElementById('sbtn').disabled = false;
+}
+
+async function send() {
+  const inp = document.getElementById('inp');
+  const msg = inp.value.trim();
+  if (!msg || busy) return;
+  inp.value = '';
+  addMsg('user', msg);
+  hist.push({ role: 'user', content: msg });
+  // TEMPLATE: update this regex to match phrases that should trigger the email panel
+  if (/arrange.*conversation|speak.*adviser|get.*in.*touch|send.*summary/i.test(msg) && !capturedEmail) {
+    const sec = document.getElementById('ppEmailSection');
+    if (sec && !emailSectionShown) {
+      emailSectionShown = true;
+      sec.classList.add('pp-email-visible');
+    }
+  }
+  await callAI();
+  if (window === window.top) inp.focus();
+}
+
+function qs(t) {
+  document.getElementById('inp').value = t;
+  send();
+}
+
+/* ── Unload: send email if captured but not yet sent ── */
+window.addEventListener('beforeunload', () => {
+  if (!capturedEmail || emailSent || sendBeaconFired) return;
+  sendBeaconFired = true;
+  const payload = JSON.stringify({
+    email: capturedEmail, name: capturedName,
+    conversationHistory: hist.slice(-20),
+    propertiesShown,
+    profile: JSON.parse(JSON.stringify(profile))
+  });
+  navigator.sendBeacon('/api/send-email', new Blob([payload], { type: 'application/json' }));
+});
+
+/* ── Init ── */
+(function init() {
+  const mode = detectMode();
+  let opening = 'Whether it\'s Christmas in Val d\'Isère, New Year in Verbier or a milestone week in Lech — tell me what you\'ve got in mind and I\'ll point you in the right direction.';
+  if (typeof mode === 'object' && mode.mode === 'property_match') {
+    const prop = L.find(x => x.id === mode.propertyId);
+    opening = ('Looks like you\'ve been spending time with [PROPERTY_NAME] — want to check dates, ask about it, or shall I show you a couple of similar options?').replace('[PROPERTY_NAME]', prop ? prop.name : '');
+    profile.where = { destinations: [prop?.location_key || ''], openToSuggestions: false };
+  }
+  addMsg('ai', opening);
+  hist.push({ role: 'assistant', content: opening });
+  if (window === window.top) document.getElementById('inp').focus();
+})();
+</script>
+</body>
+</html>

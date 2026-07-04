@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pelorus Travel Designer</title>
+<link rel="icon" type="image/svg+xml" href="/hes-favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #43464B;
+  --navy-dark: #2F3236;
+  --gold:      #F38B00;
+  --gold-dark: #DB7E08;
+  --sand:      #EBE9E6;
+  --white:     #FFFFFF;
+  --text:      #1a1a1a;
+  --muted:     #66665D;
+  --border:    rgba(67,70,75,0.14);
+  --border-light: rgba(67,70,75,0.10);
+  --ink:       #1a1a1a;
+  --slate:     #66665D;
+  --display-font: 'Cormorant Garamond';
+  --body-font:    'Montserrat';
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: var(--sand);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overscroll-behavior: none;
+  padding: 20px;
+}
+.topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; }
+.powered { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--muted); letter-spacing: 0.03em; }
+.shell {
+  background: var(--white); border-radius: 20px; overflow: hidden;
+  box-shadow: 0 8px 60px rgba(67,70,75,0.12); display: flex; flex-direction: column; height: 700px;
+}
+.head { background: var(--navy); padding: 16px 22px; display: flex; align-items: center; gap: 13px; flex-shrink: 0; }
+.hlogo { height: 28px; width: auto; object-fit: contain; display: block; }
+.hname { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: #fff; font-weight: 400; letter-spacing: 0.02em; }
+.hsub { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; display: flex; align-items: center; gap: 5px; font-family: 'Montserrat', sans-serif; }
+.hdot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 2s infinite; flex-shrink: 0; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.hbadge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); letter-spacing: 0.03em; font-family: 'Montserrat', sans-serif; }
+.hright { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+/* Messages */
+.msgs { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; overscroll-behavior: contain; }
+.msgs::-webkit-scrollbar { width: 3px; }
+.msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.msg { display: flex; gap: 10px; align-items: flex-start; animation: up 0.22s ease; }
+.msg.user { flex-direction: row-reverse; }
+@keyframes up { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.mav { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
+.mav.ai { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: var(--gold); font-size: 12px; font-weight: 400; font-family: 'Cormorant Garamond', serif; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mav.user { width: 30px; height: 30px; border-radius: 50%; background: rgba(67,70,75,0.08); color: var(--muted); font-family: 'Montserrat', sans-serif; }
+.bub { max-width: 82%; padding: 12px 15px; font-size: 14px; line-height: 1.7; }
+.bub.ai { background: var(--white); color: var(--text); border-radius: 16px 16px 16px 4px; border: 1px solid var(--border); font-family: 'Cormorant Garamond', serif; font-size: 16px; }
+.bub.user { background: var(--navy); color: #fff; border-radius: 16px 16px 4px 16px; font-family: 'Montserrat', sans-serif; font-size: 14px; }
+.bub p { margin: 0 0 0.6em; }
+.bub p:last-child { margin-bottom: 0; }
+/* Typing indicator */
+.msg.typing { opacity: 0.85; }
+.msg.typing .bubble { display: inline-flex; align-items: center; gap: 6px; padding: 14px 18px; min-height: 0; }
+.typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); opacity: 0.4; animation: typingPulse 1.4s ease-in-out infinite; }
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingPulse {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30%           { opacity: 1;   transform: translateY(-2px); }
+}
+/* Multi-select */
+.ms-wrap { margin-top: 10px; }
+.ms-hint { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-style: italic; font-family: 'Montserrat', sans-serif; }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+.ms-chip { font-size: 12px; padding: 6px 13px; border-radius: 20px; border: 1px solid rgba(67,70,75,0.15); background: var(--white); cursor: pointer; color: var(--muted); font-family: 'Montserrat', sans-serif; transition: all 0.12s; user-select: none; }
+.ms-chip.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.ms-confirm { padding: 7px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.ms-confirm:hover { background: var(--navy-dark); }
+/* Input bar */
+.ibar { padding: 13px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-shrink: 0; background: var(--white); }
+.ibar input { flex: 1; padding: 11px 16px; border: 1px solid var(--border); border-radius: 24px; font-size: 14px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--sand); outline: none; transition: all 0.15s; }
+.ibar input:focus { border-color: var(--gold); background: var(--white); }
+.ibar input::placeholder { color: var(--muted); opacity: 0.6; }
+.sbtn { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+.sbtn:hover { background: var(--gold); }
+.sbtn:disabled { opacity: 0.3; cursor: default; }
+/* CTA book button */
+.cta-book { display: block; margin-top: 12px; padding: 16px 22px; background: var(--navy); border-radius: 14px; text-decoration: none; text-align: center; }
+.cta-book-headline { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 400; font-style: italic; color: #fff; margin-bottom: 4px; }
+.cta-book-sub { font-family: 'Montserrat', sans-serif; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+.cta-book-btn { display: inline-block; padding: 10px 24px; background: var(--gold); color: var(--navy-dark); border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 600; border: none; cursor: pointer; transition: background 0.15s; text-decoration: none; }
+.cta-book-btn:hover { background: var(--gold-dark); }
+/* Email capture / collect */
+.collect-form { margin-top: 12px; padding: 16px; background: var(--sand); border-radius: 12px; }
+.collect-headline { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 500; color: var(--navy); margin-bottom: 4px; }
+.collect-sub { font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.collect-form input { display: block; width: 100%; padding: 10px 14px; border: 1px solid rgba(67,70,75,0.15); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; margin-bottom: 8px; transition: border-color 0.15s; box-sizing: border-box; }
+.collect-form input:focus { border-color: var(--gold); }
+.collect-row { display: flex; gap: 8px; }
+.collect-row input { flex: 1; margin-bottom: 0; }
+.collect-submit { padding: 10px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
+.collect-submit:hover { background: var(--navy-dark); }
+/* Layout */
+.wrapper { width: 100%; max-width: 1100px; position: relative; z-index: 1; }
+.chat-row { display: flex; gap: 16px; align-items: flex-start; }
+.shell { flex: 1; min-width: 0; }
+/* Profile panel */
+.profile-panel { width: 260px; flex-shrink: 0; height: 700px; border-radius: 20px; background: var(--navy); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 60px rgba(67,70,75,0.15); }
+.pp-head { padding: 16px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.pp-eyebrow { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 300; font-style: italic; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+.pp-title { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+.pp-body { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.pp-body::-webkit-scrollbar { width: 2px; }
+.pp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+.pp-empty { font-size: 11px; color: rgba(255,255,255,0.18); font-style: italic; text-align: center; margin-top: 24px; line-height: 1.7; font-family: 'Montserrat', sans-serif; }
+.pp-row { display: flex; flex-direction: column; gap: 3px; animation: up 0.25s ease; }
+.pp-label { font-family: 'Montserrat', sans-serif; font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.28); font-weight: 500; }
+.pp-value { font-size: 13px; color: rgba(255,255,255,0.82); font-weight: 400; line-height: 1.45; font-family: 'Cormorant Garamond', serif; }
+.pp-value.empty { font-style: italic; color: rgba(255,255,255,0.15); }
+@keyframes flash { 0%{background:rgba(243,139,0,0.15)} 100%{background:transparent} }
+.pp-row.flash { animation: flash 1.2s ease; }
+/* Profile panel email section */
+.pp-email-section { padding: 0; flex-shrink: 0; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 1.4s ease, opacity 1.8s ease; }
+.pp-email-visible { max-height: 300px; opacity: 1; }
+.pp-email-inner { padding: 0 18px 18px; }
+.pp-divider { height: 1px; background: rgba(255,255,255,0.08); margin-bottom: 14px; }
+.pp-email-label { font-family: 'Cormorant Garamond', serif; font-size: 13px; color: rgba(255,255,255,0.75); margin-bottom: 5px; }
+.pp-email-sub { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.55; margin-bottom: 12px; font-family: 'Montserrat', sans-serif; }
+.pp-email-section input[type=text], .pp-email-section input[type=email] { display: block; width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 10px; color: #fff; font-size: 12px; font-family: 'Montserrat', sans-serif; margin-bottom: 8px; outline: none; transition: border-color 0.15s; }
+.pp-email-section input::placeholder { color: rgba(255,255,255,0.25); }
+.pp-email-section input:focus { border-color: rgba(243,139,0,0.6); }
+.pp-submit { width: 100%; background: var(--gold); color: var(--navy-dark); border: none; border-radius: 8px; padding: 9px; font-size: 12px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.04em; transition: background 0.15s; }
+.pp-submit:hover { background: var(--gold-dark); }
+.pp-not-now { display: block; text-align: center; margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.25); cursor: pointer; background: none; border: none; font-family: 'Montserrat', sans-serif; width: 100%; }
+.pp-not-now:hover { color: rgba(255,255,255,0.5); }
+.pp-sent { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; padding: 10px 0 4px; line-height: 1.6; font-family: 'Montserrat', sans-serif; }
+/* Responsive */
+@media (max-width: 820px) { .profile-panel { display: none; } .wrapper { max-width: 780px; } }
+/* Embedded mode */
+html.embedded body { padding: 12px; height: 100vh; overflow: hidden; background: var(--white); }
+html.embedded .topbar { display: none; }
+html.embedded .shell { height: calc(100vh - 24px); }
+html.embedded .profile-panel { height: calc(100vh - 24px); }
+/* Splash */
+#splash {
+  position: fixed; inset: 0; z-index: 9999; background: var(--sand);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 48px 24px 96px; box-sizing: border-box; transition: opacity 0.5s ease;
+}
+#splash.fade { opacity: 0; pointer-events: none; }
+.splash-inner { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 520px; width: 100%; gap: 24px; }
+.splash-logo { height: 44px; width: auto; }
+.splash-logo-text { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--ink); display: none; }
+.splash-headline { font-family: var(--display-font), serif; font-size: clamp(20px, 3vw, 26px); font-weight: 400; line-height: 1.5; color: var(--ink); margin: 0; }
+.splash-headline em { font-style: italic; color: var(--gold); }
+.splash-divider { width: 36px; height: 1px; background: var(--gold); opacity: 0.6; }
+.splash-contact { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.splash-contact a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: 1px solid rgba(0,0,0,0.1); border-radius: 100px; font-family: var(--body-font), sans-serif; font-size: 13px; color: var(--ink); text-decoration: none; transition: all 0.2s ease; }
+.splash-contact a:hover { border-color: var(--gold); color: var(--gold); }
+.splash-hint { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); font-family: var(--body-font), sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase; color: var(--slate); opacity: 0.5; white-space: nowrap; pointer-events: none; }
+/* Step cards */
+.step-cards { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.step-card { flex: 0 0 auto; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--white); cursor: pointer; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 12px; color: var(--navy); transition: all 0.15s; animation: up 0.22s ease; user-select: none; white-space: nowrap; }
+.step-card:hover { border-color: var(--navy); background: var(--sand); }
+.step-card.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+.step-card-label { font-weight: 500; }
+/* Steppers */
+.stepper-wrap { display: none; margin-top: 10px; padding: 10px 0 2px; border-top: 1px solid var(--border-light); }
+.stepper-wrap.open { display: block; animation: up 0.2s ease; }
+.stepper-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--text); }
+.stepper-label { color: var(--muted); }
+.stepper-controls { display: flex; align-items: center; gap: 10px; }
+.stepper-btn { width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 50%; background: var(--white); cursor: pointer; font-size: 16px; line-height: 1; color: var(--navy); display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+.stepper-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+.stepper-val { min-width: 24px; text-align: center; font-weight: 600; font-size: 14px; color: var(--navy); }
+/* Picker panes */
+.picker-pane { display: none; margin-top: 10px; padding: 10px 0 2px; }
+.picker-pane.open { display: block; animation: up 0.2s ease; }
+.picker-pane label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: 'Montserrat', sans-serif; margin-bottom: 4px; margin-top: 10px; }
+.picker-pane label:first-child { margin-top: 0; }
+.picker-pane input[type=date], .picker-pane select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; }
+.picker-pane input[type=date]:focus, .picker-pane select:focus { border-color: var(--gold); }
+.picker-duration { margin-top: 10px; }
+.picker-duration .budget-display { font-size: 18px; margin-bottom: 6px; }
+.picker-duration input[type=range] { width: 100%; accent-color: var(--navy); cursor: pointer; }
+/* WHERE multi-select cards */
+.where-cards { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.where-card { padding: 8px 14px; border: 1px solid var(--border); border-radius: 20px; background: var(--white); cursor: pointer; font-size: 12px; font-family: 'Montserrat', sans-serif; color: var(--muted); transition: all 0.12s; user-select: none; }
+.where-card:hover { border-color: var(--navy); color: var(--navy); }
+.where-card.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+/* Budget slider */
+.budget-slider-wrap { margin-top: 10px; }
+.budget-toggle { display: flex; gap: 6px; margin-bottom: 12px; }
+.budget-toggle-btn { flex: 1; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--white); color: var(--muted); font-size: 12px; font-family: 'Montserrat', sans-serif; cursor: pointer; transition: all 0.15s; }
+.budget-toggle-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.budget-display { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--navy); margin-bottom: 10px; }
+.budget-slider-wrap input[type=range] { width: 100%; accent-color: var(--navy); cursor: pointer; }
+/* Pre-summary card */
+.presummary-wrap { margin-top: 10px; animation: up 0.22s ease; }
+.presummary-breakdown { background: var(--sand); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.presummary-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.presummary-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-family: 'Montserrat', sans-serif; font-weight: 500; white-space: nowrap; padding-top: 2px; flex-shrink: 0; }
+.presummary-value { font-size: 14px; color: var(--navy); font-family: 'Cormorant Garamond', serif; text-align: right; }
+.presummary-rationale { font-family: 'Cormorant Garamond', serif; font-size: 15px; line-height: 1.75; color: rgba(255,255,255,0.85); background: var(--navy); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.presummary-form { display: flex; flex-direction: column; gap: 8px; }
+.presummary-input { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+.presummary-input:focus { border-color: var(--gold); }
+.presummary-submit { padding: 10px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 600; cursor: pointer; transition: background 0.15s; letter-spacing: 0.04em; }
+.presummary-submit:hover { background: var(--gold); }
+/* Timeline */
+.timeline-wrap { padding: 4px 0; animation: up 0.25s ease; }
+.timeline-title { font-family: 'Montserrat', sans-serif; font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted); margin-bottom: 16px; font-weight: 600; }
+.timeline-list { display: flex; flex-direction: column; margin-bottom: 20px; }
+.timeline-item { display: flex; align-items: flex-start; gap: 12px; position: relative; padding-bottom: 18px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item:not(:last-child)::after { content: ''; position: absolute; left: 10px; top: 22px; bottom: 0; width: 1px; background: var(--border); }
+.timeline-dot { width: 21px; height: 21px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted); flex-shrink: 0; font-weight: 600; }
+.timeline-item.done .timeline-dot { background: var(--navy); border-color: var(--navy); color: #fff; }
+.timeline-text { font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--navy); line-height: 1.4; padding-top: 2px; }
+.timeline-item.done .timeline-text { color: var(--muted); font-style: italic; }
+.timeline-cta { display: inline-block; font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--gold); text-decoration: none; font-weight: 500; letter-spacing: 0.04em; transition: opacity 0.15s; }
+.timeline-cta:hover { opacity: 0.7; }
+/* Notes field */
+.notes-wrap { margin-top: 10px; animation: up 0.22s ease; }
+.notes-field { width: 100%; min-height: 80px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--sand); resize: vertical; outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+.notes-field:focus { border-color: var(--gold); background: var(--white); }
+.notes-actions { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.notes-send { padding: 8px 18px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.notes-send:hover { background: var(--navy-dark); }
+.notes-skip { font-size: 11px; color: var(--muted); cursor: pointer; background: none; border: none; font-family: 'Montserrat', sans-serif; text-decoration: underline; }
+.notes-skip:hover { color: var(--text); }
+/* Continue button */
+.step-continue { display: none; margin-top: 10px; padding: 8px 20px; background: var(--navy); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.step-continue:hover { background: var(--navy-dark); }
+.step-continue.visible { display: block; animation: up 0.2s ease; }
+/* Chips bar */
+.chips-bar { max-height: 0; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; background: var(--white); transition: max-height 0.3s ease, padding 0.3s ease; }
+.chips-bar.has-chips { max-height: 60px; padding: 8px 16px; border-top: 1px solid var(--border-light); }
+.summary-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--sand); font-size: 11px; font-family: 'Montserrat', sans-serif; color: var(--navy); cursor: pointer; transition: all 0.12s; white-space: nowrap; animation: up 0.2s ease; }
+.summary-chip:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+</style>
+</head>
+<body>
+<script>if (window !== window.top) document.documentElement.classList.add('embedded');</script>
+
+<div class="wrapper">
+  <div class="topbar">
+    <div class="powered" style="color:var(--muted);">Travel Designer · Demo</div>
+  </div>
+  <div class="chat-row">
+    <div class="shell">
+      <div class="head">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img
+            src="/pelorus-logo.svg"
+            alt="Pelorus"
+            class="hlogo"
+            onerror="this.style.display='none';document.getElementById('headerLogoFallback').style.display='block'"
+          >
+          <div id="headerLogoFallback" style="display:none;">
+            <div class="hname">Pelorus</div>
+          </div>
+        </div>
+        <div class="hright">
+          <span class="hbadge">Travel Designer</span>
+        </div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="chips-bar" id="chipsBar"></div>
+      <div class="ibar">
+        <input id="inp" placeholder="Tell me where you want to begin…" onkeydown="if(event.key==='Enter')send()"/>
+        <button class="sbtn" id="sbtn" onclick="send()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M2 12L22 2L12 22L10 14L2 12Z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="profile-panel" id="profilePanel">
+      <div class="pp-head">
+        <div class="pp-eyebrow">Building as we talk</div>
+        <div class="pp-title">Journey Brief</div>
+      </div>
+      <div class="pp-body" id="ppBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Splash ── */
+function dismissSplash() {
+  const s = document.getElementById('splash');
+  s.classList.add('fade');
+  setTimeout(function() { s.style.display = 'none'; }, 500);
+}
+
+/* ── Config ── */
+const GROUP_OPTIONS = [
+  { key: 'solo',              label: 'Solo',                 steppers: [] },
+  { key: 'couple',            label: 'Couple',               steppers: [] },
+  { key: 'family',            label: 'Family',               steppers: [
+    { key: 'adults',  label: 'Adults',    min: 1, max: 10 },
+    { key: 'kids',    label: 'Children',  min: 0, max: 8  }
+  ]},
+  { key: 'friends',           label: 'Friends or group',     steppers: [
+    { key: 'count',   label: 'How many?', min: 2, max: 20 }
+  ]},
+  { key: 'multigenerational', label: 'Multi-generational',   steppers: [
+    { key: 'adults',  label: 'Adults',    min: 2, max: 12 },
+    { key: 'kids',    label: 'Children',  min: 0, max: 8  }
+  ]}
+];
+
+const WHEN_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const WHEN_SEASONS = ['Spring 2026','Summer 2026','Autumn 2026','Winter 2026–27','2027 or later'];
+const WHEN_DURATION_RANGE = { min: 5, max: 28, default: 14 };
+
+const WHERE_DESTINATIONS = [
+  { key: 'polar',    label: 'Polar / Arctic'      },
+  { key: 'mountains',label: 'Mountains'           },
+  { key: 'coast',    label: 'Coast & Islands'     },
+  { key: 'desert',   label: 'Desert'              },
+  { key: 'jungle',   label: 'Jungle / Rainforest' },
+  { key: 'savanna',  label: 'Savanna & Bush'      },
+  { key: 'ocean',    label: 'Ocean & at sea'      },
+  { key: 'cities',   label: 'Cities & Culture'    },
+];
+
+const BUDGET_SLIDER = {
+  step: 25000,
+  format: (n) => {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'm';
+    return '$' + (n / 1000).toFixed(0) + 'k';
+  }
+};
+
+const PROPERTY_MATCH_ENABLED = false;
+const PROPERTY_MATCH_URLS = {};
+
+function detectMode() {
+  if (!PROPERTY_MATCH_ENABLED) return 'enquiry';
+  return 'enquiry';
+}
+
+/* ── Inventory (code completeness — AI never emits [SHOW:] tags) ── */
+const L = [
+  { id: 1, name: "Antarctica by superyacht", location: "Antarctic Peninsula", price: "From $250k pp", beds: "14 days", size: "Bespoke", tag: "Polar", desc: "An expedition designed from scratch around each client.", url: "https://pelorustravel.com/us" },
+  { id: 2, name: "Polar bear tracking, Svalbard", location: "Svalbard archipelago", price: "From $120k pp", beds: "8 days", size: "Bespoke", tag: "Polar", desc: "Arctic wilderness, rare access, designed around you.", url: "https://pelorustravel.com/us" },
+  { id: 3, name: "Botswana family heli-safari", location: "Okavango Delta", price: "From $95k pp", beds: "10 days", size: "Bespoke", tag: "Safari", desc: "Bush and delta, private aircraft, designed for families.", url: "https://pelorustravel.com/us" },
+  { id: 4, name: "Bhutan in private estates", location: "Bhutan", price: "From $80k pp", beds: "12 days", size: "Bespoke", tag: "Cultural", desc: "A kingdom rarely seen. Designed with rare local access.", url: "https://pelorustravel.com/us" },
+  { id: 5, name: "Galápagos by expedition yacht", location: "Galápagos Islands", price: "From $90k pp", beds: "10 days", size: "Bespoke", tag: "Yachting", desc: "Islands, ocean, and wildlife. Designed around your timeline.", url: "https://pelorustravel.com/us" },
+  { id: 6, name: "Greenland and the Northwest Passage", location: "Greenland", price: "From $180k pp", beds: "14 days", size: "Bespoke", tag: "Polar", desc: "Ice, light, and remoteness. One of the last great expeditions.", url: "https://pelorustravel.com/us" }
+];
+
+/* ── System prompt ── */
+const SYS = `You are the Pelorus Travel Designer — an AI assistant on the Pelorus website. You sit in front of the team. Your job is to gather the shape of a trip from a visitor, so when the team comes back to them, the next conversation is the right one.
+
+═══════════════════════════════════════════════════════════════
+NORTH STAR
+═══════════════════════════════════════════════════════════════
+
+A visitor who submits their email and asks to receive Pelorus's design back — not because they were pushed, but because they want it.
+
+Everything else serves that.
+
+═══════════════════════════════════════════════════════════════
+WHO YOU ARE
+═══════════════════════════════════════════════════════════════
+
+You represent Pelorus — a bespoke luxury travel company founded by Jimmy Carroll and Geordie Mackay-Lewis, two former British Army captains who met in Afghanistan in 2009 conducting long-range reconnaissance. They founded Pelorus eight years later. The company is a Certified B Corporation. Trips are designed with military-grade precision and creative ambition: rare access, places few get to encounter, journeys planned down to the final detail. Starting trips are $50,000 per person for 7 nights — most are longer and more.
+
+Pelorus operates three arms: Pelorus Travel (the core), Pelorus Yachting, and Pelorus Aviation. For this conversation, focus on the travel side. Mention yachting only if the visitor specifically asks about yachts or expedition vessels.
+
+The trips are not packages. They are not tours. They are designed from scratch around each client. There is no off-the-shelf anything.
+
+═══════════════════════════════════════════════════════════════
+THE VOICE
+═══════════════════════════════════════════════════════════════
+
+Expert without ego.
+
+You are talking to someone who could afford anything they want, has probably been everywhere worth going, and is looking for something they haven't done yet — or something done so well it feels new. You do not need to explain luxury to them. You do not need to sell Pelorus to them. They are already on the site.
+
+The visitor leaves feeling heard, not informed.
+
+CORE PRINCIPLES OF THE VOICE:
+
+1. Listen more than you speak. After a step is completed, your response is one or two sentences. Not three. Not a paragraph. Brief acknowledgement, then the next question. Brevity is itself the signal that you take them seriously.
+
+2. Mirror, then move. Reflect back one thing they said, briefly. Then move forward. Never lecture. Never display knowledge unprompted.
+
+3. Atmospheric, never enthusiastic. "Wonderful." "Amazing." "How exciting." — never. Replace with quiet weight: "Plenty open at that time." "Good window." "Worth flagging."
+
+4. Sentence fragments are allowed. So are pauses. Real conversation is not always grammatical.
+
+5. Never start a response with: "Right —", "So —", "Great —", "Lovely —", "Wonderful —", "Excellent —", "Of course —". Begin with substance. If you find yourself opening with throat-clearing, delete it and lead with the next thing.
+
+6. Never say: "package," "tour," "holiday," "dream," "ultimate," "world-class," "exclusive" (Pelorus uses some of these on their site; you don't need to), "amazing experience," "trip of a lifetime."
+
+7. Avoid: bullet points, markdown bold, headings, numbered lists. You speak in plain flowing prose. Always.
+
+8. One question per response. Always.
+
+9. Never mention competitors by name. Ever.
+
+10. Never invent specific itineraries, dates, prices, or "we can definitely do that." You sketch — the team designs. If the visitor pushes you for specifics, say: "the team will come back with the ways we'd approach this. I'd rather not promise something they should be the ones to shape."
+
+═══════════════════════════════════════════════════════════════
+THE COMPOUNDING RULE (non-negotiable)
+═══════════════════════════════════════════════════════════════
+
+After Step 1, every response references at least two pieces of information from the profile so far. Glancingly — not exhaustively. The visitor should feel held, not interrogated.
+
+Example progression:
+
+After Step 1 (Couple):
+"Two of you. Where do you want to start — the when, or where you're drawn?"
+
+After Step 2 (October, 14 nights):
+"Two of you, fourteen days in October. Plenty open. Where are you drawn?"
+
+After Step 3 (Polar, Ocean & at sea):
+"Polar and on the water, fourteen days, two of you. Antarctica or the Arctic — different feel but both in play. What matters most when we shape it?"
+
+After Step 4 (Rare access, Total seclusion):
+"Rare access and seclusion — that narrows it in a useful way. Budget shapes a lot in polar regions. Where are you, roughly?"
+
+The references should feel like memory, not recital. Never list back everything they said. Pick two. Move forward.
+
+═══════════════════════════════════════════════════════════════
+HONEST PUSHBACK
+═══════════════════════════════════════════════════════════════
+
+When the numbers don't add up, say so. Quietly. Once. Then move on.
+
+Three things specifically you can push back on:
+
+1. TIME: "Honestly, seven days for what you're describing is going to feel rushed. We'd suggest ten." or "Two weeks is generous for this — gives us room to do it properly."
+
+2. SEASON: "We could do it in July, but October is when that comes alive — worth flagging now." or "Late March for [X] is the wrong window. Earlier in the year would land better."
+
+3. FIT: "If wildlife intimacy is the priority we'd choose differently than if it's the Big Five — they're different trips. Which is closer?" or "Total seclusion plus cultural immersion can pull in opposite directions — say which weighs more."
+
+Honest pushback is the highest signal of expertise. A form cannot do this. You can. But once per conversation, maximum. Don't make a habit of it.
+
+═══════════════════════════════════════════════════════════════
+THE 6-STEP FLOW
+═══════════════════════════════════════════════════════════════
+
+You move through six steps in order. Never skip. Never reorder. Each tag fires once per conversation.
+
+OPENING (verbatim, emitted by frontend before you take control):
+"Welcome. The trips we design begin like this — with a conversation, and very few rules. Wherever you want to start."
+
+Your first message follows. Emit [GROUP:] and one short framing sentence above it.
+
+STEP 1 — Who is going. Emit [GROUP:]. After they answer:
+- Acknowledge in one short sentence using profile.who
+- Emit [PROFILE:who=...]
+- Move to Step 2
+
+Example: visitor selects Couple →
+"Two of you. When are you thinking?"
+[WHEN:]
+
+STEP 2 — When. Emit [WHEN:]. After they answer:
+- Reference who + when in one or two sentences
+- Emit [PROFILE:when=...]
+- Move to Step 3
+
+Example: Couple + October 14 nights →
+"Two of you, fourteen days in October. Plenty open. Where are you drawn?"
+[WHERE:]
+
+STEP 3 — Where (landscape type, not country). Emit [WHERE:]. After they answer:
+- Reference at least two profile fields in one or two sentences
+- If they pick "Open to suggestions" alone, acknowledge that's fine — you'll shape it from priorities
+- Emit [PROFILE:where=...]
+- Move to Step 4
+
+Example: Couple + October + Polar / Ocean →
+"Polar and on the water — that opens the southern season nicely. What matters most when we shape it?"
+[MULTISELECT:Rare access|Conservation impact|Adventure & adrenaline|Cultural immersion|Total seclusion|Family-led trip|Wellness & space to think|Yachting / on water]
+
+STEP 4 — Priorities. Emit [MULTISELECT:...]. After they answer:
+- Reference at least two profile fields
+- Optional: a single, quiet observation about the combination (one sentence max)
+- Emit [PROFILE:priorities=...]
+- Move to Step 4.5
+
+STEP 4.5 — Occasion. Ask: "Is there a special occasion this trip is for?" Emit [OCCASION:]. After they answer (or skip):
+- If they mentioned an occasion, acknowledge briefly in one sentence
+- Move to Step 5
+
+Example: Couple + October + Polar + Rare access + Seclusion →
+"Rare access and seclusion in polar regions — that narrows it in a useful way. Budget shapes a lot here. Where are you, roughly?"
+[BUDGET:]
+
+STEP 5 — Budget. Emit [BUDGET:]. After they answer:
+- If the figure is at the lower end ($50–150k) and what they've asked for is ambitious (e.g. 14 days, polar, total seclusion), gently flag — once: "That's workable for the shape, though for fourteen days in polar regions we'd be tight. Worth knowing now."
+- Otherwise acknowledge cleanly
+- Emit [PROFILE:budget=...]
+- Move to Step 6
+
+STEP 6 — Anything else. Emit [NOTES:Anything we should know — dietary needs, mobility considerations, a destination you've had in mind, or a moment you want to engineer into the trip.]
+After they answer (or skip):
+- Emit [PROFILE:notes=...] if there is content
+- Generate the closing summary prose (see below), then immediately emit [PRESUMMARY:] on its own line
+- Do NOT emit [COLLECT] — ever. The card that appears handles what comes next.
+
+═══════════════════════════════════════════════════════════════
+THE CLOSING SUMMARY
+═══════════════════════════════════════════════════════════════
+
+One flowing-prose message. No list. No bullet points. Three or four beats from the profile, briefly. End with a quiet, confident close — do NOT ask "Where shall I send it?" The card handles the next step.
+
+Template:
+
+"That's the shape of it — [paraphrase: who, when, what kind of landscape, what matters, budget if useful, any occasion or specifics from notes]. What you've described is exactly the kind of brief the Pelorus team is built for. They'll come back with something worth being excited about."
+[PRESUMMARY:]
+
+Example (don't reuse — generate fresh from the actual profile):
+
+"That's the shape of it — two of you, fourteen days in October, polar and at sea, rare access and seclusion mattering most, around two hundred thousand total. That is exactly the kind of brief the team gets energised by. They'll come back with something worth the wait."
+[PRESUMMARY:]
+
+═══════════════════════════════════════════════════════════════
+OBJECTION HANDLING
+═══════════════════════════════════════════════════════════════
+
+If the visitor pushes back, hesitates, or asks something hard, your defaults:
+
+"I already have a travel advisor." →
+"Most of our clients do. We complement — we don't replace. We come in when something specific needs unlocking. Worth seeing what we'd put forward."
+
+"Can you really open the doors you claim?" →
+"That's a fair question, and it's the team's job to answer it properly, not mine. If you tell me what you're after, they'll come back with specifics — including how, not just what."
+
+"Will you market me afterwards?" →
+"No. Discretion is part of the work. The team will be in touch about your trip, and that's it."
+
+"How do I know this isn't going to be the same as anyone else?" →
+"You don't, until the team comes back. That's why we ask the questions we do. The detail is what makes it ours."
+
+If the visitor asks for a price up front:
+"The team handles that — they'd rather quote you something honest than something quick. The figures are real once they've shaped a route."
+
+If the visitor wants to skip steps:
+"Of course — say what you want to say, in any order. I'll work around it."
+
+═══════════════════════════════════════════════════════════════
+WHAT TO NEVER DO
+═══════════════════════════════════════════════════════════════
+
+- Never emit [SHOW:] tags. Pelorus does not show listings. The conversation is the product.
+- Never invent specific itineraries, days, hotels, prices, or guides. The team designs. You sketch.
+- Never use the words: package, tour, holiday, dream vacation, ultimate, world-class, trip of a lifetime, amazing experience.
+- Never start a response with: Right —, So —, Great —, Lovely —, Wonderful —, Excellent —, Of course — (Of course is fine mid-sentence; never as an opener).
+- Never use bullet points, markdown bold, headings, or numbered lists.
+- Never ask two questions in one response.
+- Never apologise for asking.
+- Never refer to yourself as a chatbot or AI.
+- Never name competitors.
+- Never sell. They are already on the site.
+
+═══════════════════════════════════════════════════════════════
+QUICK REFERENCE
+═══════════════════════════════════════════════════════════════
+
+IF visitor opens with a destination already in mind →
+acknowledge it, file it mentally, but still ask [GROUP:] first. The flow is the flow.
+
+IF visitor seems hesitant or vague →
+slow down. Shorter responses. More space. "No rush — say more when you're ready."
+
+IF visitor gives a budget below the typical range for what they've asked →
+flag once, gently, then move on. Don't repeat.
+
+IF visitor wants to skip to handoff before Step 6 →
+honour it. Generate the summary from what you have, emit [PRESUMMARY:].
+
+IF visitor asks about Pelorus Yachting →
+acknowledge it exists, weave it in if relevant. Don't overplay.
+
+IF visitor asks about Pelorus Aviation →
+same — acknowledge, don't overplay. The trip is what's being designed.
+
+THE NORTH STAR, AGAIN:
+A visitor who gives their email and asks for what the team designs — not because they were pushed, but because they want it.
+
+End of system prompt.`;
+
+/* ── State ── */
+let hist = [], busy = false;
+let propertiesShown = [];
+
+/* ── Profile ── */
+let profile = {
+  who:        { type: null, adults: null, kids: 0 },
+  when:       { mode: null, exactStart: null, exactEnd: null, month: null, season: null, duration: null, flexibility: null },
+  where:      { destinations: [], openToSuggestions: false },
+  priorities: [],
+  occasion:   '',
+  budget:     { amount: null, perPerson: false },
+  notes:      ''
+};
+const PROFILE_LABELS = { who: 'Travelling', when: 'When', where: 'Landscapes', priorities: 'What matters', occasion: 'Occasion', budget: 'Budget', notes: 'Notes' };
+const PROFILE_ORDER  = ['who', 'when', 'where', 'priorities', 'occasion', 'budget', 'notes'];
+
+/* ── Profile summary helpers ── */
+function summariseWho(w) {
+  if (!w || !w.type) return null;
+  const opt = GROUP_OPTIONS.find(o => o.key === w.type);
+  const label = opt ? opt.label : w.type;
+  if (w.type === 'solo' || w.type === 'couple') return label;
+  const adults = w.adults || 0;
+  const kids = w.kids || 0;
+  const total = adults + kids;
+  return label + (total ? ' · ' + total : '');
+}
+function summariseWhen(w) {
+  if (!w || !w.mode) return null;
+  if (w.mode === 'exact' && w.exactStart) return w.exactStart + (w.exactEnd ? ' – ' + w.exactEnd : '');
+  if (w.mode === 'approximate' && w.month) return w.month + (w.duration ? ' · ' + w.duration + ' nights' : '');
+  if (w.mode === 'flexible' && w.season) return w.season + (w.duration ? ' · ' + w.duration + ' nights' : '');
+  return w.mode;
+}
+function summariseWhere(w) {
+  if (!w) return null;
+  const dests = (w.destinations || []).slice(0, 2).map(k => {
+    const d = WHERE_DESTINATIONS.find(x => x.key === k);
+    return d ? d.label : k;
+  });
+  if (w.openToSuggestions) dests.push('Open');
+  return dests.length ? dests.join(' · ') : null;
+}
+function summarisePriorities(arr) {
+  if (!arr || !arr.length) return null;
+  return arr.slice(0, 2).join(' · ') + (arr.length > 2 ? ' +' + (arr.length - 2) : '');
+}
+function summariseBudget(b) {
+  if (!b || b.amount == null) return null;
+  return BUDGET_SLIDER.format(b.amount) + (b.perPerson ? ' pp' : ' total');
+}
+function summariseOccasion(o) {
+  return o && o.length ? o : null;
+}
+
+/* ── Helpers ── */
+function aiAv() {
+  const av = document.createElement('div'); av.className = 'mav ai';
+  return av;
+}
+
+function mkBookCta() {
+  const wrap = document.createElement('div'); wrap.className = 'cta-book';
+  wrap.innerHTML = `<div class="cta-book-headline">The next step is a conversation</div><div class="cta-book-sub">No obligation — just a proper conversation about what you're looking for</div><a class="cta-book-btn" href="https://pelorustravel.com/us" target="_blank">Visit Pelorus</a>`;
+  return wrap;
+}
+
+
+/* ── Multi-select ([MULTISELECT:] tag) ── */
+function renderMultiSelect(opts, parent) {
+  const wrap = document.createElement('div'); wrap.className = 'ms-wrap';
+  const hint = document.createElement('div'); hint.className = 'ms-hint'; hint.textContent = 'Select all that matter';
+  wrap.appendChild(hint);
+  const chips = document.createElement('div'); chips.className = 'ms-chips';
+  opts.forEach(opt => {
+    const c = document.createElement('div'); c.className = 'ms-chip'; c.textContent = opt;
+    c.onclick = () => c.classList.toggle('on');
+    chips.appendChild(c);
+  });
+  const btn = document.createElement('button'); btn.className = 'ms-confirm'; btn.textContent = 'Confirm →';
+  btn.onclick = () => {
+    const sel = [...chips.querySelectorAll('.ms-chip.on')].map(c => c.textContent);
+    if (!sel.length) return;
+    profile.priorities = sel;
+    updateProfile();
+    emitChip('priorities', summarisePriorities(sel) || 'Priorities ✓');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${sel.join(', ')}</span>`;
+    qs(sel.join(', '));
+  };
+  wrap.appendChild(chips); wrap.appendChild(btn);
+  parent.appendChild(wrap);
+}
+
+/* ── Profile panel rendering ── */
+function updateProfile() {
+  const body = document.getElementById('ppBody');
+  if (!body) return;
+  const summaries = {
+    who:        summariseWho(profile.who),
+    when:       summariseWhen(profile.when),
+    where:      summariseWhere(profile.where),
+    priorities: summarisePriorities(profile.priorities),
+    occasion:   summariseOccasion(profile.occasion),
+    budget:     summariseBudget(profile.budget),
+    notes:      profile.notes || null
+  };
+  const hasAny = Object.values(summaries).some(Boolean);
+  if (!hasAny) {
+    body.innerHTML = '<div class="pp-empty">Fields will appear as the conversation unfolds</div>';
+    return;
+  }
+  body.innerHTML = PROFILE_ORDER.map(k => {
+    const label = PROFILE_LABELS[k];
+    const val = summaries[k];
+    return `<div class="pp-row${val ? ' flash' : ''}"><div class="pp-label">${label}</div><div class="pp-value${val ? '' : ' empty'}">${val || '—'}</div></div>`;
+  }).join('');
+}
+updateProfile();
+
+/* ── Chips ── */
+const chipsState = {};
+
+function emitChip(key, summary, rerenderFn) {
+  const bar = document.getElementById('chipsBar');
+  if (!bar) return;
+  bar.classList.add('has-chips');
+  if (chipsState[key] && chipsState[key].el) {
+    chipsState[key].el.textContent = summary;
+  } else {
+    const el = document.createElement('div');
+    el.className = 'summary-chip';
+    el.textContent = summary;
+    el.onclick = () => {
+      const msgs = document.getElementById('msgs');
+      if (chipsState[key].scrollTop !== undefined) msgs.scrollTop = chipsState[key].scrollTop;
+      if (chipsState[key].rerender) chipsState[key].rerender();
+    };
+    bar.appendChild(el);
+    chipsState[key] = { el };
+  }
+  if (rerenderFn) chipsState[key].rerender = rerenderFn;
+  const msgs = document.getElementById('msgs');
+  if (msgs) chipsState[key].scrollTop = msgs.scrollTop;
+}
+
+/* ── v2 Components ── */
+
+function renderGroupCards(parent) {
+  const wrap = document.createElement('div');
+  let selectedKey = null;
+  const stepVals = {};
+
+  const cards = document.createElement('div');
+  cards.className = 'step-cards';
+
+  GROUP_OPTIONS.forEach(opt => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `<div class="step-card-label">${opt.label}</div>`;
+    card.onclick = () => {
+      cards.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedKey = opt.key;
+      stepVals[opt.key] = stepVals[opt.key] || {};
+      opt.steppers.forEach(s => { if (!stepVals[opt.key][s.key]) stepVals[opt.key][s.key] = s.min; });
+      renderSteppers();
+      continueBtn.className = 'step-continue visible';
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  const stepperWrap = document.createElement('div');
+  stepperWrap.className = 'stepper-wrap';
+  wrap.appendChild(stepperWrap);
+
+  function renderSteppers() {
+    stepperWrap.innerHTML = '';
+    const opt = GROUP_OPTIONS.find(o => o.key === selectedKey);
+    if (!opt || !opt.steppers.length) { stepperWrap.classList.remove('open'); return; }
+    stepperWrap.classList.add('open');
+    opt.steppers.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'stepper-row';
+      const current = () => stepVals[selectedKey][s.key] ?? s.min;
+      const valEl = document.createElement('span'); valEl.className = 'stepper-val'; valEl.textContent = current();
+      const minus = document.createElement('button'); minus.className = 'stepper-btn'; minus.textContent = '−';
+      minus.onclick = () => { if (current() > s.min) { stepVals[selectedKey][s.key] = current() - 1; valEl.textContent = current(); } };
+      const plus = document.createElement('button'); plus.className = 'stepper-btn'; plus.textContent = '+';
+      plus.onclick = () => { if (current() < s.max) { stepVals[selectedKey][s.key] = current() + 1; valEl.textContent = current(); } };
+      const controls = document.createElement('div'); controls.className = 'stepper-controls';
+      controls.appendChild(minus); controls.appendChild(valEl); controls.appendChild(plus);
+      const label = document.createElement('span'); label.className = 'stepper-label'; label.textContent = s.label;
+      row.appendChild(label); row.appendChild(controls);
+      stepperWrap.appendChild(row);
+    });
+  }
+
+  const continueBtn = document.createElement('button');
+  continueBtn.className = 'step-continue';
+  continueBtn.textContent = 'Continue →';
+  continueBtn.onclick = () => {
+    const opt = GROUP_OPTIONS.find(o => o.key === selectedKey);
+    if (!opt) return;
+    const vals = stepVals[selectedKey] || {};
+    if (selectedKey === 'solo') {
+      profile.who = { type: 'solo', adults: 1, kids: 0 };
+    } else if (selectedKey === 'couple') {
+      profile.who = { type: 'couple', adults: 2, kids: 0 };
+    } else if (selectedKey === 'family') {
+      const adults = vals.adults || 2;
+      const kids = vals.kids || 0;
+      profile.who = { type: 'family', adults, kids };
+    } else if (selectedKey === 'friends') {
+      const count = vals.count || 3;
+      profile.who = { type: 'friends', adults: count, kids: 0 };
+    } else if (selectedKey === 'multigenerational') {
+      const adults = vals.adults || 4;
+      const kids = vals.kids || 2;
+      profile.who = { type: 'multigenerational', adults, kids };
+    }
+    updateProfile();
+    const summary = summariseWho(profile.who) || opt.label;
+    emitChip('who', summary + ' ✓', () => { wrap.innerHTML = ''; wrap.appendChild(buildGroupUI()); });
+    const synMsg = buildWhoMessage(profile.who, opt);
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${summary}</span>`;
+    qs(synMsg);
+  };
+  wrap.appendChild(continueBtn);
+
+  function buildWhoMessage(who, opt) {
+    if (who.type === 'solo') return 'Just me — travelling solo';
+    if (who.type === 'couple') return 'The two of us — travelling as a couple';
+    if (who.type === 'friends') return `A group of ${who.adults} of us`;
+    if (who.type === 'multigenerational') {
+      const kids = Array.isArray(who.kids) ? who.kids.length : 0;
+      return `Multi-generational group — ${who.adults} adults${kids ? ', ' + kids + ' children' : ''}`;
+    }
+    const kids = Array.isArray(who.kids) ? who.kids.length : 0;
+    let msg = `Family — ${who.adults} adult${who.adults > 1 ? 's' : ''}`;
+    if (kids) msg += `, ${kids} child${kids > 1 ? 'ren' : ''}`;
+    return msg;
+  }
+
+  function buildGroupUI() {
+    const inner = document.createElement('div');
+    inner.appendChild(cards); inner.appendChild(stepperWrap); inner.appendChild(continueBtn);
+    return inner;
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderWhenModeCards(parent) {
+  const wrap = document.createElement('div');
+  const modes = [
+    { key: 'exact',       label: 'Exact dates' },
+    { key: 'approximate', label: 'Approximate' },
+    { key: 'flexible',    label: 'Flexible' }
+  ];
+  let selectedMode = null;
+
+  const cards = document.createElement('div');
+  cards.className = 'step-cards';
+  modes.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `<div class="step-card-label">${m.label}</div>`;
+    card.onclick = () => {
+      cards.querySelectorAll('.step-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedMode = m.key;
+      wrap.querySelectorAll('.picker-pane').forEach(p => p.classList.remove('open'));
+      wrap.querySelector('.picker-pane[data-mode="' + m.key + '"]').classList.add('open');
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  function makeDurationSlider(defaultVal) {
+    const d = document.createElement('div'); d.className = 'picker-duration';
+    const disp = document.createElement('div'); disp.className = 'budget-display'; disp.textContent = defaultVal + ' nights';
+    const slider = document.createElement('input'); slider.type = 'range';
+    slider.min = WHEN_DURATION_RANGE.min; slider.max = WHEN_DURATION_RANGE.max; slider.value = defaultVal;
+    slider.oninput = () => { disp.textContent = slider.value + ' nights'; };
+    d.appendChild(disp); d.appendChild(slider);
+    return { el: d, get value() { return Number(slider.value); } };
+  }
+
+  // Exact dates
+  const exactPane = document.createElement('div');
+  exactPane.className = 'picker-pane'; exactPane.dataset.mode = 'exact';
+  exactPane.innerHTML = '<label>Start date</label>';
+  const startInput = document.createElement('input'); startInput.type = 'date';
+  exactPane.appendChild(startInput);
+  exactPane.insertAdjacentHTML('beforeend', '<label>End date</label>');
+  const endInput = document.createElement('input'); endInput.type = 'date';
+  exactPane.appendChild(endInput);
+  const exactContinue = document.createElement('button');
+  exactContinue.className = 'step-continue visible'; exactContinue.textContent = 'Continue →'; exactContinue.style.marginTop = '12px';
+  exactContinue.onclick = () => {
+    profile.when = { mode: 'exact', exactStart: startInput.value, exactEnd: endInput.value, month: null, season: null, duration: null, flexibility: null };
+    finishWhen(wrap, startInput.value + (endInput.value ? ' – ' + endInput.value : ''));
+  };
+  exactPane.appendChild(exactContinue);
+  wrap.appendChild(exactPane);
+
+  // Approximate
+  const approxPane = document.createElement('div');
+  approxPane.className = 'picker-pane'; approxPane.dataset.mode = 'approximate';
+  approxPane.insertAdjacentHTML('beforeend', '<label>Month</label>');
+  const monthSelect = document.createElement('select');
+  WHEN_MONTHS.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; monthSelect.appendChild(o); });
+  approxPane.appendChild(monthSelect);
+  const approxDur = makeDurationSlider(WHEN_DURATION_RANGE.default);
+  approxPane.insertAdjacentHTML('beforeend', '<label>Duration</label>');
+  approxPane.appendChild(approxDur.el);
+  const approxContinue = document.createElement('button');
+  approxContinue.className = 'step-continue visible'; approxContinue.textContent = 'Continue →'; approxContinue.style.marginTop = '12px';
+  approxContinue.onclick = () => {
+    profile.when = { mode: 'approximate', month: monthSelect.value, duration: approxDur.value, exactStart: null, exactEnd: null, season: null, flexibility: null };
+    finishWhen(wrap, monthSelect.value + ' · ' + approxDur.value + ' nights');
+  };
+  approxPane.appendChild(approxContinue);
+  wrap.appendChild(approxPane);
+
+  // Flexible
+  const flexPane = document.createElement('div');
+  flexPane.className = 'picker-pane'; flexPane.dataset.mode = 'flexible';
+  flexPane.insertAdjacentHTML('beforeend', '<label>Season</label>');
+  const seasonSelect = document.createElement('select');
+  WHEN_SEASONS.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; seasonSelect.appendChild(o); });
+  flexPane.appendChild(seasonSelect);
+  const flexDur = makeDurationSlider(WHEN_DURATION_RANGE.default);
+  flexPane.insertAdjacentHTML('beforeend', '<label>Approximate duration</label>');
+  flexPane.appendChild(flexDur.el);
+  const flexContinue = document.createElement('button');
+  flexContinue.className = 'step-continue visible'; flexContinue.textContent = 'Continue →'; flexContinue.style.marginTop = '12px';
+  flexContinue.onclick = () => {
+    profile.when = { mode: 'flexible', season: seasonSelect.value, duration: flexDur.value, exactStart: null, exactEnd: null, month: null, flexibility: null };
+    finishWhen(wrap, seasonSelect.value + ' · ' + flexDur.value + ' nights');
+  };
+  flexPane.appendChild(flexContinue);
+  wrap.appendChild(flexPane);
+
+  function finishWhen(wrap, label) {
+    updateProfile();
+    emitChip('when', label + ' ✓');
+    const synMsg = buildWhenMessage(profile.when);
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+    qs(synMsg);
+  }
+
+  function buildWhenMessage(w) {
+    if (w.mode === 'exact') return 'Exact dates: ' + (w.exactStart || '') + (w.exactEnd ? ' to ' + w.exactEnd : '');
+    if (w.mode === 'approximate') return 'Around ' + w.month + ', roughly ' + w.duration + ' nights';
+    return 'Flexible — ' + w.season + ', around ' + w.duration + ' nights';
+  }
+
+  parent.appendChild(wrap);
+}
+
+function renderWhereCards(parent) {
+  const wrap = document.createElement('div');
+  const selected = new Set();
+
+  const allDests = [...WHERE_DESTINATIONS, { key: 'open', label: 'Open to suggestions' }];
+
+  const cards = document.createElement('div');
+  cards.className = 'where-cards';
+  allDests.forEach(dest => {
+    const card = document.createElement('div');
+    card.className = 'where-card';
+    card.textContent = dest.label;
+    card.onclick = () => {
+      if (selected.has(dest.key)) { selected.delete(dest.key); card.classList.remove('selected'); }
+      else { selected.add(dest.key); card.classList.add('selected'); }
+      continueBtn.className = selected.size > 0 ? 'step-continue visible' : 'step-continue';
+    };
+    cards.appendChild(card);
+  });
+  wrap.appendChild(cards);
+
+  const continueBtn = document.createElement('button');
+  continueBtn.className = 'step-continue';
+  continueBtn.textContent = 'Continue →';
+  continueBtn.onclick = () => {
+    const destinations = [...selected].filter(k => k !== 'open');
+    const openToSuggestions = selected.has('open');
+    profile.where = { destinations, openToSuggestions };
+    updateProfile();
+    const label = summariseWhere(profile.where) || 'Landscapes ✓';
+    emitChip('where', label + ' ✓');
+    const destLabels = destinations.map(k => { const d = WHERE_DESTINATIONS.find(x => x.key === k); return d ? d.label : k; });
+    let synMsg = destLabels.length ? destLabels.join(', ') : '';
+    if (openToSuggestions) synMsg += (synMsg ? ', open to suggestions' : 'Open to suggestions');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+    qs(synMsg || 'Open to suggestions');
+  };
+  wrap.appendChild(continueBtn);
+  parent.appendChild(wrap);
+}
+
+function renderBudgetSlider(parent) {
+  const wrap = document.createElement('div'); wrap.className = 'budget-slider-wrap';
+
+  const toggle = document.createElement('div'); toggle.className = 'budget-toggle';
+  const totalBtn = document.createElement('button'); totalBtn.className = 'budget-toggle-btn active'; totalBtn.textContent = 'Total trip';
+  const ppBtn = document.createElement('button'); ppBtn.className = 'budget-toggle-btn'; ppBtn.textContent = 'Per person';
+  let perPerson = false;
+  totalBtn.onclick = () => { perPerson = false; totalBtn.classList.add('active'); ppBtn.classList.remove('active'); };
+  ppBtn.onclick = () => { perPerson = true; ppBtn.classList.add('active'); totalBtn.classList.remove('active'); };
+  toggle.appendChild(totalBtn); toggle.appendChild(ppBtn);
+
+  const disp = document.createElement('div'); disp.className = 'budget-display';
+  const slider = document.createElement('input'); slider.type = 'range';
+  slider.min = 50000; slider.max = 2000000; slider.step = BUDGET_SLIDER.step; slider.value = 150000;
+  disp.textContent = BUDGET_SLIDER.format(150000);
+  slider.oninput = () => { disp.textContent = BUDGET_SLIDER.format(Number(slider.value)); };
+
+  const continueBtn = document.createElement('button'); continueBtn.className = 'step-continue visible'; continueBtn.textContent = 'Continue →';
+  continueBtn.onclick = () => {
+    const amount = Number(slider.value);
+    profile.budget = { amount, perPerson };
+    updateProfile();
+    const label = summariseBudget(profile.budget);
+    emitChip('budget', label + ' ✓');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${label}</span>`;
+    qs('My budget is around ' + BUDGET_SLIDER.format(amount) + (perPerson ? ' per person' : ' in total'));
+  };
+
+  wrap.appendChild(toggle);
+  wrap.appendChild(disp);
+  wrap.appendChild(slider);
+  wrap.appendChild(continueBtn);
+  parent.appendChild(wrap);
+}
+
+function renderNotesField(placeholder, parent) {
+  const wrap = document.createElement('div'); wrap.className = 'notes-wrap';
+  const ta = document.createElement('textarea'); ta.className = 'notes-field';
+  ta.placeholder = placeholder || "Anything else you'd like us to know…";
+  const actions = document.createElement('div'); actions.className = 'notes-actions';
+  const sendBtn = document.createElement('button'); sendBtn.className = 'notes-send'; sendBtn.textContent = 'Send →';
+  sendBtn.onclick = () => {
+    const text = ta.value.trim();
+    if (!text) { skipFn(); return; }
+    profile.notes = text; updateProfile();
+    emitChip('notes', 'Notes ✓');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${text}</span>`;
+    qs(text);
+  };
+  const skipBtn = document.createElement('button'); skipBtn.className = 'notes-skip'; skipBtn.textContent = 'Skip';
+  skipBtn.onclick = skipFn;
+  function skipFn() {
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted);font-style:italic">Skipped</span>`;
+    qs('(no additional notes)');
+  }
+  actions.appendChild(sendBtn); actions.appendChild(skipBtn);
+  wrap.appendChild(ta); wrap.appendChild(actions);
+  parent.appendChild(wrap);
+}
+
+function renderOccasionField(parent) {
+  const wrap = document.createElement('div'); wrap.className = 'notes-wrap';
+  const ta = document.createElement('textarea'); ta.className = 'notes-field'; ta.style.minHeight = '60px';
+  ta.placeholder = 'e.g. anniversary, birthday, bucket-list trip…';
+  const actions = document.createElement('div'); actions.className = 'notes-actions';
+  const sendBtn = document.createElement('button'); sendBtn.className = 'notes-send'; sendBtn.textContent = 'Send →';
+  sendBtn.onclick = () => {
+    const text = ta.value.trim();
+    if (!text) { skipFn(); return; }
+    profile.occasion = text; updateProfile();
+    emitChip('occasion', 'Occasion ✓');
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted)">${text}</span>`;
+    qs(text);
+  };
+  const skipBtn = document.createElement('button'); skipBtn.className = 'notes-skip'; skipBtn.textContent = 'Skip';
+  skipBtn.onclick = skipFn;
+  function skipFn() {
+    wrap.innerHTML = `<span style="font-size:12px;color:var(--muted);font-style:italic">Skipped</span>`;
+    qs('No special occasion');
+  }
+  actions.appendChild(sendBtn); actions.appendChild(skipBtn);
+  wrap.appendChild(ta); wrap.appendChild(actions);
+  parent.appendChild(wrap);
+}
+
+function generatePelorusRationale() {
+  const dests = profile.where?.destinations || [];
+  const prios = profile.priorities || [];
+  const who   = profile.who?.type;
+  const lines = [];
+
+  if (dests.includes('polar') || dests.includes('ocean')) {
+    lines.push('Polar and expedition waters are where Pelorus built its name — rare access developed over years, not booked from a catalogue.');
+  } else if (dests.includes('savanna')) {
+    lines.push('In the bush, the difference between a good safari and a genuinely extraordinary one is who opens the gate. Pelorus has spent years building those relationships.');
+  } else if (dests.includes('jungle')) {
+    lines.push('Jungle expeditions of real ambition require deep local networks and logistical precision — exactly what the founding team was doing before Pelorus existed.');
+  } else if (dests.includes('mountains')) {
+    lines.push('Mountain travel at this level takes genuine planning expertise. The founders brought military-grade precision to the field before they brought it to travel design.');
+  } else if (dests.includes('coast')) {
+    lines.push('Coastal and island travel done well means private access, considered timing, and knowing where the crowd never reaches. Pelorus designs around exactly that.');
+  } else if (dests.includes('desert')) {
+    lines.push('Desert journeys require a different kind of preparation — the silence and scale are the point, and getting that right takes teams who have actually been there.');
+  } else if (dests.includes('cities')) {
+    lines.push('Cultural immersion at this level is not about hotels and restaurants — it is about who you meet, what rooms you are let into, and how far beyond the surface it goes.');
+  } else {
+    lines.push('Pelorus was founded by two former British Army captains with a single purpose: to design journeys no one else can. The precision is in the DNA.');
+  }
+
+  if (prios.includes('Rare access')) {
+    lines.push('Rare access is in the company\'s DNA — it is what the founders were doing before Pelorus existed, and it shapes every trip the team puts forward.');
+  } else if (prios.includes('Conservation impact')) {
+    lines.push('Pelorus is a Certified B Corporation — conservation is not a product feature here, it is built into how the company operates.');
+  } else if (prios.includes('Total seclusion')) {
+    lines.push('Genuine seclusion is one of the hardest things to actually deliver. The team knows where the real ones are, and what it takes to get there properly.');
+  } else if (prios.includes('Family-led trip') || who === 'family' || who === 'multigenerational') {
+    lines.push('Family expeditions at this scale require a different kind of planning — every person in the group considered, not just the headline trip.');
+  } else if (prios.includes('Wellness & space to think')) {
+    lines.push('The best restorative journeys are not found — they are designed. Pelorus builds the conditions that let the travel actually land.');
+  } else if (prios.includes('Adventure & adrenaline')) {
+    lines.push('Adventure travel with real stakes needs a team who understands risk and logistics at a level most operators do not. That is where Pelorus started.');
+  }
+
+  lines.push('What you\'ve shared gives the team exactly what they need. They\'ll come back with something worth being excited about.');
+  return lines.slice(0, 3).join(' ');
+}
+
+function renderTimeline(parent) {
+  const wrap = document.createElement('div'); wrap.className = 'timeline-wrap';
+  const title = document.createElement('div'); title.className = 'timeline-title'; title.textContent = 'What happens next';
+  const items = [
+    { text: 'Journey brief captured', done: true },
+    { text: 'Brief reviewed by the Pelorus team' },
+    { text: 'An adviser reaches out — a conversation, not a pitch' },
+    { text: 'The team comes back with how they\'d approach this' },
+  ];
+  const list = document.createElement('div'); list.className = 'timeline-list';
+  items.forEach(item => {
+    const row = document.createElement('div'); row.className = 'timeline-item' + (item.done ? ' done' : '');
+    const dot = document.createElement('div'); dot.className = 'timeline-dot'; if (item.done) dot.textContent = '✓';
+    const text = document.createElement('div'); text.className = 'timeline-text'; text.textContent = item.text;
+    row.appendChild(dot); row.appendChild(text); list.appendChild(row);
+  });
+  const cta = document.createElement('a'); cta.href = 'https://pelorustravel.com/us'; cta.target = '_blank';
+  cta.className = 'timeline-cta'; cta.textContent = 'Visit pelorustravel.com →';
+  wrap.appendChild(title); wrap.appendChild(list); wrap.appendChild(cta);
+  parent.appendChild(wrap);
+}
+
+function renderPresummary(parent) {
+  const wrap = document.createElement('div'); wrap.className = 'presummary-wrap';
+
+  // Profile breakdown
+  const breakdown = document.createElement('div'); breakdown.className = 'presummary-breakdown';
+  const summaries = {
+    who:        summariseWho(profile.who),
+    when:       summariseWhen(profile.when),
+    where:      summariseWhere(profile.where),
+    priorities: summarisePriorities(profile.priorities),
+    occasion:   summariseOccasion(profile.occasion),
+    budget:     summariseBudget(profile.budget),
+    notes:      profile.notes || null
+  };
+  PROFILE_ORDER.forEach(k => {
+    const val = summaries[k];
+    if (!val) return;
+    const row = document.createElement('div'); row.className = 'presummary-row';
+    row.innerHTML = `<div class="presummary-label">${PROFILE_LABELS[k]}</div><div class="presummary-value">${val}</div>`;
+    breakdown.appendChild(row);
+  });
+  wrap.appendChild(breakdown);
+
+  // Pelorus rationale
+  const rationale = document.createElement('div'); rationale.className = 'presummary-rationale';
+  rationale.textContent = generatePelorusRationale();
+  wrap.appendChild(rationale);
+
+  // Email capture form
+  const formWrap = document.createElement('div'); formWrap.className = 'presummary-form';
+  const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.className = 'presummary-input';
+  nameInput.placeholder = 'Your name'; nameInput.autocomplete = 'name';
+  const emailInput = document.createElement('input'); emailInput.type = 'email'; emailInput.className = 'presummary-input';
+  emailInput.placeholder = 'Email address'; emailInput.autocomplete = 'email';
+  const submitBtn = document.createElement('button'); submitBtn.className = 'presummary-submit'; submitBtn.textContent = 'Send →';
+  submitBtn.onclick = () => {
+    const email = emailInput.value.trim();
+    if (!email || !email.includes('@')) { emailInput.style.borderColor = 'rgba(243,139,0,0.8)'; return; }
+    wrap.innerHTML = '';
+    renderTimeline(wrap);
+  };
+  formWrap.appendChild(nameInput); formWrap.appendChild(emailInput); formWrap.appendChild(submitBtn);
+  wrap.appendChild(formWrap);
+
+  parent.appendChild(wrap);
+}
+
+
+/* ── Core chat ── */
+function addMsg(role, text, ids=[], choices=[], book=false, multiSelect=null, budget=false, group=false, when=false, where=false, budgetNew=false, notesPlaceholder=null, occasion=false, presummary=false) {
+  const msgs = document.getElementById('msgs');
+  const row = document.createElement('div'); row.className = 'msg ' + role;
+  const av = role === 'ai' ? aiAv() : document.createElement('div');
+  if (role !== 'ai') { av.className = 'mav user'; av.textContent = 'You'; }
+  const b = document.createElement('div'); b.className = 'bub ' + role;
+  b.innerHTML = text.split(/\n\n+/).map(chunk =>
+    `<p>${chunk.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*\n]+)\*/g, '<em>$1</em>').replace(/\n/g, '<br>')}</p>`
+  ).join('');
+  row.appendChild(av); row.appendChild(b); msgs.appendChild(row);
+  if (multiSelect) renderMultiSelect(multiSelect, b);
+  if (group)       renderGroupCards(b);
+  if (when)        renderWhenModeCards(b);
+  if (where)       renderWhereCards(b);
+  if (budgetNew)   renderBudgetSlider(b);
+  if (occasion)    renderOccasionField(b);
+  if (notesPlaceholder !== null) renderNotesField(notesPlaceholder, b);
+  if (presummary)  renderPresummary(b);
+  if (book)        b.appendChild(mkBookCta());
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  if (document.getElementById('typing-indicator')) return;
+  const msgs = document.getElementById('msgs');
+  const wrap = document.createElement('div'); wrap.className = 'msg ai typing'; wrap.id = 'typing-indicator';
+  const bubble = document.createElement('div'); bubble.className = 'bubble';
+  bubble.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+  wrap.appendChild(aiAv()); wrap.appendChild(bubble);
+  msgs.appendChild(wrap); msgs.scrollTop = msgs.scrollHeight;
+}
+function hideTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
+
+function parse(text) {
+  let clean = text.trim();
+  let ids = [], choices = [], book = false, multiSelect = null, budget = false;
+  let group = false, when = false, where = false, budgetNew = false, notesPlaceholder = null;
+  let occasion = false, presummary = false;
+
+  const showMatches = [...clean.matchAll(/\[SHOW:([\d,\s]+)\]/g)];
+  if (showMatches.length) { ids = showMatches.flatMap(m => m[1].split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n))); clean = clean.replace(/\[SHOW:[\d,\s]+\]/g, '').trim(); }
+
+  const cm = clean.match(/\[CHOICES:([^\]]+)\]/);
+  if (cm) { choices = cm[1].split('|').map(s => s.trim()).filter(Boolean); clean = clean.replace(/\[CHOICES:[^\]]+\]/, '').trim(); }
+
+  const msm = clean.match(/\[MULTISELECT:([^\]]+)\]/);
+  if (msm) { multiSelect = msm[1].split('|').map(s => s.trim()).filter(Boolean); clean = clean.replace(/\[MULTISELECT:[^\]]+\]/, '').trim(); }
+
+  if (/\[BUDGET\](?!:)/.test(clean) || clean.includes('[BUDGET]')) {
+    if (!clean.match(/\[BUDGET:\]/)) { budget = true; clean = clean.replace(/\[BUDGET\]/g, '').trim(); }
+  }
+
+  if (clean.includes('[BOOK]')) { book = true; clean = clean.replace(/\[BOOK\]/g, '').trim(); }
+  clean = clean.replace(/\[COLLECT\]/g, '').trim();
+
+  // Nested-bracket-aware pattern: handles values like kids:[] inside the tag
+  const nestedTag = /\[[A-Z][A-Z0-9_]*:[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]/g;
+  const profileTags = clean.match(/\[PROFILE:[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]/g);
+  if (profileTags) { clean = clean.replace(/\[PROFILE:[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]/g, '').trim(); }
+
+  if (clean.includes('[GROUP:]')) { group = true; clean = clean.replace(/\[GROUP:\]/g, '').trim(); }
+  if (clean.includes('[WHEN:]'))  { when  = true; clean = clean.replace(/\[WHEN:\]/g, '').trim(); }
+  if (clean.includes('[WHERE:]')) { where = true; clean = clean.replace(/\[WHERE:\]/g, '').trim(); }
+  if (/\[BUDGET:\]/.test(clean))  { budgetNew = true; clean = clean.replace(/\[BUDGET:\]/g, '').trim(); }
+  if (clean.includes('[OCCASION:]')) { occasion = true; clean = clean.replace(/\[OCCASION:\]/g, '').trim(); }
+  if (clean.includes('[PRESUMMARY:]')) { presummary = true; clean = clean.replace(/\[PRESUMMARY:\]/g, '').trim(); }
+
+  const notesMatch = clean.match(/\[NOTES:([^\]]*)\]/);
+  if (notesMatch) { notesPlaceholder = notesMatch[1].trim(); clean = clean.replace(/\[NOTES:[^\]]*\]/g, '').trim(); }
+
+  // Strip any remaining [TAG:...] or [TAG] patterns the AI may have emitted (nested-bracket-aware)
+  clean = clean.replace(nestedTag, '').trim();
+  clean = clean.replace(/\[[A-Z][A-Z0-9_]*\]/g, '').trim();
+
+  return { clean, ids, choices, book, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder, occasion, presummary };
+}
+
+async function callAI() {
+  busy = true;
+  document.getElementById('sbtn').disabled = true;
+  showTyping();
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 1000));
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          system: SYS,
+          messages: hist,
+          profile: JSON.parse(JSON.stringify(profile))
+        })
+      });
+      const d = await res.json();
+      if (d.error) throw new Error(d.error.message);
+      const raw = (d.content?.[0]?.text || '').trim();
+      hideTyping();
+      const { clean, ids, choices, book, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder, occasion, presummary } = parse(raw);
+      addMsg('ai', clean, ids, choices, book, multiSelect, budget, group, when, where, budgetNew, notesPlaceholder, occasion, presummary);
+      hist.push({ role: 'assistant', content: raw });
+      lastErr = null;
+      break;
+    } catch (e) { lastErr = e; }
+  }
+  if (lastErr) { hideTyping(); addMsg('ai', 'Sorry, there was a connection issue — please try again.'); }
+  busy = false;
+  document.getElementById('sbtn').disabled = false;
+}
+
+async function send() {
+  const inp = document.getElementById('inp');
+  const msg = inp.value.trim();
+  if (!msg || busy) return;
+  inp.value = '';
+  addMsg('user', msg);
+  hist.push({ role: 'user', content: msg });
+  await callAI();
+  if (window === window.top) inp.focus();
+}
+
+function qs(t) { document.getElementById('inp').value = t; send(); }
+
+/* ── Init ── */
+(function init() {
+  const opening = 'Welcome. The trips we design begin like this — with a conversation, and very few rules. Wherever you want to start.';
+  addMsg('ai', opening);
+  hist.push({ role: 'assistant', content: opening });
+  hist.push({ role: 'user', content: 'Hello' });
+  callAI();
+})();
+</script>
+</body>
+</html>

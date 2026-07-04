@@ -1,0 +1,12 @@
+<svg width="60" height="100" viewBox="0 0 60 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M30,4 Q42,9 50,20 Q58,32 59,47 Q60,62 55,74 Q48,86 30,93 Q12,86 5,74 Q0,62 1,47 Q2,32 10,20 Q18,9 30,4Z" fill="#5B9BAA"/>
+  <line x1="30" y1="5" x2="30" y2="92" stroke="#F5F0E8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="30" y1="25" x2="44" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+  <line x1="30" y1="40" x2="49" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+  <line x1="30" y1="55" x2="50" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+  <line x1="30" y1="70" x2="46" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+  <line x1="30" y1="25" x2="16" y2="32" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+  <line x1="30" y1="40" x2="11" y2="48" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+  <line x1="30" y1="55" x2="10" y2="62" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+  <line x1="30" y1="70" x2="14" y2="76" stroke="#F5F0E8" stroke-width="0.7" opacity="0.5"/>
+</svg>
