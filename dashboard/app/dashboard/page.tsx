@@ -11,19 +11,27 @@ export const metadata = {
   title: 'Content Radar — Dashboard',
 };
 
+// Local-dev escape hatch: set DISABLE_DASHBOARD_AUTH=true in .env.local to browse
+// /dashboard without logging in. It is IGNORED in production (NODE_ENV is always
+// 'production' on Vercel), so it can never accidentally leave the live gate open.
+const authDisabled =
+  process.env.NODE_ENV !== 'production' && process.env.DISABLE_DASHBOARD_AUTH === 'true';
+
 export default async function DashboardPage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (!authDisabled) {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user?.email) {
-    redirect('/login');
-  }
+    if (!user?.email) {
+      redirect('/login');
+    }
 
-  const subscription = await getSubscriptionByEmail(user.email);
-  if (!hasActiveAccess(subscription)) {
-    redirect('/subscribe');
+    const subscription = await getSubscriptionByEmail(user.email);
+    if (!hasActiveAccess(subscription)) {
+      redirect('/subscribe');
+    }
   }
 
   const data = await getPortfolioData();
