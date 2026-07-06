@@ -47,13 +47,31 @@ components/
                           the last 30 days (NOT the dashboard's 7-day standout list).
                           Collab = same post_id under >1 handle, plus the AI
                           driver_tag 'Collaboration' as a second guard.
+                          NB: the taster renders its OWN OpenCard/LockedCard (NOT
+                          BreakoutCard). OpenCard's 4:5 media reuses ContentRadar's
+                          exported `ImageWithFallback` (framed contain + blurred backdrop),
+                          so it matches the dashboard's framing. LockedCard keeps its plain
+                          CSS cover background — it sits behind the paywall blur overlay,
+                          so crop is invisible there.
   Dashboard.tsx         — shell: top bar + channel switcher, dark hero w/ by-the-numbers
                           panel, section rules, floating bottom nav (mailto feature pill),
                           dark footer. PillToggle exported from here.
   ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list);
                           top-5 spec cards, ranks 6–25
                           table card, Show-more/less expander. BreakoutCard is exported
-                          for reuse by Landing.tsx
+                          for reuse by Landing.tsx. Post images render FRAMED, not
+                          cover-cropped: the shared `ImageWithFallback` shows the whole
+                          image at true aspect (objectFit:contain, centred, drop-shadow)
+                          over a blurred/tinted copy of itself (cover + scale(1.15) +
+                          blur(28px) brightness .82) so 9:16 Reels/4:5/1:1 all keep their
+                          subject in a fixed 400px box — no more sliced faces. Missing/
+                          broken src still falls back to the warm MEDIA_PLACEHOLDER gradient
+                          (unchanged). `blur`/`elevated` props scale the effect down for the
+                          rank-6+ PostRow 64×48 thumbs (blur 10, no shadow). `ImageWithFallback`
+                          is exported so Landing's taster OpenCard reuses the identical
+                          framing. `TagChip` now shows a per-format leading icon
+                          (Video/Reel → play triangle, Carousel → stacked frames, Photo →
+                          image glyph; Other/unknown → text only).
   WhatsWorking.tsx      — 3 dark stat cards + format/caption bar cards; day/time/frequency
                           panels behind "Show more detail" expander (kept by Neil's decision)
   HotelTable.tsx        — functional leaderboard in the spec's 7-col grid: dark header,

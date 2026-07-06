@@ -26,21 +26,69 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ImageWithFallback({ src, alt, fallback }: { src: string | null; alt: string; fallback: string }) {
+// Framed image: shows the whole post at its true aspect ratio (contain), centred,
+// with a blurred, tinted copy of the same image filling the letterbox gaps — a photo
+// in a frame, not a photo trimmed to fit. Instagram posts come in three shapes
+// (Reel 9:16, Carousel/Photo 4:5 or 1:1), so `cover` used to slice tall Reels; `contain`
+// keeps every subject in view. `blur`/`elevated` scale the effect down for small thumbnails.
+export function ImageWithFallback({
+  src,
+  alt,
+  fallback,
+  blur = 28,
+  elevated = true,
+}: {
+  src: string | null;
+  alt: string;
+  fallback: string;
+  blur?: number;
+  elevated?: boolean;
+}) {
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
     return <div style={{ position: 'absolute', inset: 0, background: fallback }} />;
   }
+  // Instagram CDN images are external and short-lived — plain <img>s with a fallback.
   return (
-    // Instagram CDN images are external and short-lived — plain <img> with a fallback
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-      onError={() => setFailed(true)}
-    />
+    <>
+      {/* 1 · blurred backdrop — same image, scaled up so the blur has no transparent edge */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          transform: 'scale(1.15)',
+          filter: `blur(${blur}px) brightness(0.82) saturate(1.05)`,
+        }}
+      />
+      {/* 2 · foreground — whole image at true aspect, centred */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          margin: 'auto',
+          maxWidth: '100%',
+          maxHeight: '100%',
+          width: 'auto',
+          height: 'auto',
+          objectFit: 'contain',
+          display: 'block',
+          ...(elevated ? { boxShadow: '0 6px 22px -8px rgba(0,0,0,0.45)' } : null),
+        }}
+      />
+    </>
   );
 }
 
@@ -48,11 +96,53 @@ function permalink(p: OutlierPost): string {
   return p.post_url ?? `https://www.instagram.com/p/${p.post_id}/`;
 }
 
+// Small leading glyph so the post format reads at a glance. 24-unit viewBox,
+// currentColor stroke/fill. Unknown/missing type → null (chip stays text-only).
+function TypeIcon({ type }: { type: string }) {
+  const common = {
+    width: 13,
+    height: 13,
+    viewBox: '0 0 24 24',
+    'aria-hidden': true,
+    style: { display: 'block', flexShrink: 0 },
+  } as const;
+  // Instagram reels come through the pipeline as either 'Video' or 'Reel' (see
+  // normalizeType in lib/data.ts) — both get the play triangle.
+  if (type === 'Reel' || type === 'Video') {
+    return (
+      <svg {...common} fill="currentColor">
+        <path d="M8 5.5v13a1 1 0 0 0 1.52.86l10.5-6.5a1 1 0 0 0 0-1.72L9.52 4.64A1 1 0 0 0 8 5.5z" />
+      </svg>
+    );
+  }
+  if (type === 'Carousel') {
+    return (
+      <svg {...common} fill="none" stroke="currentColor">
+        <rect x="7.5" y="3.5" width="13" height="13" rx="2.5" strokeWidth="1.7" />
+        <path d="M4.5 7v11a2.5 2.5 0 0 0 2.5 2.5h9" strokeWidth="1.7" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (type === 'Photo') {
+    return (
+      <svg {...common} fill="none" stroke="currentColor">
+        <rect x="3.5" y="5.5" width="17" height="13" rx="2.5" strokeWidth="1.7" />
+        <circle cx="9" cy="10" r="1.6" fill="currentColor" stroke="none" />
+        <path d="M5 18l4.5-4.5 3 2.5 3.5-3.5 4 4" strokeWidth="1.7" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  return null;
+}
+
 function TagChip({ type }: { type: string | null }) {
   if (!type || type === 'Other') return null;
   return (
     <span
       style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
         fontFamily: LABEL,
         fontSize: 10,
         textTransform: 'uppercase',
@@ -63,6 +153,7 @@ function TagChip({ type }: { type: string | null }) {
         padding: '4px 9px',
       }}
     >
+      <TypeIcon type={type} />
       {type}
     </span>
   );
@@ -102,7 +193,7 @@ export function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: numbe
           target="_blank"
           rel="noopener noreferrer"
           className="cr-card-media"
-          style={{ position: 'relative', minHeight: 400, display: 'block', background: MEDIA_PLACEHOLDER }}
+          style={{ position: 'relative', minHeight: 400, height: '100%', overflow: 'hidden', display: 'block', background: MEDIA_PLACEHOLDER }}
           aria-label={`View ${p.hotel_name}'s post on Instagram`}
         >
           <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={MEDIA_PLACEHOLDER} />
@@ -269,7 +360,7 @@ function PostRow({ post: p, rank }: { post: OutlierPost; rank: number }) {
       </span>
 
       <span style={{ position: 'relative', width: 64, height: 48, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: THUMB_PLACEHOLDER }}>
-        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={THUMB_PLACEHOLDER} />
+        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={THUMB_PLACEHOLDER} blur={10} elevated={false} />
       </span>
 
       <span style={{ flex: 1, minWidth: 0 }}>

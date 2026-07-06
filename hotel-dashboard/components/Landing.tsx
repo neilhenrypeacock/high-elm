@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { DashboardData, OutlierPost } from '@/lib/data';
+import { ImageWithFallback } from './ContentRadar';
 
 // ─── Offer (single source of truth for every CTA + the pricing card) ─────────
 // All trial CTAs point at the placeholder route until Stripe Checkout exists.
@@ -106,9 +107,6 @@ function CtaArrow() {
 // ─── Taster: open card (real breakout, live data) ────────────────────────────
 function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
   const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
-  const bg = post.image_url
-    ? `url("${post.image_url}") center/cover no-repeat, ${gradient}`
-    : gradient;
   const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
   const mult = post.multiplier.toFixed(1);
 
@@ -120,7 +118,8 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
         overflow: 'hidden', boxShadow: 'var(--shadow-card)', transition: 'transform .16s, box-shadow .16s',
       }}
     >
-      <div style={{ aspectRatio: '4 / 5', background: bg, position: 'relative' }}>
+      <div style={{ aspectRatio: '4 / 5', background: gradient, position: 'relative', overflow: 'hidden' }}>
+        <ImageWithFallback src={post.image_url} alt={post.hotel_name} fallback={gradient} />
         <span style={{
           position: 'absolute', top: 14, left: 14, fontFamily: 'var(--font-label)', fontWeight: 600,
           fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)',
