@@ -442,16 +442,163 @@ function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: Ti
   );
 }
 
+// ─── Feed filters (display-only, client-side) ─────────────────────────────────
+// Each chip is an independent on/off include-toggle. A post is hidden only when
+// its category's chip is off — turning "Videos" off hides Video/Reel posts,
+// turning "Collaboration posts" off hides collabs. "Show all" turns them back on.
+// This filters the DISPLAYED list only; it never changes breakout selection or
+// the hero's "X posts outperformed" count (those come straight from the data).
+type FeedFilters = { collab: boolean; images: boolean; videos: boolean };
+const ALL_ON: FeedFilters = { collab: true, images: true, videos: true };
+
+const isImage = (t: string | null) => t === 'Photo' || t === 'Carousel';
+const isVideo = (t: string | null) => t === 'Video' || t === 'Reel';
+
+function passesFilters(p: OutlierPost, f: FeedFilters): boolean {
+  if (!f.images && isImage(p.type)) return false;
+  if (!f.videos && isVideo(p.type)) return false;
+  if (!f.collab && p.is_collab) return false;
+  return true;
+}
+
+function FilterChip({
+  label,
+  active,
+  onClick,
+  title,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      title={title}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 7,
+        border: `1px solid ${active ? 'var(--signal-deep)' : 'var(--line)'}`,
+        background: active ? 'var(--top3-tint)' : 'var(--surface)',
+        color: active ? 'var(--signal-deep)' : 'var(--muted)',
+        borderRadius: 999,
+        padding: '7px 14px',
+        fontSize: 12.5,
+        fontWeight: 500,
+        fontFamily: 'inherit',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        transition: 'background 0.12s, color 0.12s, border-color 0.12s',
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
+        {active ? (
+          <path d="M20 6.5 9.4 17 4 11.7" stroke="var(--signal-deep)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        ) : (
+          <circle cx="12" cy="12" r="8.2" stroke="var(--faint)" strokeWidth="1.7" />
+        )}
+      </svg>
+      {label}
+    </button>
+  );
+}
+
+function FeedFilterBar({
+  filters,
+  onToggle,
+  onShowAll,
+  allOn,
+  shown,
+  total,
+}: {
+  filters: FeedFilters;
+  onToggle: (k: keyof FeedFilters) => void;
+  onShowAll: () => void;
+  allOn: boolean;
+  shown: number;
+  total: number;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span
+          style={{
+            fontFamily: LABEL,
+            fontSize: 10,
+            textTransform: 'uppercase',
+            letterSpacing: '0.14em',
+            color: 'var(--muted)',
+            marginRight: 2,
+          }}
+        >
+          Filter
+        </span>
+        <FilterChip
+          label="Collaboration posts"
+          active={filters.collab}
+          onClick={() => onToggle('collab')}
+          title="Collabs with accounts outside our tracked hotels may not be flagged"
+        />
+        <FilterChip label="Images & carousels" active={filters.images} onClick={() => onToggle('images')} />
+        <FilterChip label="Videos" active={filters.videos} onClick={() => onToggle('videos')} />
+        <button
+          type="button"
+          onClick={onShowAll}
+          disabled={allOn}
+          className="cr-link"
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            fontFamily: 'inherit',
+            color: allOn ? 'var(--faint)' : 'var(--signal-deep)',
+            background: 'transparent',
+            border: 'none',
+            cursor: allOn ? 'default' : 'pointer',
+            padding: '4px 6px',
+          }}
+        >
+          Show all
+        </button>
+        {!allOn && (
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+            Showing {shown} of {total}
+          </span>
+        )}
+      </div>
+      <span style={{ fontSize: 11, color: 'var(--faint)', lineHeight: 1.5 }}>
+        Collabs are flagged when a post appears on more than one tracked hotel’s grid — collabs with accounts outside our tracked hotels may not be caught.
+      </span>
+    </div>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ContentRadar({ postsByWindow }: { postsByWindow: Record<TimeWindow, OutlierPost[]> }) {
   const [showMore, setShowMore] = useState(false);
   const [win, setWin] = useState<TimeWindow>('7d');
-  const posts = postsByWindow[win];
+  const [filters, setFilters] = useState<FeedFilters>(ALL_ON);
+  const allOn = filters.collab && filters.images && filters.videos;
+
+  const windowPosts = postsByWindow[win];
+  const posts = allOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
 
   const topPosts = posts.slice(0, 5);
   const rest = posts.slice(5);
   const visibleRest = showMore ? rest : rest.slice(0, 10);
   const hiddenCount = rest.length - 10;
+
+  const toggle = (k: keyof FeedFilters) => {
+    setFilters(f => ({ ...f, [k]: !f[k] }));
+    setShowMore(false);
+  };
+  const showAll = () => {
+    setFilters(ALL_ON);
+    setShowMore(false);
+  };
 
   const emptyMsg = win === '7d'
     ? 'No posts broke meaningfully past their hotel’s own median this week.'
@@ -459,17 +606,27 @@ export default function ContentRadar({ postsByWindow }: { postsByWindow: Record<
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      {/* Time-window toggle — windows this list; opens on the last 7 days */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <WindowToggle value={win} onChange={w => { setWin(w); setShowMore(false); }} />
-        {win === 'all' && (
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-            Top {posts.length} best-performing posts on record
-          </span>
-        )}
+      {/* Controls: time-window toggle + feed filters */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <WindowToggle value={win} onChange={w => { setWin(w); setShowMore(false); }} />
+          {win === 'all' && (
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+              Top {windowPosts.length} best-performing posts on record
+            </span>
+          )}
+        </div>
+        <FeedFilterBar
+          filters={filters}
+          onToggle={toggle}
+          onShowAll={showAll}
+          allOn={allOn}
+          shown={posts.length}
+          total={windowPosts.length}
+        />
       </div>
 
-      {posts.length === 0 ? (
+      {windowPosts.length === 0 ? (
         <div
           style={{
             background: 'var(--surface)',
@@ -482,6 +639,28 @@ export default function ContentRadar({ postsByWindow }: { postsByWindow: Record<
           }}
         >
           {emptyMsg}
+        </div>
+      ) : posts.length === 0 ? (
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: 14,
+            border: '1px solid var(--line)',
+            padding: '56px 40px',
+            textAlign: 'center',
+            color: 'var(--body-mid)',
+            fontSize: 14,
+          }}
+        >
+          No posts match these filters.{' '}
+          <button
+            type="button"
+            onClick={showAll}
+            className="cr-link"
+            style={{ fontSize: 14, fontWeight: 500, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            Show all
+          </button>
         </div>
       ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
