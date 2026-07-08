@@ -94,6 +94,10 @@ export type OutlierPost = {
   post_insight: string | null;
   driver_tag: string | null;
   theme_tag: string | null;
+  /** Display-only collab tag (feed filter). Structural: same post_id under >1
+   *  tracked handle, OR the AI driver_tag = 'Collaboration'. Does NOT affect
+   *  breakout selection or counts — collabs with UNTRACKED accounts stay unflagged. */
+  is_collab: boolean;
 };
 
 export type BarItem = { label: string; value: number; count: number };
@@ -282,6 +286,7 @@ export function computeStandout(
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
   limit: number = MAX_STANDOUT_POSTS,
+  handlesByPostId?: Map<string, Set<string>>,
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
   for (const p of recentValidPosts) {
@@ -315,6 +320,9 @@ export function computeStandout(
       post_insight:         storedInsight[p.post_id]?.insight ?? null,
       driver_tag:           storedInsight[p.post_id]?.tag ?? null,
       theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
+      // Display-only collab tag — same signals landing_featured excludes on.
+      is_collab:            (handlesByPostId?.get(p.post_id)?.size ?? 1) > 1 ||
+                            storedInsight[p.post_id]?.tag === 'Collaboration',
     });
   }
   // Count ALL qualifying posts before slicing for the hero panel
@@ -541,6 +549,16 @@ export async function getPortfolioData(): Promise<DashboardData> {
   // Same selection for each window (≥2× the hotel's own median, ranked by
   // multiplier), capped at STANDOUT_LIMIT. "All time" = the top 100 ever. The
   // hero "this week" counts always come from the 7-day window.
+  // Collab map (shared by the feed's is_collab tag and the landing taster's
+  // non-collab filter): a co-post is stored once per partner grid, so the same
+  // post_id under >1 tracked handle means a collab. Built once, used by both.
+  const handlesByPostId = new Map<string, Set<string>>();
+  for (const p of allPosts) {
+    let s = handlesByPostId.get(p.post_id);
+    if (!s) handlesByPostId.set(p.post_id, s = new Set());
+    s.add(p.instagram_handle);
+  }
+
   const standout = {} as Record<TimeWindow, OutlierPost[]>;
   let breakout_count = 0;
   let super_breakout_count = 0;
@@ -552,7 +570,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       validForAnalysis.filter(p => now - new Date(p.posted_at).getTime() <= days * DAY_MS);
     const res = computeStandout(
       windowPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-      storedImageUrl, storedInsight, STANDOUT_LIMIT,
+      storedImageUrl, storedInsight, STANDOUT_LIMIT, handlesByPostId,
     );
     standout[key] = res.posts;
     if (key === '7d') {
@@ -562,16 +580,9 @@ export async function getPortfolioData(): Promise<DashboardData> {
   }
 
   // ── Landing taster: best NON-COLLAB breakouts of the last 30 days ────────
-  // Collabs are detected structurally: a co-post is stored once per partner
-  // grid, so the same post_id under more than one handle means a collab.
-  // (A collab with an UNTRACKED account leaves no duplicate row and can't be
-  // detected from this data — the AI driver_tag is used as a second guard.)
-  const handlesByPostId = new Map<string, Set<string>>();
-  for (const p of allPosts) {
-    let s = handlesByPostId.get(p.post_id);
-    if (!s) handlesByPostId.set(p.post_id, s = new Set());
-    s.add(p.instagram_handle);
-  }
+  // Uses the shared handlesByPostId map above: same post_id under >1 handle =
+  // collab (a collab with an UNTRACKED account leaves no duplicate row and can't
+  // be detected from this data — the AI driver_tag is used as a second guard).
   const landingCandidates = validForAnalysis.filter(p =>
     now - new Date(p.posted_at).getTime() <= LANDING_WINDOW_DAYS * DAY_MS &&
     (handlesByPostId.get(p.post_id)?.size ?? 1) === 1 &&
