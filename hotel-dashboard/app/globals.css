@@ -206,3 +206,62 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 720px) {
   .cr-whatyouget-grid { grid-template-columns: 1fr !important; }
 }
+
+/* ═══ App shell (gated area — components/AppShell.tsx) ═════════════════════════
+   Left sidebar on desktop; off-canvas drawer + top bar on mobile. Additive only —
+   wraps the existing gated pages, never edits their internals. */
+.cr-shell { display: flex; min-height: 100vh; align-items: stretch; }
+.cr-shell-aside {
+  width: 248px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+.cr-shell-main { flex: 1; min-width: 0; }
+.cr-shell-mobilebar { display: none; }
+.cr-shell-scrim { display: none; }
+
+.cr-shell-navitem { transition: background 0.12s, color 0.12s; }
+.cr-shell-navitem:hover { background: var(--surface-alt-2); }
+.cr-shell-navitem[data-active="true"] { background: var(--surface-alt-2); }
+
+@media (max-width: 860px) {
+  .cr-shell-mobilebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 18;
+  }
+  .cr-shell-aside {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--shadow-nav);
+  }
+  .cr-shell--open .cr-shell-aside { transform: translateX(0); }
+  .cr-shell--open .cr-shell-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 18, 15, 0.42);
+    z-index: 19;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cr-shell-aside { transition: none; }
+}
