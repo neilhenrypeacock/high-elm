@@ -9,12 +9,23 @@ import { getSubscriptionByEmail, hasActiveAccess, type Subscription } from './su
 //   session, no active sub → /subscribe
 // Returns the authenticated user + their subscription row for the page to render.
 //
-// The local-dev escape hatch mirrors the dashboard's exactly: DISABLE_DASHBOARD_AUTH
-// only works when NODE_ENV !== 'production', so it can never open the live gate. In
-// that mode there is no real session, so `user` is null and pages fall back to
-// display-only behaviour (see ProfileForm's read-only note).
-const authDisabled =
+// Development bypass: disable gating entirely for testing. Two modes:
+//
+// 1. Local dev: DISABLE_DASHBOARD_AUTH=true (NODE_ENV !== 'production' only)
+//    — safe, can never open the live gate
+//
+// 2. Temporary production dev-mode: UNGATED_DEV_MODE=true
+//    — intentionally allows ungated access even on production during development
+//    — set via Vercel env var when you want to test the gated pages without login
+//    — no session, so pages show their display-only states
+//    — REMOVE THIS FLAG before going to real users
+const localBypass =
   process.env.NODE_ENV !== 'production' && process.env.DISABLE_DASHBOARD_AUTH === 'true';
+
+const prodDevMode =
+  process.env.UNGATED_DEV_MODE === 'true';
+
+const authDisabled = localBypass || prodDevMode;
 
 export interface AccessContext {
   user: User | null;
