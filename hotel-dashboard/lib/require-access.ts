@@ -13,8 +13,20 @@ import { getSubscriptionByEmail, hasActiveAccess, type Subscription } from './su
 // only works when NODE_ENV !== 'production', so it can never open the live gate. In
 // that mode there is no real session, so `user` is null and pages fall back to
 // display-only behaviour (see ProfileForm's read-only note).
-const authDisabled =
+const localBypass =
   process.env.NODE_ENV !== 'production' && process.env.DISABLE_DASHBOARD_AUTH === 'true';
+
+// Preview-only REVIEW bypass. Lets the gated pages render on Vercel PREVIEW
+// deploys — which are themselves behind Vercel team SSO, so only the team can
+// reach them — without a real magic-link login, so the account shell can be
+// reviewed on a hosted URL. It can NEVER fire on production: VERCEL_ENV is
+// 'production' there, and it's additionally gated behind an explicit env flag so
+// it's off unless deliberately switched on for a review. Like the local bypass,
+// `user` is null in this mode, so pages show their display-only states.
+const previewBypass =
+  process.env.VERCEL_ENV === 'preview' && process.env.PREVIEW_SHOW_GATED === 'true';
+
+const authDisabled = localBypass || previewBypass;
 
 export interface AccessContext {
   user: User | null;
