@@ -113,6 +113,18 @@ body {
 [data-card]:hover    { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
 @media (prefers-reduced-motion: reduce) { [data-card]:hover { transform: none; } }
 
+/* Landing reveal-on-scroll: elements ship hidden so there's no paint-then-fade
+   flash on load (the base markup used to be visible, so above-the-fold content
+   blinked out then faded back in). JS adds .cr-in and animates them in via the
+   Web Animations API, which composites independently and leaves each card's own
+   .16s hover transition untouched — so no transform "settle"/jump at the end.
+   Scoped to .cr-landing so nothing else is affected; reduced-motion and no-JS
+   both fall back to fully visible. */
+.cr-landing [data-reveal]:not(.cr-in) { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .cr-landing [data-reveal] { opacity: 1 !important; }
+}
+
 /* Scroll anchors clear the sticky top bar */
 section[id], div[id] { scroll-margin-top: 86px; }
 
@@ -138,12 +150,6 @@ section[id], div[id] { scroll-margin-top: 86px; }
 
 .cr-lb-body-row { transition: background 0.12s; }
 .cr-lb-body-row:hover { background: var(--row-hover) !important; }
-
-.cr-navlink { transition: background 0.12s, color 0.12s; }
-.cr-navlink:hover { background: rgba(245, 240, 232, 0.08); color: #F7F6F2; }
-
-.cr-feature-pill { transition: background 0.12s; }
-.cr-feature-pill:hover { background: rgba(139, 189, 201, 0.12); }
 
 .cr-expander { transition: background 0.12s; }
 .cr-expander:hover { background: #EEF3F3; }
@@ -224,6 +230,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   flex-direction: column;
   z-index: 20;
 }
+.cr-shell-aside { overflow-x: hidden; }
 .cr-shell-main { flex: 1; min-width: 0; }
 .cr-shell-mobilebar { display: none; }
 .cr-shell-scrim { display: none; }
@@ -231,8 +238,25 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .cr-shell-navitem { transition: background 0.12s, color 0.12s; }
 .cr-shell-navitem:hover { background: var(--surface-alt-2); }
 .cr-shell-navitem[data-active="true"] { background: var(--surface-alt-2); }
+.cr-collapse-chevron { transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Desktop rail (collapsed) — only ≥861px; on mobile the aside is a full drawer,
+   so the collapse never shrinks it. The transition is gated on --ready so the
+   restored choice paints instantly on load (no collapse animation on refresh). */
+@media (min-width: 861px) {
+  .cr-shell--ready .cr-shell-aside { transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+  .cr-shell--collapsed .cr-shell-aside { width: 76px; }
+  .cr-shell--collapsed .cr-brand-row { justify-content: center; }
+  .cr-shell--collapsed .cr-shell-navitem { justify-content: center; }
+  .cr-shell--collapsed .cr-collapse-chevron { transform: rotate(180deg); }
+  .cr-shell--collapsed .cr-brand-word,
+  .cr-shell--collapsed .cr-navlabel,
+  .cr-shell--collapsed .cr-member-text,
+  .cr-shell--collapsed .cr-subnav { display: none; }
+}
 
 @media (max-width: 860px) {
+  .cr-shell-collapsebtn { display: none !important; }
   .cr-shell-mobilebar {
     display: flex;
     align-items: center;

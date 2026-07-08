@@ -184,37 +184,50 @@ export default function Landing({ data }: { data: DashboardData }) {
     if (!root) return;
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const observers: IntersectionObserver[] = [];
+    let failsafe = 0;
 
-    // Reveal via Web Animations API
+    // Reveal-on-scroll. Elements ship hidden (opacity:0 via .cr-landing [data-reveal]
+    // in globals.css) so nothing blinks out on load — we add .cr-in (which flips the
+    // base back to visible) and animate the float-in via the Web Animations API.
+    // WAAPI runs on the compositor and never triggers the cards' inline .16s transform
+    // transition, so there's no settle/jump at the end. If motion is reduced or IO is
+    // unavailable, just reveal everything immediately.
     const revealEls = root.querySelectorAll<HTMLElement>('[data-reveal]');
-    if (!reduce && 'IntersectionObserver' in window && revealEls.length) {
+    if (reduce || !('IntersectionObserver' in window)) {
+      revealEls.forEach((el) => el.classList.add('cr-in'));
+    } else if (revealEls.length) {
       const io = new IntersectionObserver((entries, obs) => {
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
           const el = e.target as HTMLElement;
           const delay = parseInt(el.getAttribute('data-reveal-delay') || '0', 10);
-          // Promote to its own GPU layer for the duration of the reveal so text is
-          // rasterised once and moved as a texture — without this, animating translateY
-          // re-rasterises text every frame and it "snaps" onto the pixel grid at the end
-          // (the jump). translate3d forces the layer; will-change hints it up front and is
-          // cleared on finish so the layer is released and text renders crisp again.
+          el.classList.add('cr-in'); // keeps it visible once the animation is released
           el.style.willChange = 'transform, opacity';
           const anim = el.animate(
             [
-              { opacity: 0, transform: 'translate3d(0,26px,0)' },
+              { opacity: 0, transform: 'translate3d(0,24px,0)' },
               { opacity: 1, transform: 'translate3d(0,0,0)' },
             ],
-            { duration: 750, delay, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'both' },
+            { duration: 800, delay, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'both' },
           );
           anim.onfinish = () => {
-            el.style.willChange = 'auto';
-            anim.cancel(); // hand back to the base (visible) CSS — no snap, no leaked layer
+            anim.cancel();            // hand back to base CSS (now visible via .cr-in)
+            el.style.willChange = ''; // release the layer so text renders crisp again
           };
           obs.unobserve(el);
         });
-      }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+      }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
       revealEls.forEach((el) => io.observe(el));
       observers.push(io);
+
+      // Safety net: content ships hidden, so if the observer never fires (a broken or
+      // zero-size viewport, or IO misbehaving) the page would be left blank. If nothing
+      // has revealed shortly after load, reveal everything so content is never stranded.
+      failsafe = window.setTimeout(() => {
+        if (!root.querySelector('[data-reveal].cr-in')) {
+          revealEls.forEach((el) => el.classList.add('cr-in'));
+        }
+      }, 1500);
     }
 
     // Count-ups on the taster multipliers
@@ -277,11 +290,17 @@ export default function Landing({ data }: { data: DashboardData }) {
       }
     }
 
-    return () => observers.forEach((o) => o.disconnect());
+    return () => {
+      observers.forEach((o) => o.disconnect());
+      if (failsafe) clearTimeout(failsafe);
+    };
   }, [data.breakout_count]);
 
   return (
-    <div ref={rootRef} style={{ background: 'var(--page)', color: 'var(--ink)', overflowX: 'hidden' }}>
+    <div ref={rootRef} className="cr-landing" style={{ background: 'var(--page)', color: 'var(--ink)', overflowX: 'hidden' }}>
+      {/* No-JS failsafe: if scripts never run, reveal-on-scroll can't fire, so force
+          every hidden element visible rather than stranding the whole page blank. */}
+      <noscript><style>{`.cr-landing [data-reveal]{opacity:1!important}`}</style></noscript>
       {/* ===== NAV ===== */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(10px)', background: 'rgba(231,227,217,0.82)', borderBottom: '1px solid var(--line-rule)' }}>
         <div style={{ ...INNER, padding: '18px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
