@@ -218,78 +218,6 @@ function Hero({ data }: { data: DashboardData }) {
   );
 }
 
-// ─── Floating section nav ─────────────────────────────────────────────────────
-function FloatingNav() {
-  const links = [
-    { label: 'This week', href: '#overview' },
-    { label: 'Top posts', href: '#breakouts' },
-    { label: "What's working", href: '#working' },
-    { label: 'Leaderboard', href: '#leaderboard' },
-  ];
-  return (
-    <nav
-      aria-label="Sections"
-      style={{
-        position: 'fixed',
-        left: '50%',
-        bottom: 22,
-        transform: 'translateX(-50%)',
-        zIndex: 30,
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          background: 'var(--ink)',
-          border: '1px solid #3A352D',
-          borderRadius: 14,
-          padding: 6,
-          boxShadow: 'var(--shadow-nav)',
-        }}
-      >
-        <div className="cr-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {links.map(l => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="cr-navlink"
-              style={{
-                fontSize: 12,
-                color: '#CFC8BC',
-                textDecoration: 'none',
-                borderRadius: 9,
-                padding: '8px 13px',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {l.label}
-            </a>
-          ))}
-          <span style={{ width: 1, height: 18, background: '#3A352D', margin: '0 4px' }} />
-        </div>
-        <a
-          href="mailto:hello@highelm.studio?subject=Content%20Radar%20%E2%80%94%20feature%20request"
-          className="cr-feature-pill"
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            color: 'var(--signal-light)',
-            textDecoration: 'none',
-            border: '1px solid rgba(139,189,201,0.35)',
-            borderRadius: 9,
-            padding: '8px 13px',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Request a feature
-        </a>
-      </div>
-    </nav>
-  );
-}
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({ data, regions }: { data: DashboardData; regions: string[] }) {
   const sectionRule: React.CSSProperties = {
@@ -391,8 +319,7 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
           style={{
             ...INNER,
             paddingTop: 46,
-            // Extra bottom clearance so the fixed floating nav never covers content
-            paddingBottom: 110,
+            paddingBottom: 60,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -414,8 +341,6 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
           </span>
         </div>
       </footer>
-
-      <FloatingNav />
     </div>
   );
 }

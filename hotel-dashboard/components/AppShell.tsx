@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MarkSvg from './MarkSvg';
@@ -8,6 +8,13 @@ import MarkSvg from './MarkSvg';
 // Gated-area shell: fixed left sidebar on desktop, off-canvas drawer on mobile.
 // Wraps existing gated pages (dashboard, saved, watchlist, settings, profile)
 // without touching their internals — the page passes its content as children.
+//
+// The sidebar is the ONE nav for the gated area: primary routes, plus (on the
+// dashboard) the in-page section jump-links and the "Request a feature" action
+// that used to live in a separate floating bottom bar. On desktop it collapses
+// to an icon rail (choice persisted in localStorage); on mobile it stays a full
+// hamburger drawer — the collapse only applies ≥861px via CSS, so a rail set on
+// desktop never shrinks the mobile drawer.
 //
 // The member's name + Log out sit at the bottom. Log out POSTs to the sign-out
 // route (a GET could be triggered by link prefetch); the browser follows its
@@ -55,6 +62,14 @@ function SettingsIcon({ active }: IconProps) {
     </svg>
   );
 }
+function FeatureIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+      <path d="M5 5.5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9.5L5.5 20v-3.5H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z" stroke="var(--body-mid)" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M12 8.6v4.2M9.9 10.7h4.2" stroke="var(--body-mid)" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 const PRIMARY_NAV = [
   { href: '/dashboard', label: 'Dashboard', Icon: DashboardIcon },
@@ -62,11 +77,24 @@ const PRIMARY_NAV = [
   { href: '/watchlist', label: 'Watchlist', Icon: WatchlistIcon },
 ];
 
-function BrandMark({ size = 22 }: { size?: number }) {
+// In-page section anchors on the dashboard (folded in from the old floating nav).
+// The ids live in components/Dashboard.tsx.
+const DASHBOARD_SECTIONS = [
+  { href: '#overview', label: 'This week' },
+  { href: '#breakouts', label: 'Top posts' },
+  { href: '#working', label: "What's working" },
+  { href: '#leaderboard', label: 'Leaderboard' },
+];
+
+const FEATURE_MAILTO =
+  'mailto:hello@highelm.studio?subject=Content%20Radar%20%E2%80%94%20feature%20request';
+
+function BrandMark() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <MarkSvg size={size} color="#262420" />
+    <div className="cr-brand-row" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <MarkSvg size={22} color="#262420" />
       <span
+        className="cr-brand-word"
         style={{
           fontFamily: "var(--font-display), 'Space Grotesk', sans-serif",
           fontWeight: 700,
@@ -90,10 +118,36 @@ function initials(name: string): string {
 
 export default function AppShell({ userName, userEmail, children }: AppShellProps) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // mobile drawer
+  const [collapsed, setCollapsed] = useState(false); // desktop rail
+  const [ready, setReady] = useState(false); // gates the width transition until after first paint
   const close = () => setOpen(false);
 
+  // Restore the persisted rail choice, then enable the width transition one frame
+  // later so the restored state paints instantly (no collapse animation on load).
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' && window.localStorage.getItem('cr-shell-collapsed') === '1';
+    // Hydrate the rail choice from localStorage on mount (SSR can't read it, so
+    // the server always renders the expanded default; this reconciles on the client).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCollapsed(saved);
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const toggleCollapsed = () =>
+    setCollapsed((v) => {
+      const next = !v;
+      try {
+        window.localStorage.setItem('cr-shell-collapsed', next ? '1' : '0');
+      } catch {
+        /* ignore private-mode storage errors */
+      }
+      return next;
+    });
+
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
+  const onDashboard = isActive('/dashboard');
 
   const navItem = (href: string, label: string, Icon: (p: IconProps) => React.ReactNode) => {
     const active = isActive(href);
@@ -102,6 +156,7 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
         key={href}
         href={href}
         onClick={close}
+        title={collapsed ? label : undefined}
         className="cr-shell-navitem"
         data-active={active}
         aria-current={active ? 'page' : undefined}
@@ -118,7 +173,7 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
         }}
       >
         <Icon active={active} />
-        <span>{label}</span>
+        <span className="cr-navlabel">{label}</span>
       </Link>
     );
   };
@@ -132,18 +187,119 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
       </div>
 
       <nav style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {PRIMARY_NAV.map(({ href, label, Icon }) => navItem(href, label, Icon))}
+        {navItem('/dashboard', 'Dashboard', DashboardIcon)}
+
+        {/* In-page section links — only on the dashboard, only in the full state */}
+        {onDashboard && (
+          <div
+            className="cr-subnav"
+            style={{
+              margin: '1px 0 3px 23px',
+              paddingLeft: 8,
+              borderLeft: '1px solid var(--line-soft)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+            }}
+          >
+            {DASHBOARD_SECTIONS.map((s) => (
+              <a
+                key={s.href}
+                href={s.href}
+                onClick={close}
+                className="cr-shell-navitem"
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  color: 'var(--body-soft)',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {s.label}
+              </a>
+            ))}
+          </div>
+        )}
+
+        {navItem('/saved', 'Saved', SavedIcon)}
+        {navItem('/watchlist', 'Watchlist', WatchlistIcon)}
         <div style={{ height: 1, background: 'var(--line-soft)', margin: '10px 6px' }} />
         {navItem('/settings', 'Settings', SettingsIcon)}
       </nav>
 
       <div style={{ flex: 1 }} />
 
+      {/* Request a feature — folded in from the old floating nav */}
+      <div style={{ padding: '0 12px' }}>
+        <a
+          href={FEATURE_MAILTO}
+          title={collapsed ? 'Request a feature' : undefined}
+          className="cr-shell-navitem"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 11,
+            padding: '10px 12px',
+            borderRadius: 10,
+            textDecoration: 'none',
+            fontSize: 14,
+            fontWeight: 500,
+            color: 'var(--body-soft)',
+          }}
+        >
+          <FeatureIcon />
+          <span className="cr-navlabel">Request a feature</span>
+        </a>
+      </div>
+
+      {/* Collapse toggle (desktop only; hidden on mobile via CSS) */}
+      <div style={{ padding: '4px 12px 8px' }}>
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="cr-shell-navitem cr-shell-collapsebtn"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 11,
+            padding: '9px 12px',
+            borderRadius: 10,
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-body), sans-serif',
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'var(--body-mid)',
+            textAlign: 'left',
+          }}
+        >
+          <svg
+            className="cr-collapse-chevron"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            style={{ flex: 'none' }}
+          >
+            <path d="M14.5 7 9.5 12l5 5" stroke="var(--body-mid)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="cr-navlabel">Collapse</span>
+        </button>
+      </div>
+
       {/* Member card — name links to profile; Log out posts to the sign-out route */}
       <div style={{ borderTop: '1px solid var(--line-soft)', padding: '14px 14px 18px' }}>
         <Link
           href="/profile"
           onClick={close}
+          title={collapsed ? userName : undefined}
           className="cr-shell-navitem"
           data-active={isActive('/profile')}
           style={{
@@ -174,7 +330,7 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
           >
             {initials(userName)}
           </span>
-          <span style={{ minWidth: 0 }}>
+          <span className="cr-member-text" style={{ minWidth: 0 }}>
             <span
               style={{
                 display: 'block',
@@ -206,6 +362,7 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
         <form action="/api/auth/logout" method="post" style={{ marginTop: 4 }}>
           <button
             type="submit"
+            title={collapsed ? 'Log out' : undefined}
             className="cr-shell-navitem"
             style={{
               width: '100%',
@@ -228,7 +385,7 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
               <path d="M15 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H15" stroke="var(--body-mid)" strokeWidth="1.7" strokeLinecap="round" />
               <path d="M11 12h9m0 0-3.2-3.2M20 12l-3.2 3.2" stroke="var(--body-mid)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span>Log out</span>
+            <span className="cr-navlabel">Log out</span>
           </button>
         </form>
       </div>
@@ -236,7 +393,9 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
   );
 
   return (
-    <div className={`cr-shell cr-board${open ? ' cr-shell--open' : ''}`}>
+    <div
+      className={`cr-shell cr-board${open ? ' cr-shell--open' : ''}${collapsed ? ' cr-shell--collapsed' : ''}${ready ? ' cr-shell--ready' : ''}`}
+    >
       <div className="cr-shell-scrim" onClick={close} aria-hidden="true" />
       {sidebar}
 
