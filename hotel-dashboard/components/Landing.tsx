@@ -299,7 +299,7 @@ export default function Landing({ data }: { data: DashboardData }) {
           </h1>
           <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(20px,3vw,30px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 26 }}>No more guessing. Ever.</div>
           <p data-reveal data-reveal-delay={120} style={{ fontSize: 'clamp(17px,2.1vw,21px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 620, margin: '0 0 18px', textWrap: 'pretty' }}>
-            Whatever stage you&rsquo;re at with Instagram, it can feel impossible to keep up with what&rsquo;s trending and working across the industry. Content Radar ends that — a weekly snapshot of the best-performing content from the world&rsquo;s best luxury hotels. Every single week.
+            400+ of the world&rsquo;s best luxury hotels every week. Not theory. Not guesswork. Not strategy. Just the best content.
           </p>
 
           <div data-reveal data-reveal-delay={150} style={{ display: 'flex', alignItems: 'center', gap: 15, margin: '0 0 30px', flexWrap: 'wrap' }}>
@@ -339,36 +339,52 @@ export default function Landing({ data }: { data: DashboardData }) {
       <section style={{ ...INNER, padding: '20px 40px 84px' }}>
         <div data-reveal style={{ maxWidth: 780, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ ...eyebrow(), marginBottom: 22 }}>Who it&rsquo;s for</div>
-          <h2 style={{ ...sectionTitle, lineHeight: 1.12, marginBottom: 18 }}>Built for the person running a luxury hotel&rsquo;s social media.</h2>
-          <p style={{ fontSize: 'clamp(16px,2vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 620, margin: '0 auto', textWrap: 'pretty' }}>
-            Social managers, marketing leads and GMs who know Instagram matters to the brand — but are stretched thin, short on time, and tired of guessing what to post. If growth and engagement have plateaued, Content Radar hands you what&rsquo;s already working, every week.
-          </p>
+          <h2 style={{ ...sectionTitle, lineHeight: 1.12, marginBottom: 44 }}>Built for the person running a luxury hotel&rsquo;s social media.</h2>
         </div>
-      </section>
 
-      {/* ===== CREDIBILITY ===== */}
-      <section style={{ borderTop: '1px solid var(--line-rule)', borderBottom: '1px solid var(--line-rule)', background: 'rgba(247,246,242,0.5)' }}>
-        <div data-reveal style={{ maxWidth: 1040, margin: '0 auto', padding: '34px 40px', textAlign: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)' }}>We only track hotels certified by the world&rsquo;s most trusted lists</span>
-          <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', gap: 14, flexWrap: 'wrap', marginTop: 20 }}>
-            {CERTS.map((c) => (
-              <div key={c.name} style={{ textAlign: 'left', border: '1px solid var(--line)', borderRadius: 10, padding: '14px 18px', maxWidth: 280 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 15, color: 'var(--ink)', marginBottom: 4 }}>{c.name} <span style={{ color: 'var(--body-mid)', fontWeight: 500 }}>{c.tag}</span></div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 13, lineHeight: 1.45, color: 'var(--body-mid)' }}>{c.blurb}</div>
-                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--body-soft)', marginTop: 10, paddingTop: 9, borderTop: '1px solid var(--line)' }}>
-                  Last scan · <span style={{ color: 'var(--signal-deep)' }}>{c.hotels}</span> hotels · <span style={{ color: 'var(--signal-deep)' }}>{c.posts}</span> posts
-                </div>
+        {/* ===== LIVE TASTER (moved here) ===== */}
+        {open.length > 0 && (
+          <div>
+            <div data-reveal style={{ textAlign: 'center', marginBottom: 44 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, ...eyebrow() }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--signal)', animation: 'cr-ping 2.4s ease-out infinite' }} />
+                This week&rsquo;s breakouts — real posts, live right now
               </div>
-            ))}
-            <div style={{ display: 'flex', alignItems: 'center', textAlign: 'left', border: '1px dashed rgba(46,115,87,0.4)', borderRadius: 10, padding: '14px 18px', maxWidth: 200 }}>
-              <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', lineHeight: 1.6, textTransform: 'uppercase', color: 'var(--signal-deep)' }}>+ more respected lists added every week</div>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
+                {open.map((p, i) => <OpenCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
+              </div>
+
+              {locked.length > 0 && (
+                <div style={{ position: 'relative', marginTop: 16 }}>
+                  <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, filter: 'blur(9px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.85 }}>
+                    {locked.map((p, i) => <LockedCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
+                  </div>
+
+                  {/* Single lock overlay — the conversion gate */}
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: 'linear-gradient(to bottom, rgba(231,227,217,0.15), rgba(231,227,217,0.55))', padding: 24 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--ink-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 10V8a6 6 0 0 1 12 0v2" stroke="#E7E3D9" strokeWidth="2" strokeLinecap="round" />
+                        <rect x="4.5" y="10" width="15" height="11" rx="2.5" fill="#2E7357" />
+                        <circle cx="12" cy="15" r="1.6" fill="#1D1B17" />
+                        <path d="M12 16.4v2.2" stroke="#1D1B17" strokeWidth="1.6" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'clamp(16px,2vw,19px)', color: 'var(--ink)', maxWidth: 440, lineHeight: 1.45, marginBottom: 22, textWrap: 'balance' }}>
+                      See every breakout this week — plus the last 30 days and the all-time Hall of Fame.
+                    </p>
+                    <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '15px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <div data-reveal style={{ fontFamily: 'var(--font-body)', fontSize: 12, lineHeight: 1.5, color: 'var(--body-mid)', maxWidth: 620, margin: '18px auto 0' }}>
-            Content Radar is independent and is not affiliated with, endorsed by, or sponsored by these publications. All figures are drawn from public Instagram data.
-          </div>
-        </div>
+        )}
       </section>
+
 
       {/* ===== HOW IT WORKS ===== */}
       <section id="how-it-works" style={{ ...INNER, padding: '100px 40px 68px' }}>
@@ -407,47 +423,6 @@ export default function Landing({ data }: { data: DashboardData }) {
         </div>
       </section>
 
-      {/* ===== LIVE TASTER ===== */}
-      {open.length > 0 && (
-        <section style={{ ...INNER, padding: '60px 40px 100px' }}>
-          <div data-reveal style={{ textAlign: 'center', marginBottom: 44 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, ...eyebrow() }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--signal)', animation: 'cr-ping 2.4s ease-out infinite' }} />
-              This week&rsquo;s breakouts — real posts, live right now
-            </div>
-          </div>
-
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
-              {open.map((p, i) => <OpenCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
-            </div>
-
-            {locked.length > 0 && (
-              <div style={{ position: 'relative', marginTop: 16 }}>
-                <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, filter: 'blur(9px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.85 }}>
-                  {locked.map((p, i) => <LockedCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
-                </div>
-
-                {/* Single lock overlay — the conversion gate */}
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: 'linear-gradient(to bottom, rgba(231,227,217,0.15), rgba(231,227,217,0.55))', padding: 24 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--ink-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M6 10V8a6 6 0 0 1 12 0v2" stroke="#E7E3D9" strokeWidth="2" strokeLinecap="round" />
-                      <rect x="4.5" y="10" width="15" height="11" rx="2.5" fill="#2E7357" />
-                      <circle cx="12" cy="15" r="1.6" fill="#1D1B17" />
-                      <path d="M12 16.4v2.2" stroke="#1D1B17" strokeWidth="1.6" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'clamp(16px,2vw,19px)', color: 'var(--ink)', maxWidth: 440, lineHeight: 1.45, marginBottom: 22, textWrap: 'balance' }}>
-                    See every breakout this week — plus the last 30 days and the all-time Hall of Fame.
-                  </p>
-                  <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '15px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
 
       {/* ===== WHY BELIEVE IT (dark band) ===== */}
       <section style={{ background: 'var(--ink-deep)' }}>
@@ -456,15 +431,18 @@ export default function Landing({ data }: { data: DashboardData }) {
             <div>
               <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 26 }}>Why believe it</div>
               <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(28px,4vw,44px)', lineHeight: 1.15, letterSpacing: '-0.02em', color: 'var(--surface)', textWrap: 'balance' }}>
-                We track only the hotels already crowned by the industry&rsquo;s most prestigious ranking lists.
+                Certified among the best, compared against their own baseline.
               </h2>
             </div>
             <div style={{ maxWidth: 520 }}>
               <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', marginBottom: 22 }}>
                 This isn&rsquo;t a random Instagram scrape. Content Radar only tracks hotels already certified as the best in the world — the <b style={{ color: 'var(--page)', fontWeight: 600 }}>Condé Nast Gold List</b> and <b style={{ color: 'var(--page)', fontWeight: 600 }}>Forbes Five-Star</b>, with more of the industry&rsquo;s most respected lists added every week.
               </p>
-              <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)' }}>
-                And every breakout is measured against <em style={{ fontStyle: 'normal', color: 'var(--signal-light)', fontWeight: 600 }}>that hotel&rsquo;s own</em> engagement baseline — so a boutique property&rsquo;s win surfaces next to a global flagship&rsquo;s. It&rsquo;s not about who&rsquo;s biggest. It&rsquo;s about the best ideas. It&rsquo;s about what&rsquo;s working.
+              <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', marginBottom: 18 }}>
+                And every breakout is measured against <em style={{ fontStyle: 'normal', color: 'var(--signal-light)', fontWeight: 600 }}>that hotel&rsquo;s own</em> engagement baseline — so a boutique property&rsquo;s win surfaces right next to a global flagship&rsquo;s. It&rsquo;s not about who&rsquo;s biggest. It&rsquo;s about the best ideas. It&rsquo;s about what&rsquo;s working.
+              </p>
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--on-dark-soft)', fontStyle: 'italic' }}>
+                Content Radar is independent and is not affiliated with, endorsed by, or sponsored by these publications. All figures are drawn from public Instagram data.
               </p>
             </div>
           </div>
