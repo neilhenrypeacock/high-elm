@@ -193,10 +193,23 @@ export default function Landing({ data }: { data: DashboardData }) {
           if (!e.isIntersecting) return;
           const el = e.target as HTMLElement;
           const delay = parseInt(el.getAttribute('data-reveal-delay') || '0', 10);
-          el.animate(
-            [{ opacity: 0, transform: 'translateY(26px)' }, { opacity: 1, transform: 'translateY(0)' }],
-            { duration: 750, delay, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' },
+          // Promote to its own GPU layer for the duration of the reveal so text is
+          // rasterised once and moved as a texture — without this, animating translateY
+          // re-rasterises text every frame and it "snaps" onto the pixel grid at the end
+          // (the jump). translate3d forces the layer; will-change hints it up front and is
+          // cleared on finish so the layer is released and text renders crisp again.
+          el.style.willChange = 'transform, opacity';
+          const anim = el.animate(
+            [
+              { opacity: 0, transform: 'translate3d(0,26px,0)' },
+              { opacity: 1, transform: 'translate3d(0,0,0)' },
+            ],
+            { duration: 750, delay, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'both' },
           );
+          anim.onfinish = () => {
+            el.style.willChange = 'auto';
+            anim.cancel(); // hand back to the base (visible) CSS — no snap, no leaked layer
+          };
           obs.unobserve(el);
         });
       }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
