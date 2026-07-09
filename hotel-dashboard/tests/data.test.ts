@@ -57,6 +57,7 @@ function hotelRow(overrides: Partial<HotelRow> = {}): HotelRow {
     posts_per_week: 2,
     last_posted: '2026-06-30T14:00:00Z',
     er_flag_reason: null,
+    accreditations: [],
     ...overrides,
   };
 }

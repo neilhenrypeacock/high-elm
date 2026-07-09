@@ -17,6 +17,39 @@ const GRID: React.CSSProperties = {
 };
 const DEFAULT_VISIBLE = 10;
 
+// Discreet text pins for a hotel's accolades (Forbes / Gold List / Michelin Keys).
+// Text only — no official logos (trademark/endorsement risk). A hotel may carry more
+// than one; empty for hotels not on any source list.
+function AccreditationPins({ labels }: { labels: string[] }) {
+  if (labels.length === 0) return null;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+      {labels.map(label => (
+        <span
+          key={label}
+          title={`Listed: ${label}`}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontSize: 9.5,
+            fontWeight: 500,
+            letterSpacing: '0.01em',
+            color: 'var(--body-soft)',
+            background: 'var(--surface-alt-2)',
+            border: '1px solid var(--line)',
+            borderRadius: 5,
+            padding: '2px 7px',
+            lineHeight: 1.4,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const COLUMNS: { key: SortKey | null; label: string; align?: 'right'; className?: string }[] = [
   { key: null, label: '#' },
   { key: 'name', label: 'Hotel' },
@@ -216,6 +249,7 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
                   {h.name}
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 2 }}>@{h.instagram_handle}</div>
+                <AccreditationPins labels={h.accreditations} />
               </div>
 
               <div role="cell" className="cr-lb-region" style={{ fontSize: 12, color: 'var(--muted)' }}>
@@ -335,6 +369,8 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
         <span style={{ color: 'var(--signal-deep)' }}>⚠</span> and excluded from category medians;
         a <span style={{ color: 'var(--signal-deep)' }}>⚠</span> beside a value only marks a
         low-confidence breakout baseline. Public Instagram data only — no reach or impressions.
+        Pins mark hotels named on the Forbes Travel Guide five-star list, the Condé Nast Traveller
+        Gold List, or Michelin Keys (UK &amp; Ireland) — coverage of those lists is partial.
       </p>
     </div>
   );

@@ -1,4 +1,5 @@
 import { getSupabase } from './supabase';
+import { accreditationsFor } from './accreditations';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Shared "recent window" — the leaderboard ER and the breakout baseline both use
@@ -69,6 +70,9 @@ export type HotelRow = {
   last_posted: string | null;
   /** Non-null when ER is unreliable; shown as ⚠ in leaderboard */
   er_flag_reason: string | null;
+  /** Static accreditation labels (Forbes / Gold List / Michelin Keys) matched by
+   *  handle from hotel-lists/*.csv. Display-only; empty when the hotel isn't listed. */
+  accreditations: string[];
 };
 
 export type OutlierPost = {
@@ -529,6 +533,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       posts_per_week:   m?.ppw ?? null,
       last_posted:      m?.lastPosted ?? null,
       er_flag_reason:   hard ?? soft,
+      accreditations:   accreditationsFor(h.instagram_handle),
     });
   }
 
