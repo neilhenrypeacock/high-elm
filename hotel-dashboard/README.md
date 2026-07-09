@@ -28,12 +28,13 @@ npm test           # vitest — tests/data.test.ts covers the breakout maths
 | `SUPABASE_SERVICE_ROLE_KEY` | `subscriptions` table only (server-side; also the fallback if the anon key is missing) |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRICE_ID` | Checkout, webhook, trial price |
 | `DISABLE_DASHBOARD_AUTH` | Local-dev auth bypass (inert in production) |
+| `SENTRY_DSN` | Server-side error monitoring (`instrumentation.ts`); Sentry is fully inert when unset |
 
 No key ever reaches the browser — all Supabase/Stripe calls run server-side. Values live in `../keys/` (gitignored) and in Vercel project env.
 
 ## How the data flows
 
-`../instagram-pipeline/` (run manually) scrapes Instagram via Apify into Supabase. `lib/data.ts` reads it and computes every metric at request time — breakout baseline (median of each hotel's last 30 valid posts), 2× breakout threshold, leaderboard ER, What's Working. **The baseline and threshold are tuned together — do not change one without the other.** See `CLAUDE.md` for the full constant table and design system.
+`../instagram-pipeline/` (weekly GitHub Actions cron + manual runs) scrapes Instagram via Apify into Supabase. `lib/data.ts` reads it and computes every metric at request time — breakout baseline (median of each hotel's last 30 valid posts), 2× breakout threshold, leaderboard ER, What's Working. **The baseline and threshold are tuned together — do not change one without the other.** See `CLAUDE.md` for the full constant table and design system.
 
 ## Deploying
 

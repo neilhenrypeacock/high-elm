@@ -1,6 +1,6 @@
 # High Elm — Instagram Pipeline
 
-Collects public Instagram data for the luxury hotels tracked by Hotel Content Radar and stores it in Supabase. Run **manually** — there is no scheduler (yet).
+Collects public Instagram data for the luxury hotels tracked by Hotel Content Radar and stores it in Supabase. Runs **weekly via GitHub Actions** (`.github/workflows/weekly-scrape.yml`, Mondays 05:00 UTC; manual trigger in the Actions tab) — each run costs real Apify money. A daily `freshness-check` workflow alarms when data goes stale (>8 days). Manual runs still work exactly as below.
 
 ## What it does
 
@@ -43,6 +43,7 @@ The database holds 465 hotels; only those with `tracked = true` are scraped and 
 | `full-run.js` | All tracked hotels in batches of 50 (`npm run full`) |
 | `test-run.js` | 5-hotel smoke test (`npm run test5`) |
 | `generate-insight.js` | Per-post AI insights + driver/theme tags → `standout_posts` (run manually; not part of the scrape run) |
+| `check-freshness.js` | Read-only staleness alarm used by both workflows (`FRESHNESS_MAX_DAYS`, default 8) |
 | `check-images.js` | Read-only diagnostic — image URL coverage |
 | `audit-post-counts.js` | Read-only diagnostic — valid posts per hotel |
 | `backfill-themes.js` | Ad-hoc AI theme-tag backfill for `standout_posts` |

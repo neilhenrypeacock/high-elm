@@ -188,4 +188,6 @@ npm run dev     # local dev server (preview name: hotel-dashboard, port 3000)
 - ⚠ When creating any NEW Supabase table, enable RLS on it immediately — the anon key can read/write any public table that lacks RLS.
 - ESLint (`npm run lint`, flat config) and vitest (`npm test`, tests/data.test.ts) are set up — both must pass before shipping, alongside `npm run build`.
 - ER flags are two-tier: hard flags (too few posts / implausible ER) null the ER out of all stats; soft flags (thin breakout baseline) only show a ⚠ next to a still-counted ER.
+- **Error monitoring (added 2026-07-09):** server-side Sentry via `instrumentation.ts` (`onRequestError` catches unhandled route/page/webhook errors). Errors-only, no tracing, no client bundle changes, no next.config wrapper — fully inert until `SENTRY_DSN` is set in env.
+- **Rate limiting (added 2026-07-09):** the two public POST endpoints (`/api/checkout`, `/api/auth/magic-link`) use the in-memory limiter in `lib/rate-limit.ts` (per-IP, plus per-target-email on magic links). Known serverless caveat is documented in that file; upgrade path is Vercel WAF rules or Upstash if real abuse appears.
 - Dashboard is data-starved until the next Apify top-up run provides more post history (some hotels have tiny engagement medians, which inflates multipliers).
