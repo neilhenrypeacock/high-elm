@@ -62,6 +62,26 @@ async function saveProfile(profile) {
   if (error) throw new Error(`profile_snapshots insert failed: ${error.message}`);
 }
 
+// profile_snapshots is INSERT-only (a growing history), so a re-run — e.g.
+// retrying a failed batch the same day — would otherwise add a duplicate row
+// per hotel. posts/image upserts are naturally idempotent; this check makes
+// snapshots match: any handle already snapshotted since UTC midnight is
+// skipped. Fails open (empty set) so a check error never blocks a scrape.
+async function snapshotsCapturedToday(handles) {
+  const midnight = new Date();
+  midnight.setUTCHours(0, 0, 0, 0);
+  const { data, error } = await supabase
+    .from('profile_snapshots')
+    .select('instagram_handle')
+    .in('instagram_handle', handles)
+    .gte('captured_at', midnight.toISOString());
+  if (error) {
+    console.warn(`  snapshot dedupe check failed (${error.message}) — proceeding without`);
+    return new Set();
+  }
+  return new Set((data ?? []).map(r => r.instagram_handle));
+}
+
 async function savePosts(posts) {
   if (!posts.length) return;
   const { error } = await supabase.from('posts').upsert(posts, {
@@ -138,9 +158,10 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
 
   await ensureBucket();
 
-  const [profileMap, postsByHandle] = await Promise.all([
+  const [profileMap, postsByHandle, alreadySnapped] = await Promise.all([
     scrapeProfiles(handles),
     scrapePosts(handles, resultsLimit, postsNewerThan),
+    snapshotsCapturedToday(handles.map(h => h.toLowerCase())),
   ]);
 
   const summary = {
@@ -198,7 +219,11 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
     ).then(rows => rows.filter(Boolean));
 
     try {
-      if (profile) await saveProfile(profile);
+      if (profile && alreadySnapped.has(h)) {
+        console.log(`  ↺  @${h}: snapshot already captured today — not duplicating`);
+      } else if (profile) {
+        await saveProfile(profile);
+      }
       await savePosts(posts);
 
       summary.profilesLoaded++;

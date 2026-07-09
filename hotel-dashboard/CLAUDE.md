@@ -1,10 +1,12 @@
 # Content Radar Dashboard — Session Context
 
 ## What this repo is
-A Next.js 16 app (App Router, Turbopack) that renders the High Elm Studio "Content Radar" — a weekly Instagram performance dashboard tracking ~465 luxury hotels. Implements the **Content Radar identity system** (design handoff bundle: identity README + DASHBOARD.md spec). The page uses ISR (`revalidate = 3600`), NOT force-dynamic — data updates weekly via the pipeline.
+A Next.js 16 app (App Router, Turbopack) that renders the High Elm Studio "Content Radar" — a weekly Instagram performance dashboard tracking ~205 tracked luxury hotels (465 in the DB). Implements the **Content Radar identity system** (design handoff bundle: identity README + DASHBOARD.md spec). The public landing page uses ISR (`revalidate = 3600`); the gated pages read auth cookies so they render dynamically per request.
 
-## Companion repo
-The data pipeline is a **separate manual repo** at `../instagram-pipeline/`. It is NOT part of this Next.js project. You run it locally to scrape and upload data; the dashboard only reads from Supabase.
+**AUTH IS LIVE** (since 4 Jul 2026): `/dashboard`, `/profile`, `/settings`, `/saved`, `/watchlist` all require a Supabase magic-link session + an active Stripe trial/subscription, enforced identically via `lib/require-access.ts` (`requireActiveUser` for pages, `checkApiAccess` for API routes). The ONLY auth bypass is `DISABLE_DASHBOARD_AUTH=true`, hard-guarded to non-production. (The old `UNGATED_DEV_MODE` production flag was removed 2026-07-09 after an audit found it leaving production ungated — never reintroduce it.)
+
+## Companion folder
+The data pipeline lives at `../instagram-pipeline/` in the SAME monorepo (one git repo at `high-elm/`). It is not part of this Next.js project's build. You run it manually to scrape and upload data; the dashboard only reads from Supabase.
 
 ## Design system (do not deviate)
 > Rebranded 2026-07-04 from teal/Baloo-2 to **Aston-green / Space Grotesk**, matching the
@@ -19,11 +21,20 @@ The data pipeline is a **separate manual repo** at `../instagram-pipeline/`. It 
 app/
   page.tsx              — PUBLIC LANDING PAGE (server, revalidate=3600); renders
                           components/Landing.tsx with the same getPortfolioData()
-  dashboard/page.tsx    — the full dashboard (server, revalidate=3600); renders
-                          Dashboard.tsx. PUBLIC — no auth/gate yet (Neil's decision
-                          2026-07-03; the landing blur is persuasion, not protection)
-  start-trial/page.tsx  — placeholder for every "Start your free trial" CTA; swap for
-                          Stripe Checkout later (or repoint TRIAL_HREF in Landing.tsx)
+  dashboard/page.tsx    — the full dashboard (server, dynamic — reads auth cookies);
+                          GATED via requireActiveUser(); wraps Dashboard.tsx in the
+                          AppShell sidebar + WelcomeOverlay
+  how-it-works/ about/  — public marketing pages (PublicChrome nav/footer)
+  login/ subscribe/     — magic-link request page; shown-to-lapsed-members page
+  auth/callback/        — magic-link landing (token-hash verifyOtp, PKCE fallback)
+  profile/ settings/    — gated account pages (user_metadata profile; plan + Stripe portal)
+  saved/ watchlist/     — gated, REAL per-user features (saved_posts / watchlist_hotels)
+  start-trial/page.tsx  — live email-capture step → creates the Stripe Checkout session
+  api/                  — checkout, auth/magic-link, auth/logout, profile, saves,
+                          watchlist, billing-portal, webhooks/stripe (signature-verified).
+                          Write APIs require an ACTIVE subscription via checkApiAccess()
+                          (billing-portal deliberately session-only so lapsed members can
+                          fix their card)
   layout.tsx            — fonts (Space Grotesk / Hanken Grotesk), brand favicon
   error.tsx / loading.tsx — branded error + loading states
   globals.css           — all design tokens, hover/focus utilities, responsive breakpoints
@@ -82,7 +93,15 @@ components/
   TrendPanel.tsx        — UNUSED stub for future trend charts (do not delete)
 lib/
   data.ts               — ALL data fetching and computation (single function: getPortfolioData)
-  supabase.ts           — Supabase client (service role, persistSession:false)
+  supabase.ts           — data-read client: SUPABASE_ANON_KEY first (read-only via RLS,
+                          supabase/rls.sql), service-role fallback; persistSession:false
+  supabase-server.ts    — cookie-backed auth client (@supabase/ssr) for session reads
+  require-access.ts     — THE gate: requireActiveUser (pages) + checkApiAccess (API
+                          routes). Local-only DISABLE_DASHBOARD_AUTH bypass, nothing else
+  subscriptions.ts      — subscriptions table access (service-role only; RLS: no policies)
+  stripe.ts / magic-link.ts — lazy Stripe client; Supabase OTP sender
+  saves.ts / post-key.ts — per-user Save/Watchlist reads; composite post key helper
+  accreditations.ts / accreditations.generated.ts — static Forbes/Gold List/Michelin map
   format.ts             — shared fmtFollowers/fmtPostedAt/fmtDate/fmtNumber
 ```
 Removed in the redesign: `FilteredDashboard.tsx`, `TopHotels.tsx`, the top50/30/10 filter sets, the `insights` table query, `eligible_this_week`.
@@ -137,26 +156,32 @@ hotel whose grid it's on. Dashboard de-dupes and keys React lists on
 ## Supabase tables
 - `hotels` — hotel list with handles, names, regions, countries
 - `profile_snapshots` — follower counts over time (one row per scrape)
-- `posts` — all scraped posts (upserted on post_id)
-- `standout_posts` — per-post stored image URLs, insights, driver/theme tags
-- `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01)
+- `posts` — all scraped posts (upserted on the composite `(post_id, instagram_handle)` — see the co-posts section above)
+- `standout_posts` — per-post AI insights + driver/theme tags (written by generate-insight.js, only ~16 rows as of Jul 2026)
+- `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01; drop candidate)
+- `subscriptions` — Stripe trial/payment state, email-keyed; RLS on with NO policies = service-role only
+- `saved_posts` / `watchlist_hotels` — per-user Save/Watchlist; RLS keyed to auth.uid() (added 9 Jul 2026)
 
 ## Image storage
-Post images are saved to the **`standout-images`** Supabase Storage bucket by the pipeline. The dashboard reads `stored_image_url` from `standout_posts` and falls back to the live Instagram CDN URL (signed, expires — fallback gradient shows for older posts).
+Post images are saved to the **`standout-images`** Supabase Storage bucket by the pipeline at scrape time; the permanent URL is written straight into `posts.image_url` (~95% of rows). `standout_posts.stored_image_url` takes priority when present. Remaining rows fall back to the live Instagram CDN URL (signed, expires — the branded fallback gradient shows when those die).
+
+## Hidden like counts
+Instagram hides likes on some posts/accounts — stored as `likes_count = null` (the bulk, heavily carousels) or `-1` (a few older rows). `hasVisibleLikes` in lib/data.ts excludes BOTH from every engagement calculation (ER, baseline, breakouts, What's Working). Consequence: a hotel that hides all its likes gets no ER/baseline and is invisible to breakouts.
 
 ## Build
 ```bash
 npm run build   # type-check + production build (must pass before shipping)
-npm run dev     # local dev server (preview name: hotel-dashboard, port 3200)
+npm run dev     # local dev server (preview name: hotel-dashboard, port 3000)
 ```
 
 ## Current state / known gaps
 - Public landing page live at `/` (2026-07-03): full marketing page with live-taster
   (top-3 real breakout cards, next 2 blurred behind one lock overlay). Copy is
   reality-adjusted (200+ hotels, no Hall of Fame/Weekly Read claims — those are listed
-  as "coming"). Dashboard moved to `/dashboard`, still public — no auth yet, so the
-  blur is a persuasion device until a gate exists. Trial CTAs → `/start-trial`
-  placeholder (swap for Stripe: repoint `TRIAL_HREF` in `components/Landing.tsx`).
+  as "coming"). Dashboard lives at `/dashboard` and is GATED (magic-link session +
+  active subscription — see "What this repo is" above). Trial CTAs → `/start-trial`,
+  which is the live email-capture step that creates a real Stripe Checkout session
+  (test mode until launch).
 - TikTok/YouTube channels are still disabled "soon" pills. The time-window toggle is now LIVE on the **Top posts** list (7d/30d/all, default 7d) — it replaced the old disabled placeholder. All-time is capped at the top 100.
 - Floating nav has no scroll-spy (plain hash anchors, per prototype).
 - Anon key + RLS are LIVE (applied 2026-07-01): `supabase/rls.sql` has been run against the project, `SUPABASE_ANON_KEY` is in `.env.local`, `keys/.env.supabase`, and Vercel production env. Verified: anon reads succeed, writes refused (42501). Vercel *preview* env doesn't have the key (CLI branch-prompt issue) — preview deploys fall back to the service-role key. Production URL: https://dashboard-one-xi-75.vercel.app (the dashboard-wisprteam alias sits behind Vercel team SSO).
