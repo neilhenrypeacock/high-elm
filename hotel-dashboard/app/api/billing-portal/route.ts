@@ -11,6 +11,10 @@ import { getSubscriptionByEmail } from '@/lib/subscriptions';
 // ⚠️ The Customer Portal must be ENABLED in the Stripe Dashboard (test mode:
 // Settings → Billing → Customer portal) or sessions.create throws. We surface a
 // clear message in that case rather than a raw 500.
+//
+// DELIBERATE: this route requires only a session, NOT an active subscription
+// (unlike /api/saves etc.) — a canceled or past_due member must still be able
+// to reach the portal to fix their card or resubscribe.
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const {

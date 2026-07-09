@@ -57,10 +57,16 @@ export async function updateSubscriptionByStripeId(
   stripeSubscriptionId: string,
   fields: Partial<Omit<Subscription, 'email'>>
 ) {
-  const { error } = await getServiceClient()
+  const { data, error } = await getServiceClient()
     .from('subscriptions')
     .update({ updated_at: new Date().toISOString(), ...fields })
-    .eq('stripe_subscription_id', stripeSubscriptionId);
+    .eq('stripe_subscription_id', stripeSubscriptionId)
+    .select('email');
 
   if (error) throw error;
+  // A webhook event for a subscription we have no row for would otherwise
+  // vanish silently — log it so a missed checkout/webhook gap is visible.
+  if (!data?.length) {
+    console.error(`subscriptions: no row matched stripe_subscription_id ${stripeSubscriptionId} — update dropped`);
+  }
 }

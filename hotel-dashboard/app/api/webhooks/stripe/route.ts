@@ -2,7 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
 import { sendMagicLink } from '@/lib/magic-link';
-import { updateSubscriptionByStripeId, upsertSubscriptionByEmail } from '@/lib/subscriptions';
+import {
+  updateSubscriptionByStripeId,
+  upsertSubscriptionByEmail,
+  type SubscriptionStatus,
+} from '@/lib/subscriptions';
+
+// Statuses the app understands. Stripe can also send e.g. 'incomplete',
+// 'unpaid' or 'paused' — those are stored as-is (the status column is plain
+// text) and the access gate treats anything outside trialing/active as
+// inactive, but we log them so an unexpected lifecycle state is visible.
+const KNOWN_STATUSES: string[] = ['trialing', 'active', 'past_due', 'canceled'];
+
+function toStatus(raw: string, context: string): SubscriptionStatus {
+  if (!KNOWN_STATUSES.includes(raw)) {
+    console.error(`stripe webhook: unexpected subscription status "${raw}" (${context}) — stored raw; gate treats it as inactive`);
+  }
+  return raw as SubscriptionStatus;
+}
 
 // Stripe requires the exact raw request body for signature verification —
 // route handlers don't auto-parse JSON, so request.text() already gives us
@@ -34,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
 
       await upsertSubscriptionByEmail(email, {
-        status: subscription.status as 'trialing' | 'active',
+        status: toStatus(subscription.status, `checkout.session.completed ${subscription.id}`),
         trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
         stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null,
         stripe_subscription_id: subscription.id,
@@ -49,7 +66,7 @@ export async function POST(request: NextRequest) {
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription;
       await updateSubscriptionByStripeId(subscription.id, {
-        status: subscription.status as 'trialing' | 'active' | 'past_due' | 'canceled',
+        status: toStatus(subscription.status, `customer.subscription.updated ${subscription.id}`),
         trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
       });
       break;

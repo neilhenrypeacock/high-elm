@@ -9,23 +9,13 @@ import { getSubscriptionByEmail, hasActiveAccess, type Subscription } from './su
 //   session, no active sub → /subscribe
 // Returns the authenticated user + their subscription row for the page to render.
 //
-// Development bypass: disable gating entirely for testing. Two modes:
-//
-// 1. Local dev: DISABLE_DASHBOARD_AUTH=true (NODE_ENV !== 'production' only)
-//    — safe, can never open the live gate
-//
-// 2. Temporary production dev-mode: UNGATED_DEV_MODE=true
-//    — intentionally allows ungated access even on production during development
-//    — set via Vercel env var when you want to test the gated pages without login
-//    — no session, so pages show their display-only states
-//    — REMOVE THIS FLAG before going to real users
-const localBypass =
+// Development bypass: DISABLE_DASHBOARD_AUTH=true disables gating for local
+// testing. Guarded on NODE_ENV so it can never open the live gate — this is
+// the ONLY bypass; no env var can disable auth in production. (The old
+// UNGATED_DEV_MODE production flag was removed 2026-07-09 after the audit
+// found it serving the full dashboard publicly.)
+const authDisabled =
   process.env.NODE_ENV !== 'production' && process.env.DISABLE_DASHBOARD_AUTH === 'true';
-
-const prodDevMode =
-  process.env.UNGATED_DEV_MODE === 'true';
-
-const authDisabled = localBypass || prodDevMode;
 
 export interface AccessContext {
   user: User | null;
@@ -52,6 +42,32 @@ export async function requireActiveUser(): Promise<AccessContext> {
   }
 
   return { user, subscription };
+}
+
+// API-route variant of the same gate. Routes return JSON errors instead of
+// redirecting, so this reports a status + message rather than calling
+// redirect(). 401 = no session; 403 = session but no active trial/subscription.
+// Returns the member's cookie-backed client so RLS runs AS the member.
+export type ApiAccess =
+  | { ok: true; supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>; user: User }
+  | { ok: false; status: 401 | 403; error: string };
+
+export async function checkApiAccess(): Promise<ApiAccess> {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    return { ok: false, status: 401, error: 'Not signed in.' };
+  }
+
+  const subscription = await getSubscriptionByEmail(user.email);
+  if (!hasActiveAccess(subscription)) {
+    return { ok: false, status: 403, error: 'No active subscription.' };
+  }
+
+  return { ok: true, supabase, user };
 }
 
 // The member's display name, resolved consistently everywhere: their saved
