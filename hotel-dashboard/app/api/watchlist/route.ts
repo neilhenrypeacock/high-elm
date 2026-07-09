@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-server';
+import { checkApiAccess } from '@/lib/require-access';
 
-// Add / remove a hotel from the logged-in member's watchlist. Same auth model as
-// /api/saves: cookie-backed client + explicit user_id so RLS (auth.uid() =
-// user_id) enforces per-user isolation.
-
-async function requireUser() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return { supabase, user };
-}
+// Add / remove a hotel from the logged-in member's watchlist. Access requires
+// an ACTIVE trial/subscription (same gate as the pages, via checkApiAccess).
+// Same auth model as /api/saves: cookie-backed client + explicit user_id so
+// RLS (auth.uid() = user_id) enforces per-user isolation.
 
 // POST { instagram_handle, hotel_name? } → follow (idempotent upsert).
 export async function POST(request: NextRequest) {
@@ -23,8 +16,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid hotel.' }, { status: 400 });
   }
 
-  const { supabase, user } = await requireUser();
-  if (!user) return NextResponse.json({ error: 'Not signed in.' }, { status: 401 });
+  const access = await checkApiAccess();
+  if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+  const { supabase, user } = access;
 
   const { error } = await supabase
     .from('watchlist_hotels')
@@ -43,8 +37,9 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid hotel.' }, { status: 400 });
   }
 
-  const { supabase, user } = await requireUser();
-  if (!user) return NextResponse.json({ error: 'Not signed in.' }, { status: 401 });
+  const access = await checkApiAccess();
+  if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
+  const { supabase, user } = access;
 
   const { error } = await supabase
     .from('watchlist_hotels')
