@@ -1,7 +1,7 @@
 # Instagram Pipeline — Session Context
 
 ## What this repo is
-A Node.js (ESM) script that scrapes Instagram data for luxury hotels using Apify, then writes results to Supabase. It is run **manually** — there is no scheduled job or CI. The dashboard at `../hotel-dashboard/` reads the data this pipeline writes. (The `hotels` table holds 465 hotels; only the ~205 with `tracked = true` are scraped.)
+A Node.js (ESM) script that scrapes Instagram data for luxury hotels using Apify, then writes results to Supabase. It runs **weekly via GitHub Actions** (`.github/workflows/weekly-scrape.yml`, Mondays 05:00 UTC — each run costs real Apify money) and can also be run manually. A daily `freshness-check.yml` workflow alarms when the newest post is older than 8 days (`check-freshness.js` fails the run so GitHub emails the owner; also emails ALERT_EMAIL via Resend once `RESEND_API_KEY` is set). The dashboard at `../hotel-dashboard/` reads the data this pipeline writes. (The `hotels` table holds 465 hotels; only the ~205 with `tracked = true` are scraped.)
 
 ## How to run
 

@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
+import { allowRequest, clientIp } from '@/lib/rate-limit';
 
 // Creates a Stripe Checkout Session for the 14-day free trial (card required
 // upfront) and returns its hosted URL for the client to redirect to.
+// Public endpoint → rate-limited: a legitimate visitor starts one checkout,
+// maybe retries a couple of times; a bot spraying sessions gets 429.
 export async function POST(request: NextRequest) {
+  if (!allowRequest(`checkout:${clientIp(request)}`, 5, 60_000)) {
+    return NextResponse.json({ error: 'Too many attempts — try again in a minute.' }, { status: 429 });
+  }
+
   const body = await request.json().catch(() => null);
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
 

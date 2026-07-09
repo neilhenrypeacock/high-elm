@@ -1,0 +1,30 @@
+# Daily staleness alarm for the Content Radar data. Read-only and free —
+# it never scrapes; it only checks the newest posted_at in Supabase and fails
+# loudly (GitHub failure email + optional Resend email to ALERT_EMAIL) when
+# the data is older than FRESHNESS_MAX_DAYS.
+name: freshness-check
+
+on:
+  schedule:
+    - cron: '30 7 * * *' # daily 07:30 UTC
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: instagram-pipeline
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      ALERT_EMAIL: neil@highelmstudio.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: node check-freshness.js
