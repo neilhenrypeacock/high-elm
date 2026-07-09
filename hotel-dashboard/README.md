@@ -1,76 +1,40 @@
-# High Elm — Instagram Portfolio Dashboard
+# Hotel Content Radar — Dashboard
 
-Read-only Next.js dashboard showing Instagram performance for 465 Forbes Five-Star hotels.
+Next.js 16 app (App Router) for the High Elm Studio "Content Radar": a subscription dashboard surfacing breakout Instagram posts from ~205 tracked luxury hotels. Public marketing pages at `/`, `/how-it-works`, `/about`; the dashboard and account pages are gated behind a Supabase magic-link session + an active Stripe trial/subscription.
 
-## How to start the dashboard
+## Run locally
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:3000
 ```
 
-Then open http://localhost:3000
+To browse the gated pages without logging in locally, set `DISABLE_DASHBOARD_AUTH=true` in `.env.local` (dev-only — it is hard-guarded off in production builds).
 
-## What it shows
-
-- **Summary cards** — hotels tracked, hotels with data, total posts, data freshness date
-- **Hotel table** — sortable by followers, engagement rate, posts/week, or last posted date
-- **Region filter** — narrow to a specific region
-- **Search** — filter by hotel name or Instagram handle
-
-**Engagement rate** = avg(likes + comments) across the hotel's posts in the last 30 days ÷ followers × 100. Posts with hidden like counts are excluded. Public data only — no reach or impressions.
-
-## Environment variables
-
-Create `.env.local` with:
-```
-SUPABASE_URL=https://dndefddhocxqczinfpfg.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=<service role key>
-```
-
-The service role key never goes to the browser — all Supabase queries run in server components.
-
-## Deploying to Vercel
+## Checks (all must pass before shipping)
 
 ```bash
-vercel --prod
+npm run build      # type-check + production build
+npm run lint       # eslint
+npm test           # vitest — tests/data.test.ts covers the breakout maths
 ```
 
-Add the two env vars above in Vercel project settings. Do **not** use `NEXT_PUBLIC_` prefix on the service role key.
+## Environment variables (`.env.local` — never commit; names only here)
 
-## Re-running a scrape
+| Variable | Used for |
+|---|---|
+| `SUPABASE_URL` | Supabase project |
+| `SUPABASE_ANON_KEY` | Dashboard data reads (read-only via RLS — see `supabase/rls.sql`) + auth |
+| `SUPABASE_SERVICE_ROLE_KEY` | `subscriptions` table only (server-side; also the fallback if the anon key is missing) |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRICE_ID` | Checkout, webhook, trial price |
+| `DISABLE_DASHBOARD_AUTH` | Local-dev auth bypass (inert in production) |
 
-See `../instagram-pipeline/README.md`
+No key ever reaches the browser — all Supabase/Stripe calls run server-side. Values live in `../keys/` (gitignored) and in Vercel project env.
 
----
+## How the data flows
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+`../instagram-pipeline/` (run manually) scrapes Instagram via Apify into Supabase. `lib/data.ts` reads it and computes every metric at request time — breakout baseline (median of each hotel's last 30 valid posts), 2× breakout threshold, leaderboard ER, What's Working. **The baseline and threshold are tuned together — do not change one without the other.** See `CLAUDE.md` for the full constant table and design system.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploying
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Pushes to `main` auto-deploy via Vercel (production: www.hotelcontentradar.com). Env vars are managed in the Vercel project settings.
