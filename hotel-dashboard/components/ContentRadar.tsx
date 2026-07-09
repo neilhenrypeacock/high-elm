@@ -1,9 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { OutlierPost, TimeWindow } from '@/lib/data';
 import { TIME_WINDOWS } from '@/lib/data';
+import { postKey } from '@/lib/post-key';
 import { fmtFollowers, fmtPostedAt } from '@/lib/format';
+import SaveToggle from './SaveToggle';
+
+// Save control for a post — same bodies/endpoint everywhere so the affordance is
+// identical on the big cards, the compact rows, and the Saved page.
+function PostSaveToggle({
+  post,
+  saved,
+  onSavedChange,
+  variant,
+}: {
+  post: OutlierPost;
+  saved: boolean;
+  onSavedChange?: (s: boolean) => void;
+  variant: 'overlay' | 'inline';
+}) {
+  return (
+    <SaveToggle
+      initialSaved={saved}
+      endpoint="/api/saves"
+      saveBody={{ post }}
+      deleteBody={{ post_id: post.post_id, instagram_handle: post.instagram_handle }}
+      label="Save post"
+      savedLabel="Saved — remove"
+      onChange={onSavedChange}
+      variant={variant}
+    />
+  );
+}
 
 const LABEL = "var(--font-label), 'Space Mono', monospace";
 const DISPLAY = "var(--font-display), 'Baloo 2', sans-serif";
@@ -161,7 +190,18 @@ function TagChip({ type }: { type: string | null }) {
 
 // ─── Top-5 breakout card ──────────────────────────────────────────────────────
 // Exported for reuse by the public landing page taster (components/Landing.tsx)
-export function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: number }) {
+export function BreakoutCard({
+  post: p,
+  rank,
+  saved,
+  onSavedChange,
+}: {
+  post: OutlierPost;
+  rank?: number;
+  /** When defined, renders the Save control seeded with this state. */
+  saved?: boolean;
+  onSavedChange?: (s: boolean) => void;
+}) {
   const followersStr = fmtFollowers(p.hotel_followers);
   const meta = [p.hotel_country, followersStr !== '—' ? `${followersStr} followers` : null, fmtPostedAt(p.posted_at)]
     .filter(Boolean)
@@ -176,6 +216,7 @@ export function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: numbe
     <div
       className="cr-lift"
       style={{
+        position: 'relative',
         background: 'var(--surface)',
         border: '1px solid var(--line)',
         borderRadius: 14,
@@ -183,6 +224,11 @@ export function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: numbe
         boxShadow: 'var(--shadow-card)',
       }}
     >
+      {saved !== undefined && (
+        <div style={{ position: 'absolute', top: 14, right: 14, zIndex: 2 }}>
+          <PostSaveToggle post={p} saved={saved} onSavedChange={onSavedChange} variant="overlay" />
+        </div>
+      )}
       <div
         className="cr-card-grid"
         style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 0.9fr) 1.1fr' }}
@@ -200,20 +246,22 @@ export function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: numbe
           <span style={{ position: 'absolute', top: 14, left: 14 }}>
             <TagChip type={p.type} />
           </span>
-          <span
-            style={{
-              position: 'absolute',
-              bottom: 14,
-              left: 14,
-              fontFamily: LABEL,
-              fontSize: 10,
-              textTransform: 'uppercase',
-              letterSpacing: '0.14em',
-              color: 'rgba(247,246,242,0.4)',
-            }}
-          >
-            Rank {String(rank).padStart(2, '0')}
-          </span>
+          {rank !== undefined && (
+            <span
+              style={{
+                position: 'absolute',
+                bottom: 14,
+                left: 14,
+                fontFamily: LABEL,
+                fontSize: 10,
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                color: 'rgba(247,246,242,0.4)',
+              }}
+            >
+              Rank {String(rank).padStart(2, '0')}
+            </span>
+          )}
         </a>
 
         {/* Content */}
@@ -324,13 +372,26 @@ export function BreakoutCard({ post: p, rank }: { post: OutlierPost; rank: numbe
 }
 
 // ─── Ranks 6+ compact table row ───────────────────────────────────────────────
-function PostRow({ post: p, rank }: { post: OutlierPost; rank: number }) {
+function PostRow({
+  post: p,
+  rank,
+  saved,
+  onSavedChange,
+}: {
+  post: OutlierPost;
+  rank: number;
+  saved?: boolean;
+  onSavedChange?: (s: boolean) => void;
+}) {
   const followersStr = fmtFollowers(p.hotel_followers);
   const sub = [p.hotel_country, followersStr !== '—' ? `${followersStr} followers` : null]
     .filter(Boolean)
     .join(' · ');
 
+  const hasSave = saved !== undefined;
+
   return (
+    <div style={{ position: 'relative' }}>
     <a
       href={permalink(p)}
       target="_blank"
@@ -341,6 +402,7 @@ function PostRow({ post: p, rank }: { post: OutlierPost; rank: number }) {
         alignItems: 'center',
         gap: 20,
         padding: '16px 24px',
+        paddingRight: hasSave ? 62 : 24,
         borderBottom: '1px solid var(--line-soft)',
         textDecoration: 'none',
         color: 'inherit',
@@ -388,6 +450,12 @@ function PostRow({ post: p, rank }: { post: OutlierPost; rank: number }) {
         {fmtPostedAt(p.posted_at)}
       </span>
     </a>
+    {hasSave && (
+      <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
+        <PostSaveToggle post={p} saved={saved!} onSavedChange={onSavedChange} variant="inline" />
+      </div>
+    )}
+    </div>
   );
 }
 
@@ -577,11 +645,18 @@ function FeedFilterBar({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export default function ContentRadar({ postsByWindow }: { postsByWindow: Record<TimeWindow, OutlierPost[]> }) {
+export default function ContentRadar({
+  postsByWindow,
+  savedPostKeys = [],
+}: {
+  postsByWindow: Record<TimeWindow, OutlierPost[]>;
+  savedPostKeys?: string[];
+}) {
   const [showMore, setShowMore] = useState(false);
   const [win, setWin] = useState<TimeWindow>('7d');
   const [filters, setFilters] = useState<FeedFilters>(ALL_ON);
   const allOn = filters.collab && filters.images && filters.videos;
+  const savedSet = useMemo(() => new Set(savedPostKeys), [savedPostKeys]);
 
   const windowPosts = postsByWindow[win];
   const posts = allOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
@@ -669,7 +744,12 @@ export default function ContentRadar({ postsByWindow }: { postsByWindow: Record<
         <Eyebrow>Top 5</Eyebrow>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {topPosts.map((p, i) => (
-            <BreakoutCard key={`${p.post_id}-${p.instagram_handle}`} post={p} rank={i + 1} />
+            <BreakoutCard
+              key={`${p.post_id}-${p.instagram_handle}`}
+              post={p}
+              rank={i + 1}
+              saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
+            />
           ))}
         </div>
       </div>
@@ -688,7 +768,12 @@ export default function ContentRadar({ postsByWindow }: { postsByWindow: Record<
             }}
           >
             {visibleRest.map((p, i) => (
-              <PostRow key={`${p.post_id}-${p.instagram_handle}`} post={p} rank={i + 6} />
+              <PostRow
+                key={`${p.post_id}-${p.instagram_handle}`}
+                post={p}
+                rank={i + 6}
+                saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
+              />
             ))}
           </div>
           {hiddenCount > 0 && (

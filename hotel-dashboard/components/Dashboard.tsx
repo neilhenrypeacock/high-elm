@@ -219,7 +219,17 @@ function Hero({ data }: { data: DashboardData }) {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export default function Dashboard({ data, regions }: { data: DashboardData; regions: string[] }) {
+export default function Dashboard({
+  data,
+  regions,
+  savedPostKeys = [],
+  watchlistHandles = [],
+}: {
+  data: DashboardData;
+  regions: string[];
+  savedPostKeys?: string[];
+  watchlistHandles?: string[];
+}) {
   const sectionRule: React.CSSProperties = {
     marginTop: 56,
     paddingTop: 56,
@@ -272,7 +282,7 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
           sub="Posts that beat their hotel's own median by 2× or more — choose a time window"
         />
         <div style={{ marginTop: 32 }}>
-          <ContentRadar postsByWindow={data.standout} />
+          <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} />
         </div>
       </div>
 
@@ -293,7 +303,7 @@ export default function Dashboard({ data, regions }: { data: DashboardData; regi
           title="Hotel leaderboard"
           sub="Average engagement across each hotel's last 30 posts · click a column to re-sort."
         />
-        <HotelTable hotels={data.hotels} regions={regions} />
+        <HotelTable hotels={data.hotels} regions={regions} watchlistHandles={watchlistHandles} />
       </div>
 
       {/* ── About ── */}

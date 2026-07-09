@@ -3,6 +3,23 @@
 import { useState, useMemo } from 'react';
 import type { HotelRow } from '@/lib/data';
 import { fmtFollowers, fmtDate, fmtNumber } from '@/lib/format';
+import SaveToggle from './SaveToggle';
+
+// Watchlist control for a hotel — same SaveToggle as the post cards, so the two
+// affordances read identically (a bookmark that fills when saved).
+function HotelWatchToggle({ handle, name, saved }: { handle: string; name: string; saved: boolean }) {
+  return (
+    <SaveToggle
+      initialSaved={saved}
+      endpoint="/api/watchlist"
+      saveBody={{ instagram_handle: handle, hotel_name: name }}
+      deleteBody={{ instagram_handle: handle }}
+      label={`Add ${name} to watchlist`}
+      savedLabel={`On your watchlist — remove ${name}`}
+      variant="inline"
+    />
+  );
+}
 
 type SortKey = 'name' | 'followers_count' | 'engagement_rate' | 'posts_per_week' | 'last_posted';
 type SortDir = 'asc' | 'desc';
@@ -60,7 +77,16 @@ const COLUMNS: { key: SortKey | null; label: string; align?: 'right'; className?
   { key: 'last_posted', label: 'Last posted', align: 'right', className: 'cr-lb-last' },
 ];
 
-export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; regions: string[] }) {
+export default function HotelTable({
+  hotels,
+  regions,
+  watchlistHandles = [],
+}: {
+  hotels: HotelRow[];
+  regions: string[];
+  watchlistHandles?: string[];
+}) {
+  const watchSet = useMemo(() => new Set(watchlistHandles), [watchlistHandles]);
   const [sortKey, setSortKey] = useState<SortKey>('engagement_rate');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [regionFilter, setRegionFilter] = useState<string>('All');
@@ -244,12 +270,15 @@ export default function HotelTable({ hotels, regions }: { hotels: HotelRow[]; re
                 {i + 1}
               </div>
 
-              <div role="cell" style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {h.name}
+              <div role="cell" style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {h.name}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 2 }}>@{h.instagram_handle}</div>
+                  <AccreditationPins labels={h.accreditations} />
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 2 }}>@{h.instagram_handle}</div>
-                <AccreditationPins labels={h.accreditations} />
+                <HotelWatchToggle handle={h.instagram_handle} name={h.name} saved={watchSet.has(h.instagram_handle)} />
               </div>
 
               <div role="cell" className="cr-lb-region" style={{ fontSize: 12, color: 'var(--muted)' }}>
