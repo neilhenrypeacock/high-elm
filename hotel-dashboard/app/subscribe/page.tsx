@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Lockup from '@/components/Lockup';
+import AppFooter from '@/components/AppFooter';
 
 export const metadata = {
   title: 'Content Radar — Start your trial',
@@ -7,16 +8,16 @@ export const metadata = {
 
 export default function SubscribePage() {
   return (
-    <main
-      className="cr-board"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-    >
+    <div className="cr-board" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <main
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 24,
+        }}
+      >
       <div
         style={{
           maxWidth: 460,
@@ -63,6 +64,8 @@ export default function SubscribePage() {
           </Link>
         </p>
       </div>
-    </main>
+      </main>
+      <AppFooter />
+    </div>
   );
 }

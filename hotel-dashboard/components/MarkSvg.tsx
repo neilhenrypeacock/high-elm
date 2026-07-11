@@ -1,6 +1,6 @@
 interface MarkSvgProps {
   size: number;
-  color: string; // ring stroke colour (centre teal is always #5B9BAA)
+  color: string; // ring stroke colour (centre is always the signal green #2E7357)
 }
 
 export default function MarkSvg({ size, color }: MarkSvgProps) {
@@ -18,7 +18,7 @@ export default function MarkSvg({ size, color }: MarkSvgProps) {
       <circle cx={36} cy={36} r={27} stroke={color} strokeWidth={3} opacity={0.32} />
       <circle cx={36} cy={36} r={20} stroke={color} strokeWidth={3} opacity={0.52} />
       <circle cx={36} cy={36} r={13} stroke={color} strokeWidth={3} opacity={0.78} />
-      <circle cx={36} cy={36} r={7} fill="#5B9BAA" />
+      <circle cx={36} cy={36} r={7} fill="#2E7357" />
     </svg>
   );
 }

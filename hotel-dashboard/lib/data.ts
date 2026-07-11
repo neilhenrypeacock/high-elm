@@ -204,6 +204,18 @@ export function captionBucket(caption: string | null): string {
   return 'Long';
 }
 
+// High-precision caption signal for collaborations. Instagram co-posts made with
+// an UNTRACKED account leave no duplicate grid row and no AI driver_tag, so they
+// slip past the structural check. These explicit phrases are chosen to catch the
+// obvious ones ("in collaboration with @…", "paid partnership", "x @brand")
+// without flagging incidental @-mentions ("dinner by @chef"). Case-insensitive.
+const COLLAB_CAPTION_RE =
+  /\b(?:in\s+)?collab(?:oration)?\s+with\b|\b(?:in\s+)?partnership\s+with\b|\bpartnered\s+with\b|\bpaid\s+partnership\b|@\w[\w.]*\s*[×x]\s*@\w/i;
+
+export function captionSuggestsCollab(caption: string | null): boolean {
+  return !!caption && COLLAB_CAPTION_RE.test(caption);
+}
+
 export function groupMedianER(
   posts: { er: number; label: string }[],
   labelOrder: string[]
@@ -325,8 +337,11 @@ export function computeStandout(
       driver_tag:           storedInsight[p.post_id]?.tag ?? null,
       theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
       // Display-only collab tag — same signals landing_featured excludes on.
+      // 1) same post_id on >1 tracked grid, 2) AI driver_tag, 3) explicit
+      // collab language in the caption (catches collabs with UNTRACKED accounts).
       is_collab:            (handlesByPostId?.get(p.post_id)?.size ?? 1) > 1 ||
-                            storedInsight[p.post_id]?.tag === 'Collaboration',
+                            storedInsight[p.post_id]?.tag === 'Collaboration' ||
+                            captionSuggestsCollab(p.caption),
     });
   }
   // Count ALL qualifying posts before slicing for the hero panel
@@ -591,7 +606,8 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const landingCandidates = validForAnalysis.filter(p =>
     now - new Date(p.posted_at).getTime() <= LANDING_WINDOW_DAYS * DAY_MS &&
     (handlesByPostId.get(p.post_id)?.size ?? 1) === 1 &&
-    storedInsight[p.post_id]?.tag !== 'Collaboration'
+    storedInsight[p.post_id]?.tag !== 'Collaboration' &&
+    !captionSuggestsCollab(p.caption)
   );
   const landing_featured = computeStandout(
     landingCandidates, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,

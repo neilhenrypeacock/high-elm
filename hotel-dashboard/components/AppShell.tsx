@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MarkSvg from './MarkSvg';
+import AppFooter from './AppFooter';
 
 // Gated-area shell: fixed left sidebar on desktop, off-canvas drawer on mobile.
 // Wraps existing gated pages (dashboard, saved, watchlist, settings, profile)
@@ -24,6 +25,8 @@ interface AppShellProps {
   userName: string;
   userEmail: string | null;
   children: React.ReactNode;
+  /** Optional right-aligned footer caption (e.g. the dashboard's weekly date). */
+  footerNote?: string;
 }
 
 type IconProps = { active: boolean };
@@ -116,7 +119,7 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function AppShell({ userName, userEmail, children }: AppShellProps) {
+export default function AppShell({ userName, userEmail, children, footerNote }: AppShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false); // mobile drawer
   const [collapsed, setCollapsed] = useState(false); // desktop rail
@@ -436,6 +439,8 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
         </div>
 
         {children}
+
+        <AppFooter note={footerNote} />
       </div>
     </div>
   );

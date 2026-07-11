@@ -49,6 +49,7 @@ const normHandle = (h) => (h || '').trim().toLowerCase().replace(/^@/, '').repla
 const PRIORITY = [
   'Forbes Five-Star',
   'Condé Nast Gold List',
+  "World's 50 Best Hotels",
   'Michelin Three Keys',
   'Michelin Two Keys',
   'Michelin One Key',
@@ -78,6 +79,7 @@ for (const r of readRecords('master-luxury-hotels.csv')) {
   const src = r.source || '';
   if (src.includes('Forbes')) add(r.instagram_handle, 'Forbes Five-Star');
   if (src.includes('Gold List')) add(r.instagram_handle, 'Condé Nast Gold List');
+  if (src.includes("World's 50 Best")) add(r.instagram_handle, "World's 50 Best Hotels");
 }
 
 const sortedKeys = [...map.keys()].sort();
@@ -98,10 +100,11 @@ ${entries.join('\n')}
 
 writeFileSync(outFile, out);
 console.log(`Wrote ${sortedKeys.length} accredited handles → ${outFile}`);
-const counts = { 'Forbes Five-Star': 0, 'Condé Nast Gold List': 0, michelin: 0 };
+const counts = { 'Forbes Five-Star': 0, 'Condé Nast Gold List': 0, "World's 50 Best Hotels": 0, michelin: 0 };
 for (const labels of map.values()) {
   if (labels.has('Forbes Five-Star')) counts['Forbes Five-Star']++;
   if (labels.has('Condé Nast Gold List')) counts['Condé Nast Gold List']++;
+  if (labels.has("World's 50 Best Hotels")) counts["World's 50 Best Hotels"]++;
   if ([...labels].some(l => l.startsWith('Michelin'))) counts.michelin++;
 }
 console.log('By list:', counts);
