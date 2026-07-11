@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MarkSvg from './MarkSvg';
+import AppFooter from './AppFooter';
+import PageInfoModal, { resolveInfoKey } from './PageInfo';
 
 // Gated-area shell: fixed left sidebar on desktop, off-canvas drawer on mobile.
 // Wraps existing gated pages (dashboard, saved, watchlist, settings, profile)
@@ -24,6 +26,8 @@ interface AppShellProps {
   userName: string;
   userEmail: string | null;
   children: React.ReactNode;
+  /** Optional right-aligned footer caption (e.g. the dashboard's weekly date). */
+  footerNote?: string;
 }
 
 type IconProps = { active: boolean };
@@ -116,12 +120,25 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function AppShell({ userName, userEmail, children }: AppShellProps) {
+export default function AppShell({ userName, userEmail, children, footerNote }: AppShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false); // mobile drawer
   const [collapsed, setCollapsed] = useState(false); // desktop rail
   const [ready, setReady] = useState(false); // gates the width transition until after first paint
+  const [infoOpen, setInfoOpen] = useState(false); // "explain this page" modal
+  const [hash, setHash] = useState(''); // tracks the active dashboard section
   const close = () => setOpen(false);
+
+  // Track the URL hash so the "i" explainer follows the active dashboard section
+  // (the section links are plain #hash anchors, so hashchange fires on click).
+  useEffect(() => {
+    const sync = () => setHash(window.location.hash);
+    sync();
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
+
+  const infoKey = resolveInfoKey(pathname, hash);
 
   // Restore the persisted rail choice, then enable the width transition one frame
   // later so the restored state paints instantly (no collapse animation on load).
@@ -187,6 +204,51 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
       </div>
 
       <nav style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* "i" — explain the current page in a biggish modal */}
+        <button
+          type="button"
+          onClick={() => { setInfoOpen(true); close(); }}
+          title={collapsed ? 'About this page' : undefined}
+          className="cr-shell-navitem cr-info-navitem"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 11,
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-body), sans-serif',
+            fontSize: 14,
+            fontWeight: 500,
+            color: 'var(--body-soft)',
+            textAlign: 'left',
+            width: '100%',
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 'none',
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              border: '1.6px solid var(--signal-deep)',
+              color: 'var(--signal-deep)',
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="7.4" r="1.25" fill="currentColor" />
+              <path d="M12 11v6.5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
+            </svg>
+          </span>
+          <span className="cr-navlabel">About this page</span>
+        </button>
+
         {navItem('/dashboard', 'Dashboard', DashboardIcon)}
 
         {/* In-page section links — only on the dashboard, only in the full state */}
@@ -436,7 +498,11 @@ export default function AppShell({ userName, userEmail, children }: AppShellProp
         </div>
 
         {children}
+
+        <AppFooter note={footerNote} />
       </div>
+
+      <PageInfoModal open={infoOpen} infoKey={infoKey} onClose={() => setInfoOpen(false)} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   mean,
   normalizeType,
   captionBucket,
+  captionSuggestsCollab,
   groupMedianER,
   computeSnapshot,
   computeWhatsWorking,
@@ -134,6 +135,27 @@ describe('captionBucket', () => {
     expect(captionBucket('x'.repeat(100))).toBe('Medium');
     expect(captionBucket('x'.repeat(299))).toBe('Medium');
     expect(captionBucket('x'.repeat(300))).toBe('Long');
+  });
+});
+
+// ─── captionSuggestsCollab ───────────────────────────────────────────────────
+
+describe('captionSuggestsCollab', () => {
+  it('flags explicit collaboration language', () => {
+    expect(captionSuggestsCollab('In collaboration with @brand')).toBe(true);
+    expect(captionSuggestsCollab('A collab with our friends at @x')).toBe(true);
+    expect(captionSuggestsCollab('In partnership with @luxurycars')).toBe(true);
+    expect(captionSuggestsCollab('We partnered with @chef for this')).toBe(true);
+    expect(captionSuggestsCollab('Paid partnership with @brand')).toBe(true);
+    expect(captionSuggestsCollab('@thehotel x @thebrand — a new suite')).toBe(true);
+  });
+
+  it('does not flag incidental @-mentions or lookalike words', () => {
+    expect(captionSuggestsCollab('Dinner by @chefname was unforgettable')).toBe(false);
+    expect(captionSuggestsCollab('Relax @home with our spa ritual')).toBe(false);
+    expect(captionSuggestsCollab('Six suites with a view')).toBe(false);
+    expect(captionSuggestsCollab(null)).toBe(false);
+    expect(captionSuggestsCollab('')).toBe(false);
   });
 });
 

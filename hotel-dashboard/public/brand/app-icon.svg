@@ -5,5 +5,5 @@
   <circle cx="256" cy="256" r="113" stroke="#F7F6F2" stroke-width="13" opacity="0.32"></circle>
   <circle cx="256" cy="256" r="84" stroke="#F7F6F2" stroke-width="13" opacity="0.52"></circle>
   <circle cx="256" cy="256" r="55" stroke="#F7F6F2" stroke-width="13" opacity="0.78"></circle>
-  <circle cx="256" cy="256" r="30" fill="#5B9BAA"></circle>
+  <circle cx="256" cy="256" r="30" fill="#2E7357"></circle>
 </svg>

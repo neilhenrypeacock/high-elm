@@ -1,8 +1,10 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import type { DashboardData } from '@/lib/data';
 import ContentRadar from './ContentRadar';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
-import Lockup from './Lockup';
 
 const LABEL = "var(--font-label), 'Space Mono', monospace";
 
@@ -13,88 +15,6 @@ const INNER: React.CSSProperties = {
   paddingLeft: 40,
   paddingRight: 40,
 };
-
-// ─── Pill toggle (channel switcher / timeframe) ───────────────────────────────
-export function PillToggle({ items }: { items: { label: string; active?: boolean; soon?: boolean }[] }) {
-  return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        background: 'var(--surface-alt-2)',
-        border: '1px solid var(--line)',
-        borderRadius: 10,
-        padding: 3,
-        gap: 2,
-      }}
-    >
-      {items.map(item => (
-        <div
-          key={item.label}
-          className={item.soon ? 'cr-pill-soon' : undefined}
-          title={item.soon ? 'Coming soon' : undefined}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 7,
-            borderRadius: 6,
-            padding: '6px 13px',
-            fontSize: 12,
-            fontWeight: 500,
-            background: item.active ? 'var(--ink)' : 'transparent',
-            color: item.active ? 'var(--surface)' : 'var(--muted)',
-            cursor: item.active ? 'default' : 'not-allowed',
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {item.active && (
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: 'var(--signal)',
-                flexShrink: 0,
-              }}
-            />
-          )}
-          {item.label}
-          {item.soon && (
-            <span
-              style={{
-                fontFamily: LABEL,
-                fontSize: 8,
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                color: 'var(--faint)',
-              }}
-            >
-              soon
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Section heading ──────────────────────────────────────────────────────────
-function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
-  return (
-    <div>
-      <div className="cr-eyebrow" style={{ marginBottom: 12 }}>{eyebrow}</div>
-      <h2 style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)', margin: 0 }}>
-        {title}
-      </h2>
-      {sub && (
-        <p style={{ fontSize: 14, color: 'var(--body-mid)', marginTop: 8, maxWidth: 640, lineHeight: 1.6 }}>
-          {sub}
-        </p>
-      )}
-    </div>
-  );
-}
 
 // ─── Hero — dark signal band ──────────────────────────────────────────────────
 function Hero({ data }: { data: DashboardData }) {
@@ -218,6 +138,21 @@ function Hero({ data }: { data: DashboardData }) {
   );
 }
 
+// ─── Section model ────────────────────────────────────────────────────────────
+// The dashboard is a set of switchable panels rather than one long scroll. The
+// active panel is driven by the URL hash so the LEFT SIDEBAR's section links
+// (#overview / #breakouts / #working / #leaderboard) select the view — there is
+// no top nav. Only the active section is mounted, so each scrolls on its own.
+// Per-section explanations now live behind the sidebar's "i" (About this view).
+const SECTION_IDS = ['overview', 'breakouts', 'working', 'leaderboard'] as const;
+type SectionId = (typeof SECTION_IDS)[number];
+
+function readHash(): SectionId {
+  if (typeof window === 'undefined') return 'overview';
+  const h = window.location.hash.replace(/^#/, '');
+  return (SECTION_IDS.includes(h as SectionId) ? h : 'overview') as SectionId;
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function Dashboard({
   data,
@@ -230,127 +165,53 @@ export default function Dashboard({
   savedPostKeys?: string[];
   watchlistHandles?: string[];
 }) {
-  const sectionRule: React.CSSProperties = {
-    marginTop: 56,
-    paddingTop: 56,
-    borderTop: '1px solid var(--line-rule)',
-  };
+  // Server renders the default; the client reconciles to the hash after mount and
+  // then follows hashchange (fired by the sidebar's section links).
+  const [active, setActive] = useState<SectionId>('overview');
+
+  useEffect(() => {
+    const sync = () => {
+      setActive(readHash());
+      window.scrollTo({ top: 0 });
+    };
+    sync();
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
+
+  const sectionPad: React.CSSProperties = { ...INNER, paddingTop: 40, paddingBottom: 48 };
 
   return (
     <div className="cr-board">
-      {/* ── Top bar ── */}
-      <div
-        style={{
-          background: 'var(--surface)',
-          borderBottom: '1px solid var(--line)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 5,
-        }}
-      >
-        <div
-          className="cr-inner cr-topbar"
-          style={{
-            ...INNER,
-            paddingTop: 20,
-            paddingBottom: 20,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
-          }}
-        >
-          <Lockup variant="primary" size={30} />
-          <PillToggle
-            items={[
-              { label: 'Instagram', active: true },
-              { label: 'TikTok', soon: true },
-              { label: 'YouTube', soon: true },
-            ]}
-          />
-        </div>
-      </div>
+      {/* ── This week (overview) ── */}
+      {active === 'overview' && <Hero data={data} />}
 
-      {/* ── Hero ── */}
-      <Hero data={data} />
-
-      {/* ── Top posts ── */}
-      <div id="breakouts" className="cr-inner" style={{ ...INNER, paddingTop: 56 }}>
-        <SectionHead
-          eyebrow="Content that stood out"
-          title="Top posts"
-          sub="Posts that beat their hotel's own median by 2× or more — choose a time window"
-        />
-        <div style={{ marginTop: 32 }}>
+      {/* ── Top posts — filters then posts, no heading copy ── */}
+      {active === 'breakouts' && (
+        <div className="cr-inner" style={sectionPad}>
           <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} />
         </div>
-      </div>
+      )}
 
       {/* ── What's working ── */}
-      <div id="working" className="cr-inner" style={{ ...INNER, ...sectionRule }}>
-        <SectionHead eyebrow="Portfolio patterns" title="What's working" />
-        <WhatsWorkingPanel
-          whatsWorking={data.whatsWorking}
-          snapshot={data.snapshot}
-          frequency={data.frequency}
-        />
-      </div>
+      {active === 'working' && (
+        <div className="cr-inner" style={sectionPad}>
+          <WhatsWorkingPanel
+            whatsWorking={data.whatsWorking}
+            snapshot={data.snapshot}
+            frequency={data.frequency}
+          />
+        </div>
+      )}
 
       {/* ── Hotel leaderboard ── */}
-      <div id="leaderboard" className="cr-inner" style={{ ...INNER, ...sectionRule, paddingBottom: 24 }}>
-        <SectionHead
-          eyebrow="Ranked by engagement rate"
-          title="Hotel leaderboard"
-          sub="Average engagement across each hotel's last 30 posts · click a column to re-sort."
-        />
-        <HotelTable hotels={data.hotels} regions={regions} watchlistHandles={watchlistHandles} />
-      </div>
-
-      {/* ── About ── */}
-      <div className="cr-inner" style={{ ...INNER, ...sectionRule, paddingBottom: 40 }}>
-        <div style={{ maxWidth: 680 }}>
-          <p style={{ fontSize: 13, color: 'var(--body-soft)', lineHeight: 1.7, margin: '0 0 10px' }}>
-            The Content Radar — powered by High Elm Studio — tracks Instagram performance across the
-            world&rsquo;s most prestigious luxury hotels. Every week you get a snapshot of content that
-            significantly outperforms each hotel&rsquo;s own median, giving marketing teams a continuously
-            updated library of what&rsquo;s genuinely working.
-          </p>
-          <p style={{ fontSize: 13, color: 'var(--body-soft)', lineHeight: 1.7, margin: 0 }}>
-            Built on public Instagram data only: followers, likes, comments, captions, post types, dates.
-            No reach, impressions, saves or shares — those are private to each account.
-          </p>
+      {active === 'leaderboard' && (
+        <div className="cr-inner" style={sectionPad}>
+          <HotelTable hotels={data.hotels} regions={regions} watchlistHandles={watchlistHandles} />
         </div>
-      </div>
+      )}
 
-      {/* ── Footer ── */}
-      <footer style={{ background: 'var(--ink-deep)', marginTop: 60 }}>
-        <div
-          className="cr-inner"
-          style={{
-            ...INNER,
-            paddingTop: 46,
-            paddingBottom: 60,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 24,
-          }}
-        >
-          <Lockup variant="primary" size={30} onDark />
-          <span
-            style={{
-              fontFamily: LABEL,
-              fontSize: 10,
-              textTransform: 'uppercase',
-              letterSpacing: '0.14em',
-              color: 'var(--muted-dark)',
-            }}
-          >
-            Updated weekly · {data.week_ending_long}
-          </span>
-        </div>
-      </footer>
+      {/* Footer is provided by AppShell (shared across all gated pages). */}
     </div>
   );
 }

@@ -29,7 +29,13 @@ export default function Lockup({ variant = 'secondary', size = 28, onDark = fals
         <MarkSvg size={markSize} color={inkColor} />
         <span
           style={{
-            font: `800 ${wm}px/0.86 var(--font-display, 'Baloo 2', sans-serif)`,
+            // Longhand, NOT the `font` shorthand: the shorthand silently fails to
+            // parse in Safari when the family is a var(), which drops font-size and
+            // leaves the wordmark at the inherited size.
+            fontFamily: "var(--font-display), 'Space Grotesk', sans-serif",
+            fontWeight: 800,
+            fontSize: wm,
+            lineHeight: 0.86,
             letterSpacing: '-0.035em',
             whiteSpace: 'nowrap',
             color: inkColor,
@@ -45,7 +51,13 @@ export default function Lockup({ variant = 'secondary', size = 28, onDark = fals
           style={{
             marginTop: endoGap,
             textAlign: 'right',
-            font: `400 ${endoSize}px/1 var(--font-label, 'Space Mono', monospace)`,
+            // Longhand, NOT the `font` shorthand — see the wordmark above. In Safari
+            // the shorthand dropped font-size, so this line inherited ~14px and blew
+            // out of place under the wordmark.
+            fontFamily: "var(--font-label), 'Space Mono', monospace",
+            fontWeight: 400,
+            fontSize: endoSize,
+            lineHeight: 1,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: mutedColor,

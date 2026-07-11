@@ -399,7 +399,8 @@ export default function HotelTable({
         a <span style={{ color: 'var(--signal-deep)' }}>⚠</span> beside a value only marks a
         low-confidence breakout baseline. Public Instagram data only — no reach or impressions.
         Pins mark hotels named on the Forbes Travel Guide five-star list, the Condé Nast Traveller
-        Gold List, or Michelin Keys (UK &amp; Ireland) — coverage of those lists is partial.
+        Gold List, The World&rsquo;s 50 Best Hotels, or Michelin Keys (UK &amp; Ireland) — coverage of
+        those lists is partial.
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Lockup from '@/components/Lockup';
 import TrialSignupForm from '@/components/TrialSignupForm';
+import AppFooter from '@/components/AppFooter';
 
 export const metadata = {
   title: 'Content Radar — Start your free trial',
@@ -8,16 +9,16 @@ export const metadata = {
 
 export default function StartTrialPage() {
   return (
-    <main
-      className="cr-board"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-    >
+    <div className="cr-board" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <main
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 24,
+        }}
+      >
       <div
         style={{
           maxWidth: 440,
@@ -55,6 +56,8 @@ export default function StartTrialPage() {
           </Link>
         </p>
       </div>
-    </main>
+      </main>
+      <AppFooter />
+    </div>
   );
 }

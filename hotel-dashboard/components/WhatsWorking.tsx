@@ -35,23 +35,23 @@ function BarChart({ data }: { data: BarItem[] }) {
   const max = Math.max(...data.map(d => d.value), 0.001);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
       {data.map(d => (
         <div key={d.label}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 7 }}>
-            <span style={{ fontSize: 14, color: 'var(--ink)' }}>{d.label}</span>
-            <span style={{ fontSize: 12 }}>
-              <span style={{ color: 'var(--body-mid)' }}>{d.value.toFixed(2)}%</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
+            <span style={{ fontSize: 13, color: 'var(--ink)' }}>{d.label}</span>
+            <span style={{ fontSize: 11.5 }}>
+              <span style={{ color: 'var(--body-mid)', fontWeight: 600 }}>{d.value.toFixed(2)}%</span>
               <span style={{ color: 'var(--faint)' }}> · n={d.count}</span>
             </span>
           </div>
-          <div style={{ height: 9, background: 'var(--track)', borderRadius: 5, overflow: 'hidden' }}>
+          <div style={{ height: 7, background: 'var(--track)', borderRadius: 4, overflow: 'hidden' }}>
             <div
               style={{
                 height: '100%',
                 width: `${(d.value / max) * 100}%`,
                 background: colors[d.label],
-                borderRadius: 5,
+                borderRadius: 4,
                 transition: 'width 400ms ease',
               }}
             />
@@ -70,7 +70,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
         border: '1px solid var(--line)',
         borderRadius: 14,
         boxShadow: 'var(--shadow-card)',
-        padding: '28px 32px',
+        padding: '22px 24px',
       }}
     >
       <h3
@@ -81,7 +81,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
           textTransform: 'uppercase',
           letterSpacing: '0.16em',
           color: 'var(--muted)',
-          marginBottom: 22,
+          marginBottom: 18,
         }}
       >
         {title}
@@ -148,31 +148,51 @@ export default function WhatsWorkingPanel({
     <div>
       <Intro whatsWorking={whatsWorking} snapshot={snapshot} />
 
-      {/* Three dark stat cards */}
+      {/* Compact stat strip — one dark bar, three figures divided by hairlines.
+          Replaces three tall cards to reclaim vertical space. */}
       <div
         className="cr-stat-grid"
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 32 }}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: 1,
+          background: 'rgba(245,240,232,0.12)',
+          border: '1px solid var(--ink)',
+          borderRadius: 14,
+          overflow: 'hidden',
+          marginTop: 28,
+        }}
       >
         {stats.map(s => (
           <div
             key={s.caption}
-            style={{ background: 'var(--ink)', color: 'var(--surface)', borderRadius: 14, padding: '24px 28px' }}
+            style={{
+              background: 'var(--ink)',
+              color: 'var(--surface)',
+              padding: '18px 22px',
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
           >
-            <div
+            <span style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 30, lineHeight: 1, color: 'var(--signal)' }}>
+              {s.figure}
+            </span>
+            <span
               style={{
                 fontFamily: LABEL,
-                fontSize: 10,
+                fontSize: 9.5,
                 textTransform: 'uppercase',
-                letterSpacing: '0.16em',
+                letterSpacing: '0.13em',
                 color: 'var(--muted-dark)',
-                marginBottom: 12,
+                textAlign: 'right',
+                lineHeight: 1.4,
               }}
             >
               {s.caption}
-            </div>
-            <div style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 40, lineHeight: 1, color: 'var(--signal)' }}>
-              {s.figure}
-            </div>
+            </span>
           </div>
         ))}
       </div>

@@ -27,7 +27,11 @@ export default async function DashboardPage() {
     : [[] as string[], [] as string[]];
 
   return (
-    <AppShell userName={displayName(user)} userEmail={user?.email ?? null}>
+    <AppShell
+      userName={displayName(user)}
+      userEmail={user?.email ?? null}
+      footerNote={`Updated weekly · ${data.week_ending_long}`}
+    >
       <main style={{ minHeight: '100vh' }}>
         <Dashboard
           data={data}
