@@ -29,9 +29,21 @@ export const metadata: Metadata = {
   },
 };
 
+// Applies the saved dark-mode choice to <html> before first paint, so gated
+// pages don't flash light before the toggle's client code runs. Default (no
+// stored choice) is light. Kept tiny and inlined on purpose. See app/globals.css
+// (dark block) and components/ThemeToggle.tsx.
+const themeInit = `(function(){try{var t=localStorage.getItem('cr-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // suppressHydrationWarning on <html>: the themeInit script sets data-theme on it
+  // before hydration, so the server markup (no attribute) intentionally differs from
+  // the client. The flag is scoped to this one element's own attributes.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+      </head>
       <body className={`${spaceGrotesk.variable} ${hanken.variable}`}>
         {children}
       </body>

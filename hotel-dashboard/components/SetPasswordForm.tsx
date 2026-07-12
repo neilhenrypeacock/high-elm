@@ -127,8 +127,8 @@ export default function SetPasswordForm({ editable }: { editable: boolean }) {
               fontSize: 14,
               fontWeight: 600,
               color: '#F7F6F2',
-              background: 'var(--ink)',
-              border: '1px solid var(--ink)',
+              background: 'var(--fill-strong)',
+              border: '1px solid var(--fill-strong)',
               borderRadius: 10,
               padding: '12px 26px',
               cursor: status === 'saving' || password.length < 8 ? 'default' : 'pointer',
@@ -140,7 +140,7 @@ export default function SetPasswordForm({ editable }: { editable: boolean }) {
           {status === 'saved' && (
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-deep)' }}>Password set ✓</span>
           )}
-          {status === 'error' && <span style={{ fontSize: 13, color: '#B3453B' }}>{error}</span>}
+          {status === 'error' && <span style={{ fontSize: 13, color: 'var(--error)' }}>{error}</span>}
         </div>
       ) : (
         <p style={{ fontSize: 12.5, color: 'var(--body-mid)', margin: '20px 0 0', lineHeight: 1.55 }}>

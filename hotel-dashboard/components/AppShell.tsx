@@ -100,7 +100,7 @@ const FEATURE_MAILTO =
 function BrandMark() {
   return (
     <div className="cr-brand-row" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <MarkSvg size={22} color="#262420" />
+      <MarkSvg size={22} color="var(--ink)" />
       <span
         className="cr-brand-word"
         style={{
@@ -349,7 +349,7 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
           className="cr-lift cr-beta-card"
           style={{
             display: 'block',
-            border: '1px solid #BFD8CC',
+            border: '1px solid var(--line-accent)',
             background: 'var(--top3-tint)',
             borderRadius: 12,
             padding: '13px 14px',
@@ -558,7 +558,7 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
             the full lockup. */}
         <div className="cr-shell-mobilebar">
           <Link href="/dashboard" aria-label="Content Radar home" style={{ display: 'inline-flex', textDecoration: 'none' }}>
-            <MarkSvg size={26} color="#262420" />
+            <MarkSvg size={26} color="var(--ink)" />
           </Link>
           <button
             type="button"

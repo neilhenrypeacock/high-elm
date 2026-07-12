@@ -198,7 +198,7 @@ export default function HotelTable({
         <div role="table" aria-label="Hotel leaderboard">
         {/* Header */}
         <div role="rowgroup">
-        <div role="row" className="cr-lb-row" style={{ ...GRID, background: 'var(--ink)' }}>
+        <div role="row" className="cr-lb-row" style={{ ...GRID, background: 'var(--fill-strong)' }}>
           {COLUMNS.map(col => {
             const active = col.key !== null && sortKey === col.key;
             const headerStyle: React.CSSProperties = {

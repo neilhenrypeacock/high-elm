@@ -7,7 +7,7 @@ import { fmtFollowers } from '@/lib/format';
 import {
   BREAKOUT_HIGHLIGHT,
   type ComparisonPeriod,
-  type GrowthSeries,
+  type GrowthMoment,
   type PeriodPost,
   type YourBreakout,
   type YourHotelData,
@@ -298,8 +298,8 @@ function YourBreakoutCard({ post: p, followers }: { post: YourBreakout; follower
 function StatTiles({ hotel }: { hotel: YourHotelData }) {
   const s = hotel.stats;
   const tileStyle: React.CSSProperties = {
-    background: 'var(--ink)',
-    color: 'var(--surface)',
+    background: 'var(--fill-strong)',
+    color: 'var(--on-dark)',
     padding: '24px 24px 22px',
     display: 'flex',
     flexDirection: 'column',
@@ -387,7 +387,7 @@ function Benchmark({ hotel }: { hotel: YourHotelData }) {
         alignItems: 'flex-start',
         gap: 14,
         background: 'var(--top3-tint)',
-        border: '1px solid #CFE0D6',
+        border: '1px solid var(--line-accent)',
         borderRadius: 14,
         padding: '22px 26px',
       }}
@@ -432,92 +432,171 @@ function Benchmark({ hotel }: { hotel: YourHotelData }) {
   );
 }
 
-// ─── 5 · Growth chart (inline SVG, chart-card idiom from WhatsWorking) ────────
-function GrowthChart({
-  id,
-  title,
-  unit,
-  series,
+// ─── 5 · Growth timeline: the posts that reset the bar ───────────────────────
+// Each moment beat the hotel's OWN average AT THE TIME — priorAverage is the
+// mean of every post before it, so the multiplier is a genuine point-in-time
+// breakout, never flattered by a later, bigger audience.
+function GrowthMomentRow({
+  moment: m,
+  first,
+  last,
 }: {
-  /** Unique per instance — namespaces the SVG gradient id. */
-  id: string;
-  title: string;
-  /** Axis label format: 'k' (thousands) or '%' (percent). */
-  unit: 'k' | '%';
-  series: GrowthSeries;
+  moment: GrowthMoment;
+  first: boolean;
+  last: boolean;
 }) {
-  const W = 560, H = 200, pL = 6, pR = 50, pT = 14, pB = 26;
-  const { values, min, max } = series;
-  const n = values.length;
-  const X = (i: number) => pL + (i / (n - 1)) * (W - pL - pR);
-  const Y = (v: number) => pT + (1 - (v - min) / (max - min)) * (H - pT - pB);
-
-  const line = values.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
-  const area = `M${X(0).toFixed(1)} ${Y(min).toFixed(1)} ${values
-    .map((v, i) => `L${X(i).toFixed(1)} ${Y(v).toFixed(1)}`)
-    .join(' ')} L${X(n - 1).toFixed(1)} ${Y(min).toFixed(1)} Z`;
-
-  const rows = [0, 1, 2, 3, 4];
-  const fmtY = (v: number) => (unit === '%' ? `${v.toFixed(1)}%` : `${Math.round(v)}k`);
-  const lastX = X(n - 1), lastY = Y(values[n - 1]);
+  const mult = m.engagement / m.priorAverage;
+  const DOT = 13; // node diameter; line meets its centre at (top 18 + DOT/2)
+  const cy = 18 + DOT / 2;
 
   return (
-    <div
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--line)',
-        borderRadius: 14,
-        boxShadow: 'var(--shadow-card)',
-        padding: '22px 24px',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
-        <h3
+    <div style={{ display: 'grid', gridTemplateColumns: '56px 26px 1fr', columnGap: 6 }}>
+      {/* date */}
+      <div
+        style={{
+          paddingTop: 16,
+          textAlign: 'right',
+          fontFamily: LABEL,
+          fontSize: 10.5,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          color: last ? 'var(--signal-deep)' : 'var(--muted)',
+          lineHeight: 1.3,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {m.date}
+      </div>
+
+      {/* rail: continuous line drawn as a per-row segment + node */}
+      <div style={{ position: 'relative' }}>
+        <div
           style={{
-            fontFamily: LABEL,
-            fontSize: 10,
-            fontWeight: 400,
-            textTransform: 'uppercase',
-            letterSpacing: '0.16em',
-            color: 'var(--muted)',
-            margin: 0,
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 2,
+            background: 'var(--line)',
+            top: first ? cy : 0,
+            bottom: last ? 'auto' : 0,
+            height: last ? cy : undefined,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: 18,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: DOT,
+            height: DOT,
+            borderRadius: '50%',
+            background: last ? 'var(--signal-deep)' : 'var(--surface)',
+            border: `2px solid var(--signal-deep)`,
+            boxShadow: last ? '0 0 0 4px color-mix(in srgb, var(--signal-deep) 15%, transparent)' : 'none',
+          }}
+        />
+      </div>
+
+      {/* card */}
+      <div style={{ paddingTop: 8, paddingBottom: last ? 0 : 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 14,
+            alignItems: 'center',
+            background: 'var(--surface)',
+            border: '1px solid var(--line)',
+            borderRadius: 12,
+            padding: '12px 14px',
+            boxShadow: 'var(--shadow-card)',
           }}
         >
-          {title}
-        </h3>
-        <div style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 24, color: 'var(--ink)', letterSpacing: '-0.01em' }}>
-          {series.headline}
-          <span style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--signal-deep)', marginLeft: 8, letterSpacing: 0 }}>
-            {series.delta}
+          <span
+            aria-hidden="true"
+            style={{
+              position: 'relative',
+              width: 58,
+              height: 58,
+              borderRadius: 8,
+              flexShrink: 0,
+              overflow: 'hidden',
+              background: m.gradient,
+              boxShadow: 'inset 0 0 0 1px rgba(38,36,32,0.06)',
+            }}
+          >
+            <span
+              style={{
+                position: 'absolute',
+                bottom: 4,
+                left: 4,
+                width: 18,
+                height: 18,
+                borderRadius: 4,
+                background: 'rgba(20,18,15,0.55)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#F7F6F2',
+              }}
+            >
+              <TypeIcon type={m.format} />
+            </span>
+          </span>
+
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <span style={{ display: 'block', fontSize: 13.5, color: 'var(--ink)', fontWeight: 500, lineHeight: 1.35 }}>
+              {m.caption}
+            </span>
+            <span style={{ display: 'block', fontSize: 11.5, color: 'var(--muted)', marginTop: 4 }}>
+              {m.engagement.toLocaleString('en-GB')} engagements ·{' '}
+              <span style={{ whiteSpace: 'nowrap' }}>~{m.priorAverage.toLocaleString('en-GB')} average then</span>
+            </span>
+          </span>
+
+          <span
+            style={{
+              flexShrink: 0,
+              textAlign: 'right',
+              lineHeight: 1.15,
+            }}
+          >
+            <span style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 19, color: 'var(--signal-deep)', letterSpacing: '-0.01em' }}>
+              {mult.toFixed(1)}×
+            </span>
+            <span
+              style={{
+                display: 'block',
+                fontFamily: LABEL,
+                fontSize: 9,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.09em',
+                color: 'var(--muted)',
+                marginTop: 2,
+              }}
+            >
+              your average then
+            </span>
           </span>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={series.ariaLabel} style={{ width: '100%', height: 'auto', display: 'block' }}>
-        <defs>
-          <linearGradient id={`${id}-g`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="var(--signal)" stopOpacity="0.2" />
-            <stop offset="1" stopColor="var(--signal)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {rows.map(r => {
-          const gy = pT + (r / 4) * (H - pT - pB);
-          return <line key={r} x1={pL} y1={gy} x2={W - pR} y2={gy} stroke="var(--track)" strokeWidth="1" />;
-        })}
-        <path d={area} fill={`url(#${id}-g)`} />
-        <path d={line} fill="none" stroke="var(--signal)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={lastX} cy={lastY} r="8" fill="var(--signal-deep)" opacity="0.15" />
-        <circle cx={lastX} cy={lastY} r="4" fill="var(--signal-deep)" />
-        <text x={W - pR + 9} y={Y(max) + 3.5} fontSize="10" fill="var(--faint)">{fmtY(max)}</text>
-        <text x={W - pR + 9} y={Y(min) + 3.5} fontSize="10" fill="var(--faint)">{fmtY(min)}</text>
-        {series.xLabels.map(t => (
-          <text key={t.l} x={X(t.i)} y={H - 7} textAnchor="middle" fontSize="10" fill="var(--faint)">
-            {t.l}
-          </text>
-        ))}
-      </svg>
-
-      <p style={{ marginTop: 14, fontSize: 12.5, color: 'var(--signal-deep)', lineHeight: 1.55 }}>{series.note}</p>
+function GrowthTimeline({ moments }: { moments: GrowthMoment[] }) {
+  return (
+    <div>
+      {moments.map((m, i) => (
+        <GrowthMomentRow
+          key={m.date}
+          moment={m}
+          first={i === 0}
+          last={i === moments.length - 1}
+        />
+      ))}
     </div>
   );
 }
@@ -657,8 +736,8 @@ function Comparison({ hotel }: { hotel: YourHotelData }) {
                 fontSize: 12,
                 fontWeight: 500,
                 fontFamily: 'inherit',
-                background: active ? 'var(--ink)' : 'transparent',
-                color: active ? 'var(--surface)' : 'var(--muted)',
+                background: active ? 'var(--fill-strong)' : 'transparent',
+                color: active ? 'var(--on-dark)' : 'var(--muted)',
                 cursor: active ? 'default' : 'pointer',
                 whiteSpace: 'nowrap',
               }}
@@ -799,7 +878,7 @@ function Comparison({ hotel }: { hotel: YourHotelData }) {
                   fontFamily: 'inherit',
                   color: 'var(--signal-deep)',
                   background: 'var(--surface)',
-                  border: '1px solid #CDD8D3',
+                  border: '1px solid var(--line-accent)',
                   borderRadius: 10,
                   padding: '10px 16px',
                   cursor: 'pointer',
@@ -818,7 +897,7 @@ function Comparison({ hotel }: { hotel: YourHotelData }) {
           display: 'flex',
           gap: 16,
           alignItems: 'flex-start',
-          background: 'var(--ink)',
+          background: 'var(--fill-strong)',
           color: 'var(--on-dark)',
           borderRadius: 14,
           padding: '22px 26px',
@@ -932,19 +1011,22 @@ export default function YourHotel({ hotel }: { hotel: YourHotelData }) {
       <div className="cr-inner" style={sectionPad}>
         <SectionHead
           eyebrow="Your growth"
-          title="The long view"
+          title="The moments that moved you"
           intro={
             <>
               Because this is your hotel, we read your{' '}
-              <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>whole posting history</strong> — not just
-              recent weeks. Here&rsquo;s the shape of it.
+              <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>whole posting history</strong>. These are the
+              posts that jumped — each one measured against your{' '}
+              <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>average at the time</strong>, never against
+              posts you hadn&rsquo;t made yet.
             </>
           }
         />
-        <div className="cr-chart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <GrowthChart id="yh-followers" title="Followers over time" unit="k" series={hotel.growth.followers} />
-          <GrowthChart id="yh-er" title="Engagement rate over time" unit="%" series={hotel.growth.er} />
-        </div>
+        <GrowthTimeline moments={hotel.growthMoments} />
+        <p style={{ marginTop: 22, fontSize: 12.5, color: 'var(--signal-deep)', lineHeight: 1.6, maxWidth: 620 }}>
+          Notice the bar climbing: your average post now earns roughly 5× what it did in 2021. That&rsquo;s your
+          audience compounding — one breakout at a time.
+        </p>
       </div>
 
       <div className="cr-inner" style={INNER}><Rule /></div>
