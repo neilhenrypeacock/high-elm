@@ -288,6 +288,32 @@ export function BreakoutCard({
 
         {/* Content */}
         <div className="cr-card-body" style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
+          {/* Editor's Pick — a curated "worth replicating" flag (standout_posts.editors_pick) */}
+          {p.editors_pick && (
+            <span
+              style={{
+                alignSelf: 'flex-start',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontFamily: LABEL,
+                fontSize: 10,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                color: 'var(--signal-deep)',
+                background: 'var(--top3-tint)',
+                border: '1px solid #BFD8CC',
+                borderRadius: 999,
+                padding: '4px 11px',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: 'block' }}>
+                <path d="M12 2.6l2.7 5.9 6.4.7-4.8 4.3 1.3 6.3L12 16.9 6.4 20.1l1.3-6.3L2.9 9.5l6.4-.7z" />
+              </svg>
+              Editor&rsquo;s Pick
+            </span>
+          )}
           {/* Multiplier */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
             <span
@@ -326,11 +352,33 @@ export function BreakoutCard({
             <AccreditationPins labels={accreditationsFor(p.instagram_handle)} />
           </div>
 
-          {/* Insight */}
+          {/* Editor's note — the manual "what it is / why it worked / try this" write-up */}
           {p.post_insight && (
-            <p style={{ fontSize: 13, color: 'var(--body-strong)', lineHeight: 1.6, margin: '4px 0 0' }}>
-              {p.post_insight}
-            </p>
+            <div
+              style={{
+                background: 'var(--surface-alt)',
+                border: '1px solid var(--line)',
+                borderRadius: 10,
+                padding: '13px 15px',
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: LABEL,
+                  fontSize: 9.5,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.14em',
+                  color: 'var(--signal-deep)',
+                  marginBottom: 6,
+                }}
+              >
+                Editor&rsquo;s note
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--body-strong)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-line' }}>
+                {p.post_insight}
+              </p>
+            </div>
           )}
 
           {/* Likes / Comments pair */}

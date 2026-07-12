@@ -103,6 +103,9 @@ export type OutlierPost = {
    *  tracked handle, OR the AI driver_tag = 'Collaboration'. Does NOT affect
    *  breakout selection or counts — collabs with UNTRACKED accounts stay unflagged. */
   is_collab: boolean;
+  /** Editor's pick — a manually curated "worth replicating" flag, set in
+   *  standout_posts.editors_pick. Shows a subtle badge on the card. */
+  editors_pick: boolean;
 };
 
 export type BarItem = { label: string; value: number; count: number };
@@ -412,7 +415,7 @@ export function computeWhatsWorkingData(
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
-  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
+  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }>,
   standout: Record<TimeWindow, OutlierPost[]>,
 ): WhatsWorkingData {
   const age = (p: RawPost) => now - new Date(p.posted_at).getTime();
@@ -498,7 +501,7 @@ export function computeStandout(
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
-  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
+  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }>,
   limit: number = MAX_STANDOUT_POSTS,
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
@@ -533,6 +536,7 @@ export function computeStandout(
       post_insight:         storedInsight[p.post_id]?.insight ?? null,
       driver_tag:           storedInsight[p.post_id]?.tag ?? null,
       theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
+      editors_pick:         storedInsight[p.post_id]?.editors_pick ?? false,
       // Display-only collab tag — TRUE Instagram Collabs ONLY: posts co-authored
       // by two accounts (the "X and Y" byline), which the scraper exposes as
       // coauthor_usernames. Deliberately NOT caption "collaboration with @…" posts
@@ -579,12 +583,13 @@ export async function getPortfolioData(): Promise<DashboardData> {
     post_insight: string | null;
     driver_tag: string | null;
     theme_tag: string | null;
+    editors_pick: boolean | null;
   };
   const standoutRows: StandoutRow[] = [];
   for (let page = 0; ; page++) {
     const { data, error } = await supabase
       .from('standout_posts')
-      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag')
+      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag, editors_pick')
       .order('post_id')
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (error) {
@@ -645,10 +650,10 @@ export async function getPortfolioData(): Promise<DashboardData> {
 
   // ── Stored image URLs + per-post insights ─────────────────────────────────
   const storedImageUrl: Record<string, string | null> = {};
-  const storedInsight:  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }> = {};
+  const storedInsight:  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }> = {};
   for (const r of standoutRows) {
     storedImageUrl[r.post_id] = r.stored_image_url ?? null;
-    storedInsight[r.post_id]  = { insight: r.post_insight ?? null, tag: r.driver_tag ?? null, theme_tag: r.theme_tag ?? null };
+    storedInsight[r.post_id]  = { insight: r.post_insight ?? null, tag: r.driver_tag ?? null, theme_tag: r.theme_tag ?? null, editors_pick: r.editors_pick ?? false };
   }
 
   // ── Latest followers per handle (snapshots are newest-first) ──────────────

@@ -68,7 +68,7 @@ const NO_META = [{}, {}, {}, {}] as [
   Record<string, string>,
   Record<string, string | null>,
   Record<string, string | null>,
-  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
+  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }>,
 ];
 
 // ─── median / mean ────────────────────────────────────────────────────────────
