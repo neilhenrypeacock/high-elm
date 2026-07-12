@@ -199,7 +199,7 @@ have null `coauthor_usernames` and read as non-collab until then.
 - `hotels` — hotel list with handles, names, regions, countries
 - `profile_snapshots` — follower counts over time (one row per scrape)
 - `posts` — all scraped posts (upserted on the composite `(post_id, instagram_handle)` — see the co-posts section above). `coauthor_usernames text[]` = Instagram's native co-author handles, the primary `is_collab` signal (setup-coauthors.sql).
-- `standout_posts` — per-post AI insights + driver/theme tags (written by generate-insight.js, only ~16 rows as of Jul 2026)
+- `standout_posts` — per-post insights + driver/theme tags + `editors_pick` (written by generate-insight.js, or manually via `instagram-pipeline/set-insight.js` for the weekly editorial flow). `post_insight` renders as the card's **"Editor's note"** callout; `editors_pick` (bool, `setup-editors-pick.sql`) shows a subtle **"Editor's Pick"** badge. Set per post: `node set-insight.js <post_id> --insight "…" --pick`. NB: `getPortfolioData` selects `editors_pick`, so the column must exist before deploying (ordering trap, like coauthor_usernames).
 - `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01; drop candidate)
 - `subscriptions` — Stripe trial/payment state, email-keyed; RLS on with NO policies = service-role only
 - `saved_posts` / `watchlist_hotels` — per-user Save/Watchlist; RLS keyed to auth.uid() (added 9 Jul 2026)
