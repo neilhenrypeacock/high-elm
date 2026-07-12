@@ -57,23 +57,30 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Framed image: shows the whole post at its true aspect ratio (contain), centred,
-// with a blurred, tinted copy of the same image filling the letterbox gaps — a photo
-// in a frame, not a photo trimmed to fit. Instagram posts come in three shapes
-// (Reel 9:16, Carousel/Photo 4:5 or 1:1), so `cover` used to slice tall Reels; `contain`
-// keeps every subject in view. `blur`/`elevated` scale the effect down for small thumbnails.
+// Framed image. Two modes:
+//   • backdrop=true  — whole image at true aspect (contain), centred, over a blurred
+//                      tinted copy of itself that fills the letterbox gaps. Used by the
+//                      landing taster and the Your Hotel cards.
+//   • backdrop=false — the preview FLOATS on the card surface at its true aspect ratio,
+//                      no fill, no crop — a photo dropped on the card. Used by the
+//                      Top-posts breakout cards (the card behind it must be --surface).
+// Instagram posts come in three shapes (Reel 9:16, Carousel/Photo 4:5 or 1:1); `contain`
+// keeps every subject in view. `blur`/`elevated` scale the effect down for thumbnails.
 export function ImageWithFallback({
   src,
   alt,
   fallback,
   blur = 28,
   elevated = true,
+  backdrop = true,
 }: {
   src: string | null;
   alt: string;
   fallback: string;
   blur?: number;
   elevated?: boolean;
+  /** false → float the preview on the card surface (no blurred fill behind it). */
+  backdrop?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
@@ -83,23 +90,25 @@ export function ImageWithFallback({
   return (
     <>
       {/* 1 · blurred backdrop — same image, scaled up so the blur has no transparent edge */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        loading="lazy"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          transform: 'scale(1.15)',
-          filter: `blur(${blur}px) brightness(0.82) saturate(1.05)`,
-        }}
-      />
-      {/* 2 · foreground — whole image at true aspect, centred */}
+      {backdrop && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transform: 'scale(1.15)',
+            filter: `blur(${blur}px) brightness(0.82) saturate(1.05)`,
+          }}
+        />
+      )}
+      {/* 2 · foreground — whole image at true aspect, centred (floats when no backdrop) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -108,7 +117,9 @@ export function ImageWithFallback({
         onError={() => setFailed(true)}
         style={{
           position: 'absolute',
-          inset: 0,
+          // Float mode: a wider inset shrinks the preview "sandbox" so there's
+          // consistent whitespace around it on every side, whatever the aspect.
+          inset: backdrop ? 0 : 44,
           margin: 'auto',
           maxWidth: '100%',
           maxHeight: '100%',
@@ -116,7 +127,11 @@ export function ImageWithFallback({
           height: 'auto',
           objectFit: 'contain',
           display: 'block',
-          ...(elevated ? { boxShadow: '0 6px 22px -8px rgba(0,0,0,0.45)' } : null),
+          ...(backdrop
+            ? elevated
+              ? { boxShadow: '0 6px 22px -8px rgba(0,0,0,0.45)' }
+              : null
+            : { borderRadius: 10, boxShadow: '0 12px 28px -10px rgba(38,36,32,0.34)' }),
         }}
       />
     </>
@@ -243,10 +258,10 @@ export function BreakoutCard({
           target="_blank"
           rel="noopener noreferrer"
           className="cr-card-media"
-          style={{ position: 'relative', minHeight: 400, height: '100%', overflow: 'hidden', display: 'block', background: MEDIA_PLACEHOLDER }}
+          style={{ position: 'relative', minHeight: 400, height: '100%', overflow: 'hidden', display: 'block', background: 'var(--surface)' }}
           aria-label={`View ${p.hotel_name}'s post on Instagram`}
         >
-          <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={MEDIA_PLACEHOLDER} />
+          <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={MEDIA_PLACEHOLDER} backdrop={false} />
           <span style={{ position: 'absolute', top: 14, left: 14 }}>
             <TagChip type={p.type} />
           </span>
@@ -260,7 +275,7 @@ export function BreakoutCard({
                 fontSize: 10,
                 textTransform: 'uppercase',
                 letterSpacing: '0.14em',
-                color: 'rgba(247,246,242,0.4)',
+                color: 'var(--faint)',
               }}
             >
               Rank {String(rank).padStart(2, '0')}
