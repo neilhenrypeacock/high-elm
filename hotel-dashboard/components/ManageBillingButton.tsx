@@ -50,7 +50,7 @@ export default function ManageBillingButton({ disabled }: { disabled?: boolean }
         {status === 'loading' ? 'Opening…' : 'Manage billing'}
       </button>
       {status === 'error' && (
-        <p style={{ fontSize: 13, color: '#B3453B', margin: '12px 0 0', lineHeight: 1.55 }}>{error}</p>
+        <p style={{ fontSize: 13, color: 'var(--error)', margin: '12px 0 0', lineHeight: 1.55 }}>{error}</p>
       )}
     </div>
   );

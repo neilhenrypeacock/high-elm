@@ -45,6 +45,15 @@
   --shadow-nav:    0 10px 34px -10px rgba(20, 18, 15, 0.55);
 
   --line-strong:   #D6D2C8;   /* emphasised borders (ManageBillingButton) */
+
+  /* ── Role tokens (split from overloaded tokens so light/dark can diverge) ──
+     In light mode these equal their origin token, so nothing changes visually.
+     Dark mode (below) gives them their own values. */
+  --fill-strong:   #262420;   /* = --ink used as a DARK feature-surface fill
+                                 (buttons, table headers, stat tiles, toggle pills).
+                                 --ink itself stays "primary text". */
+  --error:         #B3453B;   /* form/validation error text (was hardcoded) */
+  --line-accent:   #CDD8D3;   /* green-tinted hairline (benchmark/filter borders) */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -297,3 +306,93 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) {
   .cr-shell-aside { transition: none; }
 }
+
+/* ═══ Dark mode ════════════════════════════════════════════════════════════════
+   Opt-in via the Settings toggle. An inline script in app/layout.tsx sets
+   data-theme="dark" on <html> before first paint (no light-flash), and the
+   toggle keeps it in sync with localStorage (key: cr-theme).
+
+   SCOPED to the gated app shell (.cr-shell) on purpose: the public marketing
+   pages are seen by logged-out visitors who have no toggle, so they stay light.
+   Overriding the tokens on .cr-shell cascades them to every gated page's cards,
+   tables, panels and account frames.
+
+   DESIGN: the light theme's "dark bands" (hero/footer/stat tiles) are emphasis
+   panels that sit DARKER than the sand page. In dark mode there's nothing darker
+   than the page to invert to, so they become ELEVATED dark surfaces instead —
+   the hierarchy is preserved by lightness, and all the light-on-dark text/borders
+   the components already hardcode stay correct. Greens shift lighter for contrast;
+   the brand logo mark keeps its #2E7357 centre (hardcoded in MarkSvg, untouched). */
+html[data-theme="dark"] .cr-shell {
+  /* Surfaces — warm charcoal, ascending elevation */
+  --page:          #15130E;
+  --surface:       #201D16;   /* cards, top bar, table bodies */
+  --surface-alt:   #262219;   /* zebra rows / stat sub-cells */
+  --surface-alt-2: #2C2820;   /* toggle pill track, chips */
+  --ink:           #ECE8DF;   /* PRIMARY TEXT (was dark; now light) */
+  --ink-deep:      #211E16;   /* hero + footer bands (elevated) */
+  --panel-dark:    #2A261D;   /* by-the-numbers sub-panels */
+  --fill-strong:   #2F2A20;   /* dark buttons / table header / stat tiles */
+
+  /* Signal — lighter racing green so it reads on dark */
+  --signal:        #63B491;
+  --signal-deep:   #8CCAAB;   /* links, eyebrows, deltas (now on dark) */
+  --signal-light:  #A9DBC2;
+
+  /* Text */
+  --muted:         #8C836F;
+  --muted-dark:    #9A9184;
+  --faint:         #6B6558;
+  --body-soft:     #B4AD9F;
+  --body-strong:   #CDC6B8;
+  --body-mid:      #A39C8E;
+  --on-dark:       #F4F1E9;   /* stays light — text on the elevated panels */
+  --on-dark-soft:  #ABA498;
+
+  /* Hairlines & fills */
+  --line:          #322D23;
+  --line-soft:     #2A261D;
+  --line-rule:     #322D23;
+  --line-dark:     rgba(245, 240, 232, 0.12);
+  --row-hover:     #2A261C;
+  --top3-tint:     #1E2A23;   /* green-tinted dark for leaderboard ranks 1–3 */
+  --track:         #2C2820;
+  --bar-mid:       #47433A;
+  --bar-low:       #38352D;
+  --bar-grey:      #524D41;
+  --line-strong:   #3B362B;
+  --line-accent:   #35453D;   /* green-tinted hairline on dark */
+
+  /* Semantics */
+  --error:         #E08C82;   /* brighter so it holds on dark cards */
+
+  /* Shadows — near-black, deeper (dark UIs lean on shadow less; keep some depth) */
+  --shadow-card:   0 1px 2px rgba(0, 0, 0, 0.35), 0 14px 40px -14px rgba(0, 0, 0, 0.55);
+  --shadow-hover:  0 1px 2px rgba(0, 0, 0, 0.40), 0 22px 54px -16px rgba(0, 0, 0, 0.65);
+  --shadow-nav:    0 10px 34px -10px rgba(0, 0, 0, 0.70);
+
+  background: var(--page);
+  color: var(--ink);
+}
+
+/* The shell root also carries .cr-board (ambient glows over a transparent base,
+   which would otherwise show the light body behind). Repaint it dark and soften
+   the glows for the dark ground. */
+html[data-theme="dark"] .cr-board {
+  background:
+    radial-gradient(1100px 700px at 12% 0%, rgba(46, 115, 87, 0.10), transparent 60%),
+    radial-gradient(900px 640px at 88% 42%, rgba(127, 193, 162, 0.06), transparent 55%),
+    var(--page);
+  background-size: 160% 160%;
+  background-attachment: fixed;
+}
+
+/* The <body> is the shell's parent, so the shell-scoped tokens don't reach it —
+   keep the base page dark so scroll/overscroll never reveals a light band behind
+   the gated shell. Literal value (not var(--page), which is still light on body).
+   Public marketing pages paint their own full-height light --page root over this,
+   so a logged-out visitor still sees them light. */
+html[data-theme="dark"] body { background: #15130E; }
+
+/* Expander hover uses a hardcoded light cyan tint that flashes on dark — retint. */
+html[data-theme="dark"] .cr-expander:hover { background: var(--surface-alt-2); }

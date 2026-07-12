@@ -156,8 +156,8 @@ export default function ProfileForm({
               fontSize: 14,
               fontWeight: 600,
               color: '#F7F6F2',
-              background: 'var(--ink)',
-              border: '1px solid var(--ink)',
+              background: 'var(--fill-strong)',
+              border: '1px solid var(--fill-strong)',
               borderRadius: 10,
               padding: '12px 26px',
               cursor: status === 'saving' || !dirty ? 'default' : 'pointer',
@@ -170,7 +170,7 @@ export default function ProfileForm({
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-deep)' }}>Saved ✓</span>
           )}
           {status === 'error' && (
-            <span style={{ fontSize: 13, color: '#B3453B' }}>{error}</span>
+            <span style={{ fontSize: 13, color: 'var(--error)' }}>{error}</span>
           )}
         </div>
       ) : (

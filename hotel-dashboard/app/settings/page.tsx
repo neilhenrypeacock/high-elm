@@ -1,6 +1,7 @@
 import AppShell from '@/components/AppShell';
 import AccountFrame from '@/components/AccountFrame';
 import ManageBillingButton from '@/components/ManageBillingButton';
+import ThemeToggle from '@/components/ThemeToggle';
 import { requireActiveUser, displayName } from '@/lib/require-access';
 import type { SubscriptionStatus } from '@/lib/subscriptions';
 import { fmtDate } from '@/lib/format';
@@ -19,7 +20,7 @@ const STATUS_LABEL: Record<SubscriptionStatus, string> = {
 const STATUS_TONE: Record<SubscriptionStatus, string> = {
   trialing: 'var(--signal-deep)',
   active: 'var(--signal-deep)',
-  past_due: '#B3453B',
+  past_due: 'var(--error)',
   canceled: 'var(--body-mid)',
 };
 
@@ -103,6 +104,15 @@ export default async function SettingsPage() {
               Update your card, download invoices, or cancel — all in Stripe’s secure portal.
             </p>
             <ManageBillingButton disabled={!subscription?.stripe_customer_id} />
+          </section>
+
+          {/* ── Appearance ── */}
+          <section style={cardStyle}>
+            <CardTitle>Appearance</CardTitle>
+            <p style={{ fontSize: 13.5, color: 'var(--body-soft)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              How Content Radar looks on this device.
+            </p>
+            <ThemeToggle />
           </section>
         </div>
       </AccountFrame>

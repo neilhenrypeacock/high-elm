@@ -66,7 +66,7 @@ export default function EmptyState({
             fontWeight: 600,
             textDecoration: 'none',
             color: '#F7F6F2',
-            background: 'var(--ink)',
+            background: 'var(--fill-strong)',
             borderRadius: 10,
             padding: '12px 26px',
           }}

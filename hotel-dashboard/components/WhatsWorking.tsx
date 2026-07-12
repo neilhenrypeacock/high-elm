@@ -131,7 +131,7 @@ function ScopeToggle({ value, onChange }: { value: WwScope; onChange: (s: WwScop
               fontSize: 12,
               fontWeight: 500,
               fontFamily: 'inherit',
-              background: active ? 'var(--ink)' : 'transparent',
+              background: active ? 'var(--fill-strong)' : 'transparent',
               color: active ? 'var(--surface)' : 'var(--muted)',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
@@ -162,7 +162,7 @@ function StatBar({ stats }: { stats: WwStat[] }) {
       }}
     >
       {stats.map(s => (
-        <div key={s.caption} style={{ background: 'var(--ink)', color: 'var(--surface)', padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div key={s.caption} style={{ background: 'var(--fill-strong)', color: 'var(--on-dark)', padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <span style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 34, lineHeight: 1, color: 'var(--signal)' }}>{s.figure}</span>
           <span style={{ fontFamily: LABEL, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.13em', color: 'var(--muted-dark)', lineHeight: 1.4 }}>
             {s.caption}
@@ -299,7 +299,7 @@ export default function WhatsWorkingPanel({
         <button
           onClick={() => setShowDetail(v => !v)}
           className="cr-expander"
-          style={{ fontSize: 12, fontWeight: 500, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'var(--surface)', border: '1px solid #CDD8D3', borderRadius: 10, padding: '11px 24px', cursor: 'pointer' }}
+          style={{ fontSize: 12, fontWeight: 500, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'var(--surface)', border: '1px solid var(--line-accent)', borderRadius: 10, padding: '11px 24px', cursor: 'pointer' }}
         >
           {showDetail ? 'Hide detail ↑' : 'Show more detail ↓'}
         </button>

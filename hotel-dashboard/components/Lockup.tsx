@@ -29,8 +29,11 @@ export default function Lockup({
   const endoSize = endorsementSize ?? wm * 0.172;
   const endoGap = wm * 0.03;
 
-  const inkColor = onDark ? '#F7F6F2' : '#262420';
-  const mutedColor = onDark ? '#8C867B' : '#9A8F7E';
+  // Tokens (not hex) so the lockup follows dark mode: on a light surface --ink is
+  // dark and flips light in dark mode, keeping the wordmark legible either way.
+  // onDark forces the light-on-dark pair for lockups that sit on dark bands.
+  const inkColor = onDark ? 'var(--on-dark)' : 'var(--ink)';
+  const mutedColor = onDark ? 'var(--muted-dark)' : 'var(--muted)';
 
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column' }}>

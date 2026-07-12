@@ -168,7 +168,7 @@ export default function WelcomeOverlay() {
               fontSize: 14,
               fontWeight: 600,
               color: '#F7F6F2',
-              background: 'var(--ink)',
+              background: 'var(--fill-strong)',
               border: '1px solid var(--ink)',
               borderRadius: 10,
               padding: '11px 24px',

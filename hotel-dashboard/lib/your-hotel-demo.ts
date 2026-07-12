@@ -72,17 +72,28 @@ export interface ComparisonPeriod {
   insight: { text: string; action: string };
 }
 
-export interface GrowthSeries {
-  /** Evenly-spaced samples, oldest → newest. */
-  values: number[];
-  min: number;
-  max: number;
-  /** Sparse x labels: index into `values` + label. */
-  xLabels: { i: number; l: string }[];
-  headline: string;
-  delta: string;
-  note: string;
-  ariaLabel: string;
+/**
+ * One breakout moment on the growth timeline — a post that beat the hotel's
+ * OWN running average AT THE TIME it went up. The multiplier is deliberately
+ * point-in-time: `engagement / priorAverage`, where `priorAverage` is the mean
+ * engagement across every post published BEFORE this one — never posts that
+ * came after. So a moment that reads 3.3× was a genuine 3.3× breakout the day
+ * it landed, not a number flattered by a later, bigger audience.
+ */
+export interface GrowthMoment {
+  /** Display date, e.g. "Aug 2021". */
+  date: string;
+  format: PostFormat;
+  /** CSS gradient standing in for the post image until real scraping lands. */
+  gradient: string;
+  /** Short scene description shown over the media (alt-text-ish). */
+  scene: string;
+  /** First line of the caption. */
+  caption: string;
+  /** This post's engagement (likes + comments). */
+  engagement: number;
+  /** Mean engagement across every post BEFORE this one — the bar at the time. */
+  priorAverage: number;
 }
 
 export interface YourHotelData {
@@ -103,7 +114,8 @@ export interface YourHotelData {
   };
   benchmark: { er: number; networkMedianEr: number };
   breakouts: YourBreakout[];
-  growth: { followers: GrowthSeries; er: GrowthSeries };
+  /** Key breakout moments, oldest → newest — the posts that moved the needle. */
+  growthMoments: GrowthMoment[];
   comparison: { week: ComparisonPeriod[]; month: ComparisonPeriod[] };
   working: { strong: string; rest: string }[];
 }
@@ -307,6 +319,45 @@ const MONTHS: ComparisonPeriod[] = [
   },
 ];
 
+// ─── Growth timeline: the posts that reset the bar ───────────────────────────
+// priorAverage climbs 360 → 1,850 across the run — that ratchet IS the growth
+// story, told through the posts that drove it. The final moment ties to the top
+// breakout above (Sunrise: 6,240 likes + 287 comments = 6,527 = stats.bestOnRecord)
+// and its priorAverage (1,850) equals stats.typicalEngagement, so the numbers
+// reconcile if a reader goes looking.
+const GROWTH_MOMENTS: GrowthMoment[] = [
+  {
+    date: 'Aug 2021', format: 'Reel', gradient: G.amber, scene: 'Golden hour in the lobby',
+    caption: 'Our first real attempt at video — golden hour in the lobby.',
+    engagement: 1180, priorAverage: 360,
+  },
+  {
+    date: 'Mar 2022', format: 'Reel', gradient: G.pastry, scene: 'The pastry kitchen, pre-dawn',
+    caption: 'How the pastry team folds 200 layers before sunrise.',
+    engagement: 1940, priorAverage: 640,
+  },
+  {
+    date: 'Dec 2022', format: 'Photo', gradient: G.dusk, scene: 'First snow on the terrace',
+    caption: 'First snow settling on the terrace at dusk.',
+    engagement: 2520, priorAverage: 980,
+  },
+  {
+    date: 'Aug 2023', format: 'Carousel', gradient: G.garden, scene: 'The Garden Suite terrace',
+    caption: 'Inside the Garden Suite — a private terrace above the rooftops.',
+    engagement: 3480, priorAverage: 1240,
+  },
+  {
+    date: 'Jun 2024', format: 'Reel', gradient: G.como, scene: 'Negroni hour on the roof',
+    caption: 'Negroni hour, six floors above the city.',
+    engagement: 4760, priorAverage: 1520,
+  },
+  {
+    date: 'Jul 2026', format: 'Reel', gradient: G.sunrise, scene: 'Rooftop pool at first light',
+    caption: 'Sunrise on the rooftop, and the whole city still asleep.',
+    engagement: 6527, priorAverage: 1850,
+  },
+];
+
 // ─── The demo hotel ──────────────────────────────────────────────────────────
 export const DEMO_HOTEL: YourHotelData = {
   name: 'The Lansmere',
@@ -326,24 +377,7 @@ export const DEMO_HOTEL: YourHotelData = {
   },
   benchmark: { er: 3.1, networkMedianEr: 2.4 },
   breakouts: BREAKOUTS,
-  growth: {
-    followers: {
-      values: [31, 34.5, 38.2, 41, 44.6, 48.2, 51.4, 53.9, 56.2, 58.4, 60.1, 61.2, 61.9, 62.4],
-      min: 28, max: 66,
-      xLabels: [{ i: 0, l: '2021' }, { i: 3, l: "'22" }, { i: 5, l: "'23" }, { i: 8, l: "'24" }, { i: 11, l: "'25" }, { i: 13, l: "'26" }],
-      headline: '62.4k', delta: '+31.4k since 2021',
-      note: 'You’ve nearly doubled your audience since 2021 — a steady climb, no bought spikes.',
-      ariaLabel: 'Followers grew from about 31 thousand in 2021 to 62.4 thousand in 2026',
-    },
-    er: {
-      values: [2.2, 2.4, 2.5, 2.7, 2.6, 2.8, 2.9, 3.0, 2.9, 3.1, 3.0, 3.2, 3.1, 3.1],
-      min: 2.0, max: 3.4,
-      xLabels: [{ i: 0, l: '2021' }, { i: 3, l: "'22" }, { i: 5, l: "'23" }, { i: 8, l: "'24" }, { i: 11, l: "'25" }, { i: 13, l: "'26" }],
-      headline: '3.1%', delta: 'up from 2.2%',
-      note: 'Rare at your size: your engagement rate rose as you grew, instead of thinning out.',
-      ariaLabel: 'Engagement rate rose from 2.2 percent in 2021 to 3.1 percent in 2026',
-    },
-  },
+  growthMoments: GROWTH_MOMENTS,
   comparison: { week: WEEKS, month: MONTHS },
   working: [
     {
