@@ -433,7 +433,19 @@ function Benchmark({ hotel }: { hotel: YourHotelData }) {
 }
 
 // ─── 5 · Growth chart (inline SVG, chart-card idiom from WhatsWorking) ────────
-function GrowthChart({ id, series }: { id: string; series: GrowthSeries }) {
+function GrowthChart({
+  id,
+  title,
+  unit,
+  series,
+}: {
+  /** Unique per instance — namespaces the SVG gradient id. */
+  id: string;
+  title: string;
+  /** Axis label format: 'k' (thousands) or '%' (percent). */
+  unit: 'k' | '%';
+  series: GrowthSeries;
+}) {
   const W = 560, H = 200, pL = 6, pR = 50, pT = 14, pB = 26;
   const { values, min, max } = series;
   const n = values.length;
@@ -446,7 +458,7 @@ function GrowthChart({ id, series }: { id: string; series: GrowthSeries }) {
     .join(' ')} L${X(n - 1).toFixed(1)} ${Y(min).toFixed(1)} Z`;
 
   const rows = [0, 1, 2, 3, 4];
-  const fmtY = (v: number) => (id.includes('er') ? `${v.toFixed(1)}%` : `${Math.round(v)}k`);
+  const fmtY = (v: number) => (unit === '%' ? `${v.toFixed(1)}%` : `${Math.round(v)}k`);
   const lastX = X(n - 1), lastY = Y(values[n - 1]);
 
   return (
@@ -471,7 +483,7 @@ function GrowthChart({ id, series }: { id: string; series: GrowthSeries }) {
             margin: 0,
           }}
         >
-          {id.includes('er') ? 'Engagement rate over time' : 'Followers over time'}
+          {title}
         </h3>
         <div style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 24, color: 'var(--ink)', letterSpacing: '-0.01em' }}>
           {series.headline}
@@ -930,8 +942,8 @@ export default function YourHotel({ hotel }: { hotel: YourHotelData }) {
           }
         />
         <div className="cr-chart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <GrowthChart id="yh-followers" series={hotel.growth.followers} />
-          <GrowthChart id="yh-er" series={hotel.growth.er} />
+          <GrowthChart id="yh-followers" title="Followers over time" unit="k" series={hotel.growth.followers} />
+          <GrowthChart id="yh-er" title="Engagement rate over time" unit="%" series={hotel.growth.er} />
         </div>
       </div>
 
