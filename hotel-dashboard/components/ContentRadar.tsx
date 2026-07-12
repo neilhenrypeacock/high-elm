@@ -117,12 +117,15 @@ export function ImageWithFallback({
         onError={() => setFailed(true)}
         style={{
           position: 'absolute',
-          // Float mode: a wider inset shrinks the preview "sandbox" so there's
-          // consistent whitespace around it on every side, whatever the aspect.
-          inset: backdrop ? 0 : 44,
+          inset: 0,
           margin: 'auto',
-          maxWidth: '100%',
-          maxHeight: '100%',
+          // Float mode: cap the preview BELOW the frame size so it always keeps a
+          // margin on every side. An inset alone doesn't work — maxWidth/Height:100%
+          // resolve against the whole frame, so a contained image scales to the
+          // edges. Capping at calc(100% − 88px) + margin:auto centres it with a
+          // guaranteed 44px of breathing room per side, whatever the aspect ratio.
+          maxWidth: backdrop ? '100%' : 'calc(100% - 88px)',
+          maxHeight: backdrop ? '100%' : 'calc(100% - 88px)',
           width: 'auto',
           height: 'auto',
           objectFit: 'contain',
