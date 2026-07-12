@@ -1,6 +1,7 @@
 import AppShell from '@/components/AppShell';
 import AccountFrame from '@/components/AccountFrame';
 import ProfileForm from '@/components/ProfileForm';
+import SetPasswordForm from '@/components/SetPasswordForm';
 import { requireActiveUser, displayName, hotelName } from '@/lib/require-access';
 
 export const metadata = {
@@ -25,6 +26,7 @@ export default async function ProfilePage() {
           email={user?.email ?? ''}
           editable={!!user}
         />
+        <SetPasswordForm editable={!!user} />
       </AccountFrame>
     </AppShell>
   );
