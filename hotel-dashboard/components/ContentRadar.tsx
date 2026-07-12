@@ -117,7 +117,9 @@ export function ImageWithFallback({
         onError={() => setFailed(true)}
         style={{
           position: 'absolute',
-          inset: backdrop ? 0 : 26,
+          // Float mode: a wider inset shrinks the preview "sandbox" so there's
+          // consistent whitespace around it on every side, whatever the aspect.
+          inset: backdrop ? 0 : 44,
           margin: 'auto',
           maxWidth: '100%',
           maxHeight: '100%',
