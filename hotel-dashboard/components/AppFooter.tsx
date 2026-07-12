@@ -35,7 +35,7 @@ export default function AppFooter({ note }: { note?: string }) {
           gap: 24,
         }}
       >
-        <Lockup variant="primary" size={30} onDark />
+        <Lockup variant="primary" size={24} onDark endorsementSize={9} endorsementWeight={600} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 26, flexWrap: 'wrap' }}>
           <Link href="/how-it-works" className="cr-footlink" style={footLink}>
             How it works

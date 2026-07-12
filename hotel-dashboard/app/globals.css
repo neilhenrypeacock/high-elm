@@ -240,6 +240,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .cr-shell-navitem[data-active="true"] { background: var(--surface-alt-2); }
 .cr-collapse-chevron { transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
 
+/* Beta feedback card: full card by default; on the collapsed desktop rail it
+   swaps for an icon-only button (the card would overflow the 76px rail). */
+.cr-beta-rail { display: none; }
+
 /* Desktop rail (collapsed) — only ≥861px; on mobile the aside is a full drawer,
    so the collapse never shrinks it. The transition is gated on --ready so the
    restored choice paints instantly on load (no collapse animation on refresh). */
@@ -253,6 +257,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .cr-shell--collapsed .cr-navlabel,
   .cr-shell--collapsed .cr-member-text,
   .cr-shell--collapsed .cr-subnav { display: none; }
+  .cr-shell--collapsed .cr-beta-card { display: none; }
+  .cr-shell--collapsed .cr-beta-rail { display: flex; }
 }
 
 @media (max-width: 860px) {

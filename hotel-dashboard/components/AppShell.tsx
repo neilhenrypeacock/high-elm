@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MarkSvg from './MarkSvg';
 import AppFooter from './AppFooter';
-import PageInfoModal, { resolveInfoKey } from './PageInfo';
+import PageInfoModal, { resolveInfoKey, type InfoKey } from './PageInfo';
 
 // Gated-area shell: fixed left sidebar on desktop, off-canvas drawer on mobile.
 // Wraps existing gated pages (dashboard, saved, watchlist, settings, profile)
@@ -129,9 +129,12 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
   const [open, setOpen] = useState(false); // mobile drawer
   const [collapsed, setCollapsed] = useState(false); // desktop rail
   const [ready, setReady] = useState(false); // gates the width transition until after first paint
-  const [infoOpen, setInfoOpen] = useState(false); // "explain this page" modal
+  const [infoOpen, setInfoOpen] = useState(false); // "about this view" modal
+  const [infoView, setInfoView] = useState<InfoKey | null>(null); // explicit view for the per-item "i" buttons
   const [hash, setHash] = useState(''); // tracks the active dashboard section
   const close = () => setOpen(false);
+  const openInfo = (view: InfoKey | null) => { setInfoView(view); setInfoOpen(true); close(); };
+  const closeInfo = () => { setInfoOpen(false); setInfoView(null); };
 
   // Track the URL hash so the "i" explainer follows the active dashboard section
   // (the section links are plain #hash anchors, so hashchange fires on click).
@@ -208,10 +211,12 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
       </div>
 
       <nav style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* "i" — explain the current page in a biggish modal */}
+        {/* "i" — explain the current page. Account pages only; the dashboard has
+            per-view "i" buttons in the sub-nav below. */}
+        {!onDashboard && (
         <button
           type="button"
-          onClick={() => { setInfoOpen(true); close(); }}
+          onClick={() => openInfo(null)}
           title={collapsed ? 'About this page' : undefined}
           className="cr-shell-navitem cr-info-navitem"
           style={{
@@ -252,6 +257,7 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
           </span>
           <span className="cr-navlabel">About this page</span>
         </button>
+        )}
 
         {navItem('/dashboard', 'Dashboard', DashboardIcon)}
 
@@ -268,25 +274,61 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
               gap: 1,
             }}
           >
-            {DASHBOARD_SECTIONS.map((s) => (
-              <a
-                key={s.href}
-                href={s.href}
-                onClick={close}
-                className="cr-shell-navitem"
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  fontSize: 12.5,
-                  fontWeight: 500,
-                  color: 'var(--body-soft)',
-                  textDecoration: 'none',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {s.label}
-              </a>
-            ))}
+            {DASHBOARD_SECTIONS.map((s) => {
+              const secActive = `#${hash.replace(/^#/, '') || 'overview'}` === s.href;
+              const secKey = s.href.replace(/^#/, '') as InfoKey;
+              return (
+                <div key={s.href} style={{ display: 'flex', alignItems: 'center' }}>
+                  <a
+                    href={s.href}
+                    onClick={close}
+                    aria-current={secActive ? 'true' : undefined}
+                    className="cr-shell-navitem"
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      fontSize: 12.5,
+                      fontWeight: secActive ? 700 : 500,
+                      color: secActive ? 'var(--signal-deep)' : 'var(--body-soft)',
+                      textDecoration: 'none',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {s.label}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => openInfo(secKey)}
+                    className="cr-shell-navitem cr-subnav-info"
+                    title="About this view"
+                    aria-label={`About ${s.label}`}
+                    style={{
+                      flex: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: 'transparent',
+                      color: 'var(--muted)',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="9.2" stroke="currentColor" strokeWidth="1.7" />
+                      <circle cx="12" cy="8" r="1.05" fill="currentColor" />
+                      <path d="M12 11.2v5.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -299,26 +341,69 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
 
       <div style={{ flex: 1 }} />
 
-      {/* Request a feature — folded in from the old floating nav */}
-      <div style={{ padding: '0 12px' }}>
+      {/* Help shape Content Radar — the beta feedback card (folded in from the old
+          floating nav). Collapses to an icon-only rail button on the desktop rail. */}
+      <div style={{ padding: '8px 12px 4px' }}>
         <a
           href={FEATURE_MAILTO}
-          title={collapsed ? 'Request a feature' : undefined}
-          className="cr-shell-navitem"
+          className="cr-lift cr-beta-card"
           style={{
-            display: 'flex',
+            display: 'block',
+            border: '1px solid #BFD8CC',
+            background: 'var(--top3-tint)',
+            borderRadius: 12,
+            padding: '13px 14px',
+            textDecoration: 'none',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 7 }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontFamily: 'var(--font-body), sans-serif',
+                fontWeight: 600,
+                fontSize: 9,
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                color: 'var(--surface)',
+                background: 'var(--signal-deep)',
+                borderRadius: 5,
+                padding: '3px 7px',
+              }}
+            >
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--signal-light)' }} />
+              Beta
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+              <path d="M5 5.5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9.5L5.5 20v-3.5H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z" stroke="var(--signal-deep)" strokeWidth="1.7" strokeLinejoin="round" />
+              <path d="M12 8.6v4.2M9.9 10.7h4.2" stroke="var(--signal-deep)" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.3 }}>
+            Help shape Content Radar
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--signal-deep)', fontWeight: 500, marginTop: 3 }}>
+            Request a feature →
+          </div>
+        </a>
+
+        {/* Icon-only fallback shown only on the collapsed desktop rail */}
+        <a
+          href={FEATURE_MAILTO}
+          title="Request a feature"
+          className="cr-shell-navitem cr-beta-rail"
+          aria-label="Request a feature"
+          style={{
             alignItems: 'center',
-            gap: 11,
+            justifyContent: 'center',
             padding: '10px 12px',
             borderRadius: 10,
             textDecoration: 'none',
-            fontSize: 14,
-            fontWeight: 500,
-            color: 'var(--body-soft)',
           }}
         >
           <FeatureIcon />
-          <span className="cr-navlabel">Request a feature</span>
         </a>
       </div>
 
@@ -507,7 +592,7 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
         <AppFooter note={footerNote} />
       </div>
 
-      <PageInfoModal open={infoOpen} infoKey={infoKey} onClose={() => setInfoOpen(false)} />
+      <PageInfoModal open={infoOpen} infoKey={infoView ?? infoKey} onClose={closeInfo} />
     </div>
   );
 }

@@ -10,13 +10,23 @@ interface LockupProps {
   variant?: 'primary' | 'secondary';
   size?: number; // wordmark font-size in px (default 28)
   onDark?: boolean;
+  /** Override the endorsement font-size (px). Defaults to the locked 0.172× ratio.
+   *  The footer uses a larger, bolder endorsement for legibility at small scale. */
+  endorsementSize?: number;
+  endorsementWeight?: number;
 }
 
-export default function Lockup({ variant = 'secondary', size = 28, onDark = false }: LockupProps) {
+export default function Lockup({
+  variant = 'secondary',
+  size = 28,
+  onDark = false,
+  endorsementSize,
+  endorsementWeight = 400,
+}: LockupProps) {
   const wm = size;
   const markSize = wm * 0.724;
   const gap = wm * 0.207;
-  const endoSize = wm * 0.172;
+  const endoSize = endorsementSize ?? wm * 0.172;
   const endoGap = wm * 0.03;
 
   const inkColor = onDark ? '#F7F6F2' : '#262420';
@@ -55,7 +65,7 @@ export default function Lockup({ variant = 'secondary', size = 28, onDark = fals
             // the shorthand dropped font-size, so this line inherited ~14px and blew
             // out of place under the wordmark.
             fontFamily: "var(--font-label), 'Hanken Grotesk', sans-serif",
-            fontWeight: 400,
+            fontWeight: endorsementWeight,
             fontSize: endoSize,
             lineHeight: 1,
             letterSpacing: '0.15em',

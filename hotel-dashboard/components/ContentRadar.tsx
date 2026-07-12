@@ -5,6 +5,8 @@ import type { OutlierPost, TimeWindow } from '@/lib/data';
 import { TIME_WINDOWS } from '@/lib/data';
 import { postKey } from '@/lib/post-key';
 import { fmtFollowers, fmtPostedAt } from '@/lib/format';
+import { accreditationsFor } from '@/lib/accreditations';
+import { AccreditationPins } from './HotelTable';
 import SaveToggle from './SaveToggle';
 
 // Save control for a post — same bodies/endpoint everywhere so the affordance is
@@ -303,6 +305,7 @@ export function BreakoutCard({
               {p.hotel_name}
             </div>
             {meta && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 5 }}>{meta}</div>}
+            <AccreditationPins labels={accreditationsFor(p.instagram_handle)} />
           </div>
 
           {/* Insight */}

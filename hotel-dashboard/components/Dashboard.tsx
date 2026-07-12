@@ -1,12 +1,31 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { DashboardData } from '@/lib/data';
+import type { DashboardData, HotelRow } from '@/lib/data';
+import { fmtFollowers } from '@/lib/format';
 import ContentRadar from './ContentRadar';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
 
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
+const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
+
+// The lists every tracked hotel is drawn from — shown on the overview so members
+// can see the sourcing is the industry's own, not ours.
+const SOURCES: { name: string; sub: string }[] = [
+  { name: 'Forbes Travel Guide', sub: 'Five-star list' },
+  { name: 'Condé Nast Traveller', sub: 'Gold List' },
+  { name: 'The World’s 50 Best Hotels', sub: 'Annual ranking' },
+  { name: 'Michelin Keys', sub: 'UK & Ireland' },
+];
+
+function nameInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '·';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+const normHandle = (h: string) => h.trim().toLowerCase().replace(/^@/, '').replace(/\/+$/, '');
 
 // Content width cap applied inside every band
 const INNER: React.CSSProperties = {
@@ -84,8 +103,220 @@ function weekInFocus(data: DashboardData): React.ReactNode[] {
   return bullets.slice(0, 5);
 }
 
+// Shared panel chrome for the two lower overview cards (watchlist / sources).
+const PANEL: React.CSSProperties = {
+  border: '1px solid rgba(245,240,232,0.13)',
+  borderRadius: 14,
+  background: 'var(--panel-dark)',
+  overflow: 'hidden',
+};
+const PANEL_LABEL: React.CSSProperties = {
+  fontFamily: LABEL,
+  fontSize: 10,
+  textTransform: 'uppercase',
+  letterSpacing: '0.2em',
+  color: 'var(--muted-dark)',
+};
+
+// ─── Your watchlist — the member's followed hotels, or an empty-state nudge ────
+function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: string[] }) {
+  const wanted = new Set(handles.map(normHandle));
+  const rows = hotels.filter(h => wanted.has(normHandle(h.instagram_handle)));
+
+  return (
+    <div style={PANEL}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          padding: '22px 26px',
+          borderBottom: '1px solid rgba(245,240,232,0.10)',
+        }}
+      >
+        <span style={PANEL_LABEL}>Your watchlist</span>
+        <a
+          href="#leaderboard"
+          style={{
+            fontFamily: LABEL,
+            fontSize: 10,
+            textTransform: 'uppercase',
+            letterSpacing: '0.14em',
+            color: 'var(--signal-light)',
+            textDecoration: 'none',
+          }}
+        >
+          Manage →
+        </a>
+      </div>
+
+      {rows.length > 0 ? (
+        <div>
+          {rows.map((h, i) => {
+            const followersStr = fmtFollowers(h.followers_count);
+            const sub = [h.region, followersStr !== '—' ? `${followersStr} followers` : null]
+              .filter(Boolean)
+              .join(' · ');
+            const note = h.engagement_rate != null ? `${h.engagement_rate.toFixed(2)}% eng.` : null;
+            return (
+              <div
+                key={h.instagram_handle}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 16,
+                  padding: '16px 26px',
+                  borderBottom: i < rows.length - 1 ? '1px solid rgba(245,240,232,0.08)' : 'none',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    flex: 'none',
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: 'rgba(245,240,232,0.06)',
+                    color: 'var(--signal-light)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: DISPLAY,
+                    fontWeight: 700,
+                    fontSize: 12,
+                  }}
+                >
+                  {nameInitials(h.name)}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: '#F7F6F2',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {h.name}
+                  </span>
+                  {sub && (
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--muted-dark)', marginTop: 1 }}>
+                      {sub}
+                    </span>
+                  )}
+                </span>
+                {note && <span style={{ fontSize: 13, color: '#CFC9BE', textAlign: 'right' }}>{note}</span>}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: '40px 26px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: 14,
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              border: '1px solid rgba(245,240,232,0.16)',
+              color: 'var(--signal-light)',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+              <circle cx="12" cy="12" r="2.6" stroke="currentColor" strokeWidth="1.7" />
+            </svg>
+          </span>
+          <div style={{ maxWidth: 360 }}>
+            <div style={{ fontSize: 15, fontWeight: 500, color: '#F7F6F2', marginBottom: 6 }}>
+              Nothing on your watchlist yet
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.6, color: '#A49D92', margin: 0 }}>
+              Follow the hotels you care about and their breakouts surface here first, every week.
+            </p>
+          </div>
+          <a
+            href="#leaderboard"
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              background: '#F7F6F2',
+              borderRadius: 10,
+              padding: '10px 20px',
+              textDecoration: 'none',
+            }}
+          >
+            Browse the leaderboard →
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Sources crawled — the industry lists every tracked hotel is drawn from ────
+function SourcesPanel() {
+  return (
+    <div style={PANEL}>
+      <div style={{ padding: '22px 26px', borderBottom: '1px solid rgba(245,240,232,0.10)' }}>
+        <div style={{ ...PANEL_LABEL, marginBottom: 8 }}>Sources crawled</div>
+        <p style={{ fontSize: 13, lineHeight: 1.6, color: '#A49D92', margin: 0, maxWidth: 560 }}>
+          You don’t have to trust us — just the lists the industry already trusts. Every tracked hotel is
+          drawn from these.
+        </p>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, padding: '20px 26px 24px' }}>
+        {SOURCES.map(src => (
+          <span
+            key={src.name}
+            style={{
+              display: 'inline-flex',
+              flexDirection: 'column',
+              gap: 2,
+              background: 'rgba(245,240,232,0.05)',
+              border: '1px solid rgba(245,240,232,0.13)',
+              borderRadius: 8,
+              padding: '10px 14px',
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#F7F6F2', lineHeight: 1.2 }}>{src.name}</span>
+            <span
+              style={{
+                fontFamily: LABEL,
+                fontSize: 9,
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                color: 'var(--muted-dark)',
+              }}
+            >
+              {src.sub}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── This week — full-screen dark signal band ─────────────────────────────────
-function Hero({ data }: { data: DashboardData }) {
+function Hero({ data, watchlistHandles }: { data: DashboardData; watchlistHandles: string[] }) {
   const stats = [
     { figure: <>{data.hotel_count}<span style={{ color: 'var(--signal)' }}>+</span></>, caption: '5-star hotels' },
     { figure: <>{data.countries_count}</>, caption: 'Countries' },
@@ -255,6 +486,12 @@ function Hero({ data }: { data: DashboardData }) {
             )}
           </div>
         </div>
+
+        {/* ── Your watchlist ── */}
+        <WatchlistPanel hotels={data.hotels} handles={watchlistHandles} />
+
+        {/* ── Sources crawled ── */}
+        <SourcesPanel />
       </div>
     </div>
   );
@@ -306,7 +543,7 @@ export default function Dashboard({
   return (
     <div className="cr-board">
       {/* ── This week (overview) ── */}
-      {active === 'overview' && <Hero data={data} />}
+      {active === 'overview' && <Hero data={data} watchlistHandles={watchlistHandles} />}
 
       {/* ── Top posts — filters then posts, no heading copy ── */}
       {active === 'breakouts' && (
@@ -318,11 +555,7 @@ export default function Dashboard({
       {/* ── What's working ── */}
       {active === 'working' && (
         <div className="cr-inner" style={sectionPad}>
-          <WhatsWorkingPanel
-            whatsWorking={data.whatsWorking}
-            snapshot={data.snapshot}
-            frequency={data.frequency}
-          />
+          <WhatsWorkingPanel data={data.whatsWorkingData} frequency={data.frequency} />
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import { getSupabase } from './supabase';
 import { accreditationsFor } from './accreditations';
+import { fmtFollowers } from './format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Shared "recent window" — the leaderboard ER and the breakout baseline both use
@@ -119,11 +120,37 @@ export type Snapshot = {
   median_followers: number | null;
 };
 
+// ── What's Working — holistic portfolio analysis, scoped Last-30-days / All-time.
+export type WwScope = 'month' | 'all';
+export type WwDeltaDir = 'up' | 'down' | 'flat';
+/** One cell of the month-in-review stat bar: a figure, its caption, and a delta
+ *  line (period-over-period for 'month', a baseline label for 'all'). */
+export type WwStat = { figure: string; caption: string; delta: string; dir: WwDeltaDir };
+/** An observation card: a headline stat, a title, and an explanatory paragraph. */
+export type WwObservation = { stat: string; title: string; text: string };
+export type WhatsWorkingScope = {
+  /** Format / caption / day / hour median-engagement bars for this scope. */
+  set: WhatsWorkingSet;
+  /** The four-cell month-in-review stat bar. */
+  stats: WwStat[];
+  /** Up to three data-derived observation cards. */
+  observations: WwObservation[];
+  /** Top 5 breakouts of the scope. */
+  bestPosts: OutlierPost[];
+  bestPostsTitle: string;
+  /** Editorial lede shown under the section title. */
+  lede: string;
+};
+export type WhatsWorkingData = Record<WwScope, WhatsWorkingScope>;
+
 export type DashboardData = {
   hotels: HotelRow[];
   snapshot: Snapshot;
-  /** What's Working medians — static, over the last WHATS_WORKING_WINDOW_DAYS */
+  /** What's Working medians — the last WHATS_WORKING_WINDOW_DAYS set (used by the
+   *  overview's "in focus" bullets). The full scoped analysis is whatsWorkingData. */
   whatsWorking: WhatsWorkingSet;
+  /** What's Working — full holistic analysis, per scope (Last 30 days / All time) */
+  whatsWorkingData: WhatsWorkingData;
   /** Top posts (breakouts) precomputed per time window; the client toggle picks one */
   standout: Record<TimeWindow, OutlierPost[]>;
   /** Landing-page taster: best non-collab breakouts of the last 30 days */
@@ -280,6 +307,175 @@ export function computeWhatsWorking(
     by_caption:    groupMedianER(byCaption, ['Short', 'Medium', 'Long']),
     by_day:        groupMedianER(byDay,     [...DAYS]),
     by_hour_block: groupMedianER(byHour,    HOUR_BLOCKS.map(b => b[0])),
+  };
+}
+
+// ── What's Working — holistic analysis helpers ──────────────────────────────
+const DAY_MS_WW = 24 * 60 * 60 * 1000;
+
+/** Median per-post engagement rate (%) across posts with a known follower count. */
+function medianPostERPct(posts: RawPost[], latestFollowers: Record<string, number | null>): number | null {
+  const ers: number[] = [];
+  for (const p of posts) {
+    const f = latestFollowers[p.instagram_handle];
+    if (!f || f <= 0) continue;
+    ers.push(((p.likes_count + (p.comments_count ?? 0)) / f) * 100);
+  }
+  return median(ers);
+}
+
+/** Median posts/week across hotels that posted in the window (cadence, all posts). */
+function medianPPWInWindow(posts: RawPost[], windowDays: number): number | null {
+  const byHandle: Record<string, number> = {};
+  for (const p of posts) byHandle[p.instagram_handle] = (byHandle[p.instagram_handle] ?? 0) + 1;
+  const weeks = windowDays / 7;
+  const vals = Object.values(byHandle).map(c => c / weeks);
+  return median(vals);
+}
+
+function pluralFormat(label: string): string {
+  const map: Record<string, string> = { Reel: 'Reels', Video: 'Videos', Carousel: 'Carousels', Photo: 'Photos', Other: 'other posts' };
+  return map[label] ?? `${label}s`;
+}
+
+const MINUS = '−';
+/** Format a period-over-period delta with sign, magnitude and dir. Differences
+ *  smaller than half the smallest representable unit read as flat. */
+function fmtDelta(diff: number, decimals: number, unit: string, period: string): { delta: string; dir: WwDeltaDir } {
+  const eps = Math.pow(10, -decimals) / 2;
+  if (Math.abs(diff) < eps) return { delta: `No change ${period}`, dir: 'flat' };
+  const sign = diff > 0 ? '+' : MINUS;
+  return { delta: `${sign}${Math.abs(diff).toFixed(decimals)}${unit} ${period}`, dir: diff > 0 ? 'up' : 'down' };
+}
+
+/** Up to three data-derived observation cards for a scope. */
+function buildObservations(set: WhatsWorkingSet, breakouts: OutlierPost[], onRecord: boolean): WwObservation[] {
+  const obs: WwObservation[] = [];
+  const scopeWord = onRecord ? 'all-time' : 'this period';
+
+  // 1) Which format is carrying the breakouts.
+  const fmt = [...set.by_format].sort((a, b) => b.value - a.value);
+  if (fmt.length >= 2 && breakouts.length) {
+    const top = fmt[0];
+    const low = fmt[fmt.length - 1];
+    const share = Math.round((breakouts.filter(p => p.type === top.label).length / breakouts.length) * 100);
+    if (share > 0) {
+      obs.push({
+        stat: `${share}%`,
+        title: `${pluralFormat(top.label)} are carrying the portfolio`,
+        text: `${share}% of ${scopeWord} breakouts were ${pluralFormat(top.label).toLowerCase()} — ${top.value.toFixed(2)}% median engagement against ${low.value.toFixed(2)}% for ${pluralFormat(low.label).toLowerCase()}.`,
+      });
+    }
+  }
+
+  // 2) The single biggest breakout (breakouts are sorted by multiplier desc).
+  const best = breakouts[0];
+  if (best) {
+    obs.push({
+      stat: `${best.multiplier.toFixed(1)}×`,
+      title: 'The biggest breakout',
+      text: `${best.hotel_name} beat its own median by ${best.multiplier.toFixed(1)}× — the strongest single result ${onRecord ? 'on record' : 'this period'}.`,
+    });
+  }
+
+  // 3) Mid-size accounts punching above their weight.
+  const top10 = breakouts.slice(0, 10).filter(p => p.hotel_followers != null);
+  if (top10.length) {
+    const smallest = top10.reduce((a, b) => (b.hotel_followers! < a.hotel_followers! ? b : a));
+    obs.push({
+      stat: fmtFollowers(smallest.hotel_followers),
+      title: 'Mid-size accounts punch up',
+      text: `Some of the biggest multiples come from smaller followings like ${smallest.hotel_name} (${fmtFollowers(smallest.hotel_followers)}) — a leaner baseline means a genuine hit reads as a breakout.`,
+    });
+  }
+
+  return obs;
+}
+
+const WW_LEDE: Record<WwScope, string> = {
+  month:
+    'What moved across the tracked hotels over the last 30 days — the patterns behind the breakouts, and the posts that drove them. Correlation, honestly hedged, not a guarantee.',
+  all:
+    'Across everything we’ve tracked, the steady patterns behind the biggest breakouts — more stable, and more telling, than any single week suggests.',
+};
+
+/** Build the full What's Working analysis for both scopes. */
+export function computeWhatsWorkingData(
+  validForAnalysis: RawPost[],
+  allPosts: RawPost[],
+  now: number,
+  latestFollowers: Record<string, number | null>,
+  hotelMetrics: Record<string, HotelMetrics>,
+  hotelNameByHandle: Record<string, string>,
+  hotelCountryByHandle: Record<string, string | null>,
+  storedImageUrl: Record<string, string | null>,
+  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
+  handlesByPostId: Map<string, Set<string>>,
+  standout: Record<TimeWindow, OutlierPost[]>,
+): WhatsWorkingData {
+  const age = (p: RawPost) => now - new Date(p.posted_at).getTime();
+  const inLast = (days: number) => (p: RawPost) => age(p) <= days * DAY_MS_WW;
+  const between = (lo: number, hi: number) => (p: RawPost) => age(p) > lo * DAY_MS_WW && age(p) <= hi * DAY_MS_WW;
+
+  const monthPosts = validForAnalysis.filter(inLast(30));
+  const prevPosts  = validForAnalysis.filter(between(30, 60));
+  const allValid   = validForAnalysis;
+  const monthCadence = allPosts.filter(inLast(30));
+  const prevCadence  = allPosts.filter(between(30, 60));
+
+  const breakoutsIn = (posts: RawPost[]) =>
+    computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT, handlesByPostId);
+  const mRes = breakoutsIn(monthPosts);
+  const pRes = breakoutsIn(prevPosts);
+  const aRes = breakoutsIn(allValid);
+
+  const erM = medianPostERPct(monthPosts, latestFollowers);
+  const erP = medianPostERPct(prevPosts, latestFollowers);
+  const erA = medianPostERPct(allValid, latestFollowers);
+  const ppwM = medianPPWInWindow(monthCadence, 30);
+  const ppwP = medianPPWInWindow(prevCadence, 30);
+
+  const period = 'vs prev. 30d';
+  const dER    = fmtDelta((erM ?? 0) - (erP ?? 0), 2, ' pts', period);
+  const dBreak = fmtDelta(mRes.breakout_count - pRes.breakout_count, 0, '', period);
+  const dSuper = fmtDelta(mRes.super_breakout_count - pRes.super_breakout_count, 0, '', period);
+  const dPpw   = fmtDelta((ppwM ?? 0) - (ppwP ?? 0), 1, '', period);
+
+  const monthStats: WwStat[] = [
+    { figure: erM != null ? `${erM.toFixed(2)}%` : '—', caption: 'Median engagement rate', delta: dER.delta, dir: dER.dir },
+    { figure: `${mRes.breakout_count}`, caption: 'Breakouts ≥2× this month', delta: dBreak.delta, dir: dBreak.dir },
+    { figure: `${mRes.super_breakout_count}`, caption: 'Cleared 10× this month', delta: dSuper.delta, dir: dSuper.dir },
+    { figure: ppwM != null ? ppwM.toFixed(1) : '—', caption: 'Median posts / week', delta: dPpw.delta, dir: dPpw.dir },
+  ];
+
+  const bestAll = standout.all[0];
+  const allStats: WwStat[] = [
+    { figure: erA != null ? `${erA.toFixed(2)}%` : '—', caption: 'Median engagement rate', delta: 'All-time baseline', dir: 'flat' },
+    { figure: `${aRes.breakout_count}`, caption: 'Breakouts ≥2× on record', delta: 'since tracking began', dir: 'flat' },
+    { figure: `${aRes.super_breakout_count}`, caption: 'Cleared 10× (super-breakouts)', delta: 'all time', dir: 'flat' },
+    { figure: bestAll ? `${bestAll.multiplier.toFixed(1)}×` : '—', caption: 'Best multiple on record', delta: bestAll ? bestAll.hotel_name : '—', dir: 'flat' },
+  ];
+
+  const setMonth = computeWhatsWorking(monthPosts, latestFollowers);
+  const setAll   = computeWhatsWorking(allValid, latestFollowers);
+
+  return {
+    month: {
+      set: setMonth,
+      stats: monthStats,
+      observations: buildObservations(setMonth, mRes.posts, false),
+      bestPosts: standout['30d'].slice(0, 5),
+      bestPostsTitle: 'Best posts this month',
+      lede: WW_LEDE.month,
+    },
+    all: {
+      set: setAll,
+      stats: allStats,
+      observations: buildObservations(setAll, aRes.posts, true),
+      bestPosts: standout.all.slice(0, 5),
+      bestPostsTitle: 'Best posts on record',
+      lede: WW_LEDE.all,
+    },
   };
 }
 
@@ -614,6 +810,13 @@ export async function getPortfolioData(): Promise<DashboardData> {
     storedImageUrl, storedInsight,
   ).posts;
 
+  // ── What's Working — holistic analysis per scope (Last 30 days / All time) ─
+  const whatsWorkingData = computeWhatsWorkingData(
+    validForAnalysis, allPosts, now, latestFollowers, hotelMetrics,
+    hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight,
+    handlesByPostId, standout,
+  );
+
   // ── Global frequency (top 10 vs rest by overall ER) ──────────────────────
   const rankedByOverall = [...hotelRows]
     .filter(h => h.engagement_rate !== null && h.posts_per_week !== null)
@@ -635,6 +838,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     hotels: hotelRows,
     snapshot:      computeSnapshot(hotelRows),
     whatsWorking,
+    whatsWorkingData,
     standout,
     landing_featured,
     breakout_count,

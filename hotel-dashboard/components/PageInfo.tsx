@@ -2,9 +2,10 @@
 
 import { useEffect } from 'react';
 
-// Biggish "explain this page" modal, opened from the left sidebar's "i" button.
+// "About this view" modal, opened from the left sidebar's per-view "i" buttons.
 // Content is keyed by the active view — for the dashboard that's the current
 // section (driven by the URL hash), for the account pages it's the route.
+// Each entry is three short blocks — What this is / How it works / Why it helps.
 
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 
@@ -18,6 +19,9 @@ export type InfoKey =
   | 'watchlist'
   | 'settings'
   | 'profile';
+
+type InfoBlock = { h: string; p: string };
+type InfoContent = { title: string; blocks: InfoBlock[] };
 
 // Resolve the current view from the route + hash.
 export function resolveInfoKey(pathname: string, hash: string): InfoKey {
@@ -34,125 +38,81 @@ export function resolveInfoKey(pathname: string, hash: string): InfoKey {
   return 'overview';
 }
 
-const CONTENT: Record<InfoKey, { title: string; eyebrow: string; body: React.ReactNode }> = {
+// The four dashboard views use the Content Radar design system's canonical copy
+// verbatim. The five account keys aren't in the design bundle, so their copy is
+// adapted into the same three-block shape.
+const CONTENT: Record<InfoKey, InfoContent> = {
   overview: {
-    eyebrow: 'This week',
-    title: 'Your week at a glance',
-    body: (
-      <>
-        The big number is how many posts — across all 200+ tracked hotels — beat{' '}
-        <strong>their own hotel&rsquo;s typical (median) engagement by 2× or more</strong> in the last
-        7 days. It&rsquo;s a like-for-like measure, so a small hotel outperforming itself counts the
-        same as a giant.
-        <br /><br />
-        The panel on the right is the portfolio at a glance. Everything refreshes every week — use the
-        left menu to jump into <strong>Top posts</strong>, <strong>What&rsquo;s working</strong> and
-        the <strong>Leaderboard</strong>.
-      </>
-    ),
+    title: 'This week',
+    blocks: [
+      { h: 'What this is', p: 'A weekly snapshot of every post across the 205 tracked five-star hotels that beat its own hotel’s usual engagement this week — plus the hotels on your watchlist.' },
+      { h: 'How it works', p: 'Every Monday we scrape the latest posts, compare each to its hotel’s median over the last 30 posts, and count the ones that cleared 2×. The headline number is that count; “in focus” summarises the patterns behind it.' },
+      { h: 'Why it helps', p: 'You see the week’s biggest movers at a glance — the proof, ranked, in ten seconds — without scrolling a single feed.' },
+    ],
   },
   breakouts: {
-    eyebrow: 'Top posts',
-    title: 'The posts that broke out',
-    body: (
-      <>
-        Every post here beat <strong>its own hotel&rsquo;s typical (median) engagement by 2× or
-        more</strong> — so a small hotel punching above its weight ranks right next to a giant.
-        <br /><br />
-        <strong>How to use it:</strong> pick a time window (7 days / 30 days / all time) at the top,
-        then use the filter chips to focus on Reels, images &amp; carousels, or hide collaboration
-        posts. Hit <strong>Save</strong> on any post to keep it on your Saved page.
-      </>
-    ),
+    title: 'Top posts',
+    blocks: [
+      { h: 'What this is', p: 'The ranked list of breakout posts — every post beating its hotel’s own median by 2× or more, best first, no exceptions.' },
+      { h: 'How it works', p: 'Choose a time window (7 days, 30 days, or all time) and filter by format or collaborations. Posts rank by multiple, not raw likes, so a smaller hotel’s genuine hit isn’t buried under a bigger grid’s baseline.' },
+      { h: 'Why it helps', p: 'A refreshed ideas library — see exactly which posts are working right now, and why, so you can adapt the format for your own hotel.' },
+    ],
   },
   working: {
-    eyebrow: "What's working",
-    title: 'Patterns the leaders share',
-    body: (
-      <>
-        Patterns shared by the best-performing content across <strong>all tracked hotels</strong> over
-        the last 30 days — which <strong>formats, caption lengths, days and times</strong> correlate
-        with higher engagement.
-        <br /><br />
-        <strong>How to use it:</strong> use it to shape your own posting mix, and open{' '}
-        <em>Show more detail</em> for timing and frequency. These are correlations across the
-        portfolio, not guarantees for any single account.
-      </>
-    ),
+    title: "What's working",
+    blocks: [
+      { h: 'What this is', p: 'A zoomed-out read on portfolio performance over the last 30 days or all time — the patterns behind the breakouts, not the individual posts.' },
+      { h: 'How it works', p: 'We aggregate engagement by format, caption length and day of week, track the movement against the previous period, and surface the best posts of the window. Everything is correlation, honestly hedged — not a guarantee.' },
+      { h: 'Why it helps', p: 'Understand the trends shaping luxury-hotel content so your strategy follows evidence rather than guesswork.' },
+    ],
   },
   leaderboard: {
-    eyebrow: 'Hotel leaderboard',
-    title: 'Every hotel, ranked fairly',
-    body: (
-      <>
-        Every tracked hotel ranked by <strong>engagement rate</strong> — mean (likes + comments) on
-        its last 30 posts ÷ followers × 100 — so reach is measured fairly across follower sizes.
-        <br /><br />
-        <strong>How to use it:</strong> click any column to re-sort, search or filter by region, add a
-        hotel to your <strong>Watchlist</strong>, and look for pins marking Forbes, Gold List,
-        World&rsquo;s 50 Best or Michelin Keys hotels. A{' '}
-        <span style={{ color: 'var(--signal-deep)' }}>⚠</span> flags a low-confidence figure.
-      </>
-    ),
+    title: 'Leaderboard',
+    blocks: [
+      { h: 'What this is', p: 'Every tracked hotel ranked by engagement rate, with followers, posting cadence, last-posted date and certification-list membership.' },
+      { h: 'How it works', p: 'Engagement rate = mean(likes + comments) over the last 30 posts ÷ followers × 100. Sort any column, filter by region, search a hotel, or add one to your watchlist. Public Instagram data only — no reach or impressions.' },
+      { h: 'Why it helps', p: 'Benchmark yourself against the field and spot who’s punching above their follower count — the hotels worth studying.' },
+    ],
   },
   hotel: {
-    eyebrow: 'Your hotel',
-    title: 'Your own hotel, mirrored back',
-    body: (
-      <>
-        Everything on this page is about <strong>your hotel only</strong>: the posts that beat your
-        own typical (median) engagement, your numbers at a glance, and how your following and
-        engagement have grown over your full posting history.
-        <br /><br />
-        It&rsquo;s deliberately not a scoreboard — the single network-median line is the only
-        comparison, and there&rsquo;s no rank anywhere. Public Instagram data only (likes +
-        comments); we can&rsquo;t see reach, impressions, saves or shares.{' '}
-        <strong>For now it shows a fictional example hotel</strong> — claiming your own hotel is
-        coming soon.
-      </>
-    ),
+    title: 'Your hotel',
+    blocks: [
+      { h: 'What this is', p: 'Everything on this page is about your hotel only — the posts that beat your own typical (median) engagement, your numbers at a glance, and how your following and engagement have grown over your full posting history.' },
+      { h: 'How it works', p: 'Public Instagram data only (likes + comments) — no reach, impressions, saves or shares. The single network-median line is the only comparison; there’s no rank anywhere.' },
+      { h: 'Why it helps', p: 'A private read on your own performance, on the same measures as the rest of Content Radar. For now it shows a fictional example hotel — claiming your own hotel is coming soon.' },
+    ],
   },
   saved: {
-    eyebrow: 'Saved',
-    title: 'Your saved posts',
-    body: (
-      <>
-        Every post you&rsquo;ve saved from <strong>Top posts</strong>, gathered in one place. Saving a
-        post adds it here; removing it here or on the dashboard keeps the two in sync — so this is your
-        personal shortlist of what&rsquo;s worth borrowing.
-      </>
-    ),
+    title: 'Saved',
+    blocks: [
+      { h: 'What this is', p: 'Every post you’ve saved from Top posts, gathered in one place.' },
+      { h: 'How it works', p: 'Saving a post adds it here; removing it here or on the dashboard keeps the two in sync.' },
+      { h: 'Why it helps', p: 'Your personal shortlist of what’s worth borrowing, without scrolling the full list again.' },
+    ],
   },
   watchlist: {
-    eyebrow: 'Watchlist',
-    title: 'The hotels you follow',
-    body: (
-      <>
-        The hotels you&rsquo;re keeping an eye on. Add hotels from the{' '}
-        <strong>Leaderboard</strong> and they collect here, so you can track a shortlist without
-        scrolling the full portfolio every time.
-      </>
-    ),
+    title: 'Watchlist',
+    blocks: [
+      { h: 'What this is', p: 'The hotels you’re keeping an eye on.' },
+      { h: 'How it works', p: 'Add hotels from the Leaderboard and they collect here.' },
+      { h: 'Why it helps', p: 'Track a shortlist without scrolling the full portfolio every time — and their breakouts surface first on your dashboard.' },
+    ],
   },
   settings: {
-    eyebrow: 'Settings',
-    title: 'Plan & billing',
-    body: (
-      <>
-        Manage your plan and payment details here. Use <strong>Manage billing</strong> to update your
-        card, see invoices, or cancel — it opens the secure Stripe portal.
-      </>
-    ),
+    title: 'Settings',
+    blocks: [
+      { h: 'What this is', p: 'Your plan and payment details.' },
+      { h: 'How it works', p: 'Use Manage billing to update your card, see invoices, or cancel — it opens the secure Stripe portal.' },
+      { h: 'Why it helps', p: 'Everything about your subscription in one place, handled securely by Stripe.' },
+    ],
   },
   profile: {
-    eyebrow: 'Profile',
-    title: 'Your account details',
-    body: (
-      <>
-        Your name and account details, used to personalise the dashboard. Changes here don&rsquo;t
-        affect your billing — that lives under <strong>Settings</strong>.
-      </>
-    ),
+    title: 'Profile',
+    blocks: [
+      { h: 'What this is', p: 'Your name and account details, used to personalise the dashboard.' },
+      { h: 'How it works', p: 'Edit your details here; changes don’t affect billing — that lives under Settings.' },
+      { h: 'Why it helps', p: 'Keeps the dashboard personal to you and your hotel.' },
+    ],
   },
 };
 
@@ -181,14 +141,13 @@ export default function PageInfoModal({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={c.title}
+      aria-label={`About this view — ${c.title}`}
       onClick={onClose}
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 100,
-        background: 'rgba(20,18,15,0.55)',
-        backdropFilter: 'blur(2px)',
+        zIndex: 60,
+        background: 'rgba(20,18,15,0.5)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -199,12 +158,12 @@ export default function PageInfoModal({
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: 600,
+          maxWidth: 520,
           background: 'var(--surface)',
           border: '1px solid var(--line)',
-          borderRadius: 16,
-          boxShadow: '0 30px 70px -24px rgba(20,18,15,0.5)',
-          padding: '34px 38px 38px',
+          borderRadius: 14,
+          boxShadow: 'var(--shadow-nav)',
+          padding: '32px 34px 30px',
           position: 'relative',
         }}
       >
@@ -214,41 +173,102 @@ export default function PageInfoModal({
           aria-label="Close"
           style={{
             position: 'absolute',
-            top: 20,
-            right: 20,
-            width: 34,
-            height: 34,
-            borderRadius: '50%',
+            top: 18,
+            right: 18,
+            width: 30,
+            height: 30,
+            borderRadius: 8,
             border: '1px solid var(--line)',
             background: 'var(--surface)',
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--muted)',
+            color: 'var(--body-mid)',
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         </button>
 
-        <div
-          style={{
-            fontFamily: LABEL,
-            fontSize: 10,
-            textTransform: 'uppercase',
-            letterSpacing: '0.16em',
-            color: 'var(--signal-deep)',
-            marginBottom: 12,
-          }}
-        >
-          {c.eyebrow}
+        {/* Eyebrow row — circled "i" badge + "About this view" */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 14 }}>
+          <span
+            aria-hidden="true"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 'none',
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              border: '1.6px solid var(--signal-deep)',
+              color: 'var(--signal-deep)',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="7.4" r="1.25" fill="currentColor" />
+              <path d="M12 11v6.5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
+            </svg>
+          </span>
+          <span
+            style={{
+              fontFamily: LABEL,
+              fontSize: 10,
+              textTransform: 'uppercase',
+              letterSpacing: '0.16em',
+              color: 'var(--muted)',
+            }}
+          >
+            About this view
+          </span>
         </div>
-        <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)', margin: '0 0 16px', maxWidth: 460 }}>
+
+        <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--ink)', lineHeight: 1.15, margin: '0 0 20px' }}>
           {c.title}
         </h2>
-        <div style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--body-strong)' }}>{c.body}</div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {c.blocks.map(blk => (
+            <div key={blk.h}>
+              <div
+                style={{
+                  fontFamily: LABEL,
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.14em',
+                  color: 'var(--signal-deep)',
+                  marginBottom: 6,
+                }}
+              >
+                {blk.h}
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--body-strong)', lineHeight: 1.65, margin: 0 }}>{blk.p}</p>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 26, textAlign: 'right' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              fontFamily: 'var(--font-body), sans-serif',
+              color: 'var(--surface)',
+              background: 'var(--ink)',
+              border: 'none',
+              borderRadius: 10,
+              padding: '11px 22px',
+              cursor: 'pointer',
+            }}
+          >
+            Got it
+          </button>
+        </div>
       </div>
     </div>
   );
