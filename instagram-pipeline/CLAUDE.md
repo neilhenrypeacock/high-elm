@@ -37,11 +37,16 @@ Credentials are also documented in `../keys/README.md`.
 | `setup-tables.sql` | SQL to create Supabase tables (already run — do not re-run) |
 | `setup-standout-posts.sql` | SQL for standout_posts table (already run) |
 | `setup-tracked.sql` | Adds/refreshes hotels.tracked = top-200 by followers (idempotent; run 2026-07-01) |
+| `setup-coauthors.sql` | Adds `posts.coauthor_usernames text[]` for native collab detection (run in Supabase SQL editor BEFORE deploying the dashboard select — 2026-07-12) |
 | `generate-insight.js` | Per-post insights + driver/theme tags → standout_posts (weekly prose generation REMOVED 2026-07-01 — dashboard never displayed it) |
 
 ## Apify actors used
 - `apify/instagram-profile-scraper` — follower counts, bio → `profile_snapshots`
-- `apify/instagram-post-scraper` — likes, comments, captions, dates → `posts`
+- `apify/instagram-post-scraper` — likes, comments, captions, dates, and the native
+  co-author tag (`coauthorProducers`) → `posts`. `parseCoauthors` in scrape.js keeps the
+  partner handles as a lowercased `coauthor_usernames text[]` (null when absent) — ~13% of
+  posts carry one, and it catches collabs with UNTRACKED accounts the caption/cross-grid
+  heuristics miss.
 
 ## Image storage
 Post images are downloaded and uploaded to the **`standout-images`** Supabase Storage bucket (public) at scrape time. The permanent URL is written to **`posts.image_url`** (scrape.js); `standout_posts.stored_image_url` is only written by `generate-insight.js` for its 15 featured posts. Falls back to the raw Instagram CDN URL (which expires) only if the upload fails.
@@ -51,5 +56,5 @@ Instagram hides likes on some posts/accounts. Apify returns those as `likes_coun
 
 ## Supabase tables written
 - `profile_snapshots` — one new row per scrape per hotel (INSERT; deduped per UTC day on re-runs, 2026-07-09)
-- `posts` — upserted on `(post_id, instagram_handle)`. Collab/co-posts are KEPT (no owner filter): a co-post appears on each partner's grid and is stored once per grid so each hotel measures it against its own baseline. Composite key applied via setup-composite-post-key.sql.
+- `posts` — upserted on `(post_id, instagram_handle)`. Collab/co-posts are KEPT (no owner filter): a co-post appears on each partner's grid and is stored once per grid so each hotel measures it against its own baseline. Composite key applied via setup-composite-post-key.sql. `coauthor_usernames text[]` holds Instagram's native co-author handles (setup-coauthors.sql, 2026-07-12) — the dashboard's primary collab signal.
 - `standout_posts` — written separately (see `add-theme-tag.sql`, `backfill-themes.js`)

@@ -23,6 +23,20 @@ function parseMentions(caption = '') {
   return [...caption.matchAll(/@(\w+)/g)].map(m => m[1].toLowerCase());
 }
 
+// Instagram's native co-author tag ("X and Y" byline). The post scraper returns
+// it as `coauthorProducers: [{ username, full_name, is_verified, ... }]`. This is
+// ground-truth collab data — and unlike the caption/cross-grid heuristics it also
+// catches collabs with UNTRACKED accounts. We keep just the lowercased handles.
+// Returns null (not []) when absent so "unknown" stays distinct from "none".
+function parseCoauthors(item) {
+  const raw = item?.coauthorProducers;
+  if (!Array.isArray(raw) || raw.length === 0) return null;
+  const handles = raw
+    .map(c => (c?.username || '').toLowerCase().trim())
+    .filter(Boolean);
+  return handles.length ? [...new Set(handles)] : null;
+}
+
 // ─── Storage ─────────────────────────────────────────────────────────────────
 
 async function ensureBucket() {
@@ -212,6 +226,7 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
           caption,
           hashtags:         p.hashtags ?? parseHashtags(caption),
           mentions:         p.mentions ?? parseMentions(caption),
+          coauthor_usernames: parseCoauthors(p),
           post_url:         p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : null),
           image_url:        storedUrl ?? rawImageUrl,
         };

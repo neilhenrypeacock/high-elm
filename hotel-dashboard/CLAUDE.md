@@ -172,6 +172,21 @@ hotel whose grid it's on. Dashboard de-dupes and keys React lists on
 `post_id + '|' + instagram_handle`, NOT post_id alone. Migration:
 `instagram-pipeline/setup-composite-post-key.sql` (applied to prod 2026-07-02).
 
+**`is_collab` detection (2026-07-12):** the display-only collab tag (feed filter +
+landing-taster exclusion) means TRUE Instagram Collabs ONLY — posts co-authored by
+two accounts (the "X and Y" byline), which the scraper exposes as
+`posts.coauthor_usernames`. It is `(coauthor_usernames?.length ?? 0) > 0`, nothing
+else. By Neil's decision (2026-07-12) caption "collaboration with @…" posts and
+single-grid tagged partnerships are NOT collabs — they stay in the feed and can
+appear in the landing taster. The old cross-grid heuristic (`handlesByPostId`) and
+the caption/AI-tag fallbacks were removed from `is_collab`; `captionSuggestsCollab`
+is retained (exported, tested) as the likely basis for a future paid-partnership /
+sponsored filter (the scraper has no native sponsored field). Requires the
+`instagram-pipeline/setup-coauthors.sql` migration in prod BEFORE this code deploys —
+the posts query lists columns explicitly, so the column must exist. Populates on the
+next scrape (or a free backfill from the last Apify dataset); rows not yet re-scraped
+have null `coauthor_usernames` and read as non-collab until then.
+
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
 - `profile_snapshots` and `posts` are both fully paginated (1,000/page); posts deduped by post_id.
@@ -183,7 +198,7 @@ hotel whose grid it's on. Dashboard de-dupes and keys React lists on
 ## Supabase tables
 - `hotels` — hotel list with handles, names, regions, countries
 - `profile_snapshots` — follower counts over time (one row per scrape)
-- `posts` — all scraped posts (upserted on the composite `(post_id, instagram_handle)` — see the co-posts section above)
+- `posts` — all scraped posts (upserted on the composite `(post_id, instagram_handle)` — see the co-posts section above). `coauthor_usernames text[]` = Instagram's native co-author handles, the primary `is_collab` signal (setup-coauthors.sql).
 - `standout_posts` — per-post AI insights + driver/theme tags (written by generate-insight.js, only ~16 rows as of Jul 2026)
 - `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01; drop candidate)
 - `subscriptions` — Stripe trial/payment state, email-keyed; RLS on with NO policies = service-role only

@@ -629,7 +629,7 @@ function FeedFilterBar({
           label="Collaboration posts"
           active={filters.collab}
           onClick={() => onToggle('collab')}
-          title="Flagged from Instagram's co-author tag, plus collaboration language in the caption and posts shared across tracked grids"
+          title="Flagged only for true Instagram Collabs: posts co-authored by two accounts (the 'X and Y' byline). Caption 'collaboration with' posts aren't counted."
         />
         <FilterChip label="Images & carousels" active={filters.images} onClick={() => onToggle('images')} />
         <FilterChip label="Videos" active={filters.videos} onClick={() => onToggle('videos')} />
@@ -658,7 +658,7 @@ function FeedFilterBar({
         )}
       </div>
       <span style={{ fontSize: 11, color: 'var(--faint)', lineHeight: 1.5 }}>
-        Collabs are flagged from Instagram’s co-author tag — including partners outside our tracked hotels — plus collaboration language in the caption and posts shared across tracked grids. A collab with no co-author tag and no caption mention may still slip through.
+        Collaboration posts are true Instagram Collabs — posts co-authored by two accounts (the “X and Y” byline), including partners outside our tracked hotels. Posts that only mention or tag a partner in the caption aren’t counted.
       </span>
     </div>
   );
