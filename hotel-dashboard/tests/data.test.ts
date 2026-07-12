@@ -396,9 +396,19 @@ describe('computeStandout', () => {
     expect(posts[0].is_collab).toBe(true);
   });
 
-  it('does not flag is_collab when there is no collab signal at all', () => {
+  it('does not flag is_collab when there is no co-author tag', () => {
     const { posts } = computeStandout(
       [post({ likes_count: 300, caption: 'A view worth waking up for', coauthor_usernames: null })],
+      { hotel_a: metrics({ medianPostEngagement: 100 }) },
+      ...NO_META
+    );
+    expect(posts[0].is_collab).toBe(false);
+  });
+
+  it('does NOT flag caption "collaboration with @…" posts (co-author tag only)', () => {
+    const { posts } = computeStandout(
+      // explicit collab language, but no native co-author byline → stays in the feed
+      [post({ likes_count: 300, caption: 'In collaboration with @luxurybrand', coauthor_usernames: null })],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
       ...NO_META
     );

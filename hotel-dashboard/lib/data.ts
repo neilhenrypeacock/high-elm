@@ -231,11 +231,12 @@ export function captionBucket(caption: string | null): string {
   return 'Long';
 }
 
-// High-precision caption signal for collaborations. Instagram co-posts made with
-// an UNTRACKED account leave no duplicate grid row and no AI driver_tag, so they
-// slip past the structural check. These explicit phrases are chosen to catch the
-// obvious ones ("in collaboration with @…", "paid partnership", "x @brand")
-// without flagging incidental @-mentions ("dinner by @chef"). Case-insensitive.
+// High-precision caption signal for partnership/sponsored language. NO LONGER
+// feeds is_collab — the collab tag is now TRUE Instagram Collabs only (co-author
+// byline). Retained (exported, tested) as the likely basis for a future
+// paid-partnership / sponsored filter, since the scraper exposes no native
+// sponsored field. Catches "in collaboration with @…", "paid partnership",
+// "x @brand" without flagging incidental @-mentions ("dinner by @chef").
 const COLLAB_CAPTION_RE =
   /\b(?:in\s+)?collab(?:oration)?\s+with\b|\b(?:in\s+)?partnership\s+with\b|\bpartnered\s+with\b|\bpaid\s+partnership\b|@\w[\w.]*\s*[×x]\s*@\w/i;
 
@@ -412,7 +413,6 @@ export function computeWhatsWorkingData(
   hotelCountryByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
-  handlesByPostId: Map<string, Set<string>>,
   standout: Record<TimeWindow, OutlierPost[]>,
 ): WhatsWorkingData {
   const age = (p: RawPost) => now - new Date(p.posted_at).getTime();
@@ -426,7 +426,7 @@ export function computeWhatsWorkingData(
   const prevCadence  = allPosts.filter(between(30, 60));
 
   const breakoutsIn = (posts: RawPost[]) =>
-    computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT, handlesByPostId);
+    computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT);
   const mRes = breakoutsIn(monthPosts);
   const pRes = breakoutsIn(prevPosts);
   const aRes = breakoutsIn(allValid);
@@ -500,7 +500,6 @@ export function computeStandout(
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null }>,
   limit: number = MAX_STANDOUT_POSTS,
-  handlesByPostId?: Map<string, Set<string>>,
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
   for (const p of recentValidPosts) {
@@ -534,15 +533,14 @@ export function computeStandout(
       post_insight:         storedInsight[p.post_id]?.insight ?? null,
       driver_tag:           storedInsight[p.post_id]?.tag ?? null,
       theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
-      // Display-only collab tag — same signals landing_featured excludes on.
-      // PRIMARY: Instagram's native co-author tag (coauthor_usernames) — ground
-      // truth, and catches collabs with UNTRACKED accounts. FALLBACKS (for rows
-      // scraped before co-authors were captured): 1) same post_id on >1 tracked
-      // grid, 2) AI driver_tag, 3) explicit collab language in the caption.
-      is_collab:            (p.coauthor_usernames?.length ?? 0) > 0 ||
-                            (handlesByPostId?.get(p.post_id)?.size ?? 1) > 1 ||
-                            storedInsight[p.post_id]?.tag === 'Collaboration' ||
-                            captionSuggestsCollab(p.caption),
+      // Display-only collab tag — TRUE Instagram Collabs ONLY: posts co-authored
+      // by two accounts (the "X and Y" byline), which the scraper exposes as
+      // coauthor_usernames. Deliberately NOT caption "collaboration with @…" posts
+      // or single-grid tagged partnerships — those stay in the feed. Catches
+      // collabs with UNTRACKED partners too (the co-author tag rides on the post,
+      // not the grid). Null coauthor_usernames (rows not yet re-scraped) = not a
+      // collab until backfilled.
+      is_collab:            (p.coauthor_usernames?.length ?? 0) > 0,
     });
   }
   // Count ALL qualifying posts before slicing for the hero panel
@@ -770,16 +768,6 @@ export async function getPortfolioData(): Promise<DashboardData> {
   // Same selection for each window (≥2× the hotel's own median, ranked by
   // multiplier), capped at STANDOUT_LIMIT. "All time" = the top 100 ever. The
   // hero "this week" counts always come from the 7-day window.
-  // Collab map (shared by the feed's is_collab tag and the landing taster's
-  // non-collab filter): a co-post is stored once per partner grid, so the same
-  // post_id under >1 tracked handle means a collab. Built once, used by both.
-  const handlesByPostId = new Map<string, Set<string>>();
-  for (const p of allPosts) {
-    let s = handlesByPostId.get(p.post_id);
-    if (!s) handlesByPostId.set(p.post_id, s = new Set());
-    s.add(p.instagram_handle);
-  }
-
   const standout = {} as Record<TimeWindow, OutlierPost[]>;
   let breakout_count = 0;
   let super_breakout_count = 0;
@@ -791,7 +779,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       validForAnalysis.filter(p => now - new Date(p.posted_at).getTime() <= days * DAY_MS);
     const res = computeStandout(
       windowPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-      storedImageUrl, storedInsight, STANDOUT_LIMIT, handlesByPostId,
+      storedImageUrl, storedInsight, STANDOUT_LIMIT,
     );
     standout[key] = res.posts;
     if (key === '7d') {
@@ -801,15 +789,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
   }
 
   // ── Landing taster: best NON-COLLAB breakouts of the last 30 days ────────
-  // Excludes anything the feed would tag as a collab, primary signal first:
-  // Instagram's native co-author tag, then same post_id under >1 tracked handle,
-  // then the AI driver_tag, then explicit collab language in the caption.
+  // "Collab" here means the same thing as the feed tag: a TRUE Instagram Collab
+  // (co-author byline). Single-grid tagged partnerships and caption "collaboration
+  // with @…" posts are NOT excluded — they're legitimate top posts.
   const landingCandidates = validForAnalysis.filter(p =>
     now - new Date(p.posted_at).getTime() <= LANDING_WINDOW_DAYS * DAY_MS &&
-    (p.coauthor_usernames?.length ?? 0) === 0 &&
-    (handlesByPostId.get(p.post_id)?.size ?? 1) === 1 &&
-    storedInsight[p.post_id]?.tag !== 'Collaboration' &&
-    !captionSuggestsCollab(p.caption)
+    (p.coauthor_usernames?.length ?? 0) === 0
   );
   const landing_featured = computeStandout(
     landingCandidates, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
@@ -820,7 +805,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const whatsWorkingData = computeWhatsWorkingData(
     validForAnalysis, allPosts, now, latestFollowers, hotelMetrics,
     hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight,
-    handlesByPostId, standout,
+    standout,
   );
 
   // ── Global frequency (top 10 vs rest by overall ER) ──────────────────────

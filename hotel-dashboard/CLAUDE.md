@@ -173,14 +173,19 @@ hotel whose grid it's on. Dashboard de-dupes and keys React lists on
 `instagram-pipeline/setup-composite-post-key.sql` (applied to prod 2026-07-02).
 
 **`is_collab` detection (2026-07-12):** the display-only collab tag (feed filter +
-landing-taster exclusion) uses four signals, PRIMARY first: (1) Instagram's native
-co-author tag `posts.coauthor_usernames` — ground truth, and catches collabs with
-UNTRACKED partners; then the fallbacks for rows scraped before co-authors were
-captured: (2) same post_id on >1 tracked grid, (3) AI driver_tag 'Collaboration',
-(4) explicit collab language in the caption (`captionSuggestsCollab`). Requires the
+landing-taster exclusion) means TRUE Instagram Collabs ONLY — posts co-authored by
+two accounts (the "X and Y" byline), which the scraper exposes as
+`posts.coauthor_usernames`. It is `(coauthor_usernames?.length ?? 0) > 0`, nothing
+else. By Neil's decision (2026-07-12) caption "collaboration with @…" posts and
+single-grid tagged partnerships are NOT collabs — they stay in the feed and can
+appear in the landing taster. The old cross-grid heuristic (`handlesByPostId`) and
+the caption/AI-tag fallbacks were removed from `is_collab`; `captionSuggestsCollab`
+is retained (exported, tested) as the likely basis for a future paid-partnership /
+sponsored filter (the scraper has no native sponsored field). Requires the
 `instagram-pipeline/setup-coauthors.sql` migration in prod BEFORE this code deploys —
 the posts query lists columns explicitly, so the column must exist. Populates on the
-next scrape; older rows fall back to the heuristics until re-scraped.
+next scrape (or a free backfill from the last Apify dataset); rows not yet re-scraped
+have null `coauthor_usernames` and read as non-collab until then.
 
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
