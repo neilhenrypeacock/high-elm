@@ -29,6 +29,7 @@ function post(overrides: Partial<RawPost> = {}): RawPost {
     caption: 'A short caption',
     image_url: null,
     post_url: null,
+    coauthor_usernames: null,
     ...overrides,
   };
 }
@@ -383,5 +384,24 @@ describe('computeStandout', () => {
       ...NO_META
     );
     expect(posts[0].hotel_name).toBe('hotel_a');
+  });
+
+  it('flags is_collab from Instagram co-author tags (no other signal needed)', () => {
+    const { posts } = computeStandout(
+      // benign caption, single grid, no AI tag — only the native co-author tag
+      [post({ likes_count: 300, caption: 'A view worth waking up for', coauthor_usernames: ['goodman_gallery'] })],
+      { hotel_a: metrics({ medianPostEngagement: 100 }) },
+      ...NO_META
+    );
+    expect(posts[0].is_collab).toBe(true);
+  });
+
+  it('does not flag is_collab when there is no collab signal at all', () => {
+    const { posts } = computeStandout(
+      [post({ likes_count: 300, caption: 'A view worth waking up for', coauthor_usernames: null })],
+      { hotel_a: metrics({ medianPostEngagement: 100 }) },
+      ...NO_META
+    );
+    expect(posts[0].is_collab).toBe(false);
   });
 });

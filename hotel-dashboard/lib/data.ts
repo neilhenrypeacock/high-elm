@@ -267,6 +267,8 @@ export type RawPost = {
   caption: string | null;
   image_url: string | null;
   post_url: string | null;
+  /** Instagram's native co-author handles (lowercased). null = unknown/not captured. */
+  coauthor_usernames: string[] | null;
 };
 
 export type HotelMetrics = {
@@ -533,9 +535,12 @@ export function computeStandout(
       driver_tag:           storedInsight[p.post_id]?.tag ?? null,
       theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
       // Display-only collab tag — same signals landing_featured excludes on.
-      // 1) same post_id on >1 tracked grid, 2) AI driver_tag, 3) explicit
-      // collab language in the caption (catches collabs with UNTRACKED accounts).
-      is_collab:            (handlesByPostId?.get(p.post_id)?.size ?? 1) > 1 ||
+      // PRIMARY: Instagram's native co-author tag (coauthor_usernames) — ground
+      // truth, and catches collabs with UNTRACKED accounts. FALLBACKS (for rows
+      // scraped before co-authors were captured): 1) same post_id on >1 tracked
+      // grid, 2) AI driver_tag, 3) explicit collab language in the caption.
+      is_collab:            (p.coauthor_usernames?.length ?? 0) > 0 ||
+                            (handlesByPostId?.get(p.post_id)?.size ?? 1) > 1 ||
                             storedInsight[p.post_id]?.tag === 'Collaboration' ||
                             captionSuggestsCollab(p.caption),
     });
@@ -619,7 +624,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   for (let page = 0; ; page++) {
     const { data, error } = await supabase
       .from('posts')
-      .select('post_id, instagram_handle, likes_count, comments_count, posted_at, type, caption, image_url, post_url')
+      .select('post_id, instagram_handle, likes_count, comments_count, posted_at, type, caption, image_url, post_url, coauthor_usernames')
       .not('posted_at', 'is', null)
       .order('posted_at', { ascending: false })
       .order('post_id')
@@ -796,11 +801,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
   }
 
   // ── Landing taster: best NON-COLLAB breakouts of the last 30 days ────────
-  // Uses the shared handlesByPostId map above: same post_id under >1 handle =
-  // collab (a collab with an UNTRACKED account leaves no duplicate row and can't
-  // be detected from this data — the AI driver_tag is used as a second guard).
+  // Excludes anything the feed would tag as a collab, primary signal first:
+  // Instagram's native co-author tag, then same post_id under >1 tracked handle,
+  // then the AI driver_tag, then explicit collab language in the caption.
   const landingCandidates = validForAnalysis.filter(p =>
     now - new Date(p.posted_at).getTime() <= LANDING_WINDOW_DAYS * DAY_MS &&
+    (p.coauthor_usernames?.length ?? 0) === 0 &&
     (handlesByPostId.get(p.post_id)?.size ?? 1) === 1 &&
     storedInsight[p.post_id]?.tag !== 'Collaboration' &&
     !captionSuggestsCollab(p.caption)

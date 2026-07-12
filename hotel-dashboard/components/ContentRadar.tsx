@@ -614,7 +614,7 @@ function FeedFilterBar({
           label="Collaboration posts"
           active={filters.collab}
           onClick={() => onToggle('collab')}
-          title="Collabs with accounts outside our tracked hotels may not be flagged"
+          title="Flagged from Instagram's co-author tag, plus collaboration language in the caption and posts shared across tracked grids"
         />
         <FilterChip label="Images & carousels" active={filters.images} onClick={() => onToggle('images')} />
         <FilterChip label="Videos" active={filters.videos} onClick={() => onToggle('videos')} />
@@ -643,7 +643,7 @@ function FeedFilterBar({
         )}
       </div>
       <span style={{ fontSize: 11, color: 'var(--faint)', lineHeight: 1.5 }}>
-        Collabs are flagged when a post appears on more than one tracked hotel’s grid — collabs with accounts outside our tracked hotels may not be caught.
+        Collabs are flagged from Instagram’s co-author tag — including partners outside our tracked hotels — plus collaboration language in the caption and posts shared across tracked grids. A collab with no co-author tag and no caption mention may still slip through.
       </span>
     </div>
   );
