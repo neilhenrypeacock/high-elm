@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { HotelRow } from '@/lib/data';
 import { fmtFollowers, fmtDate, fmtNumber } from '@/lib/format';
 import SaveToggle from './SaveToggle';
@@ -23,6 +23,7 @@ function HotelWatchToggle({ handle, name, saved }: { handle: string; name: strin
 
 type SortKey = 'name' | 'followers_count' | 'engagement_rate' | 'posts_per_week' | 'last_posted';
 type SortDir = 'asc' | 'desc';
+type RateWindow = '30' | '90';
 
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const GRID: React.CSSProperties = {
@@ -93,6 +94,13 @@ export default function HotelTable({
   const [regionFilter, setRegionFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [win, setWin] = useState<RateWindow>('30');
+
+  // Leaderboard rate for the selected day-window (total engagement ÷ followers).
+  const rateOf = useCallback(
+    (h: HotelRow) => (win === '30' ? h.recent_rate.d30 : h.recent_rate.d90),
+    [win]
+  );
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -114,8 +122,9 @@ export default function HotelTable({
       );
     }
     return [...rows].sort((a, b) => {
-      const av = a[sortKey];
-      const bv = b[sortKey];
+      // The "Eng. rate" column now ranks by the selected day-window rate.
+      const av = sortKey === 'engagement_rate' ? rateOf(a) : a[sortKey];
+      const bv = sortKey === 'engagement_rate' ? rateOf(b) : b[sortKey];
       if (av === null && bv === null) return 0;
       if (av === null) return 1;
       if (bv === null) return -1;
@@ -126,12 +135,21 @@ export default function HotelTable({
           : av < bv ? -1 : av > bv ? 1 : 0;
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [hotels, sortKey, sortDir, regionFilter, search]);
+  }, [hotels, sortKey, sortDir, regionFilter, search, rateOf]);
 
-  const maxEr = useMemo(
-    () => Math.max(...hotels.map(h => h.engagement_rate ?? 0), 0.001),
-    [hotels]
+  // Bar scale + a relative "strong performer" threshold (≥ the portfolio median
+  // rate for the window) — the metric's magnitude shifts with the window, so a
+  // fixed threshold wouldn't hold.
+  const maxRate = useMemo(
+    () => Math.max(...hotels.map(h => rateOf(h) ?? 0), 0.001),
+    [hotels, rateOf]
   );
+  const medianRate = useMemo(() => {
+    const vals = hotels.map(rateOf).filter((v): v is number => v !== null).sort((a, b) => a - b);
+    if (!vals.length) return 0;
+    const m = Math.floor(vals.length / 2);
+    return vals.length % 2 ? vals[m] : (vals[m - 1] + vals[m]) / 2;
+  }, [hotels, rateOf]);
 
   const visible = showAll ? filtered : filtered.slice(0, DEFAULT_VISIBLE);
   // Top-3 emphasis only means something when ranked by ER descending (the default)
@@ -180,6 +198,44 @@ export default function HotelTable({
             <option key={r} value={r}>{r}</option>
           ))}
         </select>
+
+        {/* Rate window — the leaderboard ranks by engagement over this many days */}
+        <div
+          role="group"
+          aria-label="Rate window"
+          style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--surface-alt-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3, gap: 2 }}
+        >
+          {(['30', '90'] as const).map(w => {
+            const active = w === win;
+            return (
+              <button
+                key={w}
+                type="button"
+                onClick={() => setWin(w)}
+                aria-pressed={active}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '7px 13px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  background: active ? 'var(--ink)' : 'transparent',
+                  color: active ? 'var(--surface)' : 'var(--muted)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {active && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', flexShrink: 0 }} />}
+                {w} days
+              </button>
+            );
+          })}
+        </div>
+
         <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--faint)' }}>
           {filtered.length} hotels
         </span>
@@ -201,6 +257,7 @@ export default function HotelTable({
         <div role="row" className="cr-lb-row" style={{ ...GRID, background: 'var(--ink)' }}>
           {COLUMNS.map(col => {
             const active = col.key !== null && sortKey === col.key;
+            const headerLabel = col.key === 'engagement_rate' ? `Eng. rate · ${win}d` : col.label;
             const headerStyle: React.CSSProperties = {
               fontFamily: LABEL,
               fontSize: 10,
@@ -232,10 +289,10 @@ export default function HotelTable({
                       textTransform: 'inherit',
                     }}
                   >
-                    {col.label} {active ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                    {headerLabel} {active ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                   </button>
                 ) : (
-                  col.label
+                  headerLabel
                 )}
               </div>
             );
@@ -248,10 +305,9 @@ export default function HotelTable({
         {visible.map((h, i) => {
           const top3 = highlightTop3 && i < 3 && !search.trim() && regionFilter === 'All';
           const bg = top3 ? 'var(--top3-tint)' : i % 2 === 1 ? 'var(--surface-alt)' : 'var(--surface)';
-          const hot = h.engagement_rate !== null && h.engagement_rate >= 1;
-          const barW = h.engagement_rate !== null
-            ? Math.max(6, Math.round((h.engagement_rate / maxEr) * 100))
-            : 0;
+          const rate = rateOf(h);
+          const strong = rate !== null && rate >= medianRate;
+          const barW = rate !== null ? Math.max(6, Math.round((rate / maxRate) * 100)) : 0;
 
           return (
             <div
@@ -291,24 +347,10 @@ export default function HotelTable({
               </div>
 
               <div role="cell">
-                {h.engagement_rate !== null ? (
-                  // Valid ER — a soft flag (low-confidence breakout baseline) shows
-                  // a warning next to it but keeps the value counted
+                {rate !== null ? (
                   <>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: hot ? 'var(--signal-deep)' : 'var(--ink)' }}>
-                        {fmtNumber(h.engagement_rate, 2)}%
-                      </span>
-                      {h.er_flag_reason && (
-                        <span
-                          tabIndex={0}
-                          title={h.er_flag_reason}
-                          aria-label={h.er_flag_reason}
-                          style={{ color: 'var(--signal-deep)', cursor: 'help', fontSize: 12 }}
-                        >
-                          ⚠
-                        </span>
-                      )}
+                    <span style={{ fontSize: 14, fontWeight: 700, color: strong ? 'var(--signal-deep)' : 'var(--ink)' }}>
+                      {fmtNumber(rate, 1)}%
                     </span>
                     <div style={{ height: 4, marginTop: 5, marginRight: 24, background: 'var(--track)', borderRadius: 2, overflow: 'hidden' }}>
                       <div
@@ -316,26 +358,14 @@ export default function HotelTable({
                           height: '100%',
                           width: `${barW}%`,
                           borderRadius: 2,
-                          background: hot ? 'var(--signal)' : 'var(--bar-grey)',
+                          background: strong ? 'var(--signal)' : 'var(--bar-grey)',
                         }}
                       />
                     </div>
                   </>
-                ) : h.er_flag_reason ? (
-                  // Hard flag — the ER itself is unreliable and excluded
-                  <span
-                    tabIndex={0}
-                    title={h.er_flag_reason}
-                    aria-label={h.er_flag_reason}
-                    style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <span style={{ color: 'var(--signal-deep)' }}>⚠</span>
-                    <span style={{ fontFamily: LABEL, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
-                      flagged
-                    </span>
-                  </span>
                 ) : (
-                  <span style={{ color: 'var(--faint)' }}>—</span>
+                  // No valid posts in the window (dormant) — nothing to rate
+                  <span style={{ color: 'var(--faint)' }} title="No posts in this window">—</span>
                 )}
               </div>
 
@@ -394,14 +424,12 @@ export default function HotelTable({
       </div>
 
       <p style={{ marginTop: 14, fontSize: 12, color: 'var(--faint)', lineHeight: 1.6 }}>
-        Engagement rate = mean(likes + comments) on the last 30 posts ÷ followers × 100. Hotels with
-        under 3 visible-likes posts or rates above 10% are flagged{' '}
-        <span style={{ color: 'var(--signal-deep)' }}>⚠</span> and excluded from category medians;
-        a <span style={{ color: 'var(--signal-deep)' }}>⚠</span> beside a value only marks a
-        low-confidence breakout baseline. Public Instagram data only — no reach or impressions.
-        Pins mark hotels named on the Forbes Travel Guide five-star list, the Condé Nast Traveller
-        Gold List, The World&rsquo;s 50 Best Hotels, or Michelin Keys (UK &amp; Ireland) — coverage of
-        those lists is partial.
+        Eng. rate = total (likes + comments) over the last {win} days ÷ followers × 100 — how much of
+        its audience a hotel moved, relative to its size, over the window (so it rewards both strong
+        posts and posting often). Hotels with no posts in the window show <span aria-hidden="true">—</span>.
+        Public Instagram data only — no reach or impressions. Pins mark hotels named on the Forbes
+        Travel Guide five-star list, the Condé Nast Traveller Gold List, The World&rsquo;s 50 Best
+        Hotels, or Michelin Keys (UK &amp; Ireland) — coverage of those lists is partial.
       </p>
     </div>
   );

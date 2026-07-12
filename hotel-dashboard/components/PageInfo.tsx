@@ -70,7 +70,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     title: 'Leaderboard',
     blocks: [
       { h: 'What this is', p: 'Every tracked hotel ranked by engagement rate, with followers, posting cadence, last-posted date and certification-list membership.' },
-      { h: 'How it works', p: 'Engagement rate = mean(likes + comments) over the last 30 posts ÷ followers × 100. Sort any column, filter by region, search a hotel, or add one to your watchlist. Public Instagram data only — no reach or impressions.' },
+      { h: 'How it works', p: 'Engagement rate = total (likes + comments) over the last 30 or 90 days — your choice via the toggle — ÷ followers × 100, so it rewards both strong posts and posting often. Sort any column, filter by region, search a hotel, or add one to your watchlist. Public Instagram data only — no reach or impressions.' },
       { h: 'Why it helps', p: 'Benchmark yourself against the field and spot who’s punching above their follower count — the hotels worth studying.' },
     ],
   },
