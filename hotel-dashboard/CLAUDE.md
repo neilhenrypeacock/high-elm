@@ -29,6 +29,10 @@ app/
   auth/callback/        — magic-link landing (token-hash verifyOtp, PKCE fallback)
   profile/ settings/    — gated account pages (user_metadata profile; plan + Stripe portal)
   saved/ watchlist/     — gated, REAL per-user features (saved_posts / watchlist_hotels)
+  hotel/page.tsx        — gated "Your Hotel" page (the member's own-hotel mirror);
+                          renders components/YourHotel.tsx with EXAMPLE DATA from
+                          lib/your-hotel-demo.ts (labelled "Example data" in the UI)
+                          until hotel claiming + the pipeline full-history scrape land
   start-trial/page.tsx  — live email-capture step → creates the Stripe Checkout session
   api/                  — checkout, auth/magic-link, auth/logout, profile, saves,
                           watchlist, billing-portal, webhooks/stripe (signature-verified).
@@ -89,6 +93,18 @@ components/
                           sortable buttons w/ aria-sort, rank col, ER mini-bars, top-3 tint,
                           top-10 + view more, live search + region filter
   Lockup.tsx / MarkSvg.tsx — brand lockup (0.724/0.207/0.172 ratios, Space Mono endorsement)
+  YourHotel.tsx         — "Your Hotel" page ('use client'): header strip w/ example-data
+                          pill + accreditation pins → own-breakout cards (BreakoutCard
+                          idiom relabelled "your typical post") → 4 dark stat tiles →
+                          ONE honest benchmark line (the only comparison; no ranks) →
+                          growth charts (inline SVG, full-history followers + ER) →
+                          week/month comparison ("breaking out across luxury hotels" vs
+                          your posts; month default, 3 best + Show-all expander) →
+                          what's-working bullets → honesty footnote. Reuses
+                          ImageWithFallback/TagChip/TypeIcon (ContentRadar) and
+                          AccreditationPins (HotelTable) — all exported for this.
+                          Data via lib/your-hotel-demo.ts (typed demo set; the interfaces
+                          are the contract a future getYourHotelData() should return).
   StandoutPosts.tsx     — UNUSED legacy grid component (do not delete; kept for reference)
   TrendPanel.tsx        — UNUSED stub for future trend charts (do not delete)
 lib/

@@ -37,7 +37,8 @@ const DEFAULT_VISIBLE = 10;
 // Discreet text pins for a hotel's accolades (Forbes / Gold List / Michelin Keys).
 // Text only — no official logos (trademark/endorsement risk). A hotel may carry more
 // than one; empty for hotels not on any source list.
-function AccreditationPins({ labels }: { labels: string[] }) {
+// Exported for reuse by the Your Hotel page (components/YourHotel.tsx).
+export function AccreditationPins({ labels }: { labels: string[] }) {
   if (labels.length === 0) return null;
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
