@@ -54,7 +54,7 @@ export default function Lockup({ variant = 'secondary', size = 28, onDark = fals
             // Longhand, NOT the `font` shorthand — see the wordmark above. In Safari
             // the shorthand dropped font-size, so this line inherited ~14px and blew
             // out of place under the wordmark.
-            fontFamily: "var(--font-label), 'Space Mono', monospace",
+            fontFamily: "var(--font-label), 'Hanken Grotesk', sans-serif",
             fontWeight: 400,
             fontSize: endoSize,
             lineHeight: 1,

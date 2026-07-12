@@ -85,12 +85,6 @@ function FeatureIcon() {
   );
 }
 
-const PRIMARY_NAV = [
-  { href: '/dashboard', label: 'Dashboard', Icon: DashboardIcon },
-  { href: '/saved', label: 'Saved', Icon: SavedIcon },
-  { href: '/watchlist', label: 'Watchlist', Icon: WatchlistIcon },
-];
-
 // In-page section anchors on the dashboard (folded in from the old floating nav).
 // The ids live in components/Dashboard.tsx.
 const DASHBOARD_SECTIONS = [

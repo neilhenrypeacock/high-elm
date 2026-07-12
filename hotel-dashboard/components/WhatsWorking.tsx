@@ -4,8 +4,8 @@ import { useState } from 'react';
 import type { WhatsWorkingSet, BarItem, Snapshot } from '@/lib/data';
 import { fmtFollowers } from '@/lib/format';
 
-const LABEL = "var(--font-label), 'Space Mono', monospace";
-const DISPLAY = "var(--font-display), 'Baloo 2', sans-serif";
+const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
+const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
 
 // Bar ramp: strongest bar takes the teal signal, the rest fade back
 const BAR_RAMP = ['var(--signal)', 'var(--bar-mid)', 'var(--bar-low)', 'var(--bar-low)', 'var(--bar-low)'];

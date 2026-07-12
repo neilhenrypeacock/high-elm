@@ -70,7 +70,7 @@ components/
                           so crop is invisible there.
   Dashboard.tsx         — shell: top bar + channel switcher, dark hero w/ by-the-numbers
                           panel, section rules, floating bottom nav (mailto feature pill),
-                          dark footer. PillToggle exported from here.
+                          dark footer.
   ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list);
                           top-5 spec cards, ranks 6–25
                           table card, Show-more/less expander. BreakoutCard is exported
@@ -105,8 +105,6 @@ components/
                           AccreditationPins (HotelTable) — all exported for this.
                           Data via lib/your-hotel-demo.ts (typed demo set; the interfaces
                           are the contract a future getYourHotelData() should return).
-  StandoutPosts.tsx     — UNUSED legacy grid component (do not delete; kept for reference)
-  TrendPanel.tsx        — UNUSED stub for future trend charts (do not delete)
 lib/
   data.ts               — ALL data fetching and computation (single function: getPortfolioData)
   supabase.ts           — data-read client: SUPABASE_ANON_KEY first (read-only via RLS,
@@ -121,6 +119,7 @@ lib/
   format.ts             — shared fmtFollowers/fmtPostedAt/fmtDate/fmtNumber
 ```
 Removed in the redesign: `FilteredDashboard.tsx`, `TopHotels.tsx`, the top50/30/10 filter sets, the `insights` table query, `eligible_this_week`.
+Removed in the 2026-07-12 cleanup: `StandoutPosts.tsx` + `TrendPanel.tsx` (unused legacy components), the unused legacy token aliases in globals.css (`--bg`/`--card`/`--card-soft`/`--sage`/`--text-muted`; `--line-strong` kept — ManageBillingButton uses it), the stale `'Baloo 2'`/`'Space Mono'` font FALLBACK strings (now `'Space Grotesk'`/`'Hanken Grotesk'` to match the rebrand).
 
 ## Key constants (lib/data.ts)
 | Constant | Value | Purpose |
@@ -191,6 +190,10 @@ npm run dev     # local dev server (preview name: hotel-dashboard, port 3000)
 ```
 
 ## Current state / known gaps
+- **"Your Hotel" page LIVE at /hotel (merged to main 2026-07-12, PR #9):** gated own-hotel
+  mirror rendering EXAMPLE DATA (The Lansmere, labelled in the UI). Next passes, in order:
+  (1) pipeline full-history scrape on claim, (2) hotel claiming (user→hotel mapping) +
+  getYourHotelData() in lib/data.ts, (3) swap demo → real data + live Instagram links.
 - Public landing page live at `/` (2026-07-03): full marketing page with live-taster
   (top-3 real breakout cards, next 2 blurred behind one lock overlay). Copy is
   reality-adjusted (200+ hotels, no Hall of Fame/Weekly Read claims — those are listed
