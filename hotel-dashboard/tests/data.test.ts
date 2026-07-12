@@ -44,6 +44,8 @@ function metrics(overrides: Partial<HotelMetrics> = {}): HotelMetrics {
     medianComments: 10,
     followers: 10_000,
     validPostCount: 20,
+    recentRate30: 5,
+    recentRate90: 4,
     ...overrides,
   };
 }
@@ -56,6 +58,7 @@ function hotelRow(overrides: Partial<HotelRow> = {}): HotelRow {
     instagram_handle: 'hotel_a',
     followers_count: 10_000,
     engagement_rate: 1.0,
+    recent_rate: { d30: 5, d90: 4 },
     posts_per_week: 2,
     last_posted: '2026-06-30T14:00:00Z',
     er_flag_reason: null,

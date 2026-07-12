@@ -34,6 +34,7 @@ export default async function WatchlistPage() {
         instagram_handle: e.instagram_handle,
         followers_count: null,
         engagement_rate: null,
+        recent_rate: { d30: null, d90: null },
         posts_per_week: null,
         last_posted: null,
         er_flag_reason: null,

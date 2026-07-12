@@ -67,6 +67,10 @@ export type HotelRow = {
   followers_count: number | null;
   /** Null when flagged (too few posts or anomalous value) — excluded from all stats */
   engagement_rate: number | null;
+  /** Leaderboard rate — total engagement (likes+comments) over the last N days
+   *  ÷ followers × 100, per selectable window. Null when the hotel has no valid
+   *  posts in the window (dormant) or no follower count. */
+  recent_rate: { d30: number | null; d90: number | null };
   posts_per_week: number | null;
   last_posted: string | null;
   /** Non-null when ER is unreliable; shown as ⚠ in leaderboard */
@@ -285,6 +289,9 @@ export type HotelMetrics = {
   medianComments: number | null;
   followers: number | null;
   validPostCount: number;
+  /** Leaderboard rate: total engagement over the last 30 / 90 days ÷ followers × 100 */
+  recentRate30: number | null;
+  recentRate90: number | null;
 };
 
 export function computeWhatsWorking(
@@ -704,6 +711,20 @@ export async function getPortfolioData(): Promise<DashboardData> {
     const recentCount = posts.filter(p => now - new Date(p.posted_at).getTime() < weekWindowMs).length;
     const ppw = recentCount / (POSTS_WEEK_WINDOW / 7);
 
+    // Leaderboard rate — TOTAL engagement (likes+comments) over the last N days
+    // ÷ followers × 100. A period "reach relative to size": rewards both post
+    // quality AND frequency. Null when the hotel has no valid posts in the window
+    // (dormant → sorts to the bottom) or no follower count.
+    const DAY = 24 * 60 * 60 * 1000;
+    const rateOverDays = (days: number): number | null => {
+      if (!followers || followers <= 0) return null;
+      const cutoff = now - days * DAY;
+      const inWindow = validPosts.filter(p => new Date(p.posted_at).getTime() >= cutoff);
+      if (inWindow.length === 0) return null;
+      const total = inWindow.reduce((s, p) => s + p.likes_count! + (p.comments_count ?? 0), 0);
+      return (total / followers) * 100;
+    };
+
     hotelMetrics[handle] = {
       er,
       ppw,
@@ -713,6 +734,8 @@ export async function getPortfolioData(): Promise<DashboardData> {
       medianComments,
       followers,
       validPostCount: validPosts.length,
+      recentRate30:  rateOverDays(30),
+      recentRate90:  rateOverDays(90),
     };
   }
 
@@ -749,6 +772,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       // Only a hard flag nulls the ER (excluded from medians, sorts to the
       // bottom). A soft baseline warning keeps the valid ER counted.
       engagement_rate:  hard ? null : rawER,
+      recent_rate:      { d30: m?.recentRate30 ?? null, d90: m?.recentRate90 ?? null },
       posts_per_week:   m?.ppw ?? null,
       last_posted:      m?.lastPosted ?? null,
       er_flag_reason:   hard ?? soft,
