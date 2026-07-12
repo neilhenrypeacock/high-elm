@@ -154,6 +154,12 @@ section[id], div[id] { scroll-margin-top: 86px; }
 .cr-expander { transition: background 0.12s; }
 .cr-expander:hover { background: #EEF3F3; }
 
+/* Your Hotel: the one linked stat tile (best post) lifts slightly on hover.
+   !important because the tile's base background is set inline (same pattern
+   as .cr-lb-body-row above). */
+.cr-yh-tile-link { transition: background 0.14s ease; }
+.cr-yh-tile-link:hover { background: #302C26 !important; }
+
 a.cr-link:hover { text-decoration: underline; }
 
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {

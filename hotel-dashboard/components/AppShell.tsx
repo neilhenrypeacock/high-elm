@@ -43,6 +43,16 @@ function DashboardIcon({ active }: IconProps) {
     </svg>
   );
 }
+function YourHotelIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+      <path d="M5.5 20.5V5a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v15.5" stroke={stroke(active)} strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M3 20.5h18" stroke={stroke(active)} strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M9 7.5h1.6M13.4 7.5H15M9 11h1.6M13.4 11H15" stroke={stroke(active)} strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M10.5 20.5v-3.4a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v3.4" stroke={stroke(active)} strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
+  );
+}
 function SavedIcon({ active }: IconProps) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
@@ -286,6 +296,7 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
           </div>
         )}
 
+        {navItem('/hotel', 'Your hotel', YourHotelIcon)}
         {navItem('/saved', 'Saved', SavedIcon)}
         {navItem('/watchlist', 'Watchlist', WatchlistIcon)}
         <div style={{ height: 1, background: 'var(--line-soft)', margin: '10px 6px' }} />

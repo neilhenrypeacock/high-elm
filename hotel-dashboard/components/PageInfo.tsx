@@ -13,6 +13,7 @@ export type InfoKey =
   | 'breakouts'
   | 'working'
   | 'leaderboard'
+  | 'hotel'
   | 'saved'
   | 'watchlist'
   | 'settings'
@@ -25,6 +26,7 @@ export function resolveInfoKey(pathname: string, hash: string): InfoKey {
     if (h === 'breakouts' || h === 'working' || h === 'leaderboard') return h;
     return 'overview';
   }
+  if (pathname.startsWith('/hotel')) return 'hotel';
   if (pathname.startsWith('/saved')) return 'saved';
   if (pathname.startsWith('/watchlist')) return 'watchlist';
   if (pathname.startsWith('/settings')) return 'settings';
@@ -90,6 +92,23 @@ const CONTENT: Record<InfoKey, { title: string; eyebrow: string; body: React.Rea
         hotel to your <strong>Watchlist</strong>, and look for pins marking Forbes, Gold List,
         World&rsquo;s 50 Best or Michelin Keys hotels. A{' '}
         <span style={{ color: 'var(--signal-deep)' }}>⚠</span> flags a low-confidence figure.
+      </>
+    ),
+  },
+  hotel: {
+    eyebrow: 'Your hotel',
+    title: 'Your own hotel, mirrored back',
+    body: (
+      <>
+        Everything on this page is about <strong>your hotel only</strong>: the posts that beat your
+        own typical (median) engagement, your numbers at a glance, and how your following and
+        engagement have grown over your full posting history.
+        <br /><br />
+        It&rsquo;s deliberately not a scoreboard — the single network-median line is the only
+        comparison, and there&rsquo;s no rank anywhere. Public Instagram data only (likes +
+        comments); we can&rsquo;t see reach, impressions, saves or shares.{' '}
+        <strong>For now it shows a fictional example hotel</strong> — claiming your own hotel is
+        coming soon.
       </>
     ),
   },

@@ -127,7 +127,8 @@ function permalink(p: OutlierPost): string {
 
 // Small leading glyph so the post format reads at a glance. 24-unit viewBox,
 // currentColor stroke/fill. Unknown/missing type → null (chip stays text-only).
-function TypeIcon({ type }: { type: string }) {
+// Exported for reuse by the Your Hotel page (components/YourHotel.tsx).
+export function TypeIcon({ type }: { type: string }) {
   const common = {
     width: 13,
     height: 13,
@@ -164,7 +165,8 @@ function TypeIcon({ type }: { type: string }) {
   return null;
 }
 
-function TagChip({ type }: { type: string | null }) {
+// Exported for reuse by the Your Hotel page (components/YourHotel.tsx).
+export function TagChip({ type }: { type: string | null }) {
   if (!type || type === 'Other') return null;
   return (
     <span
