@@ -33,7 +33,21 @@ export async function getSubscriptionByEmail(email: string): Promise<Subscriptio
 }
 
 export function hasActiveAccess(subscription: Subscription | null): boolean {
-  return !!subscription && ACTIVE_STATUSES.includes(subscription.status);
+  if (!subscription || !ACTIVE_STATUSES.includes(subscription.status)) return false;
+
+  // Stripe-managed rows get flipped to past_due/canceled by the webhook when
+  // a trial lapses. Beta rows (no Stripe subscription) have no webhook, so
+  // their trial_end is enforced here — otherwise a beta trial never expires.
+  if (
+    subscription.status === 'trialing' &&
+    !subscription.stripe_subscription_id &&
+    subscription.trial_end &&
+    new Date(subscription.trial_end).getTime() < Date.now()
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 // Upsert keyed on email — the row may not exist yet (first checkout) or may

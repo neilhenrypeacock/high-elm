@@ -38,10 +38,13 @@ export default function LoginPage() {
           Log in to Content Radar
         </h1>
         <p style={{ fontSize: 14, color: 'var(--body-strong)', lineHeight: 1.7, margin: '14px 0 0' }}>
-          We&rsquo;ll email you a one-click link — no password needed.
+          Welcome back — enter your details to open your dashboard.
         </p>
         <LoginForm />
-        <p style={{ margin: '22px 0 0' }}>
+        <p style={{ margin: '22px 0 0', display: 'flex', justifyContent: 'center', gap: 18 }}>
+          <Link href="/start-trial" className="cr-link" style={{ fontSize: 12, color: 'var(--signal-deep)', textDecoration: 'none' }}>
+            New here? Start your free trial
+          </Link>
           <Link href="/" className="cr-link" style={{ fontSize: 12, color: 'var(--signal-deep)', textDecoration: 'none' }}>
             ← Back to Content Radar
           </Link>
