@@ -7,7 +7,7 @@ import Lockup from './Lockup';
 // right-aligned mono caption (e.g. the dashboard's "Updated weekly · <date>").
 
 const INNER: React.CSSProperties = { maxWidth: 1200, margin: '0 auto', padding: '0 40px' };
-const LABEL = "var(--font-label), 'Space Mono', monospace";
+const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 
 const footLink: React.CSSProperties = {
   fontFamily: 'var(--font-label), sans-serif',

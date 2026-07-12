@@ -22,8 +22,8 @@ import {
 // Currently renders DEMO DATA (lib/your-hotel-demo.ts) and says so in the UI.
 // Hotel claiming + the full-history scrape are separate passes.
 
-const LABEL = "var(--font-label), 'Space Mono', monospace";
-const DISPLAY = "var(--font-display), 'Baloo 2', sans-serif";
+const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
+const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
 
 // Content width cap applied inside every band (same as Dashboard.tsx)
 const INNER: React.CSSProperties = {

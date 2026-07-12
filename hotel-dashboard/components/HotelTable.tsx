@@ -24,7 +24,7 @@ function HotelWatchToggle({ handle, name, saved }: { handle: string; name: strin
 type SortKey = 'name' | 'followers_count' | 'engagement_rate' | 'posts_per_week' | 'last_posted';
 type SortDir = 'asc' | 'desc';
 
-const LABEL = "var(--font-label), 'Space Mono', monospace";
+const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const GRID: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: '42px 2.4fr 1.1fr 0.8fr 1.4fr 0.8fr 1fr',

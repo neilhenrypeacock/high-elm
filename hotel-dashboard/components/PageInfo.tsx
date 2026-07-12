@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 // Content is keyed by the active view — for the dashboard that's the current
 // section (driven by the URL hash), for the account pages it's the route.
 
-const LABEL = "var(--font-label), 'Space Mono', monospace";
+const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 
 export type InfoKey =
   | 'overview'

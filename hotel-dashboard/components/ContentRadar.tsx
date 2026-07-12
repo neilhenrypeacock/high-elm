@@ -34,8 +34,8 @@ function PostSaveToggle({
   );
 }
 
-const LABEL = "var(--font-label), 'Space Mono', monospace";
-const DISPLAY = "var(--font-display), 'Baloo 2', sans-serif";
+const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
+const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
 const MEDIA_PLACEHOLDER = 'linear-gradient(135deg, #2b2824, #3c372e)';
 const THUMB_PLACEHOLDER = 'linear-gradient(135deg, #2f2b26, #3d382f)';
 

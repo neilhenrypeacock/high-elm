@@ -6,7 +6,7 @@ import ContentRadar from './ContentRadar';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
 
-const LABEL = "var(--font-label), 'Space Mono', monospace";
+const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 
 // Content width cap applied inside every band
 const INNER: React.CSSProperties = {
