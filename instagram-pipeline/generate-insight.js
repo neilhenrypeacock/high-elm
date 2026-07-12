@@ -2,15 +2,28 @@
  * generate-insight.js  — run after each weekly scrape
  *   node generate-insight.js
  *
- * 1. Finds the top 15 standout posts (overperformance vs hotel's own median).
- * 2. Downloads their images and stores them in Supabase Storage (permanent URLs).
- * 3. Generates a one-line insight + driver tag per post via Claude.
- * 4. Generates the prose overview + 3 one-line takeaways via Claude.
- * 5. Writes everything to the database so the dashboard reads it at load time.
+ * 1. Finds this week's standout posts (overperformance vs hotel's own median).
+ * 2. Downloads their FULL media and stores the cover in Supabase Storage.
+ *    - Carousels: reads every slide (posts.child_image_urls).
+ *    - Videos/Reels: samples frames across the whole clip via ffmpeg
+ *      (posts.video_url). Needs ffmpeg installed; falls back to the cover if not.
+ * 3. Generates a three-part editorial analysis (what it is / why it worked /
+ *    try this) + driver + theme tag per post, via Claude Opus 4.8 (Vision +
+ *    adaptive thinking + structured output).
+ * 4. Writes to standout_posts so the dashboard's "Editor's note" card reads it.
+ *
+ * Prereqs: run setup-post-media.sql; `brew install ffmpeg` for video frames.
  */
 
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { mkdtemp, readFile, writeFile, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+const execFileP = promisify(execFile);
 
 const SUPABASE_URL             = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -23,7 +36,10 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !ANTHROPIC_API_KEY) {
 
 const sb     = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const BUCKET = 'standout-images';
-const MAX_STANDOUT = 15;
+const MODEL  = 'claude-opus-4-8';           // analysis model (was Haiku); cost stays trivial at this volume
+const MAX_STANDOUT   = 60;                   // annotate all of this week's breakouts (was 15)
+const CAROUSEL_MAX   = 10;                   // slides sent per carousel
+const VIDEO_FRAMES   = 8;                    // frames sampled across a video/reel
 const MIN_ENGAGEMENT       = 100;  // p30 of portfolio; filters micro-engagement noise
 const MIN_VALID_POSTS      = 3;    // need ≥3 posts with visible likes for a reliable hotel ER
 const ER_ANOMALY_THRESHOLD = 0.10; // ER above 10% is flagged and excluded from prose stats
@@ -48,43 +64,6 @@ function normalizeType(t) {
   }
 }
 
-async function callClaude(prompt, maxTokens = 512) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: maxTokens,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
-  return (await res.json()).content[0].text.trim();
-}
-
-// Send multi-modal content (image + text) to Claude Vision.
-async function callClaudeWithContent(content, maxTokens = 512) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: maxTokens,
-      messages: [{ role: 'user', content }],
-    }),
-  });
-  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
-  return (await res.json()).content[0].text.trim();
-}
-
 // Fetch image URL and return base64 + mediaType for Vision API, or null on failure.
 async function fetchImageAsBase64(url) {
   try {
@@ -103,6 +82,88 @@ async function fetchImageAsBase64(url) {
   } catch {
     return null;
   }
+}
+
+// ── Video frames ────────────────────────────────────────────────────────────
+// Claude can't take a raw video, so "watch the whole video" = sample frames
+// evenly across its full duration and send them as an image sequence.
+let _ffmpegChecked = false;
+let _ffmpegOk = false;
+async function ffmpegAvailable() {
+  if (_ffmpegChecked) return _ffmpegOk;
+  _ffmpegChecked = true;
+  try { await execFileP('ffmpeg', ['-version']); _ffmpegOk = true; }
+  catch { _ffmpegOk = false; console.warn('  ⚠ ffmpeg not found — videos analysed from cover frame only. Install: brew install ffmpeg'); }
+  return _ffmpegOk;
+}
+
+async function extractVideoFrames(videoUrl, maxFrames = VIDEO_FRAMES) {
+  if (!videoUrl || !(await ffmpegAvailable())) return [];
+  let dir = null;
+  try {
+    const res = await fetch(videoUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!res.ok) return [];
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length > 80_000_000) return [];               // skip absurdly large clips
+    dir = await mkdtemp(join(tmpdir(), 'cr-frames-'));
+    const inPath = join(dir, 'in.mp4');
+    await writeFile(inPath, buf);
+    // Probe duration → sample maxFrames evenly across the WHOLE clip.
+    let duration = 0;
+    try {
+      const { stdout } = await execFileP('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', inPath]);
+      duration = parseFloat(stdout.trim()) || 0;
+    } catch { /* ffprobe may be absent; fall back to a fixed cadence below */ }
+    const fps = duration > 0 ? Math.max(0.05, maxFrames / duration) : 0.5;
+    await execFileP('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-i', inPath,
+      '-vf', `fps=${fps.toFixed(4)},scale=768:-1`,
+      '-frames:v', String(maxFrames), '-y', join(dir, 'f_%02d.jpg'),
+    ]);
+    const files = (await readdir(dir)).filter(f => f.startsWith('f_')).sort();
+    const frames = [];
+    for (const f of files.slice(0, maxFrames)) {
+      const b = await readFile(join(dir, f));
+      frames.push({ base64: b.toString('base64'), mediaType: 'image/jpeg' });
+    }
+    return frames;
+  } catch (e) {
+    console.warn(`  frame extraction failed: ${e.message}`);
+    return [];
+  } finally {
+    if (dir) await rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+// ── Claude (Opus 4.8, structured) ─────────────────────────────────────────────
+// Returns the parsed JSON object. Structured output guarantees the (non-thinking)
+// text block is valid JSON matching the schema. Falls back progressively if the
+// full request is rejected, so a run never dies on one post.
+async function callClaudeStructured(content, schema, maxTokens = 1600) {
+  const post = (body) => fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify(body),
+  });
+  const base = { model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content }] };
+  const attempts = [
+    { ...base, thinking: { type: 'adaptive' }, output_config: { effort: 'high', format: { type: 'json_schema', schema } } },
+    { ...base, output_config: { format: { type: 'json_schema', schema } } },  // no thinking/effort
+    base,                                                                       // plain — regex-parse the JSON
+  ];
+  let lastErr;
+  for (const body of attempts) {
+    try {
+      const res = await post(body);
+      if (!res.ok) { lastErr = new Error(`Anthropic ${res.status}: ${await res.text()}`); continue; }
+      const data = await res.json();
+      const text = (data.content || []).find(b => b.type === 'text')?.text ?? '';
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) { lastErr = new Error('no JSON in response'); continue; }
+      return JSON.parse(match[0]);
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr ?? new Error('structured call failed');
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────────
@@ -143,7 +204,7 @@ async function getData() {
   for (let page = 0; ; page++) {
     const { data, error } = await sb
       .from('posts')
-      .select('post_id, instagram_handle, likes_count, comments_count, type, posted_at, image_url, post_url, caption')
+      .select('post_id, instagram_handle, likes_count, comments_count, type, posted_at, image_url, post_url, caption, child_image_urls, video_url, coauthor_usernames')
       .not('posted_at', 'is', null)
       .order('posted_at', { ascending: false })
       .order('post_id') // unique tiebreaker — offset pagination over non-unique timestamps can skip rows
@@ -241,8 +302,16 @@ async function getData() {
       likes_count:   p.likes_count,
       comments_count: p.comments_count ?? 0,
       image_url:     p.image_url,
-      caption:       (p.caption ?? '').slice(0, 200),
+      caption:       (p.caption ?? '').slice(0, 1200),   // full-ish caption for context
       multiplier,
+      // richer context so the model can reason about WHY it outperformed
+      followers:          latestFollowers[p.instagram_handle] ?? null,
+      typical_engagement: Math.round(hotelMed),           // the hotel's usual likes+comments
+      posted_at:          p.posted_at,
+      is_collab:          (p.coauthor_usernames?.length ?? 0) > 0,
+      // full media (raw CDN URLs captured at scrape) for whole-carousel / whole-video analysis
+      child_image_urls:   p.child_image_urls ?? null,
+      video_url:          p.video_url ?? null,
     });
   }
   standout.sort((a, b) => b.multiplier - a.multiplier);
@@ -264,83 +333,110 @@ async function getData() {
 
 // ── AI ────────────────────────────────────────────────────────────────────────
 
-async function generateOnePostInsight(post) {
-  const cap     = post.caption ? `"${post.caption.replace(/\n/g, ' ')}"` : '(no caption)';
-  const textCtx = `Hotel: ${post.hotel_name} (${post.hotel_country ?? '?'})
-Post type: ${post.type}
-Likes: ${post.likes_count.toLocaleString()} | Multiplier: ${post.multiplier.toFixed(1)}× hotel's own median
-Caption: ${cap}`;
+const INSIGHT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    what_it_is:    { type: 'string' },
+    why_it_worked: { type: 'string' },
+    try_this:      { type: 'string' },
+    tag:   { type: 'string', enum: ['Collaboration', 'Notable guest', 'Live moment', 'Craft', 'Organic'] },
+    theme: { type: 'string', enum: ['Food & Drink', 'The Property', 'Place & Experience', 'Wellness', 'People', 'Events', 'Other / Brand'] },
+  },
+  required: ['what_it_is', 'why_it_worked', 'try_this', 'tag', 'theme'],
+};
 
-  const instructions = `You are writing a micro-insight for a luxury hotel Instagram intelligence dashboard.
+const VOICE = `Voice: measured, concrete, proof-first. British English (colour, favourite). No exclamation marks, no hype, no emoji. Name only what you can actually see in the media or read in the caption — never invent a guest, brand, place, or fact. Hedge honestly: these are correlations, not guarantees.`;
 
-Write a JSON object with exactly three fields:
-- "insight": ONE plain-English sentence (max 12 words) describing what this specific post was about, inferred from the image and caption. Be concrete and specific — name what you see.
-- "tag": ONE of exactly: "Collaboration" | "Notable guest" | "Live moment" | "Craft" | "Organic"
-  Collaboration = co-branded with another hotel, brand, or creator. Notable guest = visiting celebrity, chef, athlete, or public figure. Live moment = seasonal, cultural, or trending event. Craft = showcasing culinary, design, or service excellence. Organic = genuine guest story or no obvious external hook.
-- "theme": ONE of exactly: "Food & Drink" | "The Property" | "Place & Experience" | "Wellness" | "People" | "Events" | "Other / Brand"
-  Food & Drink = restaurants, chefs, plated dishes, the bar, afternoon tea, wine.
-  The Property = the physical place: rooms, suites, lobby, architecture, design, art.
-  Place & Experience = destination and activities: landscape, views, skiing, golf, excursions, classes.
-  Wellness = spa, treatments, pools, fitness, the restore/switch-off angle.
-  People = guests, staff, a notable visitor, a human moment; subject is a person.
-  Events = weddings, parties, seasonal openings, celebrations, launches.
-  Other / Brand = genuine misfits only: quote cards, anniversary graphics, reshares. Only use when nothing else genuinely fits — this is the escape hatch, not the default. Rule: pick the single dominant theme. Never invent a new theme.
+const fmtN = n => (n == null ? '?' : Number(n).toLocaleString('en-GB'));
 
-${textCtx}
+function buildContext(post) {
+  const posted = post.posted_at ? new Date(post.posted_at) : null;
+  const when = posted ? posted.toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : '?';
+  return [
+    `Hotel: ${post.hotel_name} (${post.hotel_country ?? '?'})`,
+    `Followers: ${fmtN(post.followers)}`,
+    `Format: ${post.type}${post.is_collab ? ' · collaboration (Instagram co-author tag present)' : ''}`,
+    `Performance: ${fmtN(post.likes_count)} likes, ${fmtN(post.comments_count)} comments — ${post.multiplier.toFixed(1)}× this hotel's OWN typical post (its usual is ≈ ${fmtN(post.typical_engagement)} likes+comments).`,
+    `Posted: ${when}`,
+    `Caption: ${post.caption ? `"${post.caption.replace(/\s+/g, ' ').trim()}"` : '(none)'}`,
+  ].join('\n');
+}
 
-Return ONLY valid JSON, no markdown:
-{"insight": "...", "tag": "...", "theme": "..."}`;
+// Build the ordered image blocks for a post: every carousel slide, or frames
+// sampled across the whole video, or the single image. Always falls back to the
+// stored cover so a post is never analysed blind.
+async function buildMediaBlocks(post) {
+  const push = (arr, img) => { if (img) arr.push({ type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.base64 } }); };
+  const coverUrl = post.stored_image_url ?? post.image_url;
+  const blocks = [];
 
-  // Attempt vision call if we have a stored image (base64)
-  let raw;
-  if (post._imageBase64 && post._imageMediaType) {
-    const content = [
-      {
-        type: 'image',
-        source: { type: 'base64', media_type: post._imageMediaType, data: post._imageBase64 },
-      },
-      { type: 'text', text: instructions },
-    ];
-    try {
-      raw = await callClaudeWithContent(content, 300);
-    } catch (e) {
-      console.warn(`  vision call failed for ${post.post_id}: ${e.message} — falling back to text`);
-      raw = await callClaude(instructions, 200);
-    }
-  } else {
-    raw = await callClaude(instructions, 200);
+  if (post.type === 'Carousel' && Array.isArray(post.child_image_urls) && post.child_image_urls.length) {
+    const imgs = await Promise.all(post.child_image_urls.slice(0, CAROUSEL_MAX).map(u => fetchImageAsBase64(u)));
+    imgs.forEach(i => push(blocks, i));
+    if (!blocks.length) push(blocks, await fetchImageAsBase64(coverUrl));
+    return { blocks, note: `a carousel of ${blocks.length} slide${blocks.length === 1 ? '' : 's'}, shown in order` };
   }
 
+  if ((post.type === 'Reel' || post.type === 'Video') && post.video_url) {
+    const frames = await extractVideoFrames(post.video_url);
+    frames.forEach(f => push(blocks, f));
+    if (!blocks.length) push(blocks, await fetchImageAsBase64(coverUrl));
+    return { blocks, note: blocks.length > 1 ? `${blocks.length} frames sampled evenly across the whole video, in time order` : 'the video cover frame only (full video unavailable)' };
+  }
+
+  push(blocks, await fetchImageAsBase64(coverUrl));
+  return { blocks, note: 'a single image' };
+}
+
+async function generateOnePostInsight(post) {
+  const instructions = `You are the analyst for Content Radar, a weekly Instagram intelligence product for luxury hotels. This post significantly beat its OWN hotel's usual engagement. Write the editor's note a hotel marketing team will read.
+
+You are shown ${post._mediaNote}. Study all of it before answering.
+
+${VOICE}
+
+${buildContext(post)}
+
+Return:
+- what_it_is: one concrete sentence — what the post actually is, from the media and caption.
+- why_it_worked: one or two sentences on why THIS post outperformed this hotel's own baseline. Tie the creative choice (framing, pacing, sequence, subject, timing) to the numbers. Be specific, not generic.
+- try_this: one sentence a hotel marketer could act on to replicate the effect.
+- tag: Collaboration (co-branded with another hotel/brand/creator) | Notable guest (visiting public figure) | Live moment (seasonal/cultural/trending event) | Craft (culinary/design/service excellence) | Organic (genuine story, no external hook).
+- theme: Food & Drink | The Property (rooms, architecture, art) | Place & Experience (destination, activities, views) | Wellness | People | Events | Other / Brand (quote cards, graphics, reshares — escape hatch only).`;
+
+  const content = post._imageBlocks.length
+    ? [...post._imageBlocks, { type: 'text', text: instructions }]
+    : instructions;
   try {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('no object');
-    const parsed = JSON.parse(match[0]);
-    if (!parsed.insight || !parsed.tag) throw new Error('missing fields');
-    return { insight: parsed.insight, tag: parsed.tag, theme: parsed.theme ?? null };
+    const r = await callClaudeStructured(content, INSIGHT_SCHEMA);
+    const note = [
+      `What it is: ${r.what_it_is}`,
+      `Why it worked: ${r.why_it_worked}`,
+      `Try this: ${r.try_this}`,
+    ].join('\n');
+    return { insight: note, tag: r.tag ?? null, theme: r.theme ?? null };
   } catch (e) {
-    console.warn(`  parse failed for ${post.post_id}: ${e.message}`);
+    console.warn(`  insight failed for ${post.post_id}: ${e.message}`);
     return { insight: null, tag: null, theme: null };
   }
 }
 
+// Bounded-concurrency map — caps simultaneous video downloads / ffmpeg / API calls.
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  const worker = async () => { while (next < items.length) { const i = next++; out[i] = await fn(items[i]); } };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
 async function generatePostInsights(posts) {
   if (!posts.length) return [];
-
-  // Download all images in parallel first
-  const withImages = await Promise.all(posts.map(async p => {
-    if (!p.stored_image_url && !p.image_url) return { ...p, _imageBase64: null, _imageMediaType: null };
-    const imageUrl = p.stored_image_url ?? p.image_url;
-    const result   = await fetchImageAsBase64(imageUrl);
-    return {
-      ...p,
-      _imageBase64:    result?.base64    ?? null,
-      _imageMediaType: result?.mediaType ?? null,
-    };
-  }));
-
-  // Process each post individually in parallel via Vision
-  const insights = await Promise.all(withImages.map(p => generateOnePostInsight(p)));
-  return insights;
+  return mapLimit(posts, 4, async (p) => {
+    const { blocks, note } = await buildMediaBlocks(p);
+    return generateOnePostInsight({ ...p, _imageBlocks: blocks, _mediaNote: note });
+  });
 }
 
 // Weekly prose/takeaways generation removed 2026-07-01 — the redesigned

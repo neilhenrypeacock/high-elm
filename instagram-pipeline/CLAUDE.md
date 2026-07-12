@@ -38,7 +38,8 @@ Credentials are also documented in `../keys/README.md`.
 | `setup-standout-posts.sql` | SQL for standout_posts table (already run) |
 | `setup-tracked.sql` | Adds/refreshes hotels.tracked = top-200 by followers (idempotent; run 2026-07-01) |
 | `setup-coauthors.sql` | Adds `posts.coauthor_usernames text[]` for native collab detection (run in Supabase SQL editor BEFORE deploying the dashboard select — 2026-07-12) |
-| `generate-insight.js` | Per-post insights + driver/theme tags → standout_posts (weekly prose generation REMOVED 2026-07-01 — dashboard never displayed it) |
+| `setup-post-media.sql` | Adds `posts.child_image_urls text[]` + `posts.video_url text` for full carousel/video analysis (run in Supabase SQL editor BEFORE the next scrape + generate-insight) |
+| `generate-insight.js` | Per-post editorial analysis (what it is / why it worked / try this) + driver/theme tags → standout_posts. **Claude Opus 4.8** Vision + adaptive thinking + structured output. Annotates ALL of the week's breakouts (cap 60). Sees the WHOLE carousel (every slide via `posts.child_image_urls`) and the WHOLE video (frames sampled across it via **ffmpeg** from `posts.video_url`); falls back to the cover image if media/ffmpeg is unavailable. `post_insight` holds the composed 3-line note the dashboard's "Editor's note" card renders. Needs `brew install ffmpeg` (manual runs only — CI runs the scraper, not this). Weekly prose generation REMOVED 2026-07-01. |
 
 ## Apify actors used
 - `apify/instagram-profile-scraper` — follower counts, bio → `profile_snapshots`
@@ -49,7 +50,9 @@ Credentials are also documented in `../keys/README.md`.
   heuristics miss.
 
 ## Image storage
-Post images are downloaded and uploaded to the **`standout-images`** Supabase Storage bucket (public) at scrape time. The permanent URL is written to **`posts.image_url`** (scrape.js); `standout_posts.stored_image_url` is only written by `generate-insight.js` for its 15 featured posts. Falls back to the raw Instagram CDN URL (which expires) only if the upload fails.
+Post images are downloaded and uploaded to the **`standout-images`** Supabase Storage bucket (public) at scrape time. The permanent URL is written to **`posts.image_url`** (scrape.js); `standout_posts.stored_image_url` is written by `generate-insight.js` for its featured posts. Falls back to the raw Instagram CDN URL (which expires) only if the upload fails.
+
+The **cover** is stored durably (it's shown on the dashboard). The **full media** for AI analysis is NOT stored permanently — scrape.js records the raw CDN URLs (`posts.child_image_urls`, `posts.video_url`), and generate-insight.js fetches them at insight time (run right after the scrape, while the URLs are fresh). If a URL has expired, the analysis falls back to the stored cover.
 
 ## Hidden like counts
 Instagram hides likes on some posts/accounts. Apify returns those as `likes_count = null` (the bulk — heavily carousels); a small number of older rows use `-1`. The dashboard's `hasVisibleLikes` excludes **both** from every engagement calculation.
