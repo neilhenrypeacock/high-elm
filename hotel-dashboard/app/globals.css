@@ -255,9 +255,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .cr-shell--collapsed .cr-collapse-chevron { transform: rotate(180deg); }
   .cr-shell--collapsed .cr-brand-word,
   .cr-shell--collapsed .cr-navlabel,
-  .cr-shell--collapsed .cr-member-text,
-  .cr-shell--collapsed .cr-subnav { display: none; }
-  .cr-shell--collapsed .cr-beta-card { display: none; }
+  .cr-shell--collapsed .cr-member-text { display: none; }
+  /* .cr-subnav and .cr-beta-card carry inline `display`, which beats a plain
+     stylesheet rule — the collapse hide must be !important or they crowd the rail. */
+  .cr-shell--collapsed .cr-subnav,
+  .cr-shell--collapsed .cr-beta-card { display: none !important; }
   .cr-shell--collapsed .cr-beta-rail { display: flex; }
 }
 
