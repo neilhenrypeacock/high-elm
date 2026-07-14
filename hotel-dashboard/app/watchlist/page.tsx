@@ -2,7 +2,7 @@ import AppShell from '@/components/AppShell';
 import AccountFrame from '@/components/AccountFrame';
 import EmptyState from '@/components/EmptyState';
 import WatchlistTable from '@/components/WatchlistTable';
-import { requireActiveUser, displayName } from '@/lib/require-access';
+import { requireActiveUser, displayName, isAdminView } from '@/lib/require-access';
 import { getWatchlistEntries } from '@/lib/saves';
 import { getPortfolioData, type HotelRow } from '@/lib/data';
 import { accreditationsFor } from '@/lib/accreditations';
@@ -44,7 +44,7 @@ export default async function WatchlistPage() {
   }
 
   return (
-    <AppShell userName={displayName(user)} userEmail={user?.email ?? null}>
+    <AppShell userName={displayName(user)} userEmail={user?.email ?? null} isAdmin={isAdminView(user)}>
       <AccountFrame
         eyebrow="Your library"
         title="Watchlist"

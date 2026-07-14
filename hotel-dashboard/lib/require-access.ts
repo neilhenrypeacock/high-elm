@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from './supabase-server';
 import { getSubscriptionByEmail, hasActiveAccess, type Subscription } from './subscriptions';
+import { isAdmin } from './admin';
 
 // Same gate app/dashboard/page.tsx uses, factored out so every gated page
 // (dashboard, profile, settings, saved, watchlist) enforces access identically:
@@ -44,6 +45,21 @@ export async function requireActiveUser(): Promise<AccessContext> {
   return { user, subscription };
 }
 
+// Page gate for the admin area. Enforces the normal member gate first (so a
+// logged-out visitor still lands on /login, and the dev bypass still applies),
+// then requires the session email to be on the admin allowlist — a normal
+// member is bounced to their dashboard rather than shown admin tools.
+export async function requireAdminUser(): Promise<AccessContext> {
+  const access = await requireActiveUser();
+  // Under the local dev bypass there is no user; treat that as admin so the
+  // page is reachable while testing (it can never run in production).
+  if (authDisabled) return access;
+  if (!isAdmin(access.user)) {
+    redirect('/dashboard');
+  }
+  return access;
+}
+
 // API-route variant of the same gate. Routes return JSON errors instead of
 // redirecting, so this reports a status + message rather than calling
 // redirect(). 401 = no session; 403 = session but no active trial/subscription.
@@ -68,6 +84,28 @@ export async function checkApiAccess(): Promise<ApiAccess> {
   }
 
   return { ok: true, supabase, user };
+}
+
+// Admin-only API gate. Like checkApiAccess but also requires the session email
+// to be on the admin allowlist (403 otherwise). Used by the editorial write
+// route, which then uses the service-role client — NOT this member client — to
+// touch standout_posts.
+export async function checkAdminApiAccess(): Promise<ApiAccess> {
+  const access = await checkApiAccess();
+  if (!access.ok) return access;
+  if (!isAdmin(access.user)) {
+    return { ok: false, status: 403, error: 'Admins only.' };
+  }
+  return access;
+}
+
+// Whether to show the admin affordances (the floating pill + admin-page link)
+// for this request. True for allowlisted admins, and also under the local dev
+// bypass (non-production only) where there is no session user to check — so the
+// admin experience is visible while developing. Never true in production
+// without a real admin session (authDisabled is hard-guarded to non-prod).
+export function isAdminView(user: User | null): boolean {
+  return authDisabled || isAdmin(user);
 }
 
 // The member's display name, resolved consistently everywhere: their saved

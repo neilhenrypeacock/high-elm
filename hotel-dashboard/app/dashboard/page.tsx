@@ -2,7 +2,7 @@ import { getPortfolioData } from '@/lib/data';
 import Dashboard from '@/components/Dashboard';
 import AppShell from '@/components/AppShell';
 import WelcomeOverlay from '@/components/WelcomeOverlay';
-import { requireActiveUser, displayName } from '@/lib/require-access';
+import { requireActiveUser, displayName, isAdminView } from '@/lib/require-access';
 import { getSavedPostKeys, getWatchlistHandles } from '@/lib/saves';
 
 // Gated: no session → /login; logged in but no active trial/subscription →
@@ -30,6 +30,7 @@ export default async function DashboardPage() {
     <AppShell
       userName={displayName(user)}
       userEmail={user?.email ?? null}
+      isAdmin={isAdminView(user)}
       footerNote={`Updated weekly · ${data.week_ending_long}`}
     >
       <main style={{ minHeight: '100vh' }}>

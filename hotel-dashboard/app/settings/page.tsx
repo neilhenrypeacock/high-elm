@@ -2,7 +2,7 @@ import AppShell from '@/components/AppShell';
 import AccountFrame from '@/components/AccountFrame';
 import ManageBillingButton from '@/components/ManageBillingButton';
 import ThemeToggle from '@/components/ThemeToggle';
-import { requireActiveUser, displayName } from '@/lib/require-access';
+import { requireActiveUser, displayName, isAdminView } from '@/lib/require-access';
 import type { SubscriptionStatus } from '@/lib/subscriptions';
 import { fmtDate } from '@/lib/format';
 
@@ -54,7 +54,7 @@ export default async function SettingsPage() {
   const status = subscription?.status;
 
   return (
-    <AppShell userName={displayName(user)} userEmail={user?.email ?? null}>
+    <AppShell userName={displayName(user)} userEmail={user?.email ?? null} isAdmin={isAdminView(user)}>
       <AccountFrame eyebrow="Account" title="Settings" sub="Your membership and billing.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* ── Membership (display-only) ── */}

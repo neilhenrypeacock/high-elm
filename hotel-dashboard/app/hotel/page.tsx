@@ -1,6 +1,6 @@
 import YourHotel from '@/components/YourHotel';
 import AppShell from '@/components/AppShell';
-import { requireActiveUser, displayName } from '@/lib/require-access';
+import { requireActiveUser, displayName, isAdminView } from '@/lib/require-access';
 import { DEMO_HOTEL } from '@/lib/your-hotel-demo';
 
 // "Your Hotel" — the member's own-hotel mirror. Gated exactly like /dashboard:
@@ -20,6 +20,7 @@ export default async function YourHotelPage() {
     <AppShell
       userName={displayName(user)}
       userEmail={user?.email ?? null}
+      isAdmin={isAdminView(user)}
       footerNote={`Example data · last updated ${DEMO_HOTEL.lastUpdated}`}
     >
       <main style={{ minHeight: '100vh' }}>
