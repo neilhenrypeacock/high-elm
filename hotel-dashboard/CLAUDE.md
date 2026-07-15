@@ -78,8 +78,8 @@ components/
                           panel, section rules, floating bottom nav (mailto feature pill),
                           dark footer.
   ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list);
-                          top-5 spec cards, ranks 6–25
-                          table card, Show-more/less expander. BreakoutCard is exported
+                          top-10 big cards, then a ranked list of compact rows
+                          revealed 20 at a time via "Show more". BreakoutCard is exported
                           for reuse by Landing.tsx. Post images render FRAMED, not
                           cover-cropped: the shared `ImageWithFallback` shows the whole
                           image at true aspect (objectFit:contain, centred, drop-shadow)
@@ -193,7 +193,7 @@ have null `coauthor_usernames` and read as non-collab until then.
 - Only the "all hotels" stat set is computed. The channel toggle (Instagram/TikTok/YouTube) is still a disabled "soon" placeholder.
 - The **Top posts** list has a LIVE time-window toggle (7d / 30d / all, default 7d) built into `ContentRadar.tsx`. `getPortfolioData` precomputes the breakout list per window (`data.standout` is `Record<TimeWindow, OutlierPost[]>`); the client toggle selects one — no new query on toggle. Same breakout selection for all three windows (≥2× own median, ranked by multiplier), capped at `STANDOUT_LIMIT` (100). "All time" = the top 100 best-performing ever. The hero "X posts outperformed this week" always uses the 7-day count. Caveat: a post is judged against its hotel's *current* last-30 median, so old posts in the all-time view are compared to today's baseline.
 - What's Working now has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`): per-scope format/caption/day/hour bars, a 4-cell stat bar (month = period-over-period deltas vs the previous 30 days; all-time = baselines + best multiple on record), up to 3 data-derived observation cards, and the top-5 best posts (reusing the precomputed `standout` windows). `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. Median engagement rate here is the median *per-post* ER within the window (not the hotel-level leaderboard ER), so it can be windowed for the delta. Observation copy is derived from the data, not editorial sample text.
-- ContentRadar tiers: top 5 = large cards, 6–15 always visible rows, 16–25 behind "Show more".
+- ContentRadar tiers: top 10 = large cards; everything below is a ranked list of compact rows, revealed 20 at a time via "Show more" (button disappears when the list runs out).
 
 ## Supabase tables
 - `hotels` — hotel list with handles, names, regions, countries

@@ -590,6 +590,11 @@ function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: Ti
 type FeedFilters = { collab: boolean; images: boolean; videos: boolean };
 const ALL_ON: FeedFilters = { collab: true, images: true, videos: true };
 
+// Feed shape: the top BIG_CARDS breakouts render as big cards; everything below
+// is a ranked list of compact rows, revealed SMALL_STEP at a time via "Show more".
+const BIG_CARDS = 10;
+const SMALL_STEP = 20;
+
 const isImage = (t: string | null) => t === 'Photo' || t === 'Carousel';
 const isVideo = (t: string | null) => t === 'Video' || t === 'Reel';
 
@@ -723,7 +728,9 @@ export default function ContentRadar({
   postsByWindow: Record<TimeWindow, OutlierPost[]>;
   savedPostKeys?: string[];
 }) {
-  const [showMore, setShowMore] = useState(false);
+  // How many compact rows are revealed below the big cards. Starts at 0 (the feed
+  // opens on the big cards alone); each "Show more" click appends SMALL_STEP more.
+  const [smallShown, setSmallShown] = useState(0);
   const [win, setWin] = useState<TimeWindow>('7d');
   const [filters, setFilters] = useState<FeedFilters>(ALL_ON);
   const allOn = filters.collab && filters.images && filters.videos;
@@ -732,18 +739,18 @@ export default function ContentRadar({
   const windowPosts = postsByWindow[win];
   const posts = allOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
 
-  const topPosts = posts.slice(0, 5);
-  const rest = posts.slice(5);
-  const visibleRest = showMore ? rest : rest.slice(0, 10);
-  const hiddenCount = rest.length - 10;
+  const bigPosts = posts.slice(0, BIG_CARDS);
+  const rest = posts.slice(BIG_CARDS);
+  const visibleRest = rest.slice(0, smallShown);
+  const remaining = rest.length - visibleRest.length;
 
   const toggle = (k: keyof FeedFilters) => {
     setFilters(f => ({ ...f, [k]: !f[k] }));
-    setShowMore(false);
+    setSmallShown(0);
   };
   const showAll = () => {
     setFilters(ALL_ON);
-    setShowMore(false);
+    setSmallShown(0);
   };
 
   const emptyMsg = win === '7d'
@@ -755,7 +762,7 @@ export default function ContentRadar({
       {/* Controls: time-window toggle + feed filters */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <WindowToggle value={win} onChange={w => { setWin(w); setShowMore(false); }} />
+          <WindowToggle value={win} onChange={w => { setWin(w); setSmallShown(0); }} />
           {win === 'all' && (
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>
               Top {windowPosts.length} best-performing posts on record
@@ -810,11 +817,11 @@ export default function ContentRadar({
         </div>
       ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-      {/* Top 5 */}
+      {/* Top 10 — big cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Eyebrow>Top 5</Eyebrow>
+        <Eyebrow>Top {bigPosts.length}</Eyebrow>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {topPosts.map((p, i) => (
+          {bigPosts.map((p, i) => (
             <BreakoutCard
               key={`${p.post_id}-${p.instagram_handle}`}
               post={p}
@@ -825,32 +832,36 @@ export default function ContentRadar({
         </div>
       </div>
 
-      {/* Ranks 6+ */}
+      {/* Ranked below the top 10 — compact rows, revealed SMALL_STEP at a time */}
       {rest.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Eyebrow>Top 6 – {5 + rest.length}</Eyebrow>
-          <div
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--line)',
-              borderRadius: 14,
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-card)',
-            }}
-          >
-            {visibleRest.map((p, i) => (
-              <PostRow
-                key={`${p.post_id}-${p.instagram_handle}`}
-                post={p}
-                rank={i + 6}
-                saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
-              />
-            ))}
-          </div>
-          {hiddenCount > 0 && (
-            <div style={{ textAlign: 'center', marginTop: 4 }}>
+          {visibleRest.length > 0 && (
+            <>
+              <Eyebrow>Ranked {BIG_CARDS + 1} – {BIG_CARDS + visibleRest.length}</Eyebrow>
+              <div
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--line)',
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                  boxShadow: 'var(--shadow-card)',
+                }}
+              >
+                {visibleRest.map((p, i) => (
+                  <PostRow
+                    key={`${p.post_id}-${p.instagram_handle}`}
+                    post={p}
+                    rank={i + BIG_CARDS + 1}
+                    saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+          {remaining > 0 && (
+            <div style={{ textAlign: 'center', marginTop: visibleRest.length > 0 ? 4 : 0 }}>
               <button
-                onClick={() => setShowMore(v => !v)}
+                onClick={() => setSmallShown(n => n + SMALL_STEP)}
                 className="cr-expander"
                 style={{
                   fontSize: 12,
@@ -864,7 +875,7 @@ export default function ContentRadar({
                   cursor: 'pointer',
                 }}
               >
-                {showMore ? 'Show less ↑' : `Show ${hiddenCount} more ↓`}
+                Show {Math.min(SMALL_STEP, remaining)} more ↓
               </button>
             </div>
           )}
