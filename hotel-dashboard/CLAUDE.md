@@ -98,7 +98,12 @@ components/
                           period-over-period deltas → "What we're seeing" observation
                           cards → "Best posts of the period" rows → "Supporting signals"
                           format/caption bars → day/time/frequency behind "Show more
-                          detail" expander (kept by Neil's decision). Data is
+                          detail" expander (kept by Neil's decision). Each of the four
+                          findings (format/caption/day/time) leads with a plain-English
+                          headline + a data-derived sentence (formatFinding/captionFinding/
+                          dayFinding/timeFinding — no ER/hour-block jargon on show); the
+                          technical detail (median-ER definition, char buckets, UTC caveat)
+                          sits behind an inline circled-"i" InfoDot popover (hover/tap). Data is
                           data.whatsWorkingData (per-scope); reuses ImageWithFallback
                           (ContentRadar) for the best-post thumbnails.
   HotelTable.tsx        — functional leaderboard in the spec's 7-col grid: dark header,
