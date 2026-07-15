@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 
-// Login: email + password is the primary path; "email me a link" (the original
-// magic-link flow) stays one click away — it's how password-less accounts from
-// the magic-link era get in, and the recovery path for a forgotten password.
+// Login: email + password is the primary path. Two secondary paths sit one
+// click away: "email me a link" (the magic-link flow — how password-less
+// accounts from the magic-link era get in) and "forgot your password?" (a
+// Supabase recovery email that lands on /auth/new-password).
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -34,7 +35,7 @@ const primaryButton = (busy: boolean): React.CSSProperties => ({
 });
 
 export default function LoginForm() {
-  const [mode, setMode] = useState<'password' | 'link'>('password');
+  const [mode, setMode] = useState<'password' | 'link' | 'reset'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'sent' | 'error'>('idle');
@@ -88,7 +89,30 @@ export default function LoginForm() {
     }
   }
 
-  function switchMode(next: 'password' | 'link') {
+  async function submitReset(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus('loading');
+    setError('');
+    try {
+      const res = await fetch('/api/auth/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus('error');
+        setError(data.error ?? 'Something went wrong. Try again.');
+        return;
+      }
+      setStatus('sent');
+    } catch {
+      setStatus('error');
+      setError('Something went wrong. Try again.');
+    }
+  }
+
+  function switchMode(next: 'password' | 'link' | 'reset') {
     setMode(next);
     setStatus('idle');
     setError('');
@@ -97,8 +121,41 @@ export default function LoginForm() {
   if (status === 'sent') {
     return (
       <p style={{ fontSize: 14, color: 'var(--body-strong)', lineHeight: 1.7, marginTop: 20 }}>
-        Check your email for a link to log in.
+        {mode === 'reset'
+          ? 'If that email has an account, we’ve sent a link to reset your password. Check your inbox.'
+          : 'Check your email for a link to log in.'}
       </p>
+    );
+  }
+
+  if (mode === 'reset') {
+    return (
+      <form onSubmit={submitReset} style={{ marginTop: 20 }}>
+        <input
+          type="email"
+          required
+          autoComplete="email"
+          placeholder="you@hotel.com"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          style={inputStyle}
+          aria-label="Email"
+        />
+        <button type="submit" disabled={busy} className="cr-lift" style={primaryButton(busy)}>
+          {busy ? 'Sending…' : 'Email me a reset link'}
+        </button>
+        {error && <p style={{ fontSize: 13, color: '#B3453B', marginTop: 10 }}>{error}</p>}
+        <p style={{ marginTop: 16 }}>
+          <button
+            type="button"
+            onClick={() => switchMode('password')}
+            className="cr-link"
+            style={{ fontSize: 12.5, fontWeight: 500, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            ← Back to log in
+          </button>
+        </p>
+      </form>
     );
   }
 
@@ -159,7 +216,15 @@ export default function LoginForm() {
       </button>
       {error && <p style={{ fontSize: 13, color: '#B3453B', marginTop: 10 }}>{error}</p>}
       <p style={{ marginTop: 16, fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.6 }}>
-        No password yet, or forgotten it?{' '}
+        <button
+          type="button"
+          onClick={() => switchMode('reset')}
+          className="cr-link"
+          style={{ fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
+          Forgot your password?
+        </button>
+        {'  ·  No password yet? '}
         <button
           type="button"
           onClick={() => switchMode('link')}
@@ -168,7 +233,6 @@ export default function LoginForm() {
         >
           Email me a login link
         </button>
-        {' '}— you can set a password from your profile once you&rsquo;re in.
       </p>
     </form>
   );

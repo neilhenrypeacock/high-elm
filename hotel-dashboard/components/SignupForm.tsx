@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-// Beta account creation (STRIPE_DISABLED mode) — name, hotel, email, password
-// → POST /api/auth/signup creates the account + 14-day trial and signs the
-// visitor in, then we hand over to the dashboard (WelcomeOverlay greets them).
-// A brief full-card success beat replaces the form so the redirect never feels
-// like a hang.
+// Account creation — name, hotel (optional), email, password → POST
+// /api/auth/signup creates the account and Supabase emails a confirmation
+// link. On success the form is replaced by a "check your inbox" state: there
+// is no session yet and no redirect — the visitor confirms their address,
+// then logs in and starts their trial.
 
 const fieldLabel: React.CSSProperties = {
   display: 'block',
@@ -64,11 +64,9 @@ export default function SignupForm() {
         return;
       }
 
-      // Session cookie is set — brief success beat, then into the dashboard.
+      // Account created — Supabase has emailed a confirmation link. Show the
+      // "check your inbox" state; no session, no redirect.
       setStatus('done');
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 900);
     } catch {
       setStatus('error');
       setError('Something went wrong. Try again.');
@@ -91,15 +89,23 @@ export default function SignupForm() {
             justifyContent: 'center',
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M20 6.5 9.4 17 4 11.7" stroke="var(--signal-deep)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--signal-deep)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <path d="m3.5 7 8.5 6 8.5-6" />
           </svg>
         </div>
         <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: '18px 0 0' }}>
-          You&rsquo;re in — trial started
+          Check your inbox to confirm
         </p>
-        <p style={{ fontSize: 13, color: 'var(--body-mid)', margin: '6px 0 0' }}>
-          Opening your dashboard…
+        <p style={{ fontSize: 13, color: 'var(--body-mid)', margin: '6px 0 0', lineHeight: 1.6 }}>
+          We&rsquo;ve sent a confirmation link to <strong style={{ color: 'var(--ink)' }}>{email}</strong>.
+          Click it to verify your email, then log in to start your free trial.
+        </p>
+        <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '14px 0 0', lineHeight: 1.6 }}>
+          Can&rsquo;t find it? Check your spam folder, or{' '}
+          <Link href="/login" className="cr-link" style={{ color: 'var(--signal-deep)', fontWeight: 600, textDecoration: 'none' }}>
+            go to log in
+          </Link>.
         </p>
       </div>
     );
@@ -209,7 +215,7 @@ export default function SignupForm() {
           opacity: status === 'loading' ? 0.7 : 1,
         }}
       >
-        {status === 'loading' ? 'Creating your account…' : 'Create account & start trial'}
+        {status === 'loading' ? 'Creating your account…' : 'Create my account'}
       </button>
 
       {error && (
@@ -227,7 +233,7 @@ export default function SignupForm() {
       )}
 
       <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 14, lineHeight: 1.6, textAlign: 'center' }}>
-        14 days free · no card needed during the beta · full dashboard access
+        We&rsquo;ll email you a link to confirm your address · 14-day free trial
       </p>
     </form>
   );

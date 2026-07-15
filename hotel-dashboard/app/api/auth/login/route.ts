@@ -27,6 +27,16 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    // Unconfirmed address is a distinct, actionable case — tell them plainly
+    // (this doesn't leak anything a signup attempt wouldn't already reveal).
+    const unconfirmed =
+      error.code === 'email_not_confirmed' || /not confirmed|confirm your email/i.test(error.message);
+    if (unconfirmed) {
+      return NextResponse.json(
+        { error: 'That email hasn’t been confirmed yet — check your inbox for the confirmation link.', code: 'unconfirmed' },
+        { status: 401 }
+      );
+    }
     // One message for wrong-email and wrong-password — don't confirm which.
     return NextResponse.json({ error: 'Wrong email or password.' }, { status: 401 });
   }

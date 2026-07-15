@@ -4,7 +4,7 @@ import { requireActiveUser, displayName, isAdminView } from '@/lib/require-acces
 import { DEMO_HOTEL } from '@/lib/your-hotel-demo';
 
 // "Your Hotel" — the member's own-hotel mirror. Gated exactly like /dashboard:
-// no session → /login; logged in but no active trial/subscription → /subscribe.
+// no session → /login; logged in but no active trial/subscription → /start-trial.
 //
 // Ships with EXAMPLE DATA (a fictional hotel, labelled as such in the UI) until
 // hotel claiming + the pipeline's full-history scrape land — see the header
