@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ImageWithFallback, TagChip, TypeIcon } from './ContentRadar';
 import { AccreditationPins } from './HotelTable';
+import PageInfoButton from './PageInfoButton';
 import { fmtFollowers } from '@/lib/format';
 import {
   BREAKOUT_HIGHLIGHT,
@@ -125,6 +126,7 @@ function HeaderStrip({ hotel }: { hotel: YourHotelData }) {
           >
             Example data
           </span>
+          <PageInfoButton infoKey="hotel" />
         </div>
         <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 3 }}>
           @{hotel.handle} · {hotel.location}

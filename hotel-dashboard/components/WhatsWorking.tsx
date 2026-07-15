@@ -9,6 +9,138 @@ const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
 const THUMB_PLACEHOLDER = 'linear-gradient(135deg, #2f2b26, #3d382f)';
 
+// ── Plain-English findings ────────────────────────────────────────────────────
+// Each finding is DERIVED from the current bars (not hardcoded), so it stays
+// truthful as the data shifts week to week — the wording just describes whatever
+// is winning right now, in plain language with no ER/hour-block jargon on show.
+function cap(s: string): string { return s.charAt(0).toUpperCase() + s.slice(1); }
+function joinAnd(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? '';
+  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+const FORMAT_PLURAL: Record<string, string> = { Reel: 'reels', Video: 'videos', Carousel: 'carousels', Photo: 'photos', Other: 'other posts' };
+const formatPlural = (label: string) => FORMAT_PLURAL[label] ?? `${label.toLowerCase()}s`;
+const DAY_FULL: Record<string, string> = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
+
+/** Which post formats are pulling ahead, vs the weakest. */
+function formatFinding(data: BarItem[]): string | null {
+  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
+  if (s.length < 2 || !s[0].value) return null;
+  const top = s[0], bottom = s[s.length - 1];
+  const leaders = s.filter(d => d.value >= top.value * 0.92).map(d => formatPlural(d.label));
+  const low = bottom.label === 'Photo' ? 'plain photos' : formatPlural(bottom.label);
+  return `${cap(joinAnd(leaders))} are pulling ahead — they get noticeably more engagement than ${low} right now.`;
+}
+
+/** Whether shorter or longer captions are landing best. */
+function captionFinding(data: BarItem[]): string | null {
+  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
+  if (!s.length) return null;
+  if (s[0].label === 'Long') return 'Longer captions are winning — posts that tell a fuller story tend to do best, not one-liners.';
+  if (s[0].label === 'Short') return 'Shorter captions are winning — a tight one- or two-line caption tends to do best.';
+  return 'Medium-length captions are winning — a few lines tends to land better than very short or very long.';
+}
+
+/** Best day(s) of the week to post. */
+function dayFinding(data: BarItem[]): string | null {
+  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
+  if (!s.length || !s[0].value) return null;
+  const topDay = DAY_FULL[s[0].label] ?? s[0].label;
+  const runnersUp = s.slice(1, 3).filter(d => d.value >= s[0].value * 0.9).map(d => DAY_FULL[d.label] ?? d.label);
+  return runnersUp.length
+    ? `${topDay} posts get the most engagement, with ${joinAnd(runnersUp)} close behind.`
+    : `${topDay} posts get the most engagement.`;
+}
+
+/** Best time of day to post (plain-language time-of-day, no UTC on show). */
+function timeFinding(data: BarItem[]): string | null {
+  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
+  if (!s.length || !s[0].value) return null;
+  const PLAIN: Record<string, string> = {
+    'Midnight (0–5)': 'overnight',
+    'Morning (6–11)': 'in the morning',
+    'Afternoon (12–17)': 'in the early afternoon',
+    'Evening (18–23)': 'in the evening',
+  };
+  const when = PLAIN[s[0].label] ?? 'at that time';
+  return `Posts that go out ${when} tend to do best.`;
+}
+
+// ── Inline "i" — a small circled-i that reveals a plain-language explainer on
+// hover (desktop) or tap (mobile). Keeps the technical detail off the surface
+// but one gesture away. Matches the brand circled-i used elsewhere.
+function InfoDot({ label, children }: { label: string; children: React.ReactNode }) {
+  const [hover, setHover] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const open = hover || pinned;
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle' }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        onClick={() => setPinned(p => !p)}
+        onBlur={() => setPinned(false)}
+        onKeyDown={e => { if (e.key === 'Escape') setPinned(false); }}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          border: '1.4px solid var(--muted)',
+          background: 'transparent',
+          color: 'var(--muted)',
+          cursor: 'pointer',
+          padding: 0,
+          flex: 'none',
+        }}
+      >
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="7.4" r="1.3" fill="currentColor" />
+          <path d="M12 11v6.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+        </svg>
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 240,
+            maxWidth: '70vw',
+            background: 'var(--ink)',
+            color: 'var(--on-dark)',
+            fontFamily: 'var(--font-body), sans-serif',
+            fontSize: 12,
+            lineHeight: 1.5,
+            fontWeight: 400,
+            textTransform: 'none',
+            letterSpacing: 0,
+            borderRadius: 10,
+            padding: '11px 13px',
+            boxShadow: 'var(--shadow-nav)',
+            zIndex: 40,
+          }}
+        >
+          {children}
+        </span>
+      )}
+    </span>
+  );
+}
+
+// Shared explainer for the median-engagement-rate charts.
+const ER_EXPLAINER = 'Median engagement rate (likes + comments ÷ followers) across all tracked hotels over the last 30 days. A pattern across the network, not a guarantee for any one post.';
+
 // Bar ramp: strongest bar takes the signal green, the rest fade back.
 const BAR_RAMP = ['var(--signal)', 'var(--bar-mid)', 'var(--bar-low)', 'var(--bar-low)', 'var(--bar-low)'];
 
@@ -36,17 +168,6 @@ function barColors(data: BarItem[]): Record<string, string> {
     colors[d.label] = BAR_RAMP[Math.min(i, BAR_RAMP.length - 1)];
   });
   return colors;
-}
-
-function gapLine(data: BarItem[], noun: string): string | null {
-  if (data.length < 2) return null;
-  const sorted = [...data].sort((a, b) => b.value - a.value);
-  const best = sorted[0];
-  const worst = sorted[sorted.length - 1];
-  if (!worst.value) return null;
-  const ratio = best.value / worst.value;
-  if (ratio < 1.15) return null;
-  return `${best.label} ${noun} get ~${ratio.toFixed(1)}× more engagement than ${worst.label.toLowerCase()}.`;
 }
 
 function BarChart({ data }: { data: BarItem[] }) {
@@ -81,20 +202,35 @@ function BarChart({ data }: { data: BarItem[] }) {
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({
+  title,
+  info,
+  finding,
+  children,
+}: {
+  title: string;
+  /** Optional "i" popover content — the technical detail behind the plain copy. */
+  info?: React.ReactNode;
+  /** Optional plain-English finding shown as a headline sentence above the chart. */
+  finding?: string | null;
+  children: React.ReactNode;
+}) {
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--shadow-card)', padding: '22px 24px' }}>
-      <h3 style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--muted)', marginBottom: 18 }}>
-        {title}
-      </h3>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: finding ? 8 : 18 }}>
+        <h3 style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--muted)', margin: 0 }}>
+          {title}
+        </h3>
+        {info && <InfoDot label={`About: ${title}`}>{info}</InfoDot>}
+      </div>
+      {finding && (
+        <p style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.5, margin: '0 0 18px', fontWeight: 500 }}>
+          {finding}
+        </p>
+      )}
       {children}
     </div>
   );
-}
-
-function GapNote({ text }: { text: string | null }) {
-  if (!text) return null;
-  return <p style={{ marginTop: 16, fontSize: 12, color: 'var(--signal-deep)', lineHeight: 1.5 }}>{text}</p>;
 }
 
 // Section eyebrow (uppercase micro-label above a block).
@@ -280,17 +416,25 @@ export default function WhatsWorkingPanel({
         </>
       )}
 
-      {/* Supporting signals — format + caption bars */}
+      {/* Supporting signals — plain-English findings; technical detail behind the "i" */}
       <Eyebrow>Supporting signals</Eyebrow>
+      <p style={{ fontSize: 12.5, color: 'var(--faint)', lineHeight: 1.6, margin: '-4px 0 16px' }}>
+        These are patterns across the tracked hotels over the last 30 days — correlation, not a promise.
+      </p>
       <div className="cr-chart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <ChartCard title="Engagement by post format">
+        <ChartCard
+          title="What kind of post works best"
+          finding={formatFinding(d.set.by_format)}
+          info={ER_EXPLAINER}
+        >
           <BarChart data={d.set.by_format} />
-          <GapNote text={gapLine(d.set.by_format, 'posts')} />
         </ChartCard>
-        <ChartCard title="Engagement by caption length">
+        <ChartCard
+          title="How long to make your captions"
+          finding={captionFinding(d.set.by_caption)}
+          info={<>{ER_EXPLAINER}{' '}“Longer” here means captions over ~300 characters; “short” is under ~100.</>}
+        >
           <BarChart data={d.set.by_caption} />
-          <GapNote text={gapLine(d.set.by_caption, 'captions')} />
-          <p style={{ marginTop: 14, fontSize: 12, color: 'var(--faint)' }}>Short &lt;100 chars · Medium 100–299 · Long 300+.</p>
         </ChartCard>
       </div>
 
@@ -327,16 +471,29 @@ export default function WhatsWorkingPanel({
             <p style={{ marginTop: 22, fontSize: 12, color: 'var(--faint)' }}>Correlation only — other factors drive engagement too.</p>
           </ChartCard>
 
-          <ChartCard title="When do posts perform best?">
+          <ChartCard title="When to post">
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--body-mid)', marginBottom: 12 }}>By day of week</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--body-mid)' }}>Best days to post</div>
+                <InfoDot label="About: best days to post">{ER_EXPLAINER}</InfoDot>
+              </div>
+              {dayFinding(d.set.by_day) && (
+                <p style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5, margin: '0 0 12px', fontWeight: 500 }}>{dayFinding(d.set.by_day)}</p>
+              )}
               <BarChart data={d.set.by_day} />
             </div>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--body-mid)', marginBottom: 12 }}>By time of day</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--body-mid)' }}>Best times to post</div>
+                <InfoDot label="About: best times to post">
+                  {ER_EXPLAINER}{' '}Times are measured in UTC, so treat them as a rough guide. Day-of-week is a more reliable signal than exact hour.
+                </InfoDot>
+              </div>
+              {timeFinding(d.set.by_hour_block) && (
+                <p style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5, margin: '0 0 12px', fontWeight: 500 }}>{timeFinding(d.set.by_hour_block)}</p>
+              )}
               <BarChart data={d.set.by_hour_block} />
             </div>
-            <p style={{ marginTop: 16, fontSize: 12, color: 'var(--faint)' }}>Times are UTC — day-of-week is more reliable than hour.</p>
           </ChartCard>
         </div>
       )}

@@ -1,5 +1,9 @@
+import PageInfoButton from './PageInfoButton';
+
 // Standard content frame for gated account pages (profile, settings, saved,
 // watchlist) rendered inside AppShell. Keeps their headers + width consistent.
+// The inline "i" beside the title carries the page explanation (it replaced the
+// old "About this page" sidebar menu item).
 export default function AccountFrame({
   eyebrow,
   title,
@@ -25,18 +29,21 @@ export default function AccountFrame({
       >
         {eyebrow}
       </div>
-      <h1
-        style={{
-          fontFamily: 'var(--font-body), sans-serif',
-          fontWeight: 700,
-          fontSize: 32,
-          letterSpacing: '-0.02em',
-          color: 'var(--ink)',
-          margin: '12px 0 0',
-        }}
-      >
-        {title}
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '12px 0 0' }}>
+        <h1
+          style={{
+            fontFamily: 'var(--font-body), sans-serif',
+            fontWeight: 700,
+            fontSize: 32,
+            letterSpacing: '-0.02em',
+            color: 'var(--ink)',
+            margin: 0,
+          }}
+        >
+          {title}
+        </h1>
+        <PageInfoButton />
+      </div>
       {sub && (
         <p style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--body-soft)', margin: '12px 0 0', maxWidth: 620 }}>
           {sub}

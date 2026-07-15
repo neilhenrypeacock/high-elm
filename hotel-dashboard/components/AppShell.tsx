@@ -215,54 +215,9 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
       </div>
 
       <nav style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* "i" — explain the current page. Account pages only; the dashboard has
-            per-view "i" buttons in the sub-nav below. */}
-        {!onDashboard && (
-        <button
-          type="button"
-          onClick={() => openInfo(null)}
-          title={collapsed ? 'About this page' : undefined}
-          className="cr-shell-navitem cr-info-navitem"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 11,
-            padding: '10px 12px',
-            borderRadius: 10,
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontFamily: 'var(--font-body), sans-serif',
-            fontSize: 14,
-            fontWeight: 500,
-            color: 'var(--body-soft)',
-            textAlign: 'left',
-            width: '100%',
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flex: 'none',
-              width: 20,
-              height: 20,
-              borderRadius: '50%',
-              border: '1.6px solid var(--signal-deep)',
-              color: 'var(--signal-deep)',
-            }}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="7.4" r="1.25" fill="currentColor" />
-              <path d="M12 11v6.5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
-            </svg>
-          </span>
-          <span className="cr-navlabel">About this page</span>
-        </button>
-        )}
-
+        {/* Page explanations now live inline via an "i" next to each page's title
+            (PageInfoButton on the account pages; per-view "i" buttons in the
+            dashboard sub-nav below) — there is no "About this page" menu item. */}
         {navItem('/dashboard', 'Dashboard', DashboardIcon)}
 
         {/* In-page section links — only on the dashboard, only in the full state */}
