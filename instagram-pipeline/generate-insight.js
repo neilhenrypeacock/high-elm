@@ -8,11 +8,16 @@
  *    - Videos/Reels: samples frames across the whole clip via ffmpeg
  *      (posts.video_url). Needs ffmpeg installed; falls back to the cover if not.
  * 3. Generates a three-part editorial analysis (what it is / why it worked /
- *    try this) + driver + theme tag per post, via Claude Opus 4.8 (Vision +
+ *    try this) + driver + theme tag per post, via Claude Sonnet 5 (Vision +
  *    adaptive thinking + structured output).
  * 4. Writes to standout_posts so the dashboard's "Editor's note" card reads it.
  *
- * Prereqs: run setup-post-media.sql; `brew install ffmpeg` for video frames.
+ * Runs automatically in .github/workflows/weekly-scrape.yml, after the scrape.
+ * Targets the current TOP 10 NON-COLLAB breakouts, selected with the SAME rule
+ * as the dashboard — see the "Breakout rule" note by the constants below.
+ *
+ * Prereqs: run setup-post-media.sql; `brew install ffmpeg` for video frames
+ * (the workflow installs it; local runs need it too). Needs ANTHROPIC_API_KEY.
  */
 
 import 'dotenv/config';
@@ -36,11 +41,24 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !ANTHROPIC_API_KEY) {
 
 const sb     = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const BUCKET = 'standout-images';
-const MODEL  = 'claude-opus-4-8';           // analysis model (was Haiku); cost stays trivial at this volume
-const MAX_STANDOUT   = 60;                   // annotate all of this week's breakouts (was 15)
+const MODEL  = 'claude-sonnet-5';           // near-Opus quality on this vision task at ~40–60% of the cost
 const CAROUSEL_MAX   = 10;                   // slides sent per carousel
 const VIDEO_FRAMES   = 8;                    // frames sampled across a video/reel
-const MIN_ENGAGEMENT       = 100;  // p30 of portfolio; filters micro-engagement noise
+
+// ── Breakout rule — KEEP IN SYNC with ../hotel-dashboard/lib/data.ts ──────────
+// This file is ESM JS and can't import the dashboard's TypeScript computeStandout,
+// so the constants below are DUPLICATED from lib/data.ts. lib/data.ts is the
+// single source of truth — if the baseline window, threshold or floors change
+// there, change them here too, or the weekly generator will annotate a different
+// set of posts than the feed's big cards show.
+const MAX_STANDOUT            = 10;   // top 10 non-collab breakouts get analysis each run
+const OUTLIER_THRESHOLD       = 2;    // post must beat its hotel's median by ≥2×
+const BASELINE_POSTS          = 30;   // baseline = median of the hotel's last 30 valid posts
+const MIN_ENGAGEMENT          = 100;  // absolute floor; posts below this are noise
+const MIN_BASELINE_ENGAGEMENT = 25;   // hotels with a median below this are excluded
+const OUTLIER_WINDOW_DAYS     = 7;    // the "this week" window for breakouts
+
+// ── Prose-stats guards (logging only — not part of the breakout rule) ─────────
 const MIN_VALID_POSTS      = 3;    // need ≥3 posts with visible likes for a reliable hotel ER
 const ER_ANOMALY_THRESHOLD = 0.10; // ER above 10% is flagged and excluded from prose stats
 
@@ -135,7 +153,7 @@ async function extractVideoFrames(videoUrl, maxFrames = VIDEO_FRAMES) {
   }
 }
 
-// ── Claude (Opus 4.8, structured) ─────────────────────────────────────────────
+// ── Claude (Sonnet 5, structured) ─────────────────────────────────────────────
 // Returns the parsed JSON object. Structured output guarantees the (non-thinking)
 // text block is valid JSON matching the schema. Falls back progressively if the
 // full request is rejected, so a run never dies on one post.
@@ -236,9 +254,11 @@ async function getData() {
     if (!(s.instagram_handle in latestFollowers)) latestFollowers[s.instagram_handle] = s.followers_count;
   }
 
-  const { data: hotels } = await sb.from('hotels').select('name, country, instagram_handle');
+  const { data: hotels } = await sb.from('hotels').select('name, country, instagram_handle, tracked');
   const nameByHandle    = Object.fromEntries((hotels ?? []).map(h => [h.instagram_handle, h.name]));
   const countryByHandle = Object.fromEntries((hotels ?? []).map(h => [h.instagram_handle, h.country]));
+  // Only tracked hotels appear on the dashboard, so only they can be breakouts.
+  const trackedHandles  = new Set((hotels ?? []).filter(h => h.tracked).map(h => h.instagram_handle));
 
   const valid = allPosts.filter(p => p.likes_count !== -1 && p.likes_count !== null);
 
@@ -281,19 +301,30 @@ async function getData() {
     .sort((a, b) => b.medianER - a.medianER);
   const bestFormat = formats[0];
 
-  // Standout posts — last 7 days, ≥ 2× hotel absolute engagement median, ≥ MIN_ENGAGEMENT floor
+  // Breakouts — MUST match ../hotel-dashboard/lib/data.ts computeStandout:
+  //   • tracked hotels only (untracked never show on the dashboard)
+  //   • last OUTLIER_WINDOW_DAYS days
+  //   • non-collab only (co-author byline excluded — we annotate non-collabs)
+  //   • post engagement ≥ MIN_ENGAGEMENT
+  //   • hotel baseline = median of its last BASELINE_POSTS valid posts, ≥ MIN_BASELINE_ENGAGEMENT
+  //   • multiplier = postEngagement / baseline ≥ OUTLIER_THRESHOLD
+  //   • ranked by multiplier desc, top MAX_STANDOUT
+  // valid is already ordered newest-first (posts query is posted_at desc), so
+  // hotelPostEngagements[handle].slice(0, BASELINE_POSTS) is the last 30 posts.
   const now    = Date.now();
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const windowMs = OUTLIER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
   const standout = [];
 
   for (const p of valid) {
-    if (now - new Date(p.posted_at).getTime() > weekMs) continue;
+    if (!trackedHandles.has(p.instagram_handle)) continue;
+    if ((p.coauthor_usernames?.length ?? 0) > 0) continue; // exclude true collabs
+    if (now - new Date(p.posted_at).getTime() > windowMs) continue;
     const postEngagement = p.likes_count + (p.comments_count ?? 0);
     if (postEngagement < MIN_ENGAGEMENT) continue;
-    const hotelMed = median(hotelPostEngagements[p.instagram_handle] ?? []);
-    if (!hotelMed) continue;
+    const hotelMed = median((hotelPostEngagements[p.instagram_handle] ?? []).slice(0, BASELINE_POSTS));
+    if (!hotelMed || hotelMed < MIN_BASELINE_ENGAGEMENT) continue;
     const multiplier = postEngagement / hotelMed;
-    if (multiplier < 2) continue;
+    if (multiplier < OUTLIER_THRESHOLD) continue;
     standout.push({
       post_id:       p.post_id,
       hotel_name:    nameByHandle[p.instagram_handle] ?? p.instagram_handle,
@@ -317,7 +348,7 @@ async function getData() {
   standout.sort((a, b) => b.multiplier - a.multiplier);
 
   return {
-    top15: standout.slice(0, MAX_STANDOUT),
+    top10: standout.slice(0, MAX_STANDOUT),
     categoryER:    (categoryER ? categoryER * 100 : 0).toFixed(2),
     topHotelName:  nameByHandle[topHotel?.handle] ?? topHotel?.handle,
     topHotelER:    topHotel?.medianER ? (topHotel.medianER * 100).toFixed(2) : null,
@@ -449,12 +480,12 @@ async function main() {
   await ensureBucket();
 
   console.log('\nPulling data from Supabase…');
-  const { top15, ...numbers } = await getData();
-  console.log(`Standout posts this week: ${top15.length}`);
+  const { top10, ...numbers } = await getData();
+  console.log(`Top non-collab breakouts this week: ${top10.length}`);
   console.log('Numbers:', JSON.stringify(numbers, null, 2));
 
   console.log('\nUploading standout images to storage…');
-  const enriched = await Promise.all(top15.map(async p => {
+  const enriched = await Promise.all(top10.map(async p => {
     if (!p.image_url) { console.log(`  ${p.post_id}: no image`); return { ...p, stored_image_url: null }; }
     process.stdout.write(`  ${p.post_id}: `);
     const url = await uploadImage(p.post_id, p.image_url);
