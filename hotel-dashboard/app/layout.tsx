@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Hanken_Grotesk } from 'next/font/google';
 import './globals.css';
+import DevMenu from '../components/DevMenu';
 
 // Display numerals + the "content radar" wordmark only — never body text.
 // Space Grotesk tops out at 700; inline 800 weights clamp to it (by design).
@@ -46,6 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${spaceGrotesk.variable} ${hanken.variable}`}>
         {children}
+        {/* Self-gating: renders nothing unless local dev, NEXT_PUBLIC_DEV_MENU=1,
+            or this browser flipped the ?devmenu=1 secret toggle in production. */}
+        <DevMenu />
       </body>
     </html>
   );
