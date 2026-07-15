@@ -327,7 +327,7 @@ export default function Landing({ data }: { data: DashboardData }) {
         <div style={{ maxWidth: 840 }}>
           <div data-reveal style={{ ...eyebrow(), marginBottom: 28 }}>Powered by High Elm Studio</div>
           <h1 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(38px,6vw,68px)', lineHeight: 1.03, letterSpacing: '-0.03em', color: 'var(--ink)', textWrap: 'balance', marginBottom: 18 }}>
-            See exactly what content is going viral for the world&rsquo;s best luxury hotels — every week.
+            Every week, see exactly what content is going viral for luxury hotels.
           </h1>
           <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(20px,3vw,30px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 26 }}>No more guessing.</div>
           <p data-reveal data-reveal-delay={120} style={{ fontSize: 'clamp(17px,2.1vw,21px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 620, margin: '0 0 18px', textWrap: 'pretty' }}>
