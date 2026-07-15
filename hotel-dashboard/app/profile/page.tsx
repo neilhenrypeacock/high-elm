@@ -2,7 +2,7 @@ import AppShell from '@/components/AppShell';
 import AccountFrame from '@/components/AccountFrame';
 import ProfileForm from '@/components/ProfileForm';
 import SetPasswordForm from '@/components/SetPasswordForm';
-import { requireActiveUser, displayName, hotelName } from '@/lib/require-access';
+import { requireActiveUser, displayName, hotelName, isAdminView } from '@/lib/require-access';
 
 export const metadata = {
   title: 'Content Radar — Profile',
@@ -14,7 +14,7 @@ export default async function ProfilePage() {
   const initialName = typeof meta.full_name === 'string' ? meta.full_name : '';
 
   return (
-    <AppShell userName={displayName(user)} userEmail={user?.email ?? null}>
+    <AppShell userName={displayName(user)} userEmail={user?.email ?? null} isAdmin={isAdminView(user)}>
       <AccountFrame
         eyebrow="Account"
         title="Profile"

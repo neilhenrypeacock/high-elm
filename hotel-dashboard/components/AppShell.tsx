@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MarkSvg from './MarkSvg';
 import AppFooter from './AppFooter';
+import AdminPill from './AdminPill';
 import PageInfoModal, { resolveInfoKey, type InfoKey } from './PageInfo';
 
 // Gated-area shell: fixed left sidebar on desktop, off-canvas drawer on mobile.
@@ -28,6 +29,9 @@ interface AppShellProps {
   children: React.ReactNode;
   /** Optional right-aligned footer caption (e.g. the dashboard's weekly date). */
   footerNote?: string;
+  /** True when the signed-in user is on the admin allowlist — shows the floating
+   *  "Admin" indicator + admin-page link. Set from isAdmin(user) by the page. */
+  isAdmin?: boolean;
 }
 
 type IconProps = { active: boolean };
@@ -124,7 +128,7 @@ function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function AppShell({ userName, userEmail, children, footerNote }: AppShellProps) {
+export default function AppShell({ userName, userEmail, children, footerNote, isAdmin = false }: AppShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false); // mobile drawer
   const [collapsed, setCollapsed] = useState(false); // desktop rail
@@ -593,6 +597,7 @@ export default function AppShell({ userName, userEmail, children, footerNote }: 
       </div>
 
       <PageInfoModal open={infoOpen} infoKey={infoView ?? infoKey} onClose={closeInfo} />
+      {isAdmin && <AdminPill />}
     </div>
   );
 }

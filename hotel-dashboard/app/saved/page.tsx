@@ -2,7 +2,7 @@ import AppShell from '@/components/AppShell';
 import AccountFrame from '@/components/AccountFrame';
 import EmptyState from '@/components/EmptyState';
 import SavedPostsList from '@/components/SavedPostsList';
-import { requireActiveUser, displayName } from '@/lib/require-access';
+import { requireActiveUser, displayName, isAdminView } from '@/lib/require-access';
 import { getSavedPosts } from '@/lib/saves';
 
 // Real, gated route: the member's saved breakout posts (a swipe file). Rows come
@@ -17,7 +17,7 @@ export default async function SavedPage() {
   const posts = user ? await getSavedPosts() : [];
 
   return (
-    <AppShell userName={displayName(user)} userEmail={user?.email ?? null}>
+    <AppShell userName={displayName(user)} userEmail={user?.email ?? null} isAdmin={isAdminView(user)}>
       <AccountFrame
         eyebrow="Your library"
         title="Saved"
