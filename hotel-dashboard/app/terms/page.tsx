@@ -60,7 +60,13 @@ export default function TermsPage() {
 
       <H2>Refunds</H2>
       <P>
-        Because we offer a free trial so you can evaluate the service before paying, we do not generally offer refunds for subscription periods already started. If something has gone wrong, contact us and we’ll do our best to put it right. This does not affect any refund rights you may have under law.
+        Because we offer a free trial so you can evaluate the service before paying, we don’t generally
+        refund a subscription period that has already started. But your exposure is capped: you can
+        cancel at any time from your billing settings, and cancelling stops any further payments — the
+        payment you’ve already made is the last one. You keep full access until the end of the period
+        you’ve paid for, so you’re never charged for time you can’t use. If something has gone wrong,
+        contact us and we’ll do our best to put it right. None of this affects any refund rights you may
+        have under law.
       </P>
 
       <H2>No guarantee of results</H2>
