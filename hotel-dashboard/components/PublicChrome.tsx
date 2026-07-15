@@ -106,7 +106,18 @@ export function PublicNav({ active }: { active?: '/how-it-works' | '/about' }) {
   );
 }
 
+const footerLegalText: React.CSSProperties = {
+  fontFamily: 'var(--font-body), sans-serif',
+  fontSize: 12.5,
+  lineHeight: 1.7,
+  color: 'var(--on-dark-soft)',
+  margin: 0,
+  maxWidth: 760,
+};
+
 export function PublicFooter() {
+  // The one date it's fine to compute — the copyright year.
+  const year = new Date().getFullYear();
   return (
     <footer style={{ background: 'var(--ink-deep)', marginTop: 80 }}>
       <div
@@ -115,23 +126,71 @@ export function PublicFooter() {
           paddingTop: 48,
           paddingBottom: 52,
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 24,
+          flexDirection: 'column',
+          gap: 28,
         }}
       >
-        <Lockup variant="primary" size={30} onDark />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 26, flexWrap: 'wrap' }}>
-          <Link href="/how-it-works" className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
-            How it works
-          </Link>
-          <Link href="/about" className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
-            About
-          </Link>
-          <Link href={LOGIN_HREF} className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
-            Log in
-          </Link>
+        {/* Brand + primary links */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 24,
+          }}
+        >
+          <Lockup variant="primary" size={30} onDark />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 26, flexWrap: 'wrap' }}>
+            <Link href="/how-it-works" className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
+              How it works
+            </Link>
+            <Link href="/about" className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
+              About
+            </Link>
+            <Link href="/privacy" className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
+              Terms of Service
+            </Link>
+            <Link href={LOGIN_HREF} className="cr-footlink" style={{ ...eyebrowLink, color: 'var(--muted-dark)' }}>
+              Log in
+            </Link>
+          </div>
+        </div>
+
+        {/* Single hairline above the quiet legal block */}
+        <div style={{ height: 1, background: 'var(--line-dark)' }} />
+
+        {/* Company legal identity, independence, contact + copyright */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p style={footerLegalText}>
+            Hotel Content Radar is a product of High Elm Productions Ltd. Registered in [England and
+            Wales — CONFIRM], company number [COMPANY NUMBER]. Registered office: [REGISTERED ADDRESS].
+          </p>
+          <p style={{ ...footerLegalText, fontStyle: 'italic', color: 'var(--muted-dark)' }}>
+            Content Radar is independent and is not affiliated with, endorsed by, or sponsored by
+            Instagram, Meta, Forbes, Condé Nast, Michelin, or any of the hotels, publications, or
+            rating organisations it references.
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+              marginTop: 4,
+            }}
+          >
+            <span style={{ ...footerLegalText, fontSize: 12, color: 'var(--muted-dark)' }}>
+              © {year} High Elm Productions Ltd.
+            </span>
+            <span style={{ ...footerLegalText, fontSize: 12, color: 'var(--muted-dark)' }}>
+              Contact [CONTACT EMAIL]
+            </span>
+          </div>
         </div>
       </div>
     </footer>

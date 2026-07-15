@@ -43,6 +43,12 @@ export default function AppFooter({ note }: { note?: string }) {
           <Link href="/about" className="cr-footlink" style={footLink}>
             About
           </Link>
+          <Link href="/privacy" className="cr-footlink" style={footLink}>
+            Privacy
+          </Link>
+          <Link href="/terms" className="cr-footlink" style={footLink}>
+            Terms
+          </Link>
           {note && (
             <span
               style={{
