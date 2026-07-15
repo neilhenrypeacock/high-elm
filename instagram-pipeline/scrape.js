@@ -216,6 +216,20 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
         const rawImageUrl  = p.displayUrl || null;
         const storedUrl    = rawImageUrl ? await uploadImage(post_id, rawImageUrl) : null;
 
+        // Full media for the AI analysis (generate-insight.js) — so it sees the
+        // WHOLE carousel and the WHOLE video, not just the cover. Raw CDN URLs
+        // (they expire); the insight job fetches them right after the scrape.
+        // Carousel: Apify returns `images` (all slide display URLs) and/or
+        // `childPosts` (per-slide objects). Video/Reel: `videoUrl` is the mp4.
+        const childImageUrls = Array.isArray(p.images) && p.images.length
+          ? p.images.slice(0, 12)
+          : Array.isArray(p.childPosts) && p.childPosts.length
+            ? p.childPosts.map(c => c.displayUrl).filter(Boolean).slice(0, 12)
+            : null;
+        const videoUrl = p.videoUrl
+          || (Array.isArray(p.childPosts) ? p.childPosts.find(c => c.videoUrl)?.videoUrl : null)
+          || null;
+
         return {
           post_id,
           instagram_handle: h,
@@ -229,6 +243,8 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
           coauthor_usernames: parseCoauthors(p),
           post_url:         p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : null),
           image_url:        storedUrl ?? rawImageUrl,
+          child_image_urls: childImageUrls,
+          video_url:        videoUrl,
         };
       })
     ).then(rows => rows.filter(Boolean));
