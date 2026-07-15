@@ -589,6 +589,9 @@ function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: Ti
 // the hero's "X posts outperformed" count (those come straight from the data).
 type FeedFilters = { collab: boolean; images: boolean; videos: boolean };
 const ALL_ON: FeedFilters = { collab: true, images: true, videos: true };
+// The feed opens on non-collab posts: collabs are hidden by default (the toggle
+// still turns them back on, and "Show all" restores every category).
+const DEFAULT_FILTERS: FeedFilters = { collab: false, images: true, videos: true };
 
 // Feed shape: the top BIG_CARDS breakouts render as big cards; everything below
 // is a ranked list of compact rows, revealed SMALL_STEP at a time via "Show more".
@@ -732,7 +735,7 @@ export default function ContentRadar({
   // opens on the big cards alone); each "Show more" click appends SMALL_STEP more.
   const [smallShown, setSmallShown] = useState(0);
   const [win, setWin] = useState<TimeWindow>('7d');
-  const [filters, setFilters] = useState<FeedFilters>(ALL_ON);
+  const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
   const allOn = filters.collab && filters.images && filters.videos;
   const savedSet = useMemo(() => new Set(savedPostKeys), [savedPostKeys]);
 
