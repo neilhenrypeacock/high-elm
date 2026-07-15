@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalDoc eyebrow="Legal" title="Privacy Policy" lastUpdated="Last updated: [DATE]">
+    <LegalDoc eyebrow="Legal" title="Privacy Policy" lastUpdated="Last updated: 15 July 2026">
       <P>
         This Privacy Policy explains what personal information Hotel Content Radar collects, why we
         collect it, and what rights you have over it. Hotel Content Radar is a product of High Elm
@@ -16,19 +16,21 @@ export default function PrivacyPage() {
         information.
       </P>
       <P>
-        We’ve written this in plain English on purpose. If anything is unclear, email us at [CONTACT
-        EMAIL] and we’ll explain it properly.
+        We’ve written this in plain English on purpose. If anything is unclear, email us at neil@highelmstudio.com and we’ll explain it properly.
       </P>
 
       <H2>Who we are</H2>
       <P>
-        Hotel Content Radar is operated by High Elm Productions Ltd, a company registered in [England
-        and Wales / Scotland / Northern Ireland — CONFIRM], company number [COMPANY NUMBER], registered
-        office [REGISTERED ADDRESS].
+        Hotel Content Radar is operated by High Elm Productions Ltd, a company registered in England and Wales, company number 15336186, registered
+        office 6 The Fairland, Hingham, Norfolk NR9 4HN.
+      </P>
+      <P>
+        We are registered with the UK’s Information Commissioner’s Office (ICO), registration number
+        ZC112391.
       </P>
       <P>
         For any question about your data, or to exercise any of the rights described below, contact us
-        at [CONTACT EMAIL].
+        at neil@highelmstudio.com.
       </P>
 
       <H2>What we collect and why</H2>
@@ -116,7 +118,7 @@ export default function PrivacyPage() {
         </LI>
       </UL>
       <P>
-        To exercise any of these, email us at [CONTACT EMAIL]. We’ll respond within the timeframe
+        To exercise any of these, email us at neil@highelmstudio.com. We’ll respond within the timeframe
         required by law (usually one month). You also have the right to complain to the Information
         Commissioner’s Office (ICO), the UK’s data protection regulator, at ico.org.uk.
       </P>
@@ -124,8 +126,7 @@ export default function PrivacyPage() {
       <H2>Cookies</H2>
       <P>
         We use only the cookies necessary to keep you securely signed in and to make the service work.
-        We do not use advertising or third-party tracking cookies. [CONFIRM — update this line if you
-        later add analytics.]
+        We do not use advertising or third-party tracking cookies.
       </P>
 
       <H2>Changes to this policy</H2>
@@ -135,7 +136,7 @@ export default function PrivacyPage() {
       </P>
 
       <H2>Contact us</H2>
-      <P>Questions about your privacy or this policy? Email [CONTACT EMAIL].</P>
+      <P>Questions about your privacy or this policy? Email neil@highelmstudio.com.</P>
     </LegalDoc>
   );
 }

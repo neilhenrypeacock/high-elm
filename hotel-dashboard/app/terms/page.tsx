@@ -8,15 +8,15 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalDoc eyebrow="Legal" title="Terms of Service" lastUpdated="Last updated: [DATE]">
+    <LegalDoc eyebrow="Legal" title="Terms of Service" lastUpdated="Last updated: 15 July 2026">
       <P>
         These terms are the agreement between you and us when you use Hotel Content Radar. Please read
         them — by subscribing to or using the service, you agree to them.
       </P>
       <P>
         Hotel Content Radar is a product of High Elm Productions Ltd (“we”, “us”, “our”), a company
-        registered in [England and Wales / Scotland / Northern Ireland — CONFIRM], company number
-        [COMPANY NUMBER], registered office [REGISTERED ADDRESS].
+        registered in England and Wales, company number
+        15336186, registered office 6 The Fairland, Hingham, Norfolk NR9 4HN.
       </P>
 
       <H2>What Hotel Content Radar is</H2>
@@ -60,12 +60,7 @@ export default function TermsPage() {
 
       <H2>Refunds</H2>
       <P>
-        [CONFIRM YOUR REFUND POSITION. A common, simple stance for a monthly SaaS with a free trial:
-        “Because we offer a free trial so you can evaluate the service before paying, we do not
-        generally offer refunds for subscription periods already started. If something has gone wrong,
-        contact us and we’ll do our best to put it right.” Adjust to whatever policy you actually want
-        to stand behind — and note that this does not override any refund rights you may be required to
-        give under law.]
+        Because we offer a free trial so you can evaluate the service before paying, we do not generally offer refunds for subscription periods already started. If something has gone wrong, contact us and we’ll do our best to put it right. This does not affect any refund rights you may have under law.
       </P>
 
       <H2>No guarantee of results</H2>
@@ -156,12 +151,11 @@ export default function TermsPage() {
 
       <H2>Governing law</H2>
       <P>
-        These terms are governed by the laws of [England and Wales / Scotland / Northern Ireland —
-        CONFIRM], and any disputes will be subject to the courts of that jurisdiction.
+        These terms are governed by the laws of England and Wales, and any disputes will be subject to the courts of that jurisdiction.
       </P>
 
       <H2>Contact us</H2>
-      <P>Questions about these terms? Email [CONTACT EMAIL].</P>
+      <P>Questions about these terms? Email neil@highelmstudio.com.</P>
     </LegalDoc>
   );
 }

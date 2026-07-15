@@ -166,8 +166,7 @@ export function PublicFooter() {
         {/* Company legal identity, independence, contact + copyright */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={footerLegalText}>
-            Hotel Content Radar is a product of High Elm Productions Ltd. Registered in [England and
-            Wales — CONFIRM], company number [COMPANY NUMBER]. Registered office: [REGISTERED ADDRESS].
+            Hotel Content Radar is a product of High Elm Productions Ltd. Registered in England and Wales, company number 15336186. Registered office: 6 The Fairland, Hingham, Norfolk NR9 4HN.
           </p>
           <p style={{ ...footerLegalText, fontStyle: 'italic', color: 'var(--muted-dark)' }}>
             Content Radar is independent and is not affiliated with, endorsed by, or sponsored by
@@ -188,7 +187,7 @@ export function PublicFooter() {
               © {year} High Elm Productions Ltd.
             </span>
             <span style={{ ...footerLegalText, fontSize: 12, color: 'var(--muted-dark)' }}>
-              Contact [CONTACT EMAIL]
+              Contact neil@highelmstudio.com
             </span>
           </div>
         </div>
