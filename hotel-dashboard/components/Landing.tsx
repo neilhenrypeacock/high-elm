@@ -329,9 +329,9 @@ export default function Landing({ data }: { data: DashboardData }) {
           <h1 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(38px,6vw,68px)', lineHeight: 1.03, letterSpacing: '-0.03em', color: 'var(--ink)', textWrap: 'balance', marginBottom: 18 }}>
             See exactly what content is going viral for the world&rsquo;s best luxury hotels — every week.
           </h1>
-          <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(20px,3vw,30px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 26 }}>No more guessing. Ever.</div>
+          <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(20px,3vw,30px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 26 }}>No more guessing.</div>
           <p data-reveal data-reveal-delay={120} style={{ fontSize: 'clamp(17px,2.1vw,21px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 620, margin: '0 0 18px', textWrap: 'pretty' }}>
-            400+ of the world&rsquo;s best luxury hotels every week. Not theory. Not guesswork. Not strategy. Just the best content.
+            400+ of the world&rsquo;s best luxury hotels every week. Not theory. Not guesswork. Not strategy. Just the content that has performed best in your industry.
           </p>
 
           <div data-reveal data-reveal-delay={150} style={{ display: 'flex', alignItems: 'center', gap: 15, margin: '0 0 30px', flexWrap: 'wrap' }}>
@@ -371,7 +371,7 @@ export default function Landing({ data }: { data: DashboardData }) {
       <section style={{ ...INNER, padding: '20px 40px 84px' }}>
         <div data-reveal style={{ maxWidth: 780, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ ...eyebrow(), marginBottom: 22 }}>Who it&rsquo;s for</div>
-          <h2 style={{ ...sectionTitle, lineHeight: 1.12, marginBottom: 44 }}>Built for the person running a luxury hotel&rsquo;s social media.</h2>
+          <h2 style={{ ...sectionTitle, lineHeight: 1.12, marginBottom: 44 }}>Built for your hotel&rsquo;s social media team.</h2>
         </div>
 
         {/* ===== LIVE TASTER (moved here) ===== */}
@@ -406,7 +406,7 @@ export default function Landing({ data }: { data: DashboardData }) {
                       </svg>
                     </div>
                     <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'clamp(16px,2vw,19px)', color: 'var(--ink)', maxWidth: 440, lineHeight: 1.45, marginBottom: 22, textWrap: 'balance' }}>
-                      See every breakout this week — plus the last 30 days and the all-time Hall of Fame.
+                      See every breakout this week — plus the last 30 days and the all-time leaderboard.
                     </p>
                     <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '15px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
                   </div>
@@ -423,13 +423,13 @@ export default function Landing({ data }: { data: DashboardData }) {
         <div data-reveal style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 56px' }}>
           <div style={{ ...eyebrow(), marginBottom: 22 }}>How it works</div>
           <h2 style={{ ...sectionTitle, marginBottom: 20 }}>From the world&rsquo;s best hotels to your dashboard, every Monday.</h2>
-          <p style={{ fontSize: 'clamp(16px,2vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', textWrap: 'pretty' }}>No spreadsheets. No scraping. No guesswork. Three steps, every single week.</p>
+          <p style={{ fontSize: 'clamp(16px,2vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', textWrap: 'pretty' }}>No spreadsheets. No scraping. No guesswork. Three steps, every single week. New hotels being added, new features coming.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
           {[
-            { n: '1', label: 'We scan', title: '200+ elite hotels, every week', body: 'Every week we scan the latest social media posts from the world’s most prestigious and most-followed luxury hotels.' },
-            { n: '2', label: 'We share', title: 'Every post that’s worth looking at', body: 'Every breakout post — the ones that have gone viral, are going viral now, or simply struck a chord with guests — surfaced against that hotel’s own baseline, not follower count.' },
-            { n: '3', label: 'You create', title: 'New inspiration every week', body: 'Enjoy an exhaustive library of the industry’s best-performing content ideas — ranked best-first and ready to inspire your own hotel’s social media.' },
+            { n: '1', label: 'We scan', title: '400+ elite hotels, every week', body: 'Every week we scan the latest social media posts from the world’s most prestigious and most-followed luxury hotels.' },
+            { n: '2', label: 'We share', title: 'Every post that’s worth looking at', body: 'Every breakout post — the ones that have gone viral, are going viral now, or simply struck a chord with the audience — surfaced for you to review.' },
+            { n: '3', label: 'You create', title: 'New inspiration every week', body: 'Enjoy an exhaustive and continuously updating library of the industry’s best-performing content — ready to inspire your own hotel’s social media.' },
           ].map((s, i) => (
             <div key={s.n} data-reveal data-reveal-delay={i * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '36px 32px', transition: 'transform .16s, box-shadow .16s' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
@@ -446,7 +446,7 @@ export default function Landing({ data }: { data: DashboardData }) {
           {[
             { b: 'Last 7 days', t: 'this week’s breakouts' },
             { b: 'Last 30 days', t: 'the month' },
-            { b: 'All time', t: 'the Hall of Fame' },
+            { b: 'All time', t: 'the leaderboard' },
           ].map((p) => (
             <span key={p.b} style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--body-soft)', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '8px 16px', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <b style={{ color: 'var(--ink)' }}>{p.b}</b> · {p.t}
@@ -490,8 +490,8 @@ export default function Landing({ data }: { data: DashboardData }) {
         <div className="cr-whatyouget-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 16 }}>
           {[
             { idx: '01 · this week', title: 'This Week’s Breakouts', body: 'Never face a blank content calendar again. The posts proven to work this week, ranked best-first.' },
-            { idx: '02 · the library', title: 'The 30-Day & All-Time Hall of Fame', body: 'The strongest ideas ever recorded, not just this week’s. A permanent library to draw from.' },
-            { idx: '03 · the strategy', title: 'The Posting Playbook', body: 'See when and how often the best hotels post, and how it moves their engagement. The strategy thinking, done for you.' },
+            { idx: '02 · the library', title: 'The 30-Day & All-Time Leaderboard', body: 'The best posts we’ve ever found, not just this week’s. A permanent library to draw from.' },
+            { idx: '03 · the strategy', title: 'The Posting Playbook', body: 'See when and how often the best hotels have been posting, and how it moves their engagement. The strategy thinking, done for you.' },
             { idx: '04 · coming soon', title: 'TikTok & YouTube — September 2026', body: 'More channels are coming. Founding members — the first 50 — lock in this Instagram rate for good.' },
           ].map((c, i) => (
             <div key={c.idx} data-reveal data-reveal-delay={(i % 2) * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: 38, transition: 'transform .16s, box-shadow .16s' }}>
@@ -545,7 +545,7 @@ export default function Landing({ data }: { data: DashboardData }) {
           {[
             { q: 'Is it just Instagram?', a: 'For now, yes — it’s where hotel content travels furthest. TikTok and YouTube are coming September 2026, and founding members lock in this Instagram rate for good.' },
             { q: 'What if my hotel is small?', a: 'It doesn’t matter. Every breakout is measured against that hotel’s own baseline, so a boutique’s win shows up right next to a global flagship’s. You’re copying ideas, not budgets.' },
-            { q: 'How many hotels are you tracking?', a: '200+ today, with more hotels and more ranking lists added every week. We’re building toward 1,000+ of the world’s most prestigious and most-followed hotels — so the list only gets better the longer you’re a member.' },
+            { q: 'How many hotels are you tracking?', a: '400+ today, with more hotels and more ranking lists added every week. We’re building toward 1,000+ of the world’s most prestigious and most-followed hotels — so the list only gets better the longer you’re a member.' },
             { q: 'Where does the data come from?', a: 'Only hotels already certified as the best in the world — the Condé Nast Gold List and Forbes Five-Star, with more respected lists added weekly. Never a random scrape.' },
             { q: 'Can I cancel anytime?', a: `Yes. Start with a ${TRIAL_DAYS}-day free trial, and cancel whenever you like — when you cancel, the next payment simply won’t happen. No lock-in, no awkward emails.` },
           ].map((f, i, arr) => (
