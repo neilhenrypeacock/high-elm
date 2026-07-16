@@ -9,6 +9,7 @@ import {
   computeSnapshot,
   computeWhatsWorking,
   computeStandout,
+  orderLandingFeatured,
   hasVisibleLikes,
   erFlagReasons,
   type RawPost,
@@ -71,7 +72,7 @@ const NO_META = [{}, {}, {}, {}] as [
   Record<string, string>,
   Record<string, string | null>,
   Record<string, string | null>,
-  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }>,
+  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
 ];
 
 // ─── median / mean ────────────────────────────────────────────────────────────
@@ -416,5 +417,62 @@ describe('computeStandout', () => {
       ...NO_META
     );
     expect(posts[0].is_collab).toBe(false);
+  });
+});
+
+// ─── orderLandingFeatured (homepage pin priority) ────────────────────────────
+
+describe('orderLandingFeatured', () => {
+  const M = { hotel_a: metrics({ medianPostEngagement: 100 }) };
+
+  // storedInsight META tuple that marks the given post_ids as landing_pin=true.
+  const metaWithPins = (ids: string[]): typeof NO_META => {
+    const insight: (typeof NO_META)[3] = {};
+    for (const id of ids) {
+      insight[id] = { insight: null, tag: null, theme_tag: null, editors_pick: false, landing_pin: true };
+    }
+    return [{}, {}, {}, insight];
+  };
+
+  const built = (raw: Parameters<typeof post>[0][], meta: typeof NO_META, m: Record<string, HotelMetrics> = M) =>
+    computeStandout(raw.map((o) => post(o)), m, ...meta).posts;
+
+  it('returns the auto list unchanged (capped) when nothing is pinned', () => {
+    const auto = built([{ post_id: 'p1', likes_count: 400 }, { post_id: 'p2', likes_count: 300 }], NO_META);
+    const pool = built([{ post_id: 'p1', likes_count: 400 }], NO_META);
+    expect(orderLandingFeatured(auto, pool, 25).map((p) => p.post_id)).toEqual(['p1', 'p2']);
+  });
+
+  it('lifts pinned posts to the front (multiplier order), then fills with auto, deduped', () => {
+    const auto = built([{ post_id: 'p1', likes_count: 400 }, { post_id: 'p2', likes_count: 300 }], NO_META);
+    // All-time pool has an older post p9 that is NOT in the auto list, plus p1 — both pinned.
+    const pool = built(
+      [{ post_id: 'p1', likes_count: 400 }, { post_id: 'p2', likes_count: 300 }, { post_id: 'p9', likes_count: 250 }],
+      metaWithPins(['p9', 'p1']),
+    );
+    // p1 (4×) and p9 (2.5×) pinned → front in multiplier order; p2 fills; p1 not duplicated.
+    expect(orderLandingFeatured(auto, pool, 25).map((p) => p.post_id)).toEqual(['p1', 'p9', 'p2']);
+  });
+
+  it('keeps one row per pinned post_id (a co-post is deduped, best grid first)', () => {
+    const pool = built(
+      [
+        { post_id: 'dup', instagram_handle: 'a', likes_count: 400 },
+        { post_id: 'dup', instagram_handle: 'b', likes_count: 300 },
+      ],
+      metaWithPins(['dup']),
+      { a: metrics({ medianPostEngagement: 100 }), b: metrics({ medianPostEngagement: 100 }) },
+    );
+    const result = orderLandingFeatured([], pool, 25);
+    expect(result).toHaveLength(1);
+    expect(result[0].post_id).toBe('dup');
+  });
+
+  it('caps the result at the limit', () => {
+    const auto = built(
+      Array.from({ length: 5 }, (_, i) => ({ post_id: `a${i}`, likes_count: 200 + i * 10 })),
+      NO_META,
+    );
+    expect(orderLandingFeatured(auto, [], 3)).toHaveLength(3);
   });
 });

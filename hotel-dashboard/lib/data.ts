@@ -110,6 +110,10 @@ export type OutlierPost = {
   /** Editor's pick — a manually curated "worth replicating" flag, set in
    *  standout_posts.editors_pick. Shows a subtle badge on the card. */
   editors_pick: boolean;
+  /** Feature-on-homepage flag, set in standout_posts.landing_pin. Pinned
+   *  breakouts are forced to the front of the landing taster (hero + open
+   *  cards), overriding the default "best non-collab, last 30 days" rule. */
+  landing_pin: boolean;
 };
 
 export type BarItem = { label: string; value: number; count: number };
@@ -422,7 +426,7 @@ export function computeWhatsWorkingData(
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
-  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }>,
+  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
   standout: Record<TimeWindow, OutlierPost[]>,
 ): WhatsWorkingData {
   const age = (p: RawPost) => now - new Date(p.posted_at).getTime();
@@ -508,7 +512,7 @@ export function computeStandout(
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
-  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }>,
+  storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
   limit: number = MAX_STANDOUT_POSTS,
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
@@ -544,6 +548,7 @@ export function computeStandout(
       driver_tag:           storedInsight[p.post_id]?.tag ?? null,
       theme_tag:            storedInsight[p.post_id]?.theme_tag ?? null,
       editors_pick:         storedInsight[p.post_id]?.editors_pick ?? false,
+      landing_pin:          storedInsight[p.post_id]?.landing_pin ?? false,
       // Display-only collab tag — TRUE Instagram Collabs ONLY: posts co-authored
       // by two accounts (the "X and Y" byline), which the scraper exposes as
       // coauthor_usernames. Deliberately NOT caption "collaboration with @…" posts
@@ -559,6 +564,35 @@ export function computeStandout(
   const super_breakout_count = standout.filter(p => p.multiplier >= 10).length;
   standout.sort((a, b) => b.multiplier - a.multiplier);
   return { posts: standout.slice(0, limit), breakout_count, super_breakout_count };
+}
+
+/**
+ * Landing-taster ordering: admin-pinned breakouts first, then the automatic
+ * list fills the remaining slots.
+ *
+ * `pinnedPool` is the full breakout set (all-time, any age/collab) already
+ * sorted by multiplier — every post carrying `landing_pin` is lifted to the
+ * front in that order (one row per post_id; a co-post's best grid wins).
+ * `autoFeatured` is the default selection (best non-collab last-30); its posts
+ * fill the rest, minus anything already pinned. Result is capped at `limit`.
+ * With no pins this returns `autoFeatured` unchanged (capped) — the old rule.
+ * Pure + exported so the priority logic is unit-tested without a DB round-trip.
+ */
+export function orderLandingFeatured(
+  autoFeatured: OutlierPost[],
+  pinnedPool: OutlierPost[],
+  limit: number,
+): OutlierPost[] {
+  const pinned: OutlierPost[] = [];
+  const pinnedIds = new Set<string>();
+  for (const p of pinnedPool) {
+    if (!p.landing_pin || pinnedIds.has(p.post_id)) continue;
+    pinnedIds.add(p.post_id);
+    pinned.push(p);
+  }
+  if (pinned.length === 0) return autoFeatured.slice(0, limit);
+  const filler = autoFeatured.filter(p => !pinnedIds.has(p.post_id));
+  return [...pinned, ...filler].slice(0, limit);
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -591,12 +625,13 @@ export async function getPortfolioData(): Promise<DashboardData> {
     driver_tag: string | null;
     theme_tag: string | null;
     editors_pick: boolean | null;
+    landing_pin: boolean | null;
   };
   const standoutRows: StandoutRow[] = [];
   for (let page = 0; ; page++) {
     const { data, error } = await supabase
       .from('standout_posts')
-      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag, editors_pick')
+      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag, editors_pick, landing_pin')
       .order('post_id')
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (error) {
@@ -657,10 +692,10 @@ export async function getPortfolioData(): Promise<DashboardData> {
 
   // ── Stored image URLs + per-post insights ─────────────────────────────────
   const storedImageUrl: Record<string, string | null> = {};
-  const storedInsight:  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean }> = {};
+  const storedInsight:  Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }> = {};
   for (const r of standoutRows) {
     storedImageUrl[r.post_id] = r.stored_image_url ?? null;
-    storedInsight[r.post_id]  = { insight: r.post_insight ?? null, tag: r.driver_tag ?? null, theme_tag: r.theme_tag ?? null, editors_pick: r.editors_pick ?? false };
+    storedInsight[r.post_id]  = { insight: r.post_insight ?? null, tag: r.driver_tag ?? null, theme_tag: r.theme_tag ?? null, editors_pick: r.editors_pick ?? false, landing_pin: r.landing_pin ?? false };
   }
 
   // ── Latest followers per handle (snapshots are newest-first) ──────────────
@@ -817,18 +852,38 @@ export async function getPortfolioData(): Promise<DashboardData> {
     }
   }
 
-  // ── Landing taster: best NON-COLLAB breakouts of the last 30 days ────────
-  // "Collab" here means the same thing as the feed tag: a TRUE Instagram Collab
-  // (co-author byline). Single-grid tagged partnerships and caption "collaboration
-  // with @…" posts are NOT excluded — they're legitimate top posts.
+  // ── Landing taster: admin-pinned first, then best NON-COLLAB last-30 ──────
+  // Default rule: the best NON-COLLAB breakouts of the last 30 days. "Collab"
+  // here means a TRUE Instagram Collab (co-author byline); single-grid tagged
+  // partnerships and caption "collaboration with @…" posts are NOT excluded.
   const landingCandidates = validForAnalysis.filter(p =>
     now - new Date(p.posted_at).getTime() <= LANDING_WINDOW_DAYS * DAY_MS &&
     (p.coauthor_usernames?.length ?? 0) === 0
   );
-  const landing_featured = computeStandout(
+  const autoFeatured = computeStandout(
     landingCandidates, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
     storedImageUrl, storedInsight,
   ).posts;
+
+  // Admin override: any breakout flagged standout_posts.landing_pin is forced to
+  // the FRONT of the taster (so it leads the hero + open cards), regardless of
+  // age or collab status — the pin overrides the default rule. Pinned posts are
+  // drawn from the ALL-TIME breakout pool (unbounded, so a pin outside the top
+  // 100 is still honoured), ranked by multiplier, one row per post_id. The auto
+  // list then fills the remaining slots, minus anything already pinned. When
+  // nothing is pinned this is exactly the old behaviour.
+  const hasPins = Object.values(storedInsight).some(v => v.landing_pin);
+  let landing_featured = autoFeatured;
+  if (hasPins) {
+    // The full all-time breakout pool (unbounded, so a pin outside the top 100
+    // is still found), sorted by multiplier — orderLandingFeatured lifts the
+    // pinned ones to the front.
+    const allBreakouts = computeStandout(
+      validForAnalysis, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
+      storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
+    ).posts;
+    landing_featured = orderLandingFeatured(autoFeatured, allBreakouts, MAX_STANDOUT_POSTS);
+  }
 
   // ── What's Working — holistic analysis per scope (Last 30 days / All time) ─
   const whatsWorkingData = computeWhatsWorkingData(

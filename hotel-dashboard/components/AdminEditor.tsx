@@ -23,8 +23,10 @@ const WINDOW_LABELS: Record<TimeWindow, string> = {
 type RowState = {
   note: string;
   pick: boolean;
+  feature: boolean;
   savedNote: string;
   savedPick: boolean;
+  savedFeature: boolean;
   status: 'idle' | 'saving' | 'saved' | 'error';
   message?: string;
 };
@@ -32,7 +34,8 @@ type RowState = {
 function initialRow(p: OutlierPost): RowState {
   const note = p.post_insight ?? '';
   const pick = p.editors_pick === true;
-  return { note, pick, savedNote: note, savedPick: pick, status: 'idle' };
+  const feature = p.landing_pin === true;
+  return { note, pick, feature, savedNote: note, savedPick: pick, savedFeature: feature, status: 'idle' };
 }
 
 export default function AdminEditor({
@@ -73,6 +76,7 @@ export default function AdminEditor({
           post_id: p.post_id,
           insight: row.note.trim() ? row.note : null,
           editors_pick: row.pick,
+          landing_pin: row.feature,
         }),
       });
       if (!res.ok) {
@@ -83,7 +87,7 @@ export default function AdminEditor({
       const savedNote = row.note.trim() ? row.note : '';
       update(
         p.post_id,
-        { status: 'saved', savedNote, savedPick: row.pick, note: savedNote },
+        { status: 'saved', savedNote, savedPick: row.pick, savedFeature: row.feature, note: savedNote },
         row,
       );
     } catch {
@@ -119,8 +123,11 @@ export default function AdminEditor({
           Editor&rsquo;s notes &amp; picks
         </h1>
         <p style={{ fontSize: 14, color: 'var(--body-mid)', lineHeight: 1.5, margin: 0 }}>
-          Write the note that shows under each breakout, and flag the ones worth replicating.
-          Saves straight to the live dashboard. A note applies to the post everywhere it appears.
+          Write the note that shows under each breakout, flag the ones worth replicating, and
+          <strong style={{ color: 'var(--ink)', fontWeight: 600 }}> feature</strong> the ones you want
+          to lead the public homepage. Saves straight to the live site. Featured posts jump to the
+          front of the homepage taster (over the automatic pick); everything applies to the post
+          everywhere it appears.
         </p>
       </header>
 
@@ -161,7 +168,7 @@ export default function AdminEditor({
         {posts.map((p, i) => {
           const row = rowFor(p);
           const seed = rows[p.post_id] ?? initialRow(p);
-          const dirty = row.note !== row.savedNote || row.pick !== row.savedPick;
+          const dirty = row.note !== row.savedNote || row.pick !== row.savedPick || row.feature !== row.savedFeature;
           return (
             <article
               key={p.post_id}
@@ -212,6 +219,24 @@ export default function AdminEditor({
                     {p.multiplier.toFixed(1)}×
                   </span>
                   <span style={{ fontSize: 12, color: 'var(--muted)' }}>· {fmtPostedAt(p.posted_at)}</span>
+                  {row.feature && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-body), sans-serif',
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        color: 'var(--signal-deep)',
+                        background: 'var(--top3-tint)',
+                        border: '1px solid #BFD8CC',
+                        borderRadius: 999,
+                        padding: '2px 9px',
+                      }}
+                    >
+                      ★ Featured
+                    </span>
+                  )}
                   {p.post_url && (
                     <a
                       href={p.post_url}
@@ -288,6 +313,21 @@ export default function AdminEditor({
                       style={{ width: 16, height: 16, accentColor: 'var(--signal-deep)', cursor: 'pointer' }}
                     />
                     Editor&rsquo;s Pick
+                  </label>
+
+                  {/* Feature-on-homepage pin — forces this post to the front of the
+                      public landing taster (hero + open cards). */}
+                  <label
+                    title="Force this post to the front of the public homepage taster"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 13.5, color: 'var(--ink)' }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={row.feature}
+                      onChange={(e) => update(p.post_id, { feature: e.target.checked, status: 'idle' }, seed)}
+                      style={{ width: 16, height: 16, accentColor: 'var(--signal-deep)', cursor: 'pointer' }}
+                    />
+                    Feature on homepage
                   </label>
 
                   <div style={{ flex: 1 }} />
