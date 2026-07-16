@@ -143,23 +143,25 @@ function FanCard({
           background: 'var(--surface)', padding: front ? '5px 12px' : '4px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         }}>{mult}×</span>
       </div>
-      <div style={{ padding: front ? 20 : 16 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: front ? 17 : 15, color: 'var(--ink)' }}>{post.hotel_name}</div>
-        <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: front ? 11 : 10, letterSpacing: '0.04em', color: 'var(--body-mid)', margin: front ? '3px 0 12px' : '3px 0 0' }}>
-          {[post.hotel_country, fmtDayMonth(post.posted_at)].filter(Boolean).join(' · ')}
-        </div>
-        {front && post.post_insight && (
-          <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 14 }}>{post.post_insight}</p>
-        )}
-        {front && (
+      {/* Only the front card carries a text footer — the two peek cards behind it
+          stay image-only so they read as clean photos, not half-cut cards. */}
+      {front && (
+        <div style={{ padding: 20 }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{post.hotel_name}</div>
+          <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--body-mid)', margin: '3px 0 12px' }}>
+            {[post.hotel_country, fmtDayMonth(post.posted_at)].filter(Boolean).join(' · ')}
+          </div>
+          {post.post_insight && (
+            <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 14 }}>{post.post_insight}</p>
+          )}
           <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
             {hasVisibleLikes(post.likes_count) && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
             )}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -178,8 +180,8 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
         overflow: 'hidden', boxShadow: 'var(--shadow-card)', transition: 'transform .16s, box-shadow .16s',
       }}
     >
-      <div style={{ aspectRatio: '4 / 5', background: gradient, position: 'relative', overflow: 'hidden' }}>
-        <ImageWithFallback src={post.image_url} alt={post.hotel_name} fallback={gradient} />
+      <div style={{ aspectRatio: '4 / 5', background: 'var(--surface)', position: 'relative', overflow: 'hidden' }}>
+        <ImageWithFallback src={post.image_url} alt={post.hotel_name} fallback={gradient} backdrop={false} />
         <span style={{
           position: 'absolute', top: 14, left: 14, fontFamily: 'var(--font-label)', fontWeight: 600,
           fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)',
@@ -410,22 +412,22 @@ export default function Landing({ data }: { data: DashboardData }) {
           </div>
 
           {open.length > 0 && (
-            <div data-reveal data-reveal-delay={140} className="cr-hero-cardstack" style={{ position: 'relative', minHeight: 520, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div data-reveal data-reveal-delay={140} className="cr-hero-cardstack" style={{ position: 'relative', minHeight: 420, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {open.length >= 3 && (
                 <FanCard
-                  post={open[1]} index={1} front={false} rotateDeg={-7} animationDuration={7} animationDelay={0}
-                  position={{ position: 'absolute', width: 'min(250px,70vw)', right: '54%', top: '6%', opacity: 0.92, zIndex: 1 }}
+                  post={open[1]} index={1} front={false} rotateDeg={-5} animationDuration={7} animationDelay={0}
+                  position={{ position: 'absolute', width: 'min(200px,62vw)', right: '58%', top: '10%', opacity: 0.92, zIndex: 1 }}
                 />
               )}
               {open.length >= 2 && (
                 <FanCard
-                  post={open.length >= 3 ? open[2] : open[1]} index={2} front={false} rotateDeg={6} animationDuration={8} animationDelay={1.2}
-                  position={{ position: 'absolute', width: 'min(250px,70vw)', left: '56%', bottom: '4%', opacity: 0.95, zIndex: 1 }}
+                  post={open.length >= 3 ? open[2] : open[1]} index={2} front={false} rotateDeg={5} animationDuration={8} animationDelay={1.2}
+                  position={{ position: 'absolute', width: 'min(200px,62vw)', left: '58%', bottom: '8%', opacity: 0.95, zIndex: 1 }}
                 />
               )}
               <FanCard
                 post={open[0]} index={0} front rotateDeg={0} animationDuration={6} animationDelay={0.5}
-                position={{ position: 'relative', zIndex: 2, width: 'min(300px,82vw)' }}
+                position={{ position: 'relative', zIndex: 2, width: 'min(256px,80vw)' }}
               />
             </div>
           )}
