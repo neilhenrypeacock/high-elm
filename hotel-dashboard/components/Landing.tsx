@@ -104,6 +104,66 @@ function CtaArrow() {
   return <span className="cr-cta-arrow">→</span>;
 }
 
+// ─── Hero: fanned breakout-card stack (real data, top 1-3 by multiplier) ─────
+// front = best post, centered, no rotation; up to two "peek" cards float
+// behind it (rank 2 top-left, rank 3 bottom-right). Position/rotation come
+// from the design handoff; only the front card shows insight + likes/comments.
+function FanCard({
+  post, index, front, rotateDeg, animationDuration, animationDelay, position,
+}: {
+  post: OutlierPost; index: number; front: boolean; rotateDeg: number;
+  animationDuration: number; animationDelay: number; position: React.CSSProperties;
+}) {
+  const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
+  const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
+  const mult = post.multiplier.toFixed(1);
+
+  return (
+    <div
+      data-float
+      data-hero-back={front ? undefined : true}
+      style={{
+        ...position,
+        '--cr-rot': `${rotateDeg}deg`,
+        background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14,
+        overflow: 'hidden', boxShadow: front ? 'var(--shadow-hover)' : 'var(--shadow-card)',
+        animation: `cr-hero-card-float ${animationDuration}s ease-in-out ${animationDelay}s infinite`,
+      } as React.CSSProperties}
+    >
+      <div style={{ aspectRatio: '4 / 5', background: gradient, position: 'relative', overflow: 'hidden' }}>
+        <ImageWithFallback src={post.image_url} alt={post.hotel_name} fallback={gradient} />
+        <span style={{
+          position: 'absolute', top: front ? 14 : 12, left: front ? 14 : 12, fontFamily: 'var(--font-label)', fontWeight: 600,
+          fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)',
+          background: 'rgba(29,27,23,0.32)', padding: front ? '5px 10px' : '4px 9px', borderRadius: 20,
+        }}>{chip}</span>
+        <span style={{
+          position: 'absolute', top: front ? 14 : 12, right: front ? 14 : 12, fontFamily: 'var(--font-display)', fontWeight: 700,
+          fontSize: front ? 18 : 15, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--ink-deep)',
+          background: 'var(--surface)', padding: front ? '5px 12px' : '4px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        }}>{mult}×</span>
+      </div>
+      <div style={{ padding: front ? 20 : 16 }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: front ? 17 : 15, color: 'var(--ink)' }}>{post.hotel_name}</div>
+        <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: front ? 11 : 10, letterSpacing: '0.04em', color: 'var(--body-mid)', margin: front ? '3px 0 12px' : '3px 0 0' }}>
+          {[post.hotel_country, fmtDayMonth(post.posted_at)].filter(Boolean).join(' · ')}
+        </div>
+        {front && post.post_insight && (
+          <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 14 }}>{post.post_insight}</p>
+        )}
+        {front && (
+          <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
+            {hasVisibleLikes(post.likes_count) && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
+            )}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Taster: open card (real breakout, live data) ────────────────────────────
 function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
   const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
@@ -323,18 +383,59 @@ export default function Landing({ data }: { data: DashboardData }) {
       </nav>
 
       {/* ===== HERO ===== */}
-      <header style={{ ...INNER, padding: '100px 40px 60px' }}>
-        <div style={{ maxWidth: 840 }}>
-          <div data-reveal style={{ ...eyebrow(), marginBottom: 28 }}>Powered by High Elm Studio</div>
-          <h1 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(38px,6vw,68px)', lineHeight: 1.03, letterSpacing: '-0.03em', color: 'var(--ink)', textWrap: 'balance', marginBottom: 18 }}>
-            Every week, see exactly what content is going viral for luxury hotels.
-          </h1>
-          <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(20px,3vw,30px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 26 }}>No more guessing.</div>
-          <p data-reveal data-reveal-delay={120} style={{ fontSize: 'clamp(17px,2.1vw,21px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 620, margin: '0 0 18px', textWrap: 'pretty' }}>
-            400+ of the world&rsquo;s best luxury hotels every week. Not theory. Not guesswork. Not strategy. Just the content that has performed best in your industry.
-          </p>
+      <header style={{ ...INNER, padding: '80px 40px 48px' }}>
+        <div
+          className="cr-landing-hero-grid"
+          style={{ display: 'grid', gridTemplateColumns: open.length > 0 ? 'minmax(0,1fr) minmax(340px,460px)' : '1fr', gap: 64, alignItems: 'center' }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div data-reveal style={{ ...eyebrow(), marginBottom: 26 }}>Powered by High Elm Studio</div>
+            <h1 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(38px,4.6vw,60px)', lineHeight: 1.04, letterSpacing: '-0.03em', color: 'var(--ink)', textWrap: 'balance', marginBottom: 18 }}>
+              Every week, see exactly what content is going viral for luxury hotels.
+            </h1>
+            <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(19px,2.6vw,26px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 22 }}>No more guessing.</div>
+            <p data-reveal data-reveal-delay={120} style={{ fontSize: 'clamp(16px,1.8vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 480, margin: '0 0 34px', textWrap: 'pretty' }}>
+              400+ of the world&rsquo;s best luxury hotels every week. Not theory. Not guesswork. Not strategy. Just the content that has performed best in your industry.
+            </p>
 
-          <div data-reveal data-reveal-delay={150} style={{ display: 'flex', alignItems: 'center', gap: 15, margin: '0 0 30px', flexWrap: 'wrap' }}>
+            <div data-reveal data-reveal-delay={180} style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+              <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '16px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
+              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--body-mid)' }}>{CTA_SUB}</span>
+            </div>
+
+            <div data-reveal data-reveal-delay={220} style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 40, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--signal-deep)' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--signal)', animation: 'cr-ping 2.4s ease-out infinite', flex: 'none' }} />
+              This week&rsquo;s breakouts — live right now
+            </div>
+          </div>
+
+          {open.length > 0 && (
+            <div data-reveal data-reveal-delay={140} className="cr-hero-cardstack" style={{ position: 'relative', minHeight: 520, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {open.length >= 3 && (
+                <FanCard
+                  post={open[1]} index={1} front={false} rotateDeg={-7} animationDuration={7} animationDelay={0}
+                  position={{ position: 'absolute', width: 'min(250px,70vw)', right: '54%', top: '6%', opacity: 0.92, zIndex: 1 }}
+                />
+              )}
+              {open.length >= 2 && (
+                <FanCard
+                  post={open.length >= 3 ? open[2] : open[1]} index={2} front={false} rotateDeg={6} animationDuration={8} animationDelay={1.2}
+                  position={{ position: 'absolute', width: 'min(250px,70vw)', left: '56%', bottom: '4%', opacity: 0.95, zIndex: 1 }}
+                />
+              )}
+              <FanCard
+                post={open[0]} index={0} front rotateDeg={0} animationDuration={6} animationDelay={0.5}
+                position={{ position: 'relative', zIndex: 2, width: 'min(300px,82vw)' }}
+              />
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* ===== PROOF (5-star credibility + live breakout count) ===== */}
+      <section style={{ ...INNER, padding: '0 40px 48px' }}>
+        <div style={{ maxWidth: 840 }}>
+          <div data-reveal style={{ display: 'flex', alignItems: 'center', gap: 15, margin: '0 0 30px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: 5, color: 'var(--signal)' }}>
               {[0, 70, 140, 210, 280].map((d) => <StarIcon key={d} delay={d} />)}
             </div>
@@ -342,7 +443,7 @@ export default function Landing({ data }: { data: DashboardData }) {
           </div>
 
           {/* Hero stat panel — live breakout count */}
-          <div data-reveal data-reveal-delay={200} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '34px 40px', maxWidth: 560, margin: '0 0 34px', boxShadow: '0 24px 48px -32px rgba(34,32,27,0.35)' }}>
+          <div data-reveal data-reveal-delay={60} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '34px 40px', maxWidth: 560, boxShadow: '0 24px 48px -32px rgba(34,32,27,0.35)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
               <span data-stat style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(56px,8vw,84px)', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--signal)' }}>{data.breakout_count}</span>
               <div>
@@ -359,13 +460,8 @@ export default function Landing({ data }: { data: DashboardData }) {
               <span><b style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--ink)' }}>{data.total_posts_analysed.toLocaleString('en-GB')}</b> posts analysed</span>
             </div>
           </div>
-
-          <div data-reveal data-reveal-delay={260}>
-            <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '17px 40px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--body-mid)', marginTop: 14 }}>{CTA_SUB}</div>
-          </div>
         </div>
-      </header>
+      </section>
 
       {/* ===== WHO IT'S FOR ===== */}
       <section style={{ ...INNER, padding: '20px 40px 84px' }}>
