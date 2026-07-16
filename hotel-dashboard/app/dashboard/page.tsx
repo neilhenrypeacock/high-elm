@@ -6,7 +6,7 @@ import { requireActiveUser, displayName, isAdminView } from '@/lib/require-acces
 import { getSavedPostKeys, getWatchlistHandles } from '@/lib/saves';
 
 // Gated: no session → /login; logged in but no active trial/subscription →
-// /subscribe. The gate + data fetching (getPortfolioData) are UNCHANGED — this
+// /start-trial. The gate + data fetching (getPortfolioData) are UNCHANGED — this
 // only wraps the existing <Dashboard> in the account shell (left sidebar) and
 // adds the one-time welcome overlay. Nothing inside Dashboard.tsx is touched, so
 // the dashboard renders identically inside the shell's content column.

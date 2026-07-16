@@ -1,29 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
-import { upsertSubscriptionByEmail } from '@/lib/subscriptions';
 import { allowRequest, clientIp } from '@/lib/rate-limit';
-import { stripeDisabled, BETA_TRIAL_DAYS } from '@/lib/auth-mode';
 
-// Beta signup: creates the account (email + password), starts the free trial,
-// and signs the visitor in — one POST, no card, no email round-trip.
+// Account creation (email + password). Creates the Supabase auth user via the
+// public signUp flow and lets Supabase send a "confirm your email" link — the
+// visitor must click it before they can log in. NO trial is started here: a
+// confirmed, logged-in member with no active trial lands on /start-trial and
+// begins their 14-day Stripe trial there. NO session is set here either — the
+// account isn't usable until the address is confirmed.
 //
-// ONLY enabled while STRIPE_DISABLED=true (see lib/auth-mode.ts): this route
-// hands out free trials, so it must never run alongside the paid checkout
-// flow. At launch the flag comes off and /start-trial goes back to Stripe.
-//
-// The account is created with email_confirm so the address works for magic
-// links immediately. Beta trade-off, documented: we don't verify the visitor
-// owns the address — the paywall is off, so the blast radius is a trial
-// account with a mistyped email.
+// Requires Supabase → Authentication → Email → "Confirm email" to be ON, and
+// the confirm/redirect URL (/auth/callback) in the Redirect URLs allow-list.
 export async function POST(request: NextRequest) {
-  if (!stripeDisabled()) {
-    return NextResponse.json(
-      { error: 'Signups go through checkout — start your trial from the pricing page.' },
-      { status: 403 }
-    );
-  }
-
   if (!allowRequest(`signup:${clientIp(request)}`, 5, 60_000)) {
     return NextResponse.json({ error: 'Too many attempts — try again in a minute.' }, { status: 429 });
   }
@@ -44,22 +32,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Password needs at least 8 characters.' }, { status: 400 });
   }
 
-  // Create the user (service role — auth admin API). email_confirm marks the
-  // address verified so the password works immediately and magic links keep
-  // working as a fallback login.
-  const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: { persistSession: false },
-  });
-  const { error: createError } = await admin.auth.admin.createUser({
+  const origin = new URL(request.url).origin;
+  const supabase = await createServerSupabaseClient();
+
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    email_confirm: true,
-    user_metadata: { full_name: fullName, ...(hotelName ? { hotel_name: hotelName } : {}) },
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+      data: { full_name: fullName, ...(hotelName ? { hotel_name: hotelName } : {}) },
+    },
   });
 
-  if (createError) {
-    // Existing address → point at login rather than leaking anything else.
-    const exists = /already|registered|exists/i.test(createError.message);
+  if (error) {
+    const exists = /already|registered|exists/i.test(error.message);
     return NextResponse.json(
       exists
         ? { error: 'That email already has an account — log in instead.', code: 'exists' }
@@ -68,27 +54,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Start the trial. If this write fails the account still exists, so surface
-  // a retryable error rather than leaving them half set up and signed in.
-  const trialEnd = new Date(Date.now() + BETA_TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  try {
-    await upsertSubscriptionByEmail(email, { status: 'trialing', trial_end: trialEnd });
-  } catch {
+  // With "Confirm email" on, signing up an address that already exists returns
+  // an obfuscated user with an empty identities array and sends no email
+  // (Supabase's anti-enumeration behaviour). Surface the friendly "log in
+  // instead" path rather than a silent success that never delivers a link.
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
     return NextResponse.json(
-      { error: 'Your account was created but the trial could not start — try logging in.' },
-      { status: 502 }
+      { error: 'That email already has an account — log in instead.', code: 'exists' },
+      { status: 409 }
     );
   }
 
-  // Sign them in — the SSR client sets the session cookies on this response.
-  const supabase = await createServerSupabaseClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-  if (signInError) {
-    return NextResponse.json(
-      { error: 'Account created — log in with your new password.', code: 'created' },
-      { status: 502 }
-    );
-  }
-
-  return NextResponse.json({ ok: true });
+  // Success: Supabase has sent the confirmation email. The form shows a
+  // "check your inbox" state — there is deliberately no session yet.
+  return NextResponse.json({ ok: true, confirm: true });
 }

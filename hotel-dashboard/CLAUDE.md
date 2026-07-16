@@ -5,11 +5,12 @@ A Next.js 16 app (App Router, Turbopack) that renders the High Elm Studio "Conte
 
 **AUTH IS LIVE** (since 4 Jul 2026): `/dashboard`, `/hotel`, `/profile`, `/settings`, `/saved`, `/watchlist` all require a Supabase session + an active trial/subscription row, enforced identically via `lib/require-access.ts` (`requireActiveUser` for pages, `checkApiAccess` for API routes). The ONLY auth bypass is `DISABLE_DASHBOARD_AUTH=true`, hard-guarded to non-production. (The old `UNGATED_DEV_MODE` production flag was removed 2026-07-09 after an audit found it leaving production ungated — never reintroduce it.)
 
-**BETA MODE — STRIPE OFF, PASSWORD AUTH ON** (since 12 Jul 2026, `STRIPE_DISABLED=true` in env — `lib/auth-mode.ts`):
-- Sessions come from **email+password** (primary) or magic link (fallback/recovery). New routes: `/api/auth/signup` (create account + instant 14-day trial + sign-in; ONLY enabled while the flag is true — it hands out free trials), `/api/auth/login` (password; stays enabled in both modes), `/api/auth/password` (set/change password, session-only gate — how magic-link-era accounts add one, form on /profile). All rate-limited via `lib/rate-limit.ts`. Signup uses admin `createUser` with `email_confirm: true` — beta trade-off: the address is NOT verified.
-- `/start-trial` renders the full signup form (name / hotel optional / email / password) instead of email→checkout; `/api/checkout` returns 503 while the flag is on. Stripe code stays wired for launch: remove `STRIPE_DISABLED` and the checkout flow returns.
-- `hasActiveAccess` now enforces `trial_end` for rows with no `stripe_subscription_id` (beta trials have no webhook to expire them). Stripe-managed rows are still webhook-driven.
-- **At launch**: remove `STRIPE_DISABLED` from Vercel env + `.env.local`, and decide what happens to beta-trial accounts (their rows are `trialing` with null Stripe ids; they'll lapse at `trial_end` and land on /subscribe → checkout).
+**ACCOUNT-FIRST AUTH — PASSWORD + EMAIL CONFIRMATION + STRIPE TEST-MODE TRIAL** (since 15 Jul 2026; the 12 Jul `STRIPE_DISABLED` beta flag and `lib/auth-mode.ts` were RETIRED):
+- **The journey:** create account (email+password) → confirm-your-email link → log in → land on `/start-trial` (never `/` or `/dashboard`) → Stripe Checkout (test card `4242…`, 14-day trial, nothing charged) → `/dashboard`. Sessions persist for weeks (proxy.ts refresh); magic-link login still works as a fallback/recovery path.
+- **Routes:** `/api/auth/signup` (public `supabase.auth.signUp` → Supabase sends a confirmation email; NO trial, NO session until confirmed), `/api/auth/login` (password; distinct "email not confirmed yet" message), `/api/auth/reset` (`resetPasswordForEmail`), `/api/auth/password` (set/change, session-only gate — form on /profile, and reused by the recovery page). All rate-limited via `lib/rate-limit.ts`.
+- **`/auth/callback`** handles all three email types (magiclink / signup / recovery); recovery lands on **`/auth/new-password`** (`components/NewPasswordForm.tsx`) to set a new password. **`/start-trial`** is context-aware: logged-out → `SignupForm`; logged-in + no active sub → `CheckoutButton` (`/api/checkout`, session-email → Stripe → `/dashboard`); logged-in + active → `/dashboard`. **`/subscribe`** is now a permanent redirect to `/start-trial`. The gate (`requireActiveUser`) sends unpaid users to `/start-trial`.
+- `/api/checkout` is session-gated (uses `user.email` as `customer_email`), so the email-keyed webhook joins the `subscriptions` row to the account. `hasActiveAccess` still enforces `trial_end` for rows with no `stripe_subscription_id` (harmless for Stripe rows, which carry an id).
+- **Manual Supabase steps (dashboard, no mgmt token in repo):** (1) Authentication → Email → turn ON "Confirm email"; (2) Redirect URLs allow-list must include `https://www.hotelcontentradar.com/auth/callback` and `/auth/new-password`; (3) point the "Confirm signup" + "Reset Password" email templates at `/auth/callback?token_hash={{ .TokenHash }}&type=signup|recovery`. **Env:** `STRIPE_DISABLED` must be removed from Vercel + `.env.local` (Stripe test keys stay).
 
 ## Companion folder
 The data pipeline lives at `../instagram-pipeline/` in the SAME monorepo (one git repo at `high-elm/`). It is not part of this Next.js project's build. You run it manually to scrape and upload data; the dashboard only reads from Supabase.
@@ -31,16 +32,21 @@ app/
                           GATED via requireActiveUser(); wraps Dashboard.tsx in the
                           AppShell sidebar + WelcomeOverlay
   how-it-works/ about/  — public marketing pages (PublicChrome nav/footer)
-  login/ subscribe/     — magic-link request page; shown-to-lapsed-members page
-  auth/callback/        — magic-link landing (token-hash verifyOtp, PKCE fallback)
+  login/                — password + magic-link login + "forgot your password?" (LoginForm)
+  subscribe/            — permanent redirect to /start-trial (kept for old links)
+  auth/callback/        — landing for ALL auth emails (magiclink/signup/recovery);
+                          recovery → /auth/new-password
+  auth/new-password/    — set a new password after a recovery link (NewPasswordForm)
   profile/ settings/    — gated account pages (user_metadata profile; plan + Stripe portal)
   saved/ watchlist/     — gated, REAL per-user features (saved_posts / watchlist_hotels)
   hotel/page.tsx        — gated "Your Hotel" page (the member's own-hotel mirror);
                           renders components/YourHotel.tsx with EXAMPLE DATA from
                           lib/your-hotel-demo.ts (labelled "Example data" in the UI)
                           until hotel claiming + the pipeline full-history scrape land
-  start-trial/page.tsx  — live email-capture step → creates the Stripe Checkout session
-  api/                  — checkout, auth/magic-link, auth/logout, profile, saves,
+  start-trial/page.tsx  — the SINGLE trial-start path, context-aware (SignupForm when
+                          logged out; CheckoutButton → Stripe when logged in + no sub)
+  api/                  — checkout (session-gated), auth/signup, auth/login, auth/reset,
+                          auth/password, auth/magic-link, auth/logout, profile, saves,
                           watchlist, billing-portal, webhooks/stripe (signature-verified).
                           Write APIs require an ACTIVE subscription via checkApiAccess()
                           (billing-portal deliberately session-only so lapsed members can

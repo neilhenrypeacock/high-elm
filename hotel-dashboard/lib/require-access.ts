@@ -7,7 +7,7 @@ import { isAdmin } from './admin';
 // Same gate app/dashboard/page.tsx uses, factored out so every gated page
 // (dashboard, profile, settings, saved, watchlist) enforces access identically:
 //   no session            → /login
-//   session, no active sub → /subscribe
+//   session, no active sub → /start-trial
 // Returns the authenticated user + their subscription row for the page to render.
 //
 // Development bypass: DISABLE_DASHBOARD_AUTH=true disables gating for local
@@ -39,7 +39,7 @@ export async function requireActiveUser(): Promise<AccessContext> {
 
   const subscription = await getSubscriptionByEmail(user.email);
   if (!hasActiveAccess(subscription)) {
-    redirect('/subscribe');
+    redirect('/start-trial');
   }
 
   return { user, subscription };
