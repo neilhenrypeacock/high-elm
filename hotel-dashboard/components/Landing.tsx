@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { DashboardData, OutlierPost } from '@/lib/data';
+import { hasVisibleLikesCount } from '@/lib/data';
 import { ImageWithFallback } from './ContentRadar';
 
 // ─── Offer (single source of truth for every CTA + the pricing card) ─────────
@@ -70,8 +71,6 @@ function fmtLikes(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k`;
   return n.toLocaleString('en-GB');
 }
-
-const hasVisibleLikes = (n: number) => n !== -1 && n !== null;
 
 // ─── Small inline SVGs (from the handoff; no external assets) ─────────────────
 const StarIcon = ({ delay }: { delay: number }) => (
@@ -155,7 +154,7 @@ function FanCard({
             <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 14 }}>{post.post_insight}</p>
           )}
           <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
-            {hasVisibleLikes(post.likes_count) && (
+            {hasVisibleLikesCount(post.likes_count) && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
             )}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>
@@ -205,7 +204,7 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
           <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 16 }}>{post.post_insight}</p>
         )}
         <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
-          {hasVisibleLikes(post.likes_count) && (
+          {hasVisibleLikesCount(post.likes_count) && (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
           )}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>

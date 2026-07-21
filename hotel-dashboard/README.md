@@ -1,6 +1,6 @@
 # Hotel Content Radar — Dashboard
 
-Next.js 16 app (App Router) for the High Elm Studio "Content Radar": a subscription dashboard surfacing breakout Instagram posts from ~205 tracked luxury hotels. Public marketing pages at `/`, `/how-it-works`, `/about`; the dashboard and account pages are gated behind a Supabase magic-link session + an active Stripe trial/subscription.
+Next.js 16 app (App Router) for the High Elm Studio "Content Radar": a subscription dashboard surfacing breakout Instagram posts from ~205 tracked luxury hotels. Public marketing pages at `/`, `/how-it-works`, `/about`, `/privacy`, `/terms`; the dashboard and account pages are gated behind a Supabase session (email + password sign-up with email confirmation; magic-link still works as a fallback) + an active Stripe trial/subscription.
 
 ## Run locally
 
