@@ -5,3 +5,11 @@
 keys/.env.*
 node_modules/
 .DS_Store
+
+# Embedded demo/outreach repos — independent git repos with their own remotes.
+# Decoupled from the monorepo 2026-07-21 so they stop generating gitlink noise.
+/demos/athena/
+/demos/athena-portugal/
+/demos/bramble-ski/
+/demos/safari-edit/
+/outreach/
