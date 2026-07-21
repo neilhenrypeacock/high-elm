@@ -1,22 +1,22 @@
 # Instagram Pipeline — Session Context
 
 ## What this repo is
-A Node.js (ESM) script that scrapes Instagram data for luxury hotels using Apify, then writes results to Supabase. It runs **weekly via GitHub Actions** (`.github/workflows/weekly-scrape.yml`, Mondays 05:00 UTC — each run costs real Apify money) and can also be run manually. The weekly run also calls `generate-insight.js` after the scrape to produce "why it worked" analysis for the current top 10 non-collab breakouts (needs the `ANTHROPIC_API_KEY` secret; the workflow installs ffmpeg for video-frame analysis). A daily `freshness-check.yml` workflow alarms when the newest post is older than 8 days (`check-freshness.js` fails the run so GitHub emails the owner; also emails ALERT_EMAIL via Resend once `RESEND_API_KEY` is set). The dashboard at `../hotel-dashboard/` reads the data this pipeline writes. (The `hotels` table holds 465 hotels; only the ~205 with `tracked = true` are scraped.)
+A Node.js (ESM) script that scrapes Instagram data for luxury hotels using Apify, then writes results to Supabase. It runs on a **two-tier schedule via GitHub Actions** — a cheap **weekly** incremental (Mondays 05:00 UTC, last 10 days) plus a **monthly** deep-sweep (1st of the month 05:00 UTC, last 35 days) — and a manual-only **full** baseline rebuild. All three are thin callers of one reusable workflow (`.github/workflows/scrape-pipeline.yml`); each run costs real Apify money (see `APIFY-COST.md`). Every run also calls `generate-insight.js` after the scrape to produce "why it worked" analysis for the current top 10 non-collab breakouts (needs the `ANTHROPIC_API_KEY` secret; the workflow installs ffmpeg for video-frame analysis). A daily `freshness-check.yml` workflow alarms when the newest post is older than 8 days (`check-freshness.js` fails the run so GitHub emails the owner; also emails ALERT_EMAIL via Resend once `RESEND_API_KEY` is set). The dashboard at `../hotel-dashboard/` reads the data this pipeline writes. (The `hotels` table holds 465 hotels; only the ~205 with `tracked = true` are scraped.)
 
 ## How to run
 
-**Test run (5 hotels, for smoke-testing):**
-```bash
-npm run test5
-```
+One runner (`scrape-run.js`) with three modes, selected by env (see the top of that file). All scrape only hotels with `tracked = true` (beta: the 200 most-followed — set by `setup-tracked.sql`), in batches of 50.
 
-**Full run (all TRACKED hotels, batches of 50):**
-```bash
-npm run full
-```
-Scrapes only hotels with `tracked = true` (beta: the 200 most-followed — set by `setup-tracked.sql`). `POSTS_PER_HOTEL` in `full-run.js` fetches each hotel's **last 30 posts** (count-based, not a time window) — those 30 posts are the dashboard's breakout baseline. To widen coverage, flip more hotels to tracked and re-run.
+| Command | Mode | What it pulls | When |
+|---|---|---|---|
+| `npm run weekly` | windowed | posts from the **last 10 days** (`SCRAPE_WINDOW_DAYS=10`) | weekly cron |
+| `npm run monthly` | windowed | posts from the **last 35 days** (`SCRAPE_WINDOW_DAYS=35`) — re-refreshes a month's engagement so late-viral posts surface | monthly cron |
+| `npm run full` | count | each hotel's **last 30 posts**, no date window (`SCRAPE_FULL=1`) — baseline rebuild | manual only, rare |
+| `npm run test5` | — | 5 hardcoded handles, for smoke-testing | ad hoc |
 
-**Re-runs are safe:** posts upsert on the composite key and profile snapshots dedupe per UTC day (added 2026-07-09), so retrying a failed batch the same day cannot create duplicates. `full-run.js` prints skipped handles at the end — re-run those by editing the list in `test-run.js`. (The old `remaining-handles.js` with its stale hardcoded list was removed 2026-07-09.)
+Windowing is cost control: the breakout baseline is computed by the dashboard from posts **already stored** in Supabase (posts upsert), so history accumulates and each run only needs the new deltas — no need to re-fetch 30 posts/hotel every week (that repeatedly blew the Apify cap; see `APIFY-COST.md`). Env overrides: `SCRAPE_WINDOW_DAYS`, `SCRAPE_POST_CEILING` (per-hotel safety cap in windowed modes, default 50), `SCRAPE_POST_LIMIT` (posts/hotel in full mode, default 30). To widen coverage, flip more hotels to tracked and re-run.
+
+**Re-runs are safe:** posts upsert on the composite key and profile snapshots dedupe per UTC day (added 2026-07-09), so retrying a failed batch the same day cannot create duplicates. `scrape-run.js` prints skipped handles at the end — re-run those by editing the list in `test-run.js`. (The old `remaining-handles.js` with its stale hardcoded list was removed 2026-07-09.)
 
 ## Required env vars (in `.env` — do NOT commit)
 ```
@@ -30,7 +30,7 @@ Credentials are also documented in `../keys/README.md`.
 | File | Purpose |
 |---|---|
 | `scrape.js` | Core pipeline: calls Apify actors, normalises data, uploads images, writes to Supabase |
-| `full-run.js` | Runs scrape across all hotel handles in batches of 50 |
+| `scrape-run.js` | Runs the scrape across all tracked handles in batches of 50. One runner, three modes (weekly/monthly/full) selected by env — see "How to run" |
 | `test-run.js` | Runs scrape for 5 handles only (smoke test) |
 | `check-images.js` / `audit-post-counts.js` | Read-only diagnostics (image coverage / posts per hotel) |
 | `backfill-themes.js` | Ad-hoc AI theme-tag backfill for standout_posts |
@@ -39,7 +39,7 @@ Credentials are also documented in `../keys/README.md`.
 | `setup-tracked.sql` | Adds/refreshes hotels.tracked = top-200 by followers (idempotent; run 2026-07-01) |
 | `setup-coauthors.sql` | Adds `posts.coauthor_usernames text[]` for native collab detection (run in Supabase SQL editor BEFORE deploying the dashboard select — 2026-07-12) |
 | `setup-post-media.sql` | Adds `posts.child_image_urls text[]` + `posts.video_url text` for full carousel/video analysis (run in Supabase SQL editor BEFORE the next scrape + generate-insight) |
-| `generate-insight.js` | Per-post editorial analysis (what it is / why it worked / try this) + driver/theme tags → standout_posts. **Claude Sonnet 5** Vision + adaptive thinking + structured output. Runs automatically in `weekly-scrape.yml` after the scrape (needs `ANTHROPIC_API_KEY`; the workflow installs ffmpeg). Targets the current **top 10 non-collab breakouts**, selected with the SAME rule as the dashboard — the breakout constants are DUPLICATED from `../hotel-dashboard/lib/data.ts` (last-30 median, 2× threshold, MIN_ENGAGEMENT 100, MIN_BASELINE_ENGAGEMENT 25, tracked-only, 7-day window) — keep the two in sync. Sees the WHOLE carousel (every slide via `posts.child_image_urls`) and the WHOLE video (frames sampled across it via **ffmpeg** from `posts.video_url`); falls back to the cover image if media/ffmpeg is unavailable. `post_insight` holds the composed 3-line note the dashboard's "Editor's note" card renders. Local runs need `brew install ffmpeg`. Weekly prose generation REMOVED 2026-07-01. |
+| `generate-insight.js` | Per-post editorial analysis (what it is / why it worked / try this) + driver/theme tags → standout_posts. **Claude Sonnet 5** Vision + adaptive thinking + structured output. Runs automatically after every scrape (in the reusable `scrape-pipeline.yml`, needs `ANTHROPIC_API_KEY`; the workflow installs ffmpeg). Targets the current **top 10 non-collab breakouts**, selected with the SAME rule as the dashboard — the breakout constants are DUPLICATED from `../hotel-dashboard/lib/data.ts` (last-30 median, 2× threshold, MIN_ENGAGEMENT 100, MIN_BASELINE_ENGAGEMENT 25, tracked-only, 7-day window) — keep the two in sync. Sees the WHOLE carousel (every slide via `posts.child_image_urls`) and the WHOLE video (frames sampled across it via **ffmpeg** from `posts.video_url`); falls back to the cover image if media/ffmpeg is unavailable. `post_insight` holds the composed 3-line note the dashboard's "Editor's note" card renders. Local runs need `brew install ffmpeg`. Weekly prose generation REMOVED 2026-07-01. |
 
 ## Apify actors used
 - `apify/instagram-profile-scraper` — follower counts, bio → `profile_snapshots`

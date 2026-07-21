@@ -141,7 +141,12 @@ async function scrapePosts(handles, resultsLimit, postsNewerThan) {
     username: handles,
     skipPinnedPosts: false,
     dataDetailLevel: 'detailedData',
-    ...(postsNewerThan ? { onlyPostsNewerThan: postsNewerThan } : { resultsLimit }),
+    // With a date window, onlyPostsNewerThan does the real windowing but we still
+    // pass resultsLimit as a per-hotel safety ceiling so a runaway account can't
+    // balloon cost. Count-based mode (no window) uses resultsLimit alone.
+    ...(postsNewerThan
+      ? { onlyPostsNewerThan: postsNewerThan, resultsLimit }
+      : { resultsLimit }),
   };
   const run = await apify.actor(ACTOR_POSTS).call(input);
   console.log(`      Post actor finished: ${run.status}`);

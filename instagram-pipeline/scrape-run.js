@@ -1,7 +1,14 @@
-// Full run across all TRACKED hotels (beta: the 200 most-followed —
-// see setup-tracked.sql). Scrapes each hotel's last N posts; those posts
-// are the hotel's breakout baseline.
-// Run with: npm run full
+// Scrape runner across all TRACKED hotels (beta: the 200 most-followed —
+// see setup-tracked.sql). ONE runner, three modes selected by env
+// (see instagram-pipeline/APIFY-COST.md and the package.json scripts):
+//   • weekly  — npm run weekly   (SCRAPE_WINDOW_DAYS=10)  routine delta refresh
+//   • monthly — npm run monthly  (SCRAPE_WINDOW_DAYS=35)  deep sweep; re-refreshes
+//               a month so posts that go viral late still surface
+//   • full    — npm run full     (SCRAPE_FULL=1)          baseline rebuild,
+//               30 posts/hotel, no window (manual only — rare, e.g. new hotels)
+// Windowed modes pull only posts newer than N days (onlyPostsNewerThan). The
+// breakout baseline is computed by the dashboard from posts ALREADY stored in
+// Supabase (posts upsert), so history accumulates and each run needs only deltas.
 
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
@@ -16,9 +23,26 @@ const supabase = createClient(
 const apify = new ApifyClient({ token: process.env.APIFY_TOKEN });
 
 const BATCH_SIZE = 50;
-// Last N posts per hotel — count-based, not time-based, so every tracked
-// hotel gets a full-strength baseline regardless of posting frequency.
-const POSTS_PER_HOTEL = 30;
+
+// ─── mode selection (see header + APIFY-COST.md) ─────────────────────────────
+// full mode: count-based, no date window — every hotel's last SCRAPE_POST_LIMIT
+// posts (baseline rebuild). windowed modes (weekly/monthly): onlyPostsNewerThan
+// does the real windowing; SCRAPE_POST_CEILING is a per-hotel safety cap so a
+// pathological account can't run away with cost (50 clears a normal 35-day month
+// of luxury-hotel posting without truncating).
+const FULL = process.env.SCRAPE_FULL === '1';
+const WINDOW_DAYS = Number(process.env.SCRAPE_WINDOW_DAYS) || 10;
+const POST_CEILING = Number(process.env.SCRAPE_POST_CEILING) || 50;
+const FULL_POST_LIMIT = Number(process.env.SCRAPE_POST_LIMIT) || 30;
+
+// onlyPostsNewerThan as a YYYY-MM-DD date the Apify actor accepts (null in full mode).
+const postsNewerThan = FULL
+  ? null
+  : new Date(Date.now() - WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
+const resultsLimit = FULL ? FULL_POST_LIMIT : POST_CEILING;
+const modeLabel = FULL
+  ? `FULL SCRAPE — ${FULL_POST_LIMIT} posts/hotel`
+  : `SCRAPE — last ${WINDOW_DAYS} days (since ${postsNewerThan})`;
 
 // ─── fetch tracked handles from Supabase ──────────────────────────────────────
 
@@ -38,8 +62,8 @@ const allHandles = [...new Set(
 )].sort();
 
 console.log(`\n════════════════════════════════════════════`);
-console.log(`FULL RUN — ${allHandles.length} tracked handles`);
-console.log(`Posts per hotel: ${POSTS_PER_HOTEL} | Batch size: ${BATCH_SIZE}`);
+console.log(modeLabel);
+console.log(`${allHandles.length} tracked handles | ${FULL ? 'Limit' : 'Cap'}: ${resultsLimit}/hotel | Batch size: ${BATCH_SIZE}`);
 console.log(`════════════════════════════════════════════\n`);
 
 // ─── split into batches ───────────────────────────────────────────────────────
@@ -62,7 +86,7 @@ for (let i = 0; i < batches.length; i++) {
   console.log(`\n─── Batch ${i + 1} / ${batches.length} (${batch.length} hotels) ───`);
 
   try {
-    const summary = await run(batch, { resultsLimit: POSTS_PER_HOTEL });
+    const summary = await run(batch, { postsNewerThan, resultsLimit });
     totalProfiles += summary.profilesLoaded;
     totalPosts += summary.postsLoaded;
     allSkipped.push(...summary.skipped);
@@ -77,7 +101,7 @@ for (let i = 0; i < batches.length; i++) {
 // ─── final report ─────────────────────────────────────────────────────────────
 
 console.log(`\n════════════════════════════════════════════`);
-console.log(`FULL RUN COMPLETE`);
+console.log(`SCRAPE COMPLETE`);
 console.log(`════════════════════════════════════════════`);
 console.log(`Profiles loaded: ${totalProfiles} / ${allHandles.length}`);
 console.log(`Posts collected: ${totalPosts}`);

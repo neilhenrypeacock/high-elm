@@ -1,0 +1,15 @@
+# Full baseline rebuild — 30 posts/hotel, no date window. MANUAL ONLY, rare
+# (e.g. after adding tracked hotels or to backfill history). Costs ~$14–16 in
+# Apify per run, so there is deliberately no schedule — trigger from the Actions
+# tab when you actually need a fresh baseline. Real steps live in scrape-pipeline.yml.
+name: full-scrape
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call:
+    uses: ./.github/workflows/scrape-pipeline.yml
+    with:
+      full: true
+    secrets: inherit
