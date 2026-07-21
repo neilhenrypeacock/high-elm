@@ -34,7 +34,7 @@ Flospitality,Grand Hotel Villa Feltrinelli,@villafeltrinelli,net_new,N,,77K,Garg
 Flospitality,Hotel Goldgasse,@hotel_goldgasse_salzburg,net_new,N,,1.9K,Salzburg,Austria,First-party: instagram link in hotelgoldgasse.at footer matches
 Flospitality,Hotel Metropole Monte-Carlo,@metropolemonaco,net_new,N,,62K,Monte-Carlo,Monaco,First-party: instagram link in metropole.com footer matches
 Flospitality,Hotel Stein,@hotel_stein_salzburg,net_new,N,,8.5K,Salzburg,Austria,First-party: instagram link in hotelstein.at footer matches. @steinterrasse_salzburg is the rooftop bar (separate)
-Flospitality,Iniala Harbour House,@inialaharbourhouse,flagged_decision_needed,N,,13K,Valletta,Malta,"MISMATCH: official site inialamalta.com footer links to @inialavalletta, NOT @inialaharbourhouse. Both accounts exist. @inialaharbourhouse is the active property account (13K, 'Malta's First Forbes Five Star'). NEED NEIL TO PICK which to track"
+Flospitality,Iniala Harbour House,@inialavalletta,resolved_scraped,N,,13.8K,Valletta,Malta,"RESOLVED 2026-07-21 (Neil): @inialaharbourhouse returned 0 posts (appears private), so scraped @inialavalletta instead — the account the official site inialamalta.com links to. 30 posts, 13,788 followers."
 Flospitality,Kristiania Lech,@kristianialech,net_new,N,,3K,Lech am Arlberg,Austria,First-party: instagram link in kristiania.at footer matches
 Flospitality,La Roqqa,@laroqqahotel,net_new,N,,18K,Porto Ercole,Italy,First-party: instagram link in laroqqa.com footer matches
 Flospitality,Les Trois Rois,@grandhotellestroisrois,net_new,N,,61K,Basel,Switzerland,First-party: instagram link in lestroisrois.com footer matches
@@ -59,7 +59,7 @@ Flospitality,Domaine Louise,@domaine.louise,net_new,N,,10K,La Croix-Valmer,Franc
 Flospitality,Fawn Bluff,@fawnbluffprivatelodge,net_new,N,,2.4K,Bute Inlet (British Columbia),Canada,First-party: instagram link in fawnbluff.com footer matches (off-grid private lodge)
 Flospitality,Chable Yucatan,@chableyucatan,already_tracked_benchmark,Y,Y,93K,Yucatan,Mexico,First-party: instagram link on yucatan.chablehotels.com footer matches
 Flospitality,Chable Maroma,@chablemaroma,net_new,N,,36K,Riviera Maya,Mexico,First-party: instagram link on maroma.chablehotels.com footer matches
-Flospitality,Canaves Oia Suites,@canavesoiasuites,flagged_decision_needed,N,,6K,Santorini,Greece,"MISMATCH: canaves.com footer links to the group account @canavescollection, not the per-property @canavesoiasuites. The property handle exists (6K) but the site publishes the group one. NEED NEIL to decide: track per-property or just the collection account"
+Flospitality,Canaves Oia Suites,@canavesoiasuites,resolved_scraped,N,,6.4K,Santorini,Greece,"RESOLVED 2026-07-21 (Neil): scraped per-property @canavesoiasuites (30 posts, 6,378 followers) ALONGSIDE the group account @canavescollection (already scraped). Both tagged Flospitality."
 Flospitality,Andean,,excluded_dmc,N,,,,,Confirmed NOT a hotel - name used by multiple South American travel DMCs. Exclude
 Flospitality,Access Italy,,excluded_dmc,N,,,,,Travel partner / DMC - no single hotel Instagram. Exclude
 Flospitality,Expect Some Rain,,excluded_dmc,N,,,,,Travel partner / DMC - no single hotel Instagram. Exclude
