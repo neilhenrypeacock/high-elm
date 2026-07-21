@@ -207,9 +207,13 @@ export function normalizeType(t: string | null): string {
   }
 }
 
-/** Instagram hides like counts on some posts — the pipeline stores those as -1. */
+/** Instagram hides like counts on some posts — the pipeline stores those as -1 or null. */
+export function hasVisibleLikesCount(likes_count: number | null): boolean {
+  return likes_count !== -1 && likes_count !== null;
+}
+/** Object form of {@link hasVisibleLikesCount} — the single source of truth for the hidden-likes rule. */
 export function hasVisibleLikes(p: { likes_count: number | null }): boolean {
-  return p.likes_count !== -1 && p.likes_count !== null;
+  return hasVisibleLikesCount(p.likes_count);
 }
 
 /**

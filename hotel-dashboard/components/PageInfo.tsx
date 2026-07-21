@@ -45,7 +45,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
   overview: {
     title: 'This week',
     blocks: [
-      { h: 'What this is', p: 'A weekly snapshot of every post across the 205 tracked five-star hotels that beat its own hotel’s usual engagement this week — plus the hotels on your watchlist.' },
+      { h: 'What this is', p: 'A weekly snapshot of every post across the 400+ tracked five-star hotels that beat its own hotel’s usual engagement this week — plus the hotels on your watchlist.' },
       { h: 'How it works', p: 'Every Monday we scrape the latest posts, compare each to its hotel’s median over the last 30 posts, and count the ones that cleared 2×. The headline number is that count; “in focus” summarises the patterns behind it.' },
       { h: 'Why it helps', p: 'You see the week’s biggest movers at a glance — the proof, ranked, in ten seconds — without scrolling a single feed.' },
     ],

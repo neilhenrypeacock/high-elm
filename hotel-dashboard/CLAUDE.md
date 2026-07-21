@@ -32,6 +32,9 @@ app/
                           GATED via requireActiveUser(); wraps Dashboard.tsx in the
                           AppShell sidebar + WelcomeOverlay
   how-it-works/ about/  — public marketing pages (PublicChrome nav/footer)
+  privacy/ terms/       — public legal pages (both render components/LegalDoc.tsx)
+  admin/page.tsx        — founder-only in-app editor (GATED via requireAdminUser);
+                          set per-post Editor's note + Editor's Pick (AdminEditor.tsx)
   login/                — password + magic-link login + "forgot your password?" (LoginForm)
   subscribe/            — permanent redirect to /start-trial (kept for old links)
   auth/callback/        — landing for ALL auth emails (magiclink/signup/recovery);
@@ -128,6 +131,26 @@ components/
                           AccreditationPins (HotelTable) — all exported for this.
                           Data via lib/your-hotel-demo.ts (typed demo set; the interfaces
                           are the contract a future getYourHotelData() should return).
+  AppShell.tsx          — gated sidebar chrome (collapsible 76px icon rail w/ localStorage,
+                          section nav, member card, "Request a feature"); wraps every gated page
+  AppFooter.tsx         — gated/auth footer (carries "Updated weekly · {date}")
+  PublicChrome.tsx      — shared PUBLIC nav + footer (how-it-works / about / legal pages)
+  AccountFrame.tsx      — gated page-header frame (eyebrow/title/lede passed in by each page)
+  PageInfo.tsx / PageInfoButton.tsx — "About this view" modal copy for every gated view
+  WelcomeOverlay.tsx    — first-login 4-step orientation overlay
+  SaveToggle.tsx        — one bookmark control for BOTH Save-post and Watchlist-hotel
+  SavedPostsList.tsx / WatchlistTable.tsx — the /saved and /watchlist list views
+  EmptyState.tsx        — shared empty-state card (saved / watchlist / etc.)
+  LegalDoc.tsx          — renders the long-form /privacy + /terms legal copy
+  ThemeToggle.tsx       — light/dark toggle (Settings)
+  ManageBillingButton.tsx — opens the Stripe billing portal (Settings)
+  AdminEditor.tsx / AdminPill.tsx — founder-only /admin editor UI + its entry pill
+  LoginForm / SignupForm / NewPasswordForm / SetPasswordForm / ProfileForm
+                        — auth + account forms (password login + magic-link fallback,
+                          email-confirm signup, recovery, set/change password, profile)
+  CheckoutButton.tsx    — /start-trial (logged-in, no sub) → /api/checkout → Stripe
+  DevMenu.tsx           — floating in-app page navigator for every route + the customer
+                          flow (dev/preview aid; PR #27)
 lib/
   data.ts               — ALL data fetching and computation (single function: getPortfolioData)
   supabase.ts           — data-read client: SUPABASE_ANON_KEY first (read-only via RLS,
@@ -167,6 +190,11 @@ most-followed (205 rows incl. shared-brand handles), set by
 `../instagram-pipeline/setup-tracked.sql`. Untracked hotels stay in the DB but
 are filtered out of every stat, including their posts. To expand coverage,
 flip more hotels to tracked and re-run the pipeline.
+
+**Public "400+" figure is intentional (Neil, 2026-07-21):** the landing page and
+PageInfo say **400+ hotels**; the engineering reality is ~205 `tracked=true` rows.
+The 400+ is a deliberate marketing figure for the broader luxury-hotel set — do NOT
+"correct" it down to the tracked count. (Revisit if/when the tracked set actually grows.)
 
 ## Breakout baseline method (current)
 The baseline is the **median engagement (likes + comments) across the hotel's
