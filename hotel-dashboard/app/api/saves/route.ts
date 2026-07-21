@@ -48,6 +48,7 @@ function sanitizePost(raw: Record<string, unknown>, post_id: string, instagram_h
     theme_tag:              str(raw.theme_tag, 60),
     is_collab:              raw.is_collab === true,
     editors_pick:           raw.editors_pick === true,
+    landing_pin:            raw.landing_pin === true,
   };
 }
 

@@ -19,10 +19,11 @@ function getServiceClient() {
   });
 }
 
-// POST { post_id, insight?: string | null, editors_pick?: boolean }
+// POST { post_id, insight?: string | null, editors_pick?: boolean, landing_pin?: boolean }
 //   - insight omitted        → note left unchanged
 //   - insight "" / whitespace → note cleared (stored null)
 //   - editors_pick omitted   → pick left unchanged
+//   - landing_pin omitted    → feature-on-homepage flag left unchanged
 export async function POST(request: NextRequest) {
   const access = await checkAdminApiAccess();
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing post_id.' }, { status: 400 });
   }
 
-  const row: { post_id: string; post_insight?: string | null; editors_pick?: boolean } = { post_id };
+  const row: { post_id: string; post_insight?: string | null; editors_pick?: boolean; landing_pin?: boolean } = { post_id };
 
   if ('insight' in (body ?? {})) {
     const raw = body.insight;
@@ -54,6 +55,13 @@ export async function POST(request: NextRequest) {
     row.editors_pick = body.editors_pick;
   }
 
+  if ('landing_pin' in (body ?? {})) {
+    if (typeof body.landing_pin !== 'boolean') {
+      return NextResponse.json({ error: 'landing_pin must be a boolean.' }, { status: 400 });
+    }
+    row.landing_pin = body.landing_pin;
+  }
+
   if (Object.keys(row).length === 1) {
     return NextResponse.json({ error: 'Nothing to update.' }, { status: 400 });
   }
@@ -69,5 +77,6 @@ export async function POST(request: NextRequest) {
     post_id,
     post_insight: row.post_insight,
     editors_pick: row.editors_pick,
+    landing_pin: row.landing_pin,
   });
 }
