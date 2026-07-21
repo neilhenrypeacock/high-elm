@@ -85,6 +85,16 @@ components/
                           the last 30 days (NOT the dashboard's 7-day standout list).
                           Collab = same post_id under >1 handle, plus the AI
                           driver_tag 'Collaboration' as a second guard.
+                          CURATED ROTATION (Neil, 2026-07-21): when posts carry
+                          standout_posts.landing_pin, rotateLandingFeatured (lib/data.ts)
+                          reorders them — the FIRST open card always shows one of
+                          LANDING_MARQUEE_HANDLES (Savoy / Estelle Manor / Connaught,
+                          cycling hourly); the other 4 slots ring-rotate through the
+                          rest of the pinned set (tick = hours since epoch, advanced
+                          by the page's hourly ISR revalidate). 8 posts are currently
+                          pinned (set 2026-07-21, all ≥15× breakouts). Pins are set
+                          directly in Supabase (see /api/admin/insight or PostgREST
+                          upsert on standout_posts.landing_pin).
                           NB: the taster renders its OWN OpenCard/LockedCard (NOT
                           BreakoutCard). OpenCard's 4:5 media reuses ContentRadar's
                           exported `ImageWithFallback` (framed contain + blurred backdrop),
