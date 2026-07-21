@@ -16,9 +16,24 @@ const supabase = createClient(
 const apify = new ApifyClient({ token: process.env.APIFY_TOKEN });
 
 const BATCH_SIZE = 50;
-// Last N posts per hotel — count-based, not time-based, so every tracked
-// hotel gets a full-strength baseline regardless of posting frequency.
-const POSTS_PER_HOTEL = 30;
+
+// Incremental scrape window (cost control — see APIFY-COST.md). We pull only
+// posts newer than N days instead of a fixed 30-per-hotel: the breakout baseline
+// is computed by the dashboard from posts ALREADY stored in Supabase (posts
+// upsert), so history accumulates and each run only needs the new deltas.
+// Default 10 days for the weekly cron. A future monthly deep-sweep sets
+// SCRAPE_WINDOW_DAYS=35 (via its own workflow) to re-refresh a month of
+// engagement and catch posts that go viral weeks after publishing.
+const WINDOW_DAYS = Number(process.env.SCRAPE_WINDOW_DAYS) || 10;
+// Per-hotel safety ceiling: onlyPostsNewerThan does the real windowing, but we
+// also cap results per hotel so a pathological account can't run away with cost.
+// 50 clears a normal 35-day month of luxury-hotel posting without truncating.
+const POST_CEILING = Number(process.env.SCRAPE_POST_CEILING) || 50;
+
+// onlyPostsNewerThan as a YYYY-MM-DD date the Apify actor accepts.
+const postsNewerThan = new Date(Date.now() - WINDOW_DAYS * 86_400_000)
+  .toISOString()
+  .slice(0, 10);
 
 // ─── fetch tracked handles from Supabase ──────────────────────────────────────
 
@@ -39,7 +54,7 @@ const allHandles = [...new Set(
 
 console.log(`\n════════════════════════════════════════════`);
 console.log(`FULL RUN — ${allHandles.length} tracked handles`);
-console.log(`Posts per hotel: ${POSTS_PER_HOTEL} | Batch size: ${BATCH_SIZE}`);
+console.log(`Window: last ${WINDOW_DAYS} days (since ${postsNewerThan}) | Cap: ${POST_CEILING}/hotel | Batch size: ${BATCH_SIZE}`);
 console.log(`════════════════════════════════════════════\n`);
 
 // ─── split into batches ───────────────────────────────────────────────────────
@@ -62,7 +77,7 @@ for (let i = 0; i < batches.length; i++) {
   console.log(`\n─── Batch ${i + 1} / ${batches.length} (${batch.length} hotels) ───`);
 
   try {
-    const summary = await run(batch, { resultsLimit: POSTS_PER_HOTEL });
+    const summary = await run(batch, { postsNewerThan, resultsLimit: POST_CEILING });
     totalProfiles += summary.profilesLoaded;
     totalPosts += summary.postsLoaded;
     allSkipped.push(...summary.skipped);

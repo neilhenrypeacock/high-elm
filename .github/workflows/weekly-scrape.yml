@@ -1,4 +1,8 @@
 # Weekly Instagram scrape — the pipeline that feeds the Content Radar dashboard.
+# Incremental: pulls only posts from the last SCRAPE_WINDOW_DAYS (10) instead of
+# a fixed 30-per-hotel, which keeps a full run inside the Apify Starter prepaid
+# (see instagram-pipeline/APIFY-COST.md). A monthly deep-sweep (window 35) can be
+# added later as its own workflow to catch late-viral posts — off for now.
 # Costs real Apify money per run, so the schedule is deliberately once a week.
 # Manual trigger available via the Actions tab (workflow_dispatch).
 # On failure GitHub emails the repo owner; check-freshness.js additionally
@@ -28,6 +32,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       ALERT_EMAIL: neil@highelmstudio.com
+      SCRAPE_WINDOW_DAYS: '10' # weekly incremental window; monthly sweep would set 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,7 +43,7 @@ jobs:
       - name: Install ffmpeg (for video-frame analysis)
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npm ci
-      - name: Full scrape (all tracked hotels)
+      - name: Incremental scrape (all tracked hotels, last 10 days)
         run: node full-run.js
       - name: Verify data is fresh after the run
         run: node check-freshness.js
