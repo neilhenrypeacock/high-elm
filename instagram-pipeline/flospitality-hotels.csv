@@ -1,0 +1,66 @@
+client_group,hotel_name,instagram_handle,bucket,in_hotels_table,tracked,follower_count,location,country,notes
+Flospitality,Reschio,@reschio,already_tracked_benchmark,Y,Y,2.0M,Umbria,Italy,First-party: instagram link in reschio.com footer matches
+Flospitality,Forestis,@forestis.dolomites,already_tracked_benchmark,Y,Y,393K,Dolomites,Italy,First-party: instagram link in forestis.it footer matches
+Flospitality,Casa Angelina,@casaangelinalifestyle,already_tracked_benchmark,Y,Y,215K,Amalfi Coast,Italy,Handle confirmed by search. Official site is casangelina.com (one 'a') - it is JS-rendered so no footer link readable. casaangelina.com is an unrelated property
+Flospitality,Canaves Collection,@canavescollection,net_new,N,,202K,Santorini,Greece,First-party: instagram link in canaves.com footer matches (umbrella brand account)
+Flospitality,Badrutt's Palace,@badruttspalace,already_tracked_benchmark,Y,Y,180K,St Moritz,Switzerland,Handle confirmed by search. Site badruttspalace.com blocks bots (403) so footer not readable
+Flospitality,Six Senses Douro Valley,@sixsensesdourovalley,already_tracked_benchmark,Y,Y,168K,Douro Valley,Portugal,First-party: instagram link on sixsenses.com Douro Valley page matches
+Flospitality,Nobu Hotel Ibiza Bay,@ibizabay,net_new,N,,122K,Ibiza,Spain,"First-party: instagram link in nobuhotelibizabay.com footer matches (that is the working official domain, not ibizabay.com)"
+Flospitality,Clinique La Prairie,@cliniquelaprairie,net_new,N,,102K,Montreux,Switzerland,First-party: instagram link in cliniquelaprairie.com footer matches
+Flospitality,Botanic Sanctuary Antwerp,@botanicsanctuaryantwerp,net_new,N,,93K,Antwerp,Belgium,"Handle confirmed by search. Official site is botanicantwerp.be (JS-rendered, no footer link readable)"
+Flospitality,Cheetah Plains,@cheetahplains,net_new,N,,63K,Sabi Sand,South Africa,First-party: instagram link in cheetahplains.com footer matches
+Flospitality,Kisawa Sanctuary,@kisawasanctuary,net_new,N,,60K,Benguerra Island,Mozambique,First-party: instagram link in kisawasanctuary.com footer matches
+Flospitality,Chable Hotels,@chablehotels,net_new,N,,53K,Yucatan,Mexico,First-party: instagram link in chablehotels.com footer matches (umbrella brand account)
+Flospitality,Amara,@amarahotelcy,net_new,N,,49K,Limassol,Cyprus,First-party: instagram link in amarahotel.com footer matches
+Flospitality,Can Ferrereta,@hotelcanferrereta,net_new,N,,46K,Mallorca,Spain,First-party: instagram link in hotelcanferrereta.com footer matches
+Flospitality,d'Angleterre,@dangleterrecph,net_new,N,,46K,Copenhagen,Denmark,First-party: instagram link in dangleterre.com footer matches
+Flospitality,Cali Mykonos,@calimykonos,net_new,N,,44K,Mykonos,Greece,First-party: instagram link in calimykonos.com footer matches
+Flospitality,Hassler Roma,@hotelhasslerroma,in_hotels_untracked,Y,N,37K,Rome,Italy,"First-party: instagram link in hotelhasslerroma.com footer matches (real site, not hotelhassler.com)"
+Flospitality,Grace La Margna,@gracestmoritz,net_new,N,,31K,St Moritz,Switzerland,First-party: confirmed via gracehotels.com (gracelamargna.com no longer resolves)
+Flospitality,Bairro Alto Hotel,@bairroaltohotel,net_new,N,,17K,Lisbon,Portugal,First-party: instagram link in bairroaltohotel.com footer matches
+Flospitality,The Sukhothai Bangkok,@thesukhothaibangkok,net_new,N,,17K,Bangkok,Thailand,First-party: instagram link in bangkok.sukhothai.com footer matches
+Flospitality,Six Senses Bhutan,@sixsensesbhutan,net_new,N,,36K,Thimphu/Punakha,Bhutan,Handle confirmed by search + Facebook. sixsenses.com blocks bots (403) so footer not readable
+Flospitality,Six Senses Fort Barwara,@sixsensesfortbarwara,net_new,N,,96K,Rajasthan,India,Handle confirmed by search + Facebook. sixsenses.com blocks bots (403)
+Flospitality,Six Senses Kanuhura,@sixsenseskanuhura,net_new,N,,106K,Lhaviyani Atoll,Maldives,Handle confirmed by search + Facebook. sixsenses.com blocks bots (403)
+Flospitality,Six Senses Laamu,@sixsenseslaamu,net_new,N,,164K,Laamu Atoll,Maldives,Handle confirmed by search + Facebook. sixsenses.com blocks bots (403)
+Flospitality,Six Senses Zil Pasyon,@sixsenseszilpasyon,net_new,N,,143K,Felicite Island,Seychelles,Handle confirmed by search + Facebook. sixsenses.com blocks bots (403)
+Flospitality,Nobu Hotel Marbella,@nobumarbella,net_new,N,,79K,Marbella,Spain,First-party: instagram link in nobuhotels.com/marbella footer matches. Handle is @nobumarbella NOT @nobuhotelmarbella
+Flospitality,Elysium,@elysiumhotel,net_new,N,,21K,Paphos,Cyprus,First-party: instagram link in elysium-hotel.com footer matches
+Flospitality,eriro,@eriro.alpinehide,net_new,N,,28K,Ehrwald,Austria,First-party: instagram link in eriro.at footer matches
+Flospitality,Fairmont Golden Prague,@fairmontgoldenprague,net_new,N,,11K,Prague,Czech Republic,First-party: instagram link in fairmontgoldenprague.com footer matches. Beware @golden_prague_hotel (different account)
+Flospitality,Flemings Mayfair,@flemingsmayfair,net_new,N,,22K,London,United Kingdom,Handle confirmed by search + Facebook. flemings-mayfair.co.uk blocks bots (403)
+Flospitality,Goldene Rose Karthaus,@goldene.rose_karthaus,net_new,N,,5K,Val Senales (South Tyrol),Italy,First-party: instagram link in goldenerose.it footer matches
+Flospitality,Grand Hotel Villa Feltrinelli,@villafeltrinelli,net_new,N,,77K,Gargnano (Lake Garda),Italy,Handle confirmed by search. villafeltrinelli.com Cloudflare-blocks bots (403)
+Flospitality,Hotel Goldgasse,@hotel_goldgasse_salzburg,net_new,N,,1.9K,Salzburg,Austria,First-party: instagram link in hotelgoldgasse.at footer matches
+Flospitality,Hotel Metropole Monte-Carlo,@metropolemonaco,net_new,N,,62K,Monte-Carlo,Monaco,First-party: instagram link in metropole.com footer matches
+Flospitality,Hotel Stein,@hotel_stein_salzburg,net_new,N,,8.5K,Salzburg,Austria,First-party: instagram link in hotelstein.at footer matches. @steinterrasse_salzburg is the rooftop bar (separate)
+Flospitality,Iniala Harbour House,@inialaharbourhouse,flagged_decision_needed,N,,13K,Valletta,Malta,"MISMATCH: official site inialamalta.com footer links to @inialavalletta, NOT @inialaharbourhouse. Both accounts exist. @inialaharbourhouse is the active property account (13K, 'Malta's First Forbes Five Star'). NEED NEIL TO PICK which to track"
+Flospitality,Kristiania Lech,@kristianialech,net_new,N,,3K,Lech am Arlberg,Austria,First-party: instagram link in kristiania.at footer matches
+Flospitality,La Roqqa,@laroqqahotel,net_new,N,,18K,Porto Ercole,Italy,First-party: instagram link in laroqqa.com footer matches
+Flospitality,Les Trois Rois,@grandhotellestroisrois,net_new,N,,61K,Basel,Switzerland,First-party: instagram link in lestroisrois.com footer matches
+Flospitality,Lily of the Valley,@lilyofthevalleyhotel,already_tracked_benchmark,Y,Y,160K,La Croix-Valmer,France,First-party: instagram link in lilyofthevalley.com footer matches
+Flospitality,Palazzo Talia,@palazzo.talia,net_new,N,,48K,Rome,Italy,Handle confirmed by search. palazzotalia.com blocks bots / JS-rendered footer
+Flospitality,Pepper Collection,@peppercollection,net_new,N,,7K,Lech/St Christoph am Arlberg,Austria,Handle confirmed by search. peppercollection.com footer is JS-rendered (no readable link)
+Flospitality,Hotel Aurelio Lech,@aureliohotel,net_new,N,,7.4K,Lech,Austria,First-party: instagram link in aureliolech.com footer matches. Handle is @aureliohotel NOT @aureliolech
+Flospitality,Post am See,@posttraunkirchen,net_new,N,,25K,Traunkirchen,Austria,"Handle confirmed by search (25K, 695 posts, active). A separate older @postamsee also exists - use @posttraunkirchen"
+Flospitality,Sant Francesc,@hotelsantfrancesc,net_new,N,,53K,Palma de Mallorca,Spain,First-party: instagram link in hotelsantfrancesc.com footer matches
+Flospitality,Sao Lourenco do Barrocal,@sao_lourenco_do_barrocal,net_new,N,,76K,Alentejo,Portugal,First-party: instagram link in barrocal.pt footer matches
+Flospitality,Sterrekopje,@sterrekopjefarm,in_hotels_untracked,Y,N,64K,Franschhoek,South Africa,Handle confirmed by search. sterrekopje.com footer is JS-rendered. Handle is @sterrekopjefarm NOT @sterrekopje
+Flospitality,Terre Blanche,@terre_blanche,net_new,N,,43K,Tourrettes (Provence),France,First-party: instagram link in terre-blanche.com footer matches
+Flospitality,The Charles Hotel,@thecharleshotelmunich,net_new,N,,17K,Munich,Germany,First-party: instagram link on roccofortehotels.com Charles Hotel page matches
+Flospitality,tulah,@tulahclinicalwellness,net_new,N,,59K,Kerala,India,First-party: instagram link in tulah.life footer matches (opened Feb 2026)
+Flospitality,Elounda Collection,@eloundacollection,net_new,N,,unknown,Elounda (Crete),Greece,First-party: instagram link in elounda-collection.com footer matches (eloundasa.com is dead domain)
+Flospitality,Elounda Beach Hotel,@eloundabeach,net_new,N,,unknown,Elounda (Crete),Greece,First-party: instagram link in eloundabeach.gr footer matches
+Flospitality,Elounda Bay Palace,@eloundabay,net_new,N,,unknown,Elounda (Crete),Greece,First-party: instagram link in eloundabay.gr footer matches
+Flospitality,Porto Elounda,@portoelounda,net_new,N,,6K,Elounda (Crete),Greece,First-party: instagram link in portoelounda.com footer matches
+Flospitality,Dar Ahlam,@dar_ahlam,net_new,N,,14K,Skoura,Morocco,First-party: instagram link in darahlam.com footer matches
+Flospitality,Domaine de la Cavalerie,@domainedelacavalerie,net_new,N,,16K,Luberon (Provence),France,"First-party: instagram link in domainedelacavalerie.com footer matches. NOTE: private exclusive-use estate, not a conventional hotel"
+Flospitality,Domaine Louise,@domaine.louise,net_new,N,,10K,La Croix-Valmer,France,"First-party: instagram link in domaine-louise.com footer matches. NOTE: villa-rental estate, not a classic hotel"
+Flospitality,Fawn Bluff,@fawnbluffprivatelodge,net_new,N,,2.4K,Bute Inlet (British Columbia),Canada,First-party: instagram link in fawnbluff.com footer matches (off-grid private lodge)
+Flospitality,Chable Yucatan,@chableyucatan,already_tracked_benchmark,Y,Y,93K,Yucatan,Mexico,First-party: instagram link on yucatan.chablehotels.com footer matches
+Flospitality,Chable Maroma,@chablemaroma,net_new,N,,36K,Riviera Maya,Mexico,First-party: instagram link on maroma.chablehotels.com footer matches
+Flospitality,Canaves Oia Suites,@canavesoiasuites,flagged_decision_needed,N,,6K,Santorini,Greece,"MISMATCH: canaves.com footer links to the group account @canavescollection, not the per-property @canavesoiasuites. The property handle exists (6K) but the site publishes the group one. NEED NEIL to decide: track per-property or just the collection account"
+Flospitality,Andean,,excluded_dmc,N,,,,,Confirmed NOT a hotel - name used by multiple South American travel DMCs. Exclude
+Flospitality,Access Italy,,excluded_dmc,N,,,,,Travel partner / DMC - no single hotel Instagram. Exclude
+Flospitality,Expect Some Rain,,excluded_dmc,N,,,,,Travel partner / DMC - no single hotel Instagram. Exclude
+Flospitality,IDI Travel France,,excluded_dmc,N,,,,,Travel partner / DMC - no single hotel Instagram. Exclude
