@@ -1,5 +1,13 @@
 # Content Radar Dashboard — Session Context
 
+## Working with Neil — handing off manual steps
+Neil runs the ops/manual steps (SQL, Supabase settings, Stripe, DNS) himself. When
+you ask him to do one, ALWAYS give: the **exact clickable URL**, what to **paste/open**
+(verbatim text or file path), the **button to click**, and how to **confirm it worked** —
+numbered baby-steps, never "go run X". Key anchors:
+- **Supabase project** ref `dndefddhocxqczinfpfg` — SQL editor: https://supabase.com/dashboard/project/dndefddhocxqczinfpfg/sql/new · Auth settings: https://supabase.com/dashboard/project/dndefddhocxqczinfpfg/auth/providers
+- **Vercel**: deploys on push to `main` (dashboard project = "dashboard"); production = www.hotelcontentradar.com.
+
 ## What this repo is
 A Next.js 16 app (App Router, Turbopack) that renders the High Elm Studio "Content Radar" — a weekly Instagram performance dashboard tracking ~205 tracked luxury hotels (465 in the DB). Implements the **Content Radar identity system** (design handoff bundle: identity README + DASHBOARD.md spec). The public landing page uses ISR (`revalidate = 3600`); the gated pages read auth cookies so they render dynamically per request.
 
