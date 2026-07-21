@@ -69,7 +69,7 @@ if (ageDays > MAX_DAYS) {
     `The newest post in the Content Radar database is ${ageDays.toFixed(1)} days old ` +
     `(limit: ${MAX_DAYS}). The weekly scrape has probably failed or not run — ` +
     `check the GitHub Actions "weekly-scrape" workflow, or run the pipeline manually ` +
-    `(instagram-pipeline: npm run full).`;
+    `(instagram-pipeline: npm run weekly).`;
   console.error(`STALE: ${msg}`);
   await sendAlert(`Content Radar: data is ${Math.round(ageDays)} days stale`, msg);
   process.exit(1);

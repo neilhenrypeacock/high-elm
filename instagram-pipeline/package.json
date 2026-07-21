@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "test5": "node test-run.js",
-    "full": "node full-run.js"
+    "weekly": "SCRAPE_WINDOW_DAYS=10 node scrape-run.js",
+    "monthly": "SCRAPE_WINDOW_DAYS=35 node scrape-run.js",
+    "full": "SCRAPE_FULL=1 node scrape-run.js"
   },
   "keywords": [],
   "author": "",

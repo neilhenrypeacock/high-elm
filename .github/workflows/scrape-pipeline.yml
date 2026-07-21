@@ -1,0 +1,59 @@
+# Reusable scrape pipeline — the SINGLE source of truth for the Instagram scrape
+# that feeds the Content Radar dashboard. Called by weekly-scrape.yml,
+# monthly-scrape.yml and full-scrape.yml, which differ ONLY by schedule + window
+# (keeping the real steps here avoids the copy-drift that let the cron run the
+# wrong mode). Costs real Apify money per run — see instagram-pipeline/APIFY-COST.md.
+# On failure GitHub emails the repo owner; check-freshness.js additionally emails
+# ALERT_EMAIL via Resend once RESEND_API_KEY is configured.
+name: scrape-pipeline
+
+on:
+  workflow_call:
+    inputs:
+      window_days:
+        description: 'Days of history to pull (weekly=10, monthly=35). Ignored when full=true.'
+        type: string
+        default: '10'
+      full:
+        description: 'Full baseline rebuild: 30 posts/hotel, no date window.'
+        type: boolean
+        default: false
+
+# Serialise every scrape type so two runs can never hammer Apify at once
+# (e.g. when the 1st of the month lands on a Monday and weekly + monthly collide).
+concurrency:
+  group: instagram-pipeline
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180 # a full 205-hotel run takes ~90 min
+    defaults:
+      run:
+        working-directory: instagram-pipeline
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      ALERT_EMAIL: neil@highelmstudio.com
+      SCRAPE_WINDOW_DAYS: ${{ inputs.window_days }}
+      SCRAPE_FULL: ${{ inputs.full && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # ffmpeg lets generate-insight.js sample frames across the whole video/reel;
+      # without it, videos fall back to the cover frame. Ubuntu runners: apt.
+      - name: Install ffmpeg (for video-frame analysis)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npm ci
+      - name: Scrape (all tracked hotels)
+        run: node scrape-run.js
+      - name: Verify data is fresh after the run
+        run: node check-freshness.js
+      - name: Generate "why it worked" analysis for the top 10 breakouts
+        run: node generate-insight.js

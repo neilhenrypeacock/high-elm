@@ -206,8 +206,12 @@ The 400+ is a deliberate marketing figure for the broader luxury-hotel set — d
 
 ## Breakout baseline method (current)
 The baseline is the **median engagement (likes + comments) across the hotel's
-last 30 valid posts** — count-based and recency-weighted, matching exactly what
-the pipeline scrapes per run (`POSTS_PER_HOTEL = 30` in full-run.js).
+last 30 valid posts** — count-based and recency-weighted. It's computed from the
+posts **already stored** in Supabase (which accumulate via upsert), not from any
+single scrape's return: the scrape now tops up recent posts on a rolling window
+(`../instagram-pipeline/scrape-run.js`; weekly 10-day / monthly 35-day — see
+`../instagram-pipeline/APIFY-COST.md`), so the 30-post baseline is always drawn
+from accumulated history.
 
 ## Collaboration posts (co-posts)
 Collab posts are INCLUDED. An Instagram co-post shares one `post_id` but appears

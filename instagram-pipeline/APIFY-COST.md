@@ -36,19 +36,24 @@ week*, count-based. A luxury hotel posts a handful of times a week, so ~75% of e
 re-scraped posts already in Supabase. 4 weekly runs ≈ **$56–64/month** — always over both the
 $29 prepaid and the $40 cap. That's the root cause of the block, not the plan.
 
-## Agreed cadence (2026-07-21)
+## Cadence (implemented 2026-07-21)
 
 Goal: keep the baseline fresh, catch posts that go viral **weeks after** posting, and stay inside
-the $29 prepaid. Both windows use `onlyPostsNewerThan` (already supported in `scrape.js` via the
-`postsNewerThan` arg) instead of `resultsLimit`.
+the $29 prepaid. Windowed modes use `onlyPostsNewerThan` (supported in `scrape.js` via the
+`postsNewerThan` arg) instead of `resultsLimit`. One runner (`scrape-run.js`), three modes selected
+by env; each is a thin GitHub Actions caller of the reusable `scrape-pipeline.yml`.
 
-| Cron | Window | Purpose | ~Results | ~Cost |
-|---|---|---|---|---|
-| **Weekly** (Mon 05:00 UTC) | last **~10 days** | new posts + fresh engagement | ~1,200 | ~$3 |
-| **Monthly** (1st, 05:00 UTC) | last **~35 days** | re-refresh a month of posts → catches late bloomers | ~5,000 | ~$12 |
+| Type | Command | Workflow | Window | Purpose | ~Results | ~Cost |
+|---|---|---|---|---|---|---|
+| **weekly** | `npm run weekly` | `weekly-scrape.yml` (Mon 05:00 UTC) | last **~10 days** | new posts + fresh engagement | ~1,200 | ~$3 |
+| **monthly** | `npm run monthly` | `monthly-scrape.yml` (1st, 05:00 UTC) | last **~35 days** | re-refresh a month → catches late bloomers | ~5,000 | ~$12 |
+| **full** | `npm run full` | `full-scrape.yml` (manual only) | 30 posts/hotel, no window | baseline rebuild (e.g. new hotels) | ~6,150 | ~$14–16 |
 
-**Projected total: ~$21–23/month** → inside the $29 prepaid, no overage, well under the $40 cap,
-with headroom to add hotels. (Windows overlap on purpose so a late cron run never leaves a gap.)
+**Projected scheduled total: ~$21–23/month** (weekly + monthly) → inside the $29 prepaid, no
+overage, well under the $40 cap, with headroom to add hotels. The **full** rebuild is manual and
+deliberately unscheduled — running it doubles a month's spend, so use it only when genuinely
+re-baselining. (Weekly/monthly windows overlap on purpose so a late cron run never leaves a gap; a
+`concurrency` group serialises the rare Monday-on-the-1st collision so the two never bill at once.)
 
 **Why the monthly sweep catches late-viral posts:** it re-pulls every post from the last ~month,
 refreshing likes/comments on a post that popped weeks after publishing. The dashboard's breakout
