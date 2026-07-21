@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { DashboardData, OutlierPost } from '@/lib/data';
-import { hasVisibleLikesCount } from '@/lib/data';
 import { ImageWithFallback } from './ContentRadar';
 
 // ─── Offer (single source of truth for every CTA + the pricing card) ─────────
@@ -67,28 +66,12 @@ function fmtDayMonth(iso: string): string {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 }
 
-function fmtLikes(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k`;
-  return n.toLocaleString('en-GB');
-}
-
 // ─── Small inline SVGs (from the handoff; no external assets) ─────────────────
 const StarIcon = ({ delay }: { delay: number }) => (
   <svg data-star viewBox="0 0 24 24" width="26" height="26" fill="currentColor" style={{ animationDelay: `${delay}ms` }}>
     <path d="M12 2.6l2.85 6.02 6.55.86-4.78 4.5 1.2 6.52L12 18.9l-5.82 2.6 1.2-6.52-4.78-4.5 6.55-.86z" />
   </svg>
 );
-const HeartIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
-    <path d="M12 20s-7-4.3-9.4-8.4C1.1 8.7 2.6 5.2 6 5.2c2 0 3.2 1.2 4 2.4 0.8-1.2 2-2.4 4-2.4 3.4 0 4.9 3.5 3.4 6.4C19 15.7 12 20 12 20z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-  </svg>
-);
-const CommentIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
-    <path d="M20.5 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-3.9A7.5 7.5 0 1 1 20.5 11.5z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-  </svg>
-);
-
 // ─── Shared bits ──────────────────────────────────────────────────────────────
 const eyebrow = (color = 'var(--signal-deep)'): React.CSSProperties => ({
   fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.16em',
@@ -103,130 +86,115 @@ function CtaArrow() {
   return <span className="cr-cta-arrow">→</span>;
 }
 
-// ─── Hero: fanned breakout-card stack (real data, top 1-3 by multiplier) ─────
-// front = best post, centered, no rotation; up to two "peek" cards float
-// behind it (rank 2 top-left, rank 3 bottom-right). Position/rotation come
-// from the design handoff; only the front card shows insight + likes/comments.
-function FanCard({
-  post, index, front, rotateDeg, animationDuration, animationDelay, position,
-}: {
-  post: OutlierPost; index: number; front: boolean; rotateDeg: number;
-  animationDuration: number; animationDelay: number; position: React.CSSProperties;
-}) {
+// ─── Hero cluster tile: a complete, non-cropped breakout card (live proof) ───
+// Replaces the old fanned/floating FanCard stack. Every card is a whole tile —
+// image + multiplier badge + hotel + country·date — so the cluster reads as a
+// tidy, balanced set rather than half-cut cards bleeding off the edge. `size`
+// controls the lead tile (lg) vs the two supporting tiles (sm).
+function MiniBreakoutCard({ post, index, size = 'sm' }: { post: OutlierPost; index: number; size?: 'lg' | 'sm' }) {
   const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
   const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
   const mult = post.multiplier.toFixed(1);
+  const lg = size === 'lg';
 
   return (
     <div
-      data-float
-      data-hero-back={front ? undefined : true}
+      data-card
       style={{
-        ...position,
-        '--cr-rot': `${rotateDeg}deg`,
-        background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14,
-        overflow: 'hidden', boxShadow: front ? 'var(--shadow-hover)' : 'var(--shadow-card)',
-        animation: `cr-hero-card-float ${animationDuration}s ease-in-out ${animationDelay}s infinite`,
-      } as React.CSSProperties}
-    >
-      <div style={{ aspectRatio: '4 / 5', background: gradient, position: 'relative', overflow: 'hidden' }}>
-        <ImageWithFallback src={post.image_url} alt={post.hotel_name} fallback={gradient} />
-        <span style={{
-          position: 'absolute', top: front ? 14 : 12, left: front ? 14 : 12, fontFamily: 'var(--font-label)', fontWeight: 600,
-          fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)',
-          background: 'rgba(29,27,23,0.32)', padding: front ? '5px 10px' : '4px 9px', borderRadius: 20,
-        }}>{chip}</span>
-        <span style={{
-          position: 'absolute', top: front ? 14 : 12, right: front ? 14 : 12, fontFamily: 'var(--font-display)', fontWeight: 700,
-          fontSize: front ? 18 : 15, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--ink-deep)',
-          background: 'var(--surface)', padding: front ? '5px 12px' : '4px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        }}>{mult}×</span>
-      </div>
-      {/* Only the front card carries a text footer — the two peek cards behind it
-          stay image-only so they read as clean photos, not half-cut cards. */}
-      {front && (
-        <div style={{ padding: 20 }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{post.hotel_name}</div>
-          <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--body-mid)', margin: '3px 0 12px' }}>
-            {[post.hotel_country, fmtDayMonth(post.posted_at)].filter(Boolean).join(' · ')}
-          </div>
-          {post.post_insight && (
-            <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 14 }}>{post.post_insight}</p>
-          )}
-          <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
-            {hasVisibleLikesCount(post.likes_count) && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
-            )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Taster: open card (real breakout, live data) ────────────────────────────
-function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
-  const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
-  const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
-  const mult = post.multiplier.toFixed(1);
-
-  return (
-    <div
-      data-reveal data-reveal-delay={index * 90} data-card
-      style={{
-        background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14,
-        overflow: 'hidden', boxShadow: 'var(--shadow-card)', transition: 'transform .16s, box-shadow .16s',
+        background: 'var(--surface)', border: '1px solid var(--line-rule)', borderRadius: 14,
+        overflow: 'hidden', boxShadow: '0 20px 44px -30px rgba(34,32,27,0.55)',
       }}
     >
-      <div style={{ aspectRatio: '4 / 5', background: 'var(--surface)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ aspectRatio: '4 / 5', background: gradient, position: 'relative', overflow: 'hidden' }}>
         <ImageWithFallback src={post.image_url} alt={post.hotel_name} fallback={gradient} backdrop={false} />
         <span style={{
-          position: 'absolute', top: 14, left: 14, fontFamily: 'var(--font-label)', fontWeight: 600,
-          fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)',
-          background: 'rgba(29,27,23,0.32)', backdropFilter: 'blur(4px)', padding: '5px 10px', borderRadius: 20,
+          position: 'absolute', top: lg ? 14 : 11, left: lg ? 14 : 11, fontFamily: 'var(--font-label)', fontWeight: 600,
+          fontSize: lg ? 10 : 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)',
+          background: 'rgba(29,27,23,0.34)', backdropFilter: 'blur(4px)', padding: lg ? '5px 10px' : '4px 8px', borderRadius: 20,
         }}>{chip}</span>
         <span
           data-count={mult} data-dec="1" data-suffix="×"
           style={{
-            position: 'absolute', top: 14, right: 14, fontFamily: 'var(--font-display)', fontWeight: 800,
-            fontSize: 18, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--ink-deep)',
-            background: 'var(--surface)', padding: '5px 12px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            position: 'absolute', top: lg ? 14 : 11, right: lg ? 14 : 11, fontFamily: 'var(--font-display)', fontWeight: 800,
+            fontSize: lg ? 18 : 14, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--signal-deep)',
+            background: 'var(--surface)', padding: lg ? '5px 12px' : '4px 9px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           }}
         >{mult}×</span>
       </div>
-      <div style={{ padding: 20 }}>
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{post.hotel_name}</div>
-        <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--body-mid)', margin: '3px 0 14px' }}>
+      <div style={{ padding: lg ? '16px 18px' : '12px 14px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: lg ? 16 : 14, color: 'var(--ink)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.hotel_name}</div>
+        <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: lg ? 11 : 10, letterSpacing: '0.04em', color: 'var(--body-mid)', marginTop: 3 }}>
           {[post.hotel_country, fmtDayMonth(post.posted_at)].filter(Boolean).join(' · ')}
-        </div>
-        {post.post_insight && (
-          <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 16 }}>{post.post_insight}</p>
-        )}
-        <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
-          {hasVisibleLikesCount(post.likes_count) && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
-          )}
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Taster: locked card (blurred behind the paywall overlay) ────────────────
-function LockedCard({ post, index }: { post: OutlierPost; index: number }) {
-  const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
-  const bg = post.image_url ? `url("${post.image_url}") center/cover no-repeat, ${gradient}` : gradient;
+// ─── Featured breakout (lower view): one real breakout + the editor's read ────
+// Auto-selected upstream as the highest-ranked landing_featured post that has a
+// written insight (graceful fallback: the top breakout with the read hidden).
+// Sits on the deep-green feature band, but the card itself stays a light cream
+// tile so the photo stays bright and the multiplier is the loudest element on
+// screen. The multiplier + "Editor's note" + tags mirror the dashboard's
+// BreakoutCard rendering (components/ContentRadar.tsx) rather than reinventing it.
+function FeaturedBreakout({ post: p }: { post: OutlierPost }) {
+  const meta = [p.hotel_country, fmtDayMonth(p.posted_at)].filter(Boolean).join(' · ');
+  const tags = [p.driver_tag, p.theme_tag].filter(Boolean) as string[];
+  const hasRead = !!(p.post_insight && p.post_insight.trim());
+
   return (
-    <div style={{ background: 'var(--surface)', borderRadius: 14, overflow: 'hidden', display: 'grid', gridTemplateColumns: '130px 1fr' }}>
-      <div style={{ background: bg }} />
-      <div style={{ padding: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: 17 }}>{post.hotel_name}</div>
-        <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, color: 'var(--body-mid)', margin: '4px 0 12px' }}>
-          {[post.hotel_country, `${post.multiplier.toFixed(1)}×`].filter(Boolean).join(' · ')}
+    <div
+      className="cr-card-grid"
+      style={{
+        background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 18,
+        overflow: 'hidden', boxShadow: '0 48px 90px -56px rgba(0,0,0,0.65)',
+        display: 'grid', gridTemplateColumns: 'minmax(0,0.92fr) minmax(0,1.08fr)',
+      }}
+    >
+      {/* Media */}
+      <div className="cr-card-media" style={{ position: 'relative', minHeight: 420, background: 'var(--surface)' }}>
+        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={TASTER_GRADIENTS[0]} backdrop={false} />
+        <span style={{
+          position: 'absolute', top: 16, left: 16, fontFamily: 'var(--font-label)', fontWeight: 600,
+          fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)',
+          background: 'rgba(29,27,23,0.34)', backdropFilter: 'blur(4px)', padding: '5px 10px', borderRadius: 20,
+        }}>{typeLabel(p.type)}</span>
+      </div>
+
+      {/* Body */}
+      <div className="cr-card-body" style={{ padding: '40px 44px', display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
+        {/* Multiplier — the loudest thing on screen */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
+          <span
+            data-count={p.multiplier.toFixed(1)} data-dec="1" data-suffix="×"
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(54px,7vw,76px)', lineHeight: 1, letterSpacing: '-0.03em', color: 'var(--signal-deep)' }}
+          >{p.multiplier.toFixed(1)}×</span>
+          <span style={{ fontFamily: 'var(--font-label)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--muted)', lineHeight: 1.5, paddingBottom: 8 }}>vs hotel<br />median</span>
         </div>
-        {post.post_insight && <p style={{ fontSize: 14, color: 'var(--body-soft)' }}>{post.post_insight}</p>}
+
+        {/* Hotel */}
+        <div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 24, color: 'var(--ink)', lineHeight: 1.25 }}>{p.hotel_name}</div>
+          {meta && <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.04em', color: 'var(--body-mid)', marginTop: 6 }}>{meta}</div>}
+        </div>
+
+        {/* Editor's read — reuses the dashboard's "Editor's note" callout */}
+        {hasRead && (
+          <div style={{ background: 'var(--surface-alt)', border: '1px solid var(--line)', borderRadius: 10, padding: '14px 16px' }}>
+            <div style={{ fontFamily: 'var(--font-label)', fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--signal-deep)', marginBottom: 7 }}>Editor&rsquo;s note</div>
+            <p style={{ fontSize: 14, color: 'var(--body-strong)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-line' }}>{p.post_insight}</p>
+          </div>
+        )}
+
+        {/* Driver / theme tags */}
+        {tags.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {tags.map((t) => (
+              <span key={t} style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--signal-deep)', background: 'var(--top3-tint)', border: '1px solid #BFD8CC', borderRadius: 999, padding: '5px 12px' }}>{t}</span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -235,8 +203,17 @@ function LockedCard({ post, index }: { post: OutlierPost; index: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 export default function Landing({ data }: { data: DashboardData }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  // Top view = liveness + scale: the top 1-3 breakouts as a tidy card cluster.
   const open = data.landing_featured.slice(0, 3);
-  const locked = data.landing_featured.slice(3, 5);
+  // Lower view = depth: ONE featured breakout, chosen at request time as the
+  // highest-ranked landing_featured post that carries a written editor's read
+  // (landing_featured is already sorted by multiplier, so .find gives the best
+  // one with an insight). Graceful fallback to the top breakout — the read
+  // module then hides itself rather than showing an empty box.
+  const featured =
+    data.landing_featured.find((p) => p.post_insight && p.post_insight.trim()) ??
+    data.landing_featured[0] ??
+    null;
 
   // Reveal-on-scroll, count-ups, and the founding-spots bar — all scoped to this
   // subtree. Base markup is the visible end-state, so nothing is ever stranded.
@@ -411,23 +388,23 @@ export default function Landing({ data }: { data: DashboardData }) {
           </div>
 
           {open.length > 0 && (
-            <div data-reveal data-reveal-delay={140} className="cr-hero-cardstack" style={{ position: 'relative', minHeight: 420, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {open.length >= 3 && (
-                <FanCard
-                  post={open[1]} index={1} front={false} rotateDeg={-5} animationDuration={7} animationDelay={0}
-                  position={{ position: 'absolute', width: 'min(200px,62vw)', right: '58%', top: '10%', opacity: 0.92, zIndex: 1 }}
-                />
+            <div
+              data-reveal data-reveal-delay={140} className="cr-hero-cardstack"
+              style={{ display: 'grid', gridTemplateColumns: open.length === 1 ? '1fr' : '1fr 1fr', gap: 14, alignContent: 'center' }}
+            >
+              {open.length >= 3 ? (
+                <>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <MiniBreakoutCard post={open[0]} index={0} size="lg" />
+                  </div>
+                  <MiniBreakoutCard post={open[1]} index={1} size="sm" />
+                  <MiniBreakoutCard post={open[2]} index={2} size="sm" />
+                </>
+              ) : (
+                open.map((p, i) => (
+                  <MiniBreakoutCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} size={open.length === 1 ? 'lg' : 'sm'} />
+                ))
               )}
-              {open.length >= 2 && (
-                <FanCard
-                  post={open.length >= 3 ? open[2] : open[1]} index={2} front={false} rotateDeg={5} animationDuration={8} animationDelay={1.2}
-                  position={{ position: 'absolute', width: 'min(200px,62vw)', left: '58%', bottom: '8%', opacity: 0.95, zIndex: 1 }}
-                />
-              )}
-              <FanCard
-                post={open[0]} index={0} front rotateDeg={0} animationDuration={6} animationDelay={0.5}
-                position={{ position: 'relative', zIndex: 2, width: 'min(256px,80vw)' }}
-              />
             </div>
           )}
         </div>
@@ -441,6 +418,21 @@ export default function Landing({ data }: { data: DashboardData }) {
               {[0, 70, 140, 210, 280].map((d) => <StarIcon key={d} delay={d} />)}
             </div>
             <span style={{ ...eyebrow() }}>Only the world&rsquo;s genuine 5-star hotels</span>
+          </div>
+
+          {/* Curated-from accolade strip — text only (no logos/marks): naming the
+              three curation sources. The independence disclaimer in the "Why
+              believe it" band below is the legal cover for naming them. */}
+          <div data-reveal data-reveal-delay={30} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', margin: '0 0 30px' }}>
+            <span style={{ ...eyebrow('var(--body-mid)') }}>Curated from</span>
+            {['Forbes Five-Star', 'Condé Nast Gold List', 'Michelin Keys'].map((name) => (
+              <span
+                key={name}
+                style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: 'var(--body-soft)', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '6px 14px', whiteSpace: 'nowrap' }}
+              >
+                {name}
+              </span>
+            ))}
           </div>
 
           {/* Hero stat panel — live breakout count */}
@@ -465,54 +457,41 @@ export default function Landing({ data }: { data: DashboardData }) {
       </section>
 
       {/* ===== WHO IT'S FOR ===== */}
-      <section style={{ ...INNER, padding: '20px 40px 84px' }}>
+      <section style={{ ...INNER, padding: '20px 40px 56px' }}>
         <div data-reveal style={{ maxWidth: 780, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ ...eyebrow(), marginBottom: 22 }}>Who it&rsquo;s for</div>
-          <h2 style={{ ...sectionTitle, lineHeight: 1.12, marginBottom: 44 }}>Built for your hotel&rsquo;s social media team.</h2>
+          <h2 style={{ ...sectionTitle, lineHeight: 1.12, marginBottom: 0 }}>Built for your hotel&rsquo;s social media team.</h2>
         </div>
+      </section>
 
-        {/* ===== LIVE TASTER (moved here) ===== */}
-        {open.length > 0 && (
-          <div>
-            <div data-reveal style={{ textAlign: 'center', marginBottom: 44 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, ...eyebrow() }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--signal)', animation: 'cr-ping 2.4s ease-out infinite' }} />
-                This week&rsquo;s breakouts — real posts, live right now
-              </div>
+      {/* ===== INSIDE A BREAKOUT — one featured breakout + the editor's read =====
+          Deep-green feature band (#1B4A37 = --signal-deep, the palette's racing
+          green; used as a literal so it never flips under a dark-mode token). The
+          featured card stays a light cream tile; light text sits on the green. */}
+      {featured && (
+        <section style={{ background: '#1B4A37' }}>
+          <div style={{ maxWidth: 1160, margin: '0 auto', padding: '96px 40px' }}>
+            <div data-reveal style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 48px' }}>
+              <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 20 }}>Inside a breakout</div>
+              <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(28px,4vw,44px)', lineHeight: 1.12, letterSpacing: '-0.02em', color: 'var(--surface)', textWrap: 'balance' }}>
+                Not just what won &mdash; why it won.
+              </h2>
             </div>
 
-            <div style={{ position: 'relative' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
-                {open.map((p, i) => <OpenCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
-              </div>
+            <div data-reveal data-reveal-delay={80} style={{ maxWidth: 960, margin: '0 auto' }}>
+              <FeaturedBreakout post={featured} />
+            </div>
 
-              {locked.length > 0 && (
-                <div style={{ position: 'relative', marginTop: 16 }}>
-                  <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, filter: 'blur(9px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.85 }}>
-                    {locked.map((p, i) => <LockedCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
-                  </div>
-
-                  {/* Single lock overlay — the conversion gate */}
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: 'linear-gradient(to bottom, rgba(231,227,217,0.15), rgba(231,227,217,0.55))', padding: 24 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--ink-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 10V8a6 6 0 0 1 12 0v2" stroke="#E7E3D9" strokeWidth="2" strokeLinecap="round" />
-                        <rect x="4.5" y="10" width="15" height="11" rx="2.5" fill="#2E7357" />
-                        <circle cx="12" cy="15" r="1.6" fill="#1D1B17" />
-                        <path d="M12 16.4v2.2" stroke="#1D1B17" strokeWidth="1.6" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                    <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'clamp(16px,2vw,19px)', color: 'var(--ink)', maxWidth: 440, lineHeight: 1.45, marginBottom: 22, textWrap: 'balance' }}>
-                      See every breakout this week — plus the last 30 days and the all-time leaderboard.
-                    </p>
-                    <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '15px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-                  </div>
-                </div>
-              )}
+            {/* Existing CTA — copy unchanged */}
+            <div data-reveal data-reveal-delay={140} style={{ textAlign: 'center', marginTop: 48 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'clamp(16px,2vw,19px)', color: 'var(--surface)', maxWidth: 460, margin: '0 auto 22px', lineHeight: 1.45, textWrap: 'balance' }}>
+                See every breakout this week — plus the last 30 days and the all-time leaderboard.
+              </p>
+              <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--ink-deep)', background: 'var(--surface)', padding: '15px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
             </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
 
       {/* ===== HOW IT WORKS ===== */}

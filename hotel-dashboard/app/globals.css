@@ -107,14 +107,6 @@ body {
   a:hover .cr-cta-arrow { transform: translateX(4px); }
 }
 
-/* Hero card stack: each card floats independently (staggered duration/delay
-   passed inline per FanCard); the broader reduced-motion rule below already
-   disables all animation, so no extra guard is needed here. */
-@keyframes cr-hero-card-float {
-  0%, 100% { transform: translateY(0) rotate(var(--cr-rot, 0deg)); }
-  50%      { transform: translateY(-8px) rotate(var(--cr-rot, 0deg)); }
-}
-
 /* Landing hovers (inline styles can't express :hover) */
 .cr-navcta:hover     { background: #2E2B24; }
 .cr-cta-primary:hover { background: #2E2B24; transform: translateY(-2px); }
@@ -193,14 +185,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .cr-hero-numeral { font-size: 88px !important; }
 }
 
-/* Landing hero: card stack drops below the copy on narrower viewports; the
-   two background "peek" cards are dropped below 560px to avoid overflow. */
+/* Landing hero: the breakout-card cluster drops below the copy on narrower
+   viewports (the grid inside it keeps its own 1-2 column layout). */
 @media (max-width: 900px) {
   .cr-landing-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-  .cr-hero-cardstack { min-height: 380px !important; }
-}
-@media (max-width: 560px) {
-  .cr-hero-cardstack [data-hero-back] { display: none; }
 }
 
 /* Breakout cards: media on top, content below */
