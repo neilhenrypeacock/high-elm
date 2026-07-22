@@ -355,7 +355,7 @@ function BestPostRow({ post: p, rank }: { post: OutlierPost; rank: number }) {
       <span style={{ width: 64, textAlign: 'right', flexShrink: 0 }}>
         <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: 'var(--signal-deep)' }}>{p.multiplier.toFixed(1)}×</span>
         <span style={{ display: 'block', fontFamily: LABEL, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
-          vs median
+          vs last 30 posts
         </span>
       </span>
     </a>

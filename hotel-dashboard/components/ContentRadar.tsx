@@ -339,7 +339,7 @@ export function BreakoutCard({
                 paddingBottom: 6,
               }}
             >
-              vs hotel<br />median
+              vs last 30<br />posts
             </span>
           </div>
 
@@ -420,7 +420,7 @@ export function BreakoutCard({
                 </div>
                 {cell.typical !== null && (
                   <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 5 }}>
-                    vs median {Math.round(cell.typical).toLocaleString('en-GB')}
+                    vs last 30 posts {Math.round(cell.typical).toLocaleString('en-GB')}
                   </div>
                 )}
               </div>
@@ -513,7 +513,7 @@ function PostRow({
           {p.multiplier.toFixed(1)}×
         </span>
         <span style={{ display: 'block', fontFamily: LABEL, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
-          vs median
+          vs last 30 posts
         </span>
       </span>
 
