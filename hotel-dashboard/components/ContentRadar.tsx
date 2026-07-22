@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { OutlierPost, TimeWindow } from '@/lib/data';
-import { TIME_WINDOWS } from '@/lib/data';
+import { TIME_WINDOWS, parseInsight } from '@/lib/data';
 import { postKey } from '@/lib/post-key';
 import { fmtFollowers, fmtPostedAt } from '@/lib/format';
 import { accreditationsFor } from '@/lib/accreditations';
@@ -210,6 +210,100 @@ export function TagChip({ type }: { type: string | null }) {
   );
 }
 
+// ─── AI insight — the parsed "what it is / why it worked / consider this" note ─
+// Reads the stored post_insight blob (parseInsight splits it). Leads with the
+// punchy "why it worked" line and tucks the rest behind an inline "Read more"
+// so the card stops sprawling. Short free-form notes render as a single line.
+const INSIGHT_CARD: React.CSSProperties = {
+  background: 'var(--surface-alt)', border: '1px solid var(--line)', borderRadius: 10, padding: '13px 15px',
+};
+const INSIGHT_BODY: React.CSSProperties = {
+  fontSize: 13, color: 'var(--body-strong)', lineHeight: 1.55, margin: 0,
+};
+const INSIGHT_CLAMP2: React.CSSProperties = {
+  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+};
+
+function InsightLabel() {
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      fontFamily: LABEL, fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase',
+      letterSpacing: '0.14em', color: 'var(--signal-deep)', marginBottom: 7,
+    }}>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" />
+      </svg>
+      AI insight
+    </div>
+  );
+}
+function InsightHead({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      fontFamily: LABEL, fontSize: 8.5, fontWeight: 600, textTransform: 'uppercase',
+      letterSpacing: '0.1em', color: 'var(--faint)', marginBottom: 2,
+    }}>{children}</div>
+  );
+}
+
+function AiInsight({ insight }: { insight: string }) {
+  const [open, setOpen] = useState(false);
+  const parsed = parseInsight(insight);
+  if (!parsed) return null;
+  const { whatItIs, whyItWorked, considerThis, freeform } = parsed;
+
+  // Short, unstructured note → a single clean line, no read-more.
+  if (freeform) {
+    return <div style={INSIGHT_CARD}><InsightLabel /><p style={INSIGHT_BODY}>{freeform}</p></div>;
+  }
+
+  // Canonical order: what it is (context) · why it worked (hero) · consider this (action).
+  const sections = [
+    { key: 'what', head: 'What it is',    text: whatItIs },
+    { key: 'why',  head: 'Why it worked', text: whyItWorked },
+    { key: 'do',   head: 'Consider this', text: considerThis },
+  ].filter((s): s is { key: string; head: string; text: string } => !!s.text);
+  if (sections.length === 0) return null;
+
+  const lead = sections.find(s => s.key === 'why') ?? sections[0];
+  const canExpand = sections.length > 1;
+
+  return (
+    <div style={INSIGHT_CARD}>
+      <InsightLabel />
+      {open ? (
+        sections.map((s, i) => (
+          <div key={s.key} style={{ marginTop: i === 0 ? 0 : 9 }}>
+            <InsightHead>{s.head}</InsightHead>
+            <p style={INSIGHT_BODY}>{s.text}</p>
+          </div>
+        ))
+      ) : (
+        <>
+          <InsightHead>{lead.head}</InsightHead>
+          <p style={{ ...INSIGHT_BODY, ...INSIGHT_CLAMP2 }}>{lead.text}</p>
+        </>
+      )}
+      {canExpand && (
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          style={{
+            marginTop: 9, padding: 0, background: 'none', border: 'none', cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontFamily: LABEL, fontSize: 11, fontWeight: 600, color: 'var(--signal-deep)',
+          }}
+        >
+          {open ? 'Show less' : 'Read more'}
+          <span aria-hidden="true" style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Top-5 breakout card ──────────────────────────────────────────────────────
 // Exported for reuse by the public landing page taster (components/Landing.tsx)
 export function BreakoutCard({
@@ -352,34 +446,9 @@ export function BreakoutCard({
             <AccreditationPins labels={accreditationsFor(p.instagram_handle)} />
           </div>
 
-          {/* Editor's note — the manual "what it is / why it worked / try this" write-up */}
-          {p.post_insight && (
-            <div
-              style={{
-                background: 'var(--surface-alt)',
-                border: '1px solid var(--line)',
-                borderRadius: 10,
-                padding: '13px 15px',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: LABEL,
-                  fontSize: 9.5,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.14em',
-                  color: 'var(--signal-deep)',
-                  marginBottom: 6,
-                }}
-              >
-                Editor&rsquo;s note
-              </div>
-              <p style={{ fontSize: 13, color: 'var(--body-strong)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-line' }}>
-                {p.post_insight}
-              </p>
-            </div>
-          )}
+          {/* AI insight — parsed "what it is / why it worked / consider this",
+              leading with why-it-worked, the rest behind an inline read-more */}
+          {p.post_insight && <AiInsight insight={p.post_insight} />}
 
           {/* Likes / Comments pair */}
           <div
