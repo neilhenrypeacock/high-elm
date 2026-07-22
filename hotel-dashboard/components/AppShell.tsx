@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import MarkSvg from './MarkSvg';
 import AppFooter from './AppFooter';
 import AdminPill from './AdminPill';
-import PageInfoModal, { resolveInfoKey, type InfoKey } from './PageInfo';
 
 // Gated-area shell: fixed left sidebar on desktop, off-canvas drawer on mobile.
 // Wraps existing gated pages (dashboard, saved, watchlist, settings, profile)
@@ -37,13 +36,34 @@ interface AppShellProps {
 type IconProps = { active: boolean };
 const stroke = (active: boolean) => (active ? 'var(--signal-deep)' : 'var(--body-mid)');
 
-function DashboardIcon({ active }: IconProps) {
+// ── RADAR section icons (shown in the flat nav + the collapsed icon rail) ──────
+function ThisWeekIcon({ active }: IconProps) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
-      <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" stroke={stroke(active)} strokeWidth="1.7" />
-      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" stroke={stroke(active)} strokeWidth="1.7" />
-      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" stroke={stroke(active)} strokeWidth="1.7" />
-      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" stroke={stroke(active)} strokeWidth="1.7" />
+      <rect x="3.5" y="5" width="17" height="15" rx="2" stroke={stroke(active)} strokeWidth="1.7" />
+      <path d="M3.5 9.5h17" stroke={stroke(active)} strokeWidth="1.7" />
+      <path d="M8 3.5v3M16 3.5v3" stroke={stroke(active)} strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+function TopPostsIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+      <path d="M12 3.2l2.5 5.2 5.7.6-4.3 3.9 1.2 5.6L12 21.2 6.9 18.5l1.2-5.6L3.8 9l5.7-.6z" stroke={stroke(active)} strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function WhatsWorkingIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+      <path d="M5 20v-5.5M12 20V6M19 20v-9" stroke={stroke(active)} strokeWidth="1.9" strokeLinecap="round" />
+    </svg>
+  );
+}
+function LeaderboardIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+      <path d="M4 6.5h13M4 12h9M4 17.5h5" stroke={stroke(active)} strokeWidth="1.9" strokeLinecap="round" />
     </svg>
   );
 }
@@ -89,14 +109,17 @@ function FeatureIcon() {
   );
 }
 
-// In-page section anchors on the dashboard (folded in from the old floating nav).
-// The ids live in components/Dashboard.tsx.
-const DASHBOARD_SECTIONS = [
-  { href: '#overview', label: 'This week' },
-  { href: '#breakouts', label: 'Top posts' },
-  { href: '#working', label: "What's working" },
-  { href: '#leaderboard', label: 'Leaderboard' },
+// The RADAR group. These select a dashboard view via the URL hash (the ids live
+// in components/Dashboard.tsx, which mounts one section at a time). They link to
+// /dashboard#<id> so they work from any gated route, not just the dashboard.
+const RADAR_SECTIONS: { id: string; label: string; Icon: (p: IconProps) => React.ReactNode }[] = [
+  { id: 'overview', label: 'This week', Icon: ThisWeekIcon },
+  { id: 'breakouts', label: 'Top posts', Icon: TopPostsIcon },
+  { id: 'working', label: "What's working", Icon: WhatsWorkingIcon },
+  { id: 'leaderboard', label: 'Leaderboard', Icon: LeaderboardIcon },
 ];
+// A dashboard hash that isn't one of the three inner sections resolves to overview.
+const INNER_SECTIONS = ['breakouts', 'working', 'leaderboard'];
 
 const FEATURE_MAILTO =
   'mailto:hello@highelm.studio?subject=Content%20Radar%20%E2%80%94%20feature%20request';
@@ -121,6 +144,31 @@ function BrandMark() {
   );
 }
 
+// Inert group label (RADAR / YOURS). Not a link, not a button — a plain,
+// aria-hidden div: no hover, no highlight, out of the tab order. Muted uppercase
+// label matching the design system's eyebrow treatment. (The brief calls for
+// "JetBrains Mono", but no mono token exists in the system — this is the actual
+// small-caps label idiom used throughout.) On the collapsed rail it hides via CSS.
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="cr-navsection"
+      aria-hidden="true"
+      style={{
+        fontFamily: "var(--font-label), 'Hanken Grotesk', sans-serif",
+        fontSize: 10,
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.18em',
+        color: 'var(--muted)',
+        padding: '12px 12px 5px',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '·';
@@ -133,23 +181,17 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
   const [open, setOpen] = useState(false); // mobile drawer
   const [collapsed, setCollapsed] = useState(false); // desktop rail
   const [ready, setReady] = useState(false); // gates the width transition until after first paint
-  const [infoOpen, setInfoOpen] = useState(false); // "about this view" modal
-  const [infoView, setInfoView] = useState<InfoKey | null>(null); // explicit view for the per-item "i" buttons
   const [hash, setHash] = useState(''); // tracks the active dashboard section
   const close = () => setOpen(false);
-  const openInfo = (view: InfoKey | null) => { setInfoView(view); setInfoOpen(true); close(); };
-  const closeInfo = () => { setInfoOpen(false); setInfoView(null); };
 
-  // Track the URL hash so the "i" explainer follows the active dashboard section
-  // (the section links are plain #hash anchors, so hashchange fires on click).
+  // Track the URL hash so the RADAR group highlights the active dashboard section
+  // (the section links are #hash anchors, so hashchange fires on click).
   useEffect(() => {
     const sync = () => setHash(window.location.hash);
     sync();
     window.addEventListener('hashchange', sync);
     return () => window.removeEventListener('hashchange', sync);
   }, []);
-
-  const infoKey = resolveInfoKey(pathname, hash);
 
   // Restore the persisted rail choice, then enable the width transition one frame
   // later so the restored state paints instantly (no collapse animation on load).
@@ -176,6 +218,10 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
   const onDashboard = isActive('/dashboard');
+  // The dashboard section in view (only meaningful on /dashboard). Unknown hashes
+  // fall back to overview — matching Dashboard.tsx's own readHash().
+  const rawHash = hash.replace(/^#/, '');
+  const currentSection = INNER_SECTIONS.includes(rawHash) ? rawHash : 'overview';
 
   const navItem = (href: string, label: string, Icon: (p: IconProps) => React.ReactNode) => {
     const active = isActive(href);
@@ -206,6 +252,39 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
     );
   };
 
+  // RADAR section link — a #hash anchor into the dashboard, styled identically to
+  // navItem. A plain <a href="/dashboard#id"> (not next/link) so it fires the
+  // native hashchange the dashboard listens for when already on /dashboard, and
+  // navigates in from any other route. Active only on the dashboard.
+  const sectionLink = (id: string, label: string, Icon: (p: IconProps) => React.ReactNode) => {
+    const active = onDashboard && currentSection === id;
+    return (
+      <a
+        key={id}
+        href={`/dashboard#${id}`}
+        onClick={close}
+        title={collapsed ? label : undefined}
+        className="cr-shell-navitem"
+        data-active={active}
+        aria-current={active ? 'true' : undefined}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 11,
+          padding: '10px 12px',
+          borderRadius: 10,
+          textDecoration: 'none',
+          fontSize: 14,
+          fontWeight: active ? 600 : 500,
+          color: active ? 'var(--ink)' : 'var(--body-soft)',
+        }}
+      >
+        <Icon active={active} />
+        <span className="cr-navlabel">{label}</span>
+      </a>
+    );
+  };
+
   const sidebar = (
     <aside className="cr-shell-aside" aria-label="Main navigation">
       <div style={{ padding: '22px 18px 18px' }}>
@@ -215,85 +294,19 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
       </div>
 
       <nav style={{ padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* Page explanations now live inline via an "i" next to each page's title
-            (PageInfoButton on the account pages; per-view "i" buttons in the
-            dashboard sub-nav below) — there is no "About this page" menu item. */}
-        {navItem('/dashboard', 'Dashboard', DashboardIcon)}
+        {/* One flat level, two labelled groups. Section labels are inert (not
+            links, not focusable); on the collapsed rail they hide and a hairline
+            .cr-rail-divider separates the two icon clusters instead. */}
+        <SectionLabel>Radar</SectionLabel>
+        {RADAR_SECTIONS.map((s) => sectionLink(s.id, s.label, s.Icon))}
 
-        {/* In-page section links — only on the dashboard, only in the full state */}
-        {onDashboard && (
-          <div
-            className="cr-subnav"
-            style={{
-              margin: '1px 0 3px 23px',
-              paddingLeft: 8,
-              borderLeft: '1px solid var(--line-soft)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 1,
-            }}
-          >
-            {DASHBOARD_SECTIONS.map((s) => {
-              const secActive = `#${hash.replace(/^#/, '') || 'overview'}` === s.href;
-              const secKey = s.href.replace(/^#/, '') as InfoKey;
-              return (
-                <div key={s.href} style={{ display: 'flex', alignItems: 'center' }}>
-                  <a
-                    href={s.href}
-                    onClick={close}
-                    aria-current={secActive ? 'true' : undefined}
-                    className="cr-shell-navitem"
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      padding: '6px 12px',
-                      borderRadius: 8,
-                      fontSize: 12.5,
-                      fontWeight: secActive ? 700 : 500,
-                      color: secActive ? 'var(--signal-deep)' : 'var(--body-soft)',
-                      textDecoration: 'none',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {s.label}
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => openInfo(secKey)}
-                    className="cr-shell-navitem cr-subnav-info"
-                    title="About this view"
-                    aria-label={`About ${s.label}`}
-                    style={{
-                      flex: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 22,
-                      height: 22,
-                      borderRadius: '50%',
-                      border: 'none',
-                      background: 'transparent',
-                      color: 'var(--muted)',
-                      cursor: 'pointer',
-                      padding: 0,
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="9.2" stroke="currentColor" strokeWidth="1.7" />
-                      <circle cx="12" cy="8" r="1.05" fill="currentColor" />
-                      <path d="M12 11.2v5.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div className="cr-rail-divider" aria-hidden="true" />
 
+        <SectionLabel>Yours</SectionLabel>
         {navItem('/hotel', 'Your hotel', YourHotelIcon)}
         {navItem('/saved', 'Saved', SavedIcon)}
         {navItem('/watchlist', 'Watchlist', WatchlistIcon)}
+
         <div style={{ height: 1, background: 'var(--line-soft)', margin: '10px 6px' }} />
         {navItem('/settings', 'Settings', SettingsIcon)}
       </nav>
@@ -551,7 +564,6 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
         <AppFooter note={footerNote} />
       </div>
 
-      <PageInfoModal open={infoOpen} infoKey={infoView ?? infoKey} onClose={closeInfo} />
       {isAdmin && <AdminPill />}
     </div>
   );
