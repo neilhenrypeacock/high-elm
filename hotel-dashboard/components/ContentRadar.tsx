@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { OutlierPost, TimeWindow } from '@/lib/data';
 import { TIME_WINDOWS, parseInsight } from '@/lib/data';
 import { postKey } from '@/lib/post-key';
@@ -651,16 +651,21 @@ function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: Ti
 }
 
 // ─── Feed filters (display-only, client-side) ─────────────────────────────────
-// Each chip is an independent on/off include-toggle. A post is hidden only when
-// its category's chip is off — turning "Videos" off hides Video/Reel posts,
-// turning "Collaboration posts" off hides collabs. "Show all" turns them back on.
+// Each format is an independent on/off include-toggle. A post is hidden only when
+// its category is off — turning "Videos" off hides Video/Reel posts, turning
+// "Collaboration posts" off hides collabs. "Reset filters" restores the defaults.
 // This filters the DISPLAYED list only; it never changes breakout selection or
 // the hero's "X posts outperformed" count (those come straight from the data).
 type FeedFilters = { collab: boolean; images: boolean; videos: boolean };
-const ALL_ON: FeedFilters = { collab: true, images: true, videos: true };
-// The feed opens on non-collab posts: collabs are hidden by default (the toggle
-// still turns them back on, and "Show all" restores every category).
+// The feed opens on Images & carousels + Videos, collabs hidden. Not persisted —
+// every session starts here (the product leads with this week's signal, not an
+// archive), so a reload always returns to these defaults.
 const DEFAULT_FILTERS: FeedFilters = { collab: false, images: true, videos: true };
+
+// The collaboration caveat — an honesty note about a real data limitation. Shown
+// verbatim behind the ⓘ next to "Collaboration posts" in the Format dropdown.
+const COLLAB_CAVEAT =
+  'Collaboration posts are true Instagram Collabs — posts co-authored by two accounts (the “X and Y” byline), including partners outside our tracked hotels. Posts that only mention or tag a partner in the caption aren’t counted.';
 
 // Feed shape: the top BIG_CARDS breakouts render as big cards; everything below
 // is a ranked list of compact rows, revealed SMALL_STEP at a time via "Show more".
@@ -677,117 +682,154 @@ function passesFilters(p: OutlierPost, f: FeedFilters): boolean {
   return true;
 }
 
-function FilterChip({
-  label,
-  active,
-  onClick,
-  title,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  title?: string;
-}) {
+// ─── ⓘ tooltip — hover on desktop, tap on touch. The simplest possible one, no
+// dependency: a button that reveals an absolutely-positioned note. ────────────
+function InfoTip({ text, label }: { text: string; label: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      title={title}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 7,
-        border: `1px solid ${active ? 'var(--signal-deep)' : 'var(--line)'}`,
-        background: active ? 'var(--top3-tint)' : 'var(--surface)',
-        color: active ? 'var(--signal-deep)' : 'var(--muted)',
-        borderRadius: 999,
-        padding: '7px 14px',
-        fontSize: 12.5,
-        fontWeight: 500,
-        fontFamily: 'inherit',
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-        transition: 'background 0.12s, color 0.12s, border-color 0.12s',
-      }}
+    <span
+      style={{ position: 'relative', display: 'inline-flex' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
-        {active ? (
-          <path d="M20 6.5 9.4 17 4 11.7" stroke="var(--signal-deep)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        ) : (
-          <circle cx="12" cy="12" r="8.2" stroke="var(--faint)" strokeWidth="1.7" />
-        )}
-      </svg>
-      {label}
-    </button>
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        // Inside a <label>: preventDefault stops the click toggling the checkbox;
+        // stopPropagation keeps the dropdown's outside-click handler from firing.
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(o => !o); }}
+        onBlur={() => setOpen(false)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 16, height: 16, flex: 'none', padding: 0, borderRadius: '50%',
+          border: '1px solid var(--line-accent)', background: 'transparent',
+          color: 'var(--muted)', cursor: 'pointer',
+        }}
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="7.4" r="1.3" fill="currentColor" />
+          <path d="M12 11v6.5" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" />
+        </svg>
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          style={{
+            position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 40,
+            width: 262, padding: '10px 12px', borderRadius: 10,
+            background: 'var(--surface)', border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-nav)', color: 'var(--body-strong)',
+            fontSize: 11.5, lineHeight: 1.5, fontWeight: 400,
+            textTransform: 'none', letterSpacing: 'normal', whiteSpace: 'normal',
+          }}
+        >
+          {text}
+        </span>
+      )}
+    </span>
   );
 }
 
-function FeedFilterBar({
+const FORMAT_OPTIONS: { key: keyof FeedFilters; label: string; caveat?: string }[] = [
+  { key: 'images', label: 'Images & carousels' },
+  { key: 'videos', label: 'Videos' },
+  { key: 'collab', label: 'Collaboration posts', caveat: COLLAB_CAVEAT },
+];
+
+// Format refinement — a quieter dropdown (lighter border + muted text) to the
+// right of the time window, which stays the dominant control. Shows "· N of 3"
+// whenever the selection is away from default, so active filtering is visible
+// without opening it.
+function FormatDropdown({
   filters,
   onToggle,
-  onShowAll,
-  allOn,
-  shown,
-  total,
 }: {
   filters: FeedFilters;
   onToggle: (k: keyof FeedFilters) => void;
-  onShowAll: () => void;
-  allOn: boolean;
-  shown: number;
-  total: number;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const onCount = (filters.images ? 1 : 0) + (filters.videos ? 1 : 0) + (filters.collab ? 1 : 0);
+  const atDefault =
+    filters.images === DEFAULT_FILTERS.images &&
+    filters.videos === DEFAULT_FILTERS.videos &&
+    filters.collab === DEFAULT_FILTERS.collab;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span
-          style={{
-            fontFamily: LABEL,
-            fontSize: 10,
-            textTransform: 'uppercase',
-            letterSpacing: '0.14em',
-            color: 'var(--muted)',
-            marginRight: 2,
-          }}
-        >
-          Filter
-        </span>
-        <FilterChip
-          label="Collaboration posts"
-          active={filters.collab}
-          onClick={() => onToggle('collab')}
-          title="Flagged only for true Instagram Collabs: posts co-authored by two accounts (the 'X and Y' byline). Caption 'collaboration with' posts aren't counted."
-        />
-        <FilterChip label="Images & carousels" active={filters.images} onClick={() => onToggle('images')} />
-        <FilterChip label="Videos" active={filters.videos} onClick={() => onToggle('videos')} />
-        <button
-          type="button"
-          onClick={onShowAll}
-          disabled={allOn}
-          className="cr-link"
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            fontFamily: 'inherit',
-            color: allOn ? 'var(--faint)' : 'var(--signal-deep)',
-            background: 'transparent',
-            border: 'none',
-            cursor: allOn ? 'default' : 'pointer',
-            padding: '4px 6px',
-          }}
-        >
-          Show all
-        </button>
-        {!allOn && (
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-            Showing {shown} of {total}
-          </span>
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="true"
+        aria-expanded={open}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          border: '1px solid var(--line)', background: 'var(--surface)',
+          color: 'var(--muted)', borderRadius: 10, padding: '8px 13px',
+          fontSize: 12.5, fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <span>Format</span>
+        {!atDefault && (
+          <span style={{ color: 'var(--signal-deep)', fontWeight: 600 }}>· {onCount} of 3</span>
         )}
-      </div>
-      <span style={{ fontSize: 11, color: 'var(--faint)', lineHeight: 1.5 }}>
-        Collaboration posts are true Instagram Collabs — posts co-authored by two accounts (the “X and Y” byline), including partners outside our tracked hotels. Posts that only mention or tag a partner in the caption aren’t counted.
-      </span>
+        <svg
+          width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
+        >
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="group"
+          aria-label="Filter by format"
+          style={{
+            position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 30,
+            width: 236, padding: 6, borderRadius: 12,
+            background: 'var(--surface)', border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-nav)',
+          }}
+        >
+          {FORMAT_OPTIONS.map(o => (
+            <label
+              key={o.key}
+              className="cr-shell-navitem"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '9px 10px', borderRadius: 8, cursor: 'pointer',
+                fontSize: 13, color: 'var(--body-strong)',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={filters[o.key]}
+                onChange={() => onToggle(o.key)}
+                style={{ width: 15, height: 15, accentColor: 'var(--signal-deep)', cursor: 'pointer', flex: 'none' }}
+              />
+              <span style={{ flex: 1 }}>{o.label}</span>
+              {o.caveat && <InfoTip text={o.caveat} label="About collaboration posts" />}
+            </label>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -805,11 +847,15 @@ export default function ContentRadar({
   const [smallShown, setSmallShown] = useState(0);
   const [win, setWin] = useState<TimeWindow>('7d');
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
-  const allOn = filters.collab && filters.images && filters.videos;
+  const allFormatsOn = filters.collab && filters.images && filters.videos;
+  const atDefaultFilters =
+    filters.images === DEFAULT_FILTERS.images &&
+    filters.videos === DEFAULT_FILTERS.videos &&
+    filters.collab === DEFAULT_FILTERS.collab;
   const savedSet = useMemo(() => new Set(savedPostKeys), [savedPostKeys]);
 
   const windowPosts = postsByWindow[win];
-  const posts = allOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
+  const posts = allFormatsOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
 
   const bigPosts = posts.slice(0, BIG_CARDS);
   const rest = posts.slice(BIG_CARDS);
@@ -820,10 +866,12 @@ export default function ContentRadar({
     setFilters(f => ({ ...f, [k]: !f[k] }));
     setSmallShown(0);
   };
-  const showAll = () => {
-    setFilters(ALL_ON);
+  const resetFilters = () => {
+    setFilters(DEFAULT_FILTERS);
     setSmallShown(0);
   };
+
+  const windowPhrase = (TIME_WINDOWS.find(w => w.key === win)?.label ?? '').toLowerCase();
 
   const emptyMsg = win === '7d'
     ? 'No posts broke meaningfully past their hotel’s own median this week.'
@@ -831,24 +879,39 @@ export default function ContentRadar({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      {/* Controls: time-window toggle + feed filters */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      {/* Controls — one row: dominant time window (left) + quieter Format (right),
+          with a single quiet status line beneath. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <WindowToggle value={win} onChange={w => { setWin(w); setSmallShown(0); }} />
-          {win === 'all' && (
+          <FormatDropdown filters={filters} onToggle={toggle} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {windowPosts.length > 0 && (
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-              Top {windowPosts.length} best-performing posts on record
+              Showing {posts.length} of {windowPosts.length} breakout posts · {windowPhrase}
             </span>
           )}
+          {!atDefaultFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="cr-link"
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                color: 'var(--signal-deep)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              Reset filters
+            </button>
+          )}
         </div>
-        <FeedFilterBar
-          filters={filters}
-          onToggle={toggle}
-          onShowAll={showAll}
-          allOn={allOn}
-          shown={posts.length}
-          total={windowPosts.length}
-        />
       </div>
 
       {windowPosts.length === 0 ? (
@@ -880,11 +943,11 @@ export default function ContentRadar({
           No posts match these filters.{' '}
           <button
             type="button"
-            onClick={showAll}
+            onClick={resetFilters}
             className="cr-link"
             style={{ fontSize: 14, fontWeight: 500, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'transparent', border: 'none', cursor: 'pointer' }}
           >
-            Show all
+            Reset filters
           </button>
         </div>
       ) : (

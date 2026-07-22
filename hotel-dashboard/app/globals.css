@@ -271,6 +271,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    swaps for an icon-only button (the card would overflow the 76px rail). */
 .cr-beta-rail { display: none; }
 
+/* Group divider shown ONLY on the collapsed rail, where the RADAR / YOURS text
+   labels are hidden — it keeps the two icon clusters visually separated. */
+.cr-rail-divider { display: none; }
+
 /* Desktop rail (collapsed) — only ≥861px; on mobile the aside is a full drawer,
    so the collapse never shrinks it. The transition is gated on --ready so the
    restored choice paints instantly on load (no collapse animation on refresh). */
@@ -282,12 +286,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .cr-shell--collapsed .cr-collapse-chevron { transform: rotate(180deg); }
   .cr-shell--collapsed .cr-brand-word,
   .cr-shell--collapsed .cr-navlabel,
+  .cr-shell--collapsed .cr-navsection,
   .cr-shell--collapsed .cr-member-text { display: none; }
-  /* .cr-subnav and .cr-beta-card carry inline `display`, which beats a plain
-     stylesheet rule — the collapse hide must be !important or they crowd the rail. */
-  .cr-shell--collapsed .cr-subnav,
+  /* .cr-beta-card carries an inline `display`, which beats a plain stylesheet
+     rule — the collapse hide must be !important or it crowds the rail. */
   .cr-shell--collapsed .cr-beta-card { display: none !important; }
   .cr-shell--collapsed .cr-beta-rail { display: flex; }
+  /* Swap the hidden RADAR/YOURS labels for a hairline divider between the groups. */
+  .cr-shell--collapsed .cr-rail-divider {
+    display: block;
+    height: 1px;
+    background: var(--line-soft);
+    margin: 9px 14px;
+  }
 }
 
 @media (max-width: 860px) {

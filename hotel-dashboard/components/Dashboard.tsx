@@ -6,9 +6,25 @@ import { fmtFollowers } from '@/lib/format';
 import ContentRadar from './ContentRadar';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
+import PageInfoButton from './PageInfoButton';
+import type { InfoKey } from './PageInfo';
 
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
+
+// "About this view" affordance at the top of a dashboard section — the same ⓘ +
+// verbatim PageInfo copy that used to live behind the sidebar's per-section icons.
+// Moved here (out of the nav) so the explanation sits next to the thing it explains.
+function SectionInfo({ infoKey }: { infoKey: InfoKey }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22 }}>
+      <PageInfoButton infoKey={infoKey} />
+      <span style={{ fontFamily: LABEL, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--muted)' }}>
+        About this view
+      </span>
+    </div>
+  );
+}
 
 // The lists every tracked hotel is drawn from — shown on the overview so members
 // can see the sourcing is the industry's own, not ours.
@@ -548,6 +564,7 @@ export default function Dashboard({
       {/* ── Top posts — filters then posts, no heading copy ── */}
       {active === 'breakouts' && (
         <div className="cr-inner" style={sectionPad}>
+          <SectionInfo infoKey="breakouts" />
           <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} />
         </div>
       )}
@@ -562,6 +579,7 @@ export default function Dashboard({
       {/* ── Hotel leaderboard ── */}
       {active === 'leaderboard' && (
         <div className="cr-inner" style={sectionPad}>
+          <SectionInfo infoKey="leaderboard" />
           <HotelTable hotels={data.hotels} regions={regions} watchlistHandles={watchlistHandles} />
         </div>
       )}

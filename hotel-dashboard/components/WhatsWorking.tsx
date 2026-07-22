@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { WhatsWorkingData, WwScope, WwStat, WwObservation, BarItem, OutlierPost } from '@/lib/data';
 import { fmtFollowers, fmtPostedAt } from '@/lib/format';
 import { ImageWithFallback } from './ContentRadar';
+import PageInfoButton from './PageInfoButton';
 
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
@@ -381,9 +382,12 @@ export default function WhatsWorkingPanel({
           <div style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--muted)', marginBottom: 12 }}>
             Portfolio analysis
           </div>
-          <h2 style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--ink)', lineHeight: 1.15 }}>
-            What&rsquo;s working across the portfolio
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h2 style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--ink)', lineHeight: 1.15 }}>
+              What&rsquo;s working across the portfolio
+            </h2>
+            <PageInfoButton infoKey="working" />
+          </div>
           <p style={{ fontSize: 14, color: 'var(--body-soft)', lineHeight: 1.7, marginTop: 12 }}>{d.lede}</p>
         </div>
         <ScopeToggle value={scope} onChange={s => { setScope(s); setShowDetail(false); }} />
