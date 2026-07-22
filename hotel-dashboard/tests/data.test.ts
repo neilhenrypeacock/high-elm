@@ -46,6 +46,7 @@ function metrics(overrides: Partial<HotelMetrics> = {}): HotelMetrics {
     medianComments: 10,
     followers: 10_000,
     validPostCount: 20,
+    visibleLikeRatio: 1,
     recentRate30: 5,
     recentRate90: 4,
     ...overrides,
@@ -309,6 +310,24 @@ describe('computeStandout', () => {
       ...NO_META
     );
     expect(breakout_count).toBe(0);
+  });
+
+  it('excludes breakouts from hotels that hide likes on most recent posts', () => {
+    const { breakout_count } = computeStandout(
+      [post({ likes_count: 500, comments_count: 0 })], // 5× a median of 100 — a real breakout
+      { hotel_a: metrics({ medianPostEngagement: 100, visibleLikeRatio: 0.4 }) }, // but < 50% coverage
+      ...NO_META
+    );
+    expect(breakout_count).toBe(0);
+  });
+
+  it('keeps breakouts from a hotel exactly at the coverage floor', () => {
+    const { breakout_count } = computeStandout(
+      [post({ likes_count: 500, comments_count: 0 })],
+      { hotel_a: metrics({ medianPostEngagement: 100, visibleLikeRatio: 0.5 }) }, // 50% is allowed
+      ...NO_META
+    );
+    expect(breakout_count).toBe(1);
   });
 
   it('skips hotels with no baseline (zero or missing median)', () => {
