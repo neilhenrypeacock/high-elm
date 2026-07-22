@@ -285,9 +285,9 @@ describe('erFlagReasons', () => {
 // ─── computeStandout ─────────────────────────────────────────────────────────
 
 describe('computeStandout', () => {
-  it('excludes posts below the 100-engagement noise floor even at a huge multiplier', () => {
+  it('excludes posts below the engagement noise floor even at a huge multiplier', () => {
     const { posts, breakout_count } = computeStandout(
-      [post({ likes_count: 90, comments_count: 5 })], // 95 engagement, 3.2× a median of 30
+      [post({ likes_count: 480, comments_count: 0 })], // 480 engagement (< 500 floor), 16× a median of 30
       { hotel_a: metrics({ medianPostEngagement: 30 }) },
       ...NO_META
     );
@@ -297,7 +297,7 @@ describe('computeStandout', () => {
 
   it('excludes hotels whose baseline median is below the 25-engagement floor', () => {
     const { breakout_count } = computeStandout(
-      [post({ likes_count: 300, comments_count: 0 })], // 15× a median of 20 — still excluded
+      [post({ likes_count: 600, comments_count: 0 })], // 30× a median of 20 — still excluded (median < 25)
       { hotel_a: metrics({ medianPostEngagement: 20 }) },
       ...NO_META
     );
@@ -306,8 +306,8 @@ describe('computeStandout', () => {
 
   it('excludes posts under the 2× threshold', () => {
     const { breakout_count } = computeStandout(
-      [post({ likes_count: 150, comments_count: 0 })], // 1.5× a median of 100
-      { hotel_a: metrics({ medianPostEngagement: 100 }) },
+      [post({ likes_count: 700, comments_count: 0 })], // 1.4× a median of 500 (clears eng floor; fails 2×)
+      { hotel_a: metrics({ medianPostEngagement: 500 }) },
       ...NO_META
     );
     expect(breakout_count).toBe(0);
@@ -345,20 +345,20 @@ describe('computeStandout', () => {
 
   it('computes the multiplier and per-metric lifts', () => {
     const { posts } = computeStandout(
-      [post({ likes_count: 270, comments_count: 30 })], // 300 vs median 100 = 3×
-      { hotel_a: metrics({ medianPostEngagement: 100, medianLikes: 90, medianComments: 10 }) },
+      [post({ likes_count: 540, comments_count: 60 })], // 600 vs median 200 = 3×
+      { hotel_a: metrics({ medianPostEngagement: 200, medianLikes: 180, medianComments: 20 }) },
       ...NO_META
     );
     expect(posts).toHaveLength(1);
     expect(posts[0].multiplier).toBe(3);
-    expect(posts[0].likes_multiple).toBe(3); // 270 / 90
-    expect(posts[0].comments_multiple).toBe(3); // 30 / 10
+    expect(posts[0].likes_multiple).toBe(3); // 540 / 180
+    expect(posts[0].comments_multiple).toBe(3); // 60 / 20
   });
 
   it('reports a 0 lift (not Infinity) when the median for a metric is 0', () => {
     const { posts } = computeStandout(
-      [post({ likes_count: 300, comments_count: 50 })],
-      { hotel_a: metrics({ medianPostEngagement: 100, medianLikes: 300, medianComments: 0 }) },
+      [post({ likes_count: 600, comments_count: 100 })],
+      { hotel_a: metrics({ medianPostEngagement: 200, medianLikes: 600, medianComments: 0 }) },
       ...NO_META
     );
     expect(posts[0].comments_multiple).toBe(0);
@@ -367,21 +367,21 @@ describe('computeStandout', () => {
 
   it('counts all qualifiers but returns at most 25, sorted by multiplier desc', () => {
     const posts = Array.from({ length: 30 }, (_, i) =>
-      post({ post_id: `p${i}`, likes_count: 200 + i * 10, comments_count: 0 })
+      post({ post_id: `p${i}`, likes_count: 600 + i * 10, comments_count: 0 })
     );
     const result = computeStandout(posts, { hotel_a: metrics({ medianPostEngagement: 100 }) }, ...NO_META);
     expect(result.breakout_count).toBe(30);
     expect(result.posts).toHaveLength(25);
     const multipliers = result.posts.map(p => p.multiplier);
     expect(multipliers).toEqual([...multipliers].sort((a, b) => b - a));
-    expect(multipliers[0]).toBeCloseTo(4.9); // 490 / 100
+    expect(multipliers[0]).toBeCloseTo(8.9); // 890 / 100
   });
 
   it('counts super-breakouts at ≥10×', () => {
     const { super_breakout_count, breakout_count } = computeStandout(
       [
         post({ post_id: 'a', likes_count: 999, comments_count: 1 }), // 10×
-        post({ post_id: 'b', likes_count: 300, comments_count: 0 }), // 3×
+        post({ post_id: 'b', likes_count: 600, comments_count: 0 }), // 6×
       ],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
       ...NO_META
@@ -392,7 +392,7 @@ describe('computeStandout', () => {
 
   it('prefers the stored image URL over the live Instagram CDN link', () => {
     const { posts } = computeStandout(
-      [post({ post_id: 'p1', likes_count: 300, image_url: 'https://cdn.instagram.com/live.jpg' })],
+      [post({ post_id: 'p1', likes_count: 600, image_url: 'https://cdn.instagram.com/live.jpg' })],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
       {},
       {},
@@ -404,7 +404,7 @@ describe('computeStandout', () => {
 
   it('falls back to the handle when the hotel name is unknown', () => {
     const { posts } = computeStandout(
-      [post({ likes_count: 300 })],
+      [post({ likes_count: 600 })],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
       ...NO_META
     );
@@ -414,7 +414,7 @@ describe('computeStandout', () => {
   it('flags is_collab from Instagram co-author tags (no other signal needed)', () => {
     const { posts } = computeStandout(
       // benign caption, single grid, no AI tag — only the native co-author tag
-      [post({ likes_count: 300, caption: 'A view worth waking up for', coauthor_usernames: ['goodman_gallery'] })],
+      [post({ likes_count: 600, caption: 'A view worth waking up for', coauthor_usernames: ['goodman_gallery'] })],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
       ...NO_META
     );
@@ -423,7 +423,7 @@ describe('computeStandout', () => {
 
   it('does not flag is_collab when there is no co-author tag', () => {
     const { posts } = computeStandout(
-      [post({ likes_count: 300, caption: 'A view worth waking up for', coauthor_usernames: null })],
+      [post({ likes_count: 600, caption: 'A view worth waking up for', coauthor_usernames: null })],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
       ...NO_META
     );
@@ -433,7 +433,7 @@ describe('computeStandout', () => {
   it('does NOT flag caption "collaboration with @…" posts (co-author tag only)', () => {
     const { posts } = computeStandout(
       // explicit collab language, but no native co-author byline → stays in the feed
-      [post({ likes_count: 300, caption: 'In collaboration with @luxurybrand', coauthor_usernames: null })],
+      [post({ likes_count: 600, caption: 'In collaboration with @luxurybrand', coauthor_usernames: null })],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
       ...NO_META
     );
@@ -502,27 +502,27 @@ describe('orderLandingFeatured', () => {
     computeStandout(raw.map((o) => post(o)), m, ...meta).posts;
 
   it('returns the auto list unchanged (capped) when nothing is pinned', () => {
-    const auto = built([{ post_id: 'p1', likes_count: 400 }, { post_id: 'p2', likes_count: 300 }], NO_META);
-    const pool = built([{ post_id: 'p1', likes_count: 400 }], NO_META);
+    const auto = built([{ post_id: 'p1', likes_count: 800 }, { post_id: 'p2', likes_count: 600 }], NO_META);
+    const pool = built([{ post_id: 'p1', likes_count: 800 }], NO_META);
     expect(orderLandingFeatured(auto, pool, 25).map((p) => p.post_id)).toEqual(['p1', 'p2']);
   });
 
   it('lifts pinned posts to the front (multiplier order), then fills with auto, deduped', () => {
-    const auto = built([{ post_id: 'p1', likes_count: 400 }, { post_id: 'p2', likes_count: 300 }], NO_META);
+    const auto = built([{ post_id: 'p1', likes_count: 800 }, { post_id: 'p2', likes_count: 600 }], NO_META);
     // All-time pool has an older post p9 that is NOT in the auto list, plus p1 — both pinned.
     const pool = built(
-      [{ post_id: 'p1', likes_count: 400 }, { post_id: 'p2', likes_count: 300 }, { post_id: 'p9', likes_count: 250 }],
+      [{ post_id: 'p1', likes_count: 800 }, { post_id: 'p2', likes_count: 600 }, { post_id: 'p9', likes_count: 500 }],
       metaWithPins(['p9', 'p1']),
     );
-    // p1 (4×) and p9 (2.5×) pinned → front in multiplier order; p2 fills; p1 not duplicated.
+    // p1 (8.1×) and p9 (5.1×) pinned → front in multiplier order; p2 fills; p1 not duplicated.
     expect(orderLandingFeatured(auto, pool, 25).map((p) => p.post_id)).toEqual(['p1', 'p9', 'p2']);
   });
 
   it('keeps one row per pinned post_id (a co-post is deduped, best grid first)', () => {
     const pool = built(
       [
-        { post_id: 'dup', instagram_handle: 'a', likes_count: 400 },
-        { post_id: 'dup', instagram_handle: 'b', likes_count: 300 },
+        { post_id: 'dup', instagram_handle: 'a', likes_count: 800 },
+        { post_id: 'dup', instagram_handle: 'b', likes_count: 600 },
       ],
       metaWithPins(['dup']),
       { a: metrics({ medianPostEngagement: 100 }), b: metrics({ medianPostEngagement: 100 }) },
@@ -534,7 +534,7 @@ describe('orderLandingFeatured', () => {
 
   it('caps the result at the limit', () => {
     const auto = built(
-      Array.from({ length: 5 }, (_, i) => ({ post_id: `a${i}`, likes_count: 200 + i * 10 })),
+      Array.from({ length: 5 }, (_, i) => ({ post_id: `a${i}`, likes_count: 600 + i * 10 })),
       NO_META,
     );
     expect(orderLandingFeatured(auto, [], 3)).toHaveLength(3);

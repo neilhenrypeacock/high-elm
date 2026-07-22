@@ -30,8 +30,13 @@ const LANDING_SLOTS           = 5;
 // hourly); the remaining slots rotate through the rest of the pinned set.
 // Handles, not post_ids, so the rule survives re-pinning a different post.
 const LANDING_MARQUEE_HANDLES = ['thesavoylondon', 'estellemanor', 'theconnaught'];
-// Absolute engagement floor — posts below this threshold are treated as noise.
-const MIN_ENGAGEMENT          = 100;
+// Absolute engagement floor — a post needs at least this many likes+comments to
+// count as a breakout (and so to carry an AI insight). Raised 100 → 500 (Neil,
+// 2026-07-22) so only genuinely well-performing posts surface: "2.1× a median of
+// 88" (≈189 engagement) reads as thin on a sales asset. At 500 this keeps ~77% of
+// all-time breakouts and 21 of 22 this week (per the engagement analysis, so the
+// weekly count barely moves). Tunable — raise for a harder "best only" cut.
+const MIN_ENGAGEMENT          = 500;
 // Baseline floor — hotels whose median engagement is below this are excluded
 // from breakout detection: "94× a median of 3" is technically true but reads
 // as noise on a sales asset. Tunable.

@@ -54,7 +54,7 @@ const VIDEO_FRAMES   = 8;                    // frames sampled across a video/re
 const MAX_STANDOUT            = 10;   // top 10 non-collab breakouts get analysis each run
 const OUTLIER_THRESHOLD       = 2;    // post must beat its hotel's median by ≥2×
 const BASELINE_POSTS          = 30;   // baseline = median of the hotel's last 30 valid posts
-const MIN_ENGAGEMENT          = 100;  // absolute floor; posts below this are noise
+const MIN_ENGAGEMENT          = 500;  // absolute floor; below this is noise (kept in sync with hotel-dashboard/lib/data.ts)
 const MIN_BASELINE_ENGAGEMENT = 25;   // hotels with a median below this are excluded
 const OUTLIER_WINDOW_DAYS     = 7;    // the "this week" window for breakouts
 
