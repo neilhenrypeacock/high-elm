@@ -255,6 +255,49 @@ export function erFlagReasons(
   return { hard, soft };
 }
 
+/**
+ * Parse a stored `post_insight` blob into its three parts. The generator
+ * (instagram-pipeline/generate-insight.js) writes them as one string —
+ * "What it is: … / Why it worked: … / Consider this: …" (older rows say
+ * "Try this"). We split it back apart so the card can lead with "why it
+ * worked" and tuck the rest behind a read-more.
+ *
+ * Robust to: any subset of the three labels, either order, "Try this" or
+ * "Consider this", and text with no labels at all (a short free-form note),
+ * which comes back as `freeform` for plain single-line display.
+ * Pure + exported so the parsing is unit-tested without a render.
+ */
+export type ParsedInsight = {
+  whatItIs: string | null;
+  whyItWorked: string | null;
+  considerThis: string | null;
+  /** Set only when the text carries none of the three labels — show as-is. */
+  freeform: string | null;
+};
+
+export function parseInsight(raw: string | null): ParsedInsight | null {
+  const text = raw?.trim();
+  if (!text) return null;
+  const markers: { key: 'whatItIs' | 'whyItWorked' | 'considerThis'; re: RegExp }[] = [
+    { key: 'whatItIs',     re: /what\s+it\s+is\s*:/i },
+    { key: 'whyItWorked',  re: /why\s+it\s+worked\s*:/i },
+    { key: 'considerThis', re: /(?:consider\s+this|try\s+this)\s*:/i },
+  ];
+  const hits = markers
+    .map(m => { const hit = m.re.exec(text); return hit ? { key: m.key, start: hit.index, end: hit.index + hit[0].length } : null; })
+    .filter((h): h is { key: 'whatItIs' | 'whyItWorked' | 'considerThis'; start: number; end: number } => h !== null)
+    .sort((a, b) => a.start - b.start);
+
+  if (hits.length === 0) return { whatItIs: null, whyItWorked: null, considerThis: null, freeform: text };
+
+  const out: ParsedInsight = { whatItIs: null, whyItWorked: null, considerThis: null, freeform: null };
+  hits.forEach((h, i) => {
+    const stop = i + 1 < hits.length ? hits[i + 1].start : text.length;
+    out[h.key] = text.slice(h.end, stop).trim() || null;
+  });
+  return out;
+}
+
 export function captionBucket(caption: string | null): string {
   const len = (caption ?? '').length;
   if (len < CAPTION_SHORT_MAX)  return 'Short';

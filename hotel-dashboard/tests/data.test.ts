@@ -9,6 +9,7 @@ import {
   computeSnapshot,
   computeWhatsWorking,
   computeStandout,
+  parseInsight,
   orderLandingFeatured,
   rotateLandingFeatured,
   hasVisibleLikes,
@@ -437,6 +438,49 @@ describe('computeStandout', () => {
       ...NO_META
     );
     expect(posts[0].is_collab).toBe(false);
+  });
+});
+
+// ─── parseInsight (AI insight card) ──────────────────────────────────────────
+
+describe('parseInsight', () => {
+  it('returns null for empty / whitespace / null input', () => {
+    expect(parseInsight(null)).toBeNull();
+    expect(parseInsight('')).toBeNull();
+    expect(parseInsight('   \n ')).toBeNull();
+  });
+
+  it('splits the standard three-part note', () => {
+    const raw = 'What it is: A teaser video.\nWhy it worked: Live, high-stakes energy.\nConsider this: Build short teasers.';
+    expect(parseInsight(raw)).toEqual({
+      whatItIs: 'A teaser video.',
+      whyItWorked: 'Live, high-stakes energy.',
+      considerThis: 'Build short teasers.',
+      freeform: null,
+    });
+  });
+
+  it('treats the legacy "Try this" label as considerThis', () => {
+    const raw = 'What it is: X.\nWhy it worked: Y.\nTry this: Z.';
+    expect(parseInsight(raw)?.considerThis).toBe('Z.');
+  });
+
+  it('handles a subset of labels (only why it worked)', () => {
+    const p = parseInsight('Why it worked: It leaned on nostalgia.');
+    expect(p).toEqual({ whatItIs: null, whyItWorked: 'It leaned on nostalgia.', considerThis: null, freeform: null });
+  });
+
+  it('returns short unlabelled text as freeform', () => {
+    const p = parseInsight('Macao Orchestra flash mob summer concert event');
+    expect(p).toEqual({ whatItIs: null, whyItWorked: null, considerThis: null, freeform: 'Macao Orchestra flash mob summer concert event' });
+  });
+
+  it('is order-independent and ignores label casing', () => {
+    const raw = 'why it worked: B.\nWHAT IT IS: A.';
+    const p = parseInsight(raw);
+    expect(p?.whatItIs).toBe('A.');
+    expect(p?.whyItWorked).toBe('B.');
+    expect(p?.freeform).toBeNull();
   });
 });
 

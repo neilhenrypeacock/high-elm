@@ -444,7 +444,9 @@ Return:
     const note = [
       `What it is: ${r.what_it_is}`,
       `Why it worked: ${r.why_it_worked}`,
-      `Try this: ${r.try_this}`,
+      // Dashboard renders this as "Consider this" (the AI insight card); keep the
+      // label in sync so freshly-generated notes need no re-parsing rename.
+      `Consider this: ${r.try_this}`,
     ].join('\n');
     return { insight: note, tag: r.tag ?? null, theme: r.theme ?? null };
   } catch (e) {
