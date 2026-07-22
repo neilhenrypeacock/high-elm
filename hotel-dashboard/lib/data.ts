@@ -55,6 +55,15 @@ const ER_ANOMALY_THRESHOLD    = 10;  // ER above 10% is implausibly high — fla
 // exactly this many per tracked hotel, so baseline and scrape stay in step.
 const BASELINE_POSTS          = RECENT_POSTS;
 const BASELINE_MIN_POSTS      = 12;  // fewer posts in the baseline → low-confidence warning
+// Visible-like coverage gate (Neil, 2026-07-22). Instagram lets accounts hide
+// like counts; a hotel that hides likes on most of its recent posts can't be
+// measured reliably — its median and ER come from a thin, self-selected sample.
+// Below this ratio (visible-like posts ÷ its last RECENT_POSTS) the hotel is
+// SILENTLY dropped from breakout selection AND its leaderboard ER/rate is nulled
+// — no viewer-facing caveat (this replaces surfacing a "6 of 30 posts" warning).
+// 0.5 = "mostly hides likes" (majority hidden). Tunable; at 0.5 it removes ~15 of
+// the 200 tracked hotels (per the coverage analysis, 2026-07-22).
+const MIN_VISIBLE_LIKE_RATIO  = 0.5;
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const HOUR_BLOCKS: [string, number, number][] = [
@@ -304,6 +313,9 @@ export type HotelMetrics = {
   medianComments: number | null;
   followers: number | null;
   validPostCount: number;
+  /** Share of the hotel's last RECENT_POSTS that have a visible like count (0–1).
+   *  Below MIN_VISIBLE_LIKE_RATIO the hotel is gated out of breakouts + leaderboard. */
+  visibleLikeRatio: number;
   /** Leaderboard rate: total engagement over the last 30 / 90 days ÷ followers × 100 */
   recentRate30: number | null;
   recentRate90: number | null;
@@ -532,6 +544,9 @@ export function computeStandout(
     const postEngagement = p.likes_count + (p.comments_count ?? 0);
     if (postEngagement < MIN_ENGAGEMENT) continue;
     if (!m?.medianPostEngagement || m.medianPostEngagement < MIN_BASELINE_ENGAGEMENT) continue;
+    // Coverage gate: a hotel that hides likes on most recent posts has a median
+    // built from too thin a sample to trust — drop its breakouts silently.
+    if (m.visibleLikeRatio < MIN_VISIBLE_LIKE_RATIO) continue;
     const multiplier = postEngagement / m.medianPostEngagement;
     if (multiplier < OUTLIER_THRESHOLD) continue;
     const medL = m.medianLikes    ?? 1;
@@ -778,6 +793,15 @@ export async function getPortfolioData(): Promise<DashboardData> {
     const followers  = latestFollowers[handle] ?? null;
     const validPosts = posts.filter(hasVisibleLikes);
 
+    // Visible-like coverage over the hotel's last RECENT_POSTS (posts is
+    // newest-first). The share of recent posts we can actually read — low
+    // coverage means the median/ER below are drawn from a thin sample, so the
+    // hotel is gated out of breakouts + leaderboard (MIN_VISIBLE_LIKE_RATIO).
+    const recentWindow = posts.slice(0, RECENT_POSTS);
+    const visibleLikeRatio = recentWindow.length > 0
+      ? recentWindow.filter(hasVisibleLikes).length / recentWindow.length
+      : 0;
+
     // Overall ER — mean over the hotel's last 30 valid posts (RECENT_POSTS, the
     // same recent window as the breakout baseline). Used for the leaderboard.
     const recentERs = followers && followers > 0
@@ -823,6 +847,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       medianComments,
       followers,
       validPostCount: validPosts.length,
+      visibleLikeRatio,
       recentRate30:  rateOverDays(30),
       recentRate90:  rateOverDays(90),
     };
@@ -851,6 +876,11 @@ export async function getPortfolioData(): Promise<DashboardData> {
     // The baseline is the last BASELINE_POSTS valid posts, so its size is
     // simply the valid-post count capped at that limit
     const { hard, soft } = erFlagReasons(vpc, rawER, Math.min(vpc, BASELINE_POSTS));
+    // Coverage gate: a hotel that hides likes on most recent posts has ER/rate
+    // built from too thin a sample — null them so it's excluded from the medians
+    // and sorts to the bottom, exactly like a dormant hotel. Deliberately sets NO
+    // er_flag_reason, so there's no ⚠ or caveat on the leaderboard (Neil's call).
+    const mostlyHidesLikes = (m?.visibleLikeRatio ?? 0) < MIN_VISIBLE_LIKE_RATIO;
 
     hotelRows.push({
       name:             h.name,
@@ -859,9 +889,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
       instagram_handle: h.instagram_handle,
       followers_count:  latestFollowers[h.instagram_handle] ?? null,
       // Only a hard flag nulls the ER (excluded from medians, sorts to the
-      // bottom). A soft baseline warning keeps the valid ER counted.
-      engagement_rate:  hard ? null : rawER,
-      recent_rate:      { d30: m?.recentRate30 ?? null, d90: m?.recentRate90 ?? null },
+      // bottom). A soft baseline warning keeps the valid ER counted. A
+      // mostly-hidden-likes hotel is nulled silently (no flag reason).
+      engagement_rate:  hard || mostlyHidesLikes ? null : rawER,
+      recent_rate:      mostlyHidesLikes
+        ? { d30: null, d90: null }
+        : { d30: m?.recentRate30 ?? null, d90: m?.recentRate90 ?? null },
       posts_per_week:   m?.ppw ?? null,
       last_posted:      m?.lastPosted ?? null,
       er_flag_reason:   hard ?? soft,
