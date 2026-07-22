@@ -23,6 +23,13 @@ const WHATS_WORKING_WINDOW_DAYS = 30;
 // Landing-page taster rule (Neil, 2026-07-03): feature the best-performing
 // posts of the last 30 days, excluding collaborations
 const LANDING_WINDOW_DAYS     = 30;
+// Landing taster slot count: 3 open cards + 2 blurred behind the lock overlay.
+const LANDING_SLOTS           = 5;
+// Curated-taster marquee (Neil, 2026-07-21): when posts are pinned, the FIRST
+// open card always shows a post from one of these best-known hotels (cycling
+// hourly); the remaining slots rotate through the rest of the pinned set.
+// Handles, not post_ids, so the rule survives re-pinning a different post.
+const LANDING_MARQUEE_HANDLES = ['thesavoylondon', 'estellemanor', 'theconnaught'];
 // Absolute engagement floor — posts below this threshold are treated as noise.
 const MIN_ENGAGEMENT          = 100;
 // Baseline floor — hotels whose median engagement is below this are excluded
@@ -599,6 +606,49 @@ export function orderLandingFeatured(
   return [...pinned, ...filler].slice(0, limit);
 }
 
+/**
+ * Hybrid marquee rotation for the landing taster (Neil, 2026-07-21).
+ *
+ * When posts are pinned, the taster's first open card ALWAYS shows a post from
+ * a marquee hotel (`marqueeHandles`), cycling through them one per tick; the
+ * remaining `slots - 1` cards rotate through the rest of the pinned set (ring
+ * advancing one per tick), so every pinned post gets homepage exposure over a
+ * day. `tick` is hours-since-epoch at render — the landing page's hourly ISR
+ * revalidate is what actually advances it. Pinned posts not shown this tick
+ * stay queued after the visible slots (harmless — the taster slices 0..5);
+ * non-pinned filler keeps its order after them. With no pinned marquee post
+ * the whole pinned set rotates plainly; with ≤1 pinned post there is nothing
+ * to rotate and the list is returned unchanged.
+ * Pure + exported so the rotation is unit-tested without a DB round-trip.
+ */
+export function rotateLandingFeatured(
+  ordered: OutlierPost[],
+  marqueeHandles: string[],
+  tick: number,
+  slots: number = LANDING_SLOTS,
+): OutlierPost[] {
+  const pinned = ordered.filter(p => p.landing_pin);
+  if (pinned.length <= 1) return ordered;
+  const rest = ordered.filter(p => !p.landing_pin);
+
+  // Slot 1 — the marquee lead, cycling per tick (multiplier order within the set).
+  const marquee = pinned.filter(p => marqueeHandles.includes(p.instagram_handle));
+  const lead = marquee.length > 0 ? marquee[tick % marquee.length] : null;
+
+  // Remaining slots — a ring over every other pinned post (marquee ones
+  // included, so the big names also appear in ordinary slots), advancing one
+  // position per tick.
+  const ring = pinned.filter(p => p !== lead);
+  const shown: OutlierPost[] = lead ? [lead] : [];
+  const ringCount = Math.min(slots - shown.length, ring.length);
+  const start = ring.length > 0 ? tick % ring.length : 0;
+  for (let i = 0; i < ringCount; i++) shown.push(ring[(start + i) % ring.length]);
+
+  const shownSet = new Set(shown);
+  const unshown = pinned.filter(p => !shownSet.has(p));
+  return [...shown, ...unshown, ...rest];
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export async function getPortfolioData(): Promise<DashboardData> {
   const supabase = getSupabase();
@@ -887,6 +937,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
       storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
     ).posts;
     landing_featured = orderLandingFeatured(autoFeatured, allBreakouts, MAX_STANDOUT_POSTS);
+    // Hybrid marquee rotation: first open card cycles the marquee hotels; the
+    // other slots rotate through the rest of the pinned set. Advances hourly
+    // via the landing page's ISR revalidate (tick = hours since epoch).
+    landing_featured = rotateLandingFeatured(
+      landing_featured, LANDING_MARQUEE_HANDLES, Math.floor(now / (60 * 60 * 1000)),
+    );
   }
 
   // ── What's Working — holistic analysis per scope (Last 30 days / All time) ─

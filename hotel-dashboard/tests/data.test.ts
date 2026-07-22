@@ -10,6 +10,7 @@ import {
   computeWhatsWorking,
   computeStandout,
   orderLandingFeatured,
+  rotateLandingFeatured,
   hasVisibleLikes,
   erFlagReasons,
   type RawPost,
@@ -474,5 +475,83 @@ describe('orderLandingFeatured', () => {
       NO_META,
     );
     expect(orderLandingFeatured(auto, [], 3)).toHaveLength(3);
+  });
+});
+
+// ─── rotateLandingFeatured (hybrid marquee rotation) ─────────────────────────
+
+describe('rotateLandingFeatured', () => {
+  const MARQUEE = ['savoy', 'estelle', 'connaught'];
+
+  // A pinned OutlierPost stub — only the fields the rotation reads.
+  const pin = (post_id: string, instagram_handle: string, landing_pin = true) =>
+    ({ post_id, instagram_handle, landing_pin }) as Parameters<typeof rotateLandingFeatured>[0][number];
+
+  // 8 pinned posts (3 marquee + 5 others), multiplier order, like production.
+  const eight = [
+    pin('raffles', 'raffleslondon.theowo'),
+    pin('carlton', 'carltoncannes'),
+    pin('connaught', 'connaught'),
+    pin('meurice', 'lemeuriceparis'),
+    pin('reschio', 'reschio'),
+    pin('savoy', 'savoy'),
+    pin('gstaad', 'gstaadpalace'),
+    pin('estelle', 'estelle'),
+  ];
+
+  it('returns the list unchanged when nothing (or only one post) is pinned', () => {
+    const unpinned = [pin('a', 'x', false), pin('b', 'y', false)];
+    expect(rotateLandingFeatured(unpinned, MARQUEE, 7)).toEqual(unpinned);
+    const one = [pin('a', 'savoy')];
+    expect(rotateLandingFeatured(one, MARQUEE, 7)).toEqual(one);
+  });
+
+  it('always leads with a marquee post, cycling per tick', () => {
+    const leads = [0, 1, 2, 3].map(t => rotateLandingFeatured(eight, MARQUEE, t)[0].instagram_handle);
+    for (const h of leads) expect(MARQUEE).toContain(h);
+    expect(new Set(leads.slice(0, 3)).size).toBe(3); // three ticks → all three marquee hotels
+    expect(leads[3]).toBe(leads[0]);                 // tick 3 wraps back around
+  });
+
+  it('rotates the remaining slots through the rest of the pinned set', () => {
+    const slotsAt = (t: number) => rotateLandingFeatured(eight, MARQUEE, t).slice(1, 5).map(p => p.post_id);
+    expect(slotsAt(0)).not.toEqual(slotsAt(1)); // ring advances each tick
+    // Over a full day every pinned post appears in the visible 5 at least once.
+    const seen = new Set<string>();
+    for (let t = 0; t < 24; t++) {
+      rotateLandingFeatured(eight, MARQUEE, t).slice(0, 5).forEach(p => seen.add(p.post_id));
+    }
+    expect(seen.size).toBe(8);
+  });
+
+  it('never duplicates a post within the visible slots', () => {
+    for (let t = 0; t < 24; t++) {
+      const visible = rotateLandingFeatured(eight, MARQUEE, t).slice(0, 5).map(p => p.post_id);
+      expect(new Set(visible).size).toBe(visible.length);
+    }
+  });
+
+  it('preserves every post: unshown pins queue after the slots, filler after them', () => {
+    const filler = [pin('f1', 'other_a', false), pin('f2', 'other_b', false)];
+    const out = rotateLandingFeatured([...eight, ...filler], MARQUEE, 5);
+    expect(out).toHaveLength(10);
+    expect(out.slice(0, 8).every(p => p.landing_pin)).toBe(true); // all pins before filler
+    expect(out.slice(8).map(p => p.post_id)).toEqual(['f1', 'f2']); // filler order kept
+  });
+
+  it('falls back to plain rotation when no pinned post is from a marquee hotel', () => {
+    const noMarquee = eight.filter(p => !MARQUEE.includes(p.instagram_handle));
+    const out = rotateLandingFeatured(noMarquee, MARQUEE, 2);
+    expect(out).toHaveLength(noMarquee.length);
+    expect(new Set(out.map(p => p.post_id)).size).toBe(noMarquee.length);
+    expect(out.slice(0, 5).map(p => p.post_id)).not.toEqual(noMarquee.slice(0, 5).map(p => p.post_id));
+  });
+
+  it('handles fewer pinned posts than slots', () => {
+    const three = [pin('savoy', 'savoy'), pin('a', 'x'), pin('b', 'y')];
+    const out = rotateLandingFeatured(three, MARQUEE, 4);
+    expect(out).toHaveLength(3);
+    expect(out[0].instagram_handle).toBe('savoy');
+    expect(new Set(out.map(p => p.post_id)).size).toBe(3);
   });
 });
