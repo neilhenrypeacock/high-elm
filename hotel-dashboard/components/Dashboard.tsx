@@ -678,7 +678,7 @@ export default function Dashboard({
       {/* ── What's working ── */}
       {active === 'working' && (
         <div className="cr-inner" style={sectionPad}>
-          <WhatsWorkingPanel data={data.whatsWorkingData} frequency={data.frequency} />
+          <WhatsWorkingPanel data={data.whatsWorkingData} />
         </div>
       )}
 

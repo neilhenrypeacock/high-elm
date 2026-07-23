@@ -134,19 +134,30 @@ components/
                           framing. `TagChip` now shows a per-format leading icon
                           (Video/Reel → play triangle, Carousel → stacked frames, Photo →
                           image glyph; Other/unknown → text only).
-  WhatsWorking.tsx      — holistic portfolio analysis, scoped Last-30-days / All-time
-                          (period toggle): header + lede → 4-cell dark stat bar with
-                          period-over-period deltas → "What we're seeing" observation
-                          cards → "Best posts of the period" rows → "Supporting signals"
-                          format/caption bars → day/time/frequency behind "Show more
-                          detail" expander (kept by Neil's decision). Each of the four
-                          findings (format/caption/day/time) leads with a plain-English
-                          headline + a data-derived sentence (formatFinding/captionFinding/
-                          dayFinding/timeFinding — no ER/hour-block jargon on show); the
-                          technical detail (median-ER definition, char buckets, UTC caveat)
-                          sits behind an inline circled-"i" InfoDot popover (hover/tap). Data is
-                          data.whatsWorkingData (per-scope); reuses ImageWithFallback
-                          (ContentRadar) for the best-post thumbnails.
+  WhatsWorking.tsx      — REBUILT 2026-07-23 to the Claude Design `whats-working.html`
+                          screen: the page is now a stack of "LEVERS" — the things a hotel
+                          can actually change — and nothing else. Header + lede → "The five
+                          levers" rule (count spelled out, adapts) + standing caveat →
+                          one card per lever → closing links back to the breakouts.
+                          GONE in the rebuild: the 4-cell dark stat bar, the "What we're
+                          seeing" observation cards, the "Best posts of the period" rows,
+                          the "Supporting signals" section, the "Show more detail" expander
+                          and the InfoDot popovers. The component is now PURELY
+                          PRESENTATIONAL — every string is built in lib/data.ts
+                          (buildLevers), so the old formatFinding/captionFinding/dayFinding/
+                          timeFinding helpers are gone from here.
+                          Each lever card: number + label + sample-size pill (green "Strong
+                          signal" ≥500 posts, else grey "Early pattern") → headline with the
+                          key clause in --signal-deep → ▲/— trend line vs the previous 30
+                          days → bars stated as a MULTIPLE of the weakest option
+                          ("1.7× more engagement per post", lowest bar = "baseline") →
+                          a note naming the baseline + sample + UTC caveat → optional CTA.
+                          Bar fill is a lerp from --signal #2E7357 to pale sage #C4D9CE by
+                          RANK (not order), so the day lever keeps Mon–Sun order and still
+                          reads. Levers with too little data are OMITTED and the rest
+                          renumber — all-time currently shows three, not five.
+                          NB data.whatsWorkingData still carries `stats`/`observations`/
+                          `bestPosts`; nothing renders them since the rebuild.
   HotelTable.tsx        — functional leaderboard in the spec's 7-col grid: dark header,
                           sortable buttons w/ aria-sort, rank col, ER mini-bars, top-3 tint,
                           top-10 + view more, live search + region filter
@@ -277,7 +288,19 @@ have null `coauthor_usernames` and read as non-collab until then.
 - `profile_snapshots` and `posts` are both fully paginated (1,000/page); posts deduped by post_id.
 - Only the "all hotels" stat set is computed. The channel toggle (Instagram/TikTok/YouTube) is still a disabled "soon" placeholder.
 - The **Top posts** list has a LIVE time-window toggle (7d / 30d / all, default 7d) built into `ContentRadar.tsx`. `getPortfolioData` precomputes the breakout list per window (`data.standout` is `Record<TimeWindow, OutlierPost[]>`); the client toggle selects one — no new query on toggle. Same breakout selection for all three windows (≥2× own median, ranked by multiplier), capped at `STANDOUT_LIMIT` (100). "All time" = the top 100 best-performing ever. The hero "X posts outperformed this week" always uses the 7-day count. Caveat: a post is judged against its hotel's *current* last-30 median, so old posts in the all-time view are compared to today's baseline.
-- What's Working now has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`): per-scope format/caption/day/hour bars, a 4-cell stat bar (month = period-over-period deltas vs the previous 30 days; all-time = baselines + best multiple on record), up to 3 data-derived observation cards, and the top-5 best posts (reusing the precomputed `standout` windows). `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. Median engagement rate here is the median *per-post* ER within the window (not the hotel-level leaderboard ER), so it can be windowed for the delta. Observation copy is derived from the data, not editorial sample text.
+- **What's Working = the five levers (2026-07-23).** `buildLevers` in lib/data.ts turns each
+  scope into `WwLever[]`: **content** (recurring subjects, from `standout_posts.theme_tag`
+  over the scope's breakouts), **format**, **frequency**, **day & time**, **caption**. Bars
+  are expressed as a multiple of the WEAKEST option, not as raw ER — the only framing that
+  reads without explaining engagement rate first. Trend lines compare the leader against the
+  previous 30 days (all-time has no previous period, so it states the standing pattern).
+  ⚠ **The content lever needs AI tags to exist.** It is withheld below `MIN_TAGGED_THEMES`
+  (5) tagged breakouts in scope, and today only ~34 `standout_posts` rows exist with ~10
+  carrying a `theme_tag` — so it renders on the 30-day scope and drops out of all-time.
+  Backfilling tags (`instagram-pipeline/generate-insight.js` across the breakout set) is what
+  makes this lever solid; the vocabulary is currently just 4 values (Events / Place &
+  Experience / The Property / People), each with a fixed gloss in `THEME_BLURB`.
+- What's Working also has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`): per-scope format/caption/day/hour bars, a 4-cell stat bar (month = period-over-period deltas vs the previous 30 days; all-time = baselines + best multiple on record), up to 3 data-derived observation cards, and the top-5 best posts (reusing the precomputed `standout` windows). `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. Median engagement rate here is the median *per-post* ER within the window (not the hotel-level leaderboard ER), so it can be windowed for the delta. Observation copy is derived from the data, not editorial sample text.
 - ContentRadar tiers: top 10 = large cards; everything below is a ranked list of compact rows, revealed 20 at a time via "Show more" (button disappears when the list runs out).
 
 ## Supabase tables
