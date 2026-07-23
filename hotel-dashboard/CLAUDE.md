@@ -156,8 +156,9 @@ components/
                           RANK (not order), so the day lever keeps Mon–Sun order and still
                           reads. Levers with too little data are OMITTED and the rest
                           renumber — all-time currently shows three, not five.
-                          NB data.whatsWorkingData still carries `stats`/`observations`/
-                          `bestPosts`; nothing renders them since the rebuild.
+                          `WhatsWorkingScope` is now just `set` + `levers` + `lede`: the
+                          orphaned `stats`/`observations`/`bestPosts`/`bestPostsTitle`
+                          fields (and `data.frequency`) were deleted after the rebuild.
   HotelTable.tsx        — functional leaderboard in the spec's 7-col grid: dark header,
                           sortable buttons w/ aria-sort, rank col, ER mini-bars, top-3 tint,
                           top-10 + view more, live search + region filter
@@ -300,7 +301,7 @@ have null `coauthor_usernames` and read as non-collab until then.
   Backfilling tags (`instagram-pipeline/generate-insight.js` across the breakout set) is what
   makes this lever solid; the vocabulary is currently just 4 values (Events / Place &
   Experience / The Property / People), each with a fixed gloss in `THEME_BLURB`.
-- What's Working also has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`): per-scope format/caption/day/hour bars, a 4-cell stat bar (month = period-over-period deltas vs the previous 30 days; all-time = baselines + best multiple on record), up to 3 data-derived observation cards, and the top-5 best posts (reusing the precomputed `standout` windows). `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. Median engagement rate here is the median *per-post* ER within the window (not the hotel-level leaderboard ER), so it can be windowed for the delta. Observation copy is derived from the data, not editorial sample text.
+- What's Working also has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`), each carrying the per-scope format/caption/day/hour bars (`set`), the `levers` and the `lede`, and nothing else. `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. The pre-rebuild stat bar, observation cards and best-posts rows — and the helpers behind them (`medianPostERPct`, `medianPPWInWindow`, `fmtDelta`, `buildObservations`) plus the global `data.frequency` top-10-vs-rest figure — were deleted on 2026-07-23 once nothing rendered them.
 - ContentRadar tiers: top 10 = large cards; everything below is a ranked list of compact rows, revealed 20 at a time via "Show more" (button disappears when the list runs out).
 
 ## Supabase tables
