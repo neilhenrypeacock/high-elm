@@ -4,22 +4,28 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { DashboardData, OutlierPost } from '@/lib/data';
 import { hasVisibleLikesCount } from '@/lib/data';
+import {
+  FOUNDING_PRICE_DISPLAY,
+  FOUNDING_PRICE_MONTHLY,
+  STANDARD_PRICE_DISPLAY,
+  STANDARD_PRICE_MONTHLY,
+  PLACES_LEFT_LINE,
+  TRIAL_DAYS,
+  TRIAL_FINE_PRINT,
+  VALUE_STACK,
+  VALUE_STACK_TOTAL_GBP,
+  monthlyCost,
+} from '@/lib/pricing';
 import { ImageWithFallback } from './ContentRadar';
 
-// ─── Offer (single source of truth for every CTA + the pricing card) ─────────
-// All trial CTAs point at the placeholder route until Stripe Checkout exists.
-// Swap TRIAL_HREF when the real checkout URL is ready.
+// ─── Offer ───────────────────────────────────────────────────────────────────
+// Every price and seat number on this page comes from lib/pricing.ts. Do not
+// write one by hand here.
 const TRIAL_HREF = '/start-trial';
 const LOGIN_HREF = '/login';
 
-const FOUNDING_PRICE = 39;   // £/month, founding rate
-const TRIAL_DAYS = 14;       // free-trial length
-const FOUNDING_CLAIMED = 11; // of FOUNDING_CAP
-const FOUNDING_CAP = 50;
-
-const spotsLeft = FOUNDING_CAP - FOUNDING_CLAIMED;
-const claimedPct = `${Math.round((FOUNDING_CLAIMED / FOUNDING_CAP) * 100)}%`;
-const CTA_SUB = `£${FOUNDING_PRICE}/month after ${TRIAL_DAYS} days · cancel anytime`;
+const HERO_FOUNDING_LINE =
+  `Founding membership — ${FOUNDING_PRICE_MONTHLY} locked for life. ${PLACES_LEFT_LINE}.`;
 
 const INNER: React.CSSProperties = { maxWidth: 1200, margin: '0 auto', padding: '0 40px' };
 
@@ -196,7 +202,7 @@ export default function Landing({ data }: { data: DashboardData }) {
   // set if there aren't six distinct posts to show (keeps the grid populated).
   const taster = featured.length >= 4 ? featured.slice(3, 6) : featured.slice(0, 3);
 
-  // Reveal-on-scroll, count-ups, and the founding-spots bar — all scoped to this
+  // Reveal-on-scroll and count-ups — all scoped to this
   // subtree. Base markup is the visible end-state, so nothing is ever stranded.
   useEffect(() => {
     const root = rootRef.current;
@@ -269,19 +275,6 @@ export default function Landing({ data }: { data: DashboardData }) {
       }, { threshold: 0.5 });
       root.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => cio.observe(el));
       observers.push(cio);
-
-      // Founding-spots bar grows into view
-      const bar = root.querySelector<HTMLElement>('[data-progress]');
-      if (bar) {
-        bar.style.transition = 'width 1.1s cubic-bezier(.2,.7,.2,1)';
-        const target = bar.style.width || claimedPct;
-        if (!reduce) bar.style.width = '0%';
-        const bio = new IntersectionObserver((es, obs) => {
-          es.forEach((e) => { if (e.isIntersecting) { bar.style.width = target; obs.unobserve(e.target); } });
-        }, { threshold: 0.6 });
-        bio.observe(bar);
-        observers.push(bio);
-      }
     }
 
     return () => {
@@ -334,12 +327,15 @@ export default function Landing({ data }: { data: DashboardData }) {
 
             <div data-reveal data-reveal-delay={180} style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
               <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '16px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--body-mid)' }}>{CTA_SUB}</span>
+              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--body-mid)' }}>{TRIAL_FINE_PRINT}</span>
             </div>
 
-            <div data-reveal data-reveal-delay={240} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-deep)' }}>
+            {/* The ONE founding-membership touchpoint in the hero. Sentence case,
+                not the uppercase eyebrow treatment — the scarcity is real, so it
+                reads as a quiet statement of fact rather than a shout. */}
+            <div data-reveal data-reveal-delay={240} style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 13.5, letterSpacing: '0.01em', color: 'var(--signal-deep)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', flex: 'none' }} />
-              Only {spotsLeft} of {FOUNDING_CAP} founding spots left — rate fixed for good
+              {HERO_FOUNDING_LINE}
             </div>
           </div>
 
@@ -539,58 +535,62 @@ export default function Landing({ data }: { data: DashboardData }) {
         </div>
       </section>
 
-      {/* ===== PRICING ===== */}
-      <section id="pricing" style={{ ...INNER, padding: '100px 40px 56px' }}>
-        {/* Value stack — what the £39 replaces */}
-        <div data-reveal style={{ maxWidth: 520, margin: '0 auto 18px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '32px 36px', boxShadow: 'var(--shadow-card)' }}>
-          <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-deep)', marginBottom: 18 }}>What your £{FOUNDING_PRICE} replaces</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-            {[
-              { t: 'Weekly content ideation, done for you', p: '£400/mo' },
-              { t: '10+ hours a week looking for content inspiration', p: '£500/mo' },
-              { t: 'Competitor & benchmark tracking, 400+ elite hotels', p: '£400/mo' },
-              { t: 'The posting playbook — when & how often to post', p: '£300/mo' },
-              { t: 'A permanent library of proven, top-performing posts', p: '£200/mo' },
-            ].map((r) => (
-              <div key={r.t} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, fontSize: 15, color: 'var(--body-strong)' }}>
-                <span>{r.t}</span>
-                <span style={{ color: 'var(--muted)', textDecoration: 'line-through', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{r.p}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 18, paddingTop: 15, borderTop: '1px solid var(--line-rule)', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>
-            <span>Total value</span>
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>£2,000/mo</span>
-          </div>
-        </div>
-        <div data-reveal data-reveal-delay={40} style={{ textAlign: 'center', marginBottom: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)' }}>All of it, for</div>
-        <div data-reveal data-reveal-delay={80} style={{ maxWidth: 520, margin: '0 auto', background: 'var(--ink-deep)', borderRadius: 20, padding: '44px 48px 48px', textAlign: 'center', boxShadow: '0 40px 80px -50px rgba(34,32,27,0.7)' }}>
-          <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 22 }}>Founding Member</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 72, lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--surface)' }}>£{FOUNDING_PRICE}</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 18, color: 'var(--on-dark-soft)' }}>/month</span>
-          </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--signal-light)', marginBottom: 28 }}>Instagram channel</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left', maxWidth: 300, margin: '0 auto 32px' }}>
-            {[
-              'Fixed forever — first 50 members only',
-              `${TRIAL_DAYS}-day free trial to start`,
-              'Cancel anytime',
-            ].map((t) => (
-              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 16, color: 'var(--page)' }}><span style={{ color: 'var(--signal-light)' }}>✓</span> {t}</div>
-            ))}
-          </div>
-          <div style={{ marginBottom: 22, textAlign: 'left', maxWidth: 320, marginLeft: 'auto', marginRight: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--signal-light)' }}><b style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--surface)', fontSize: 14 }}>{FOUNDING_CLAIMED}</b> of {FOUNDING_CAP} founding spots claimed</span>
-              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, color: 'var(--body-mid)' }}>{spotsLeft} left</span>
+      {/* ===== PRICING =====
+          One block, one product. The section sits on --surface so it reads as a
+          distinct band between the dark-green "what you get" band above and the
+          page-coloured FAQ below — no new colours, just existing tokens. */}
+      <section id="pricing" style={{ background: 'var(--surface)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ ...INNER, padding: '100px 40px 88px' }}>
+          {/* Value stack — what the founding price replaces. Sits on --page so it
+              still reads as a card against the --surface band. */}
+          <div data-reveal style={{ maxWidth: 560, margin: '0 auto 18px', background: 'var(--page)', border: '1px solid var(--line)', borderRadius: 20, padding: '32px 36px' }}>
+            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-deep)', marginBottom: 18 }}>What your {FOUNDING_PRICE_DISPLAY} replaces</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+              {VALUE_STACK.map((r) => (
+                <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, fontSize: 15, color: 'var(--body-strong)' }}>
+                  <span>{r.label}</span>
+                  <span style={{ color: 'var(--muted)', textDecoration: 'line-through', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{monthlyCost(r.monthlyGbp)}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ height: 6, borderRadius: 6, background: 'rgba(247,246,242,0.14)', overflow: 'hidden' }}>
-              <div data-progress style={{ height: '100%', width: claimedPct, background: 'var(--signal)', borderRadius: 6 }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 18, paddingTop: 15, borderTop: '1px solid var(--line-rule)', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>
+              <span>Total value</span>
+              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{monthlyCost(VALUE_STACK_TOTAL_GBP)}</span>
             </div>
           </div>
-          <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--ink-deep)', background: 'var(--surface)', padding: 17, borderRadius: 12, textDecoration: 'none', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-          <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--body-mid)', marginTop: 22 }}>See everything free for {TRIAL_DAYS} days — cancel in two clicks and pay nothing.</p>
+
+          <div data-reveal data-reveal-delay={40} style={{ textAlign: 'center', marginBottom: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)' }}>All of it, for</div>
+
+          <div data-reveal data-reveal-delay={80} style={{ maxWidth: 560, margin: '0 auto', background: 'var(--ink-deep)', borderRadius: 20, padding: '44px 48px 48px', textAlign: 'center', boxShadow: '0 40px 80px -50px rgba(34,32,27,0.7)' }}>
+            <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 22 }}>Founding membership</div>
+
+            {/* Standard price, de-emphasised, above the one that matters. */}
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 20, color: 'var(--on-dark-soft)', textDecoration: 'line-through', marginBottom: 6 }}>{STANDARD_PRICE_MONTHLY}</div>
+
+            {/* The founding price — the largest single piece of type in the section. */}
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 84, lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--surface)' }}>{FOUNDING_PRICE_DISPLAY}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 20, color: 'var(--on-dark-soft)' }}>/month</span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 18, color: 'var(--surface)', marginTop: 4 }}>locked for life</div>
+
+            {/* Live information, not decoration — hence the signal colour. */}
+            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginTop: 18 }}>{PLACES_LEFT_LINE}</div>
+
+            <p style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--page)', textAlign: 'left', margin: '30px 0 0' }}>
+              Every week, Content Radar shows you the posts that broke out across the world&rsquo;s best hotels — and why they worked. Founding members pay {FOUNDING_PRICE_MONTHLY.replace('/month', ' a month')} for as long as they stay a member, even after the price goes to {STANDARD_PRICE_DISPLAY}.
+            </p>
+
+            <div style={{ textAlign: 'left', margin: '24px 0 30px', padding: '20px 22px', borderRadius: 14, background: 'rgba(127,193,162,0.10)', border: '1px solid var(--line-dark)' }}>
+              <p style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--page)', margin: 0 }}>
+                <b style={{ color: 'var(--signal-light)' }}>What I want in return:</b>{' '}
+                your feedback. What&rsquo;s missing, what you&rsquo;d change, what you&rsquo;d pay for next. You&rsquo;ll have my email and a direct say in what gets built.
+              </p>
+            </div>
+
+            <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--ink-deep)', background: 'var(--surface)', padding: 17, borderRadius: 12, textDecoration: 'none', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
+            <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--body-mid)', marginTop: 18 }}>{TRIAL_FINE_PRINT}</p>
+          </div>
         </div>
       </section>
 
