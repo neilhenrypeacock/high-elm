@@ -23,8 +23,8 @@ const WHATS_WORKING_WINDOW_DAYS = 30;
 // Landing-page taster rule (Neil, 2026-07-03): feature the best-performing
 // posts of the last 30 days, excluding collaborations
 const LANDING_WINDOW_DAYS     = 30;
-// Landing taster slot count: 3 open cards + 2 blurred behind the lock overlay.
-const LANDING_SLOTS           = 5;
+// Landing slot count: 3 fanned hero cards + 3 taster cards, all distinct posts.
+const LANDING_SLOTS           = 6;
 // Curated-taster marquee (Neil, 2026-07-21): when posts are pinned, the FIRST
 // open card always shows a post from one of these best-known hotels (cycling
 // hourly); the remaining slots rotate through the rest of the pinned set.
