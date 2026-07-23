@@ -187,10 +187,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* ═══ Responsive (prototype is desktop-only; mobile designed here) ═════════ */
 
-/* Hero: stack the numeral column above the by-the-numbers panel */
+/* Hero: shrink the breakout numeral; the top-three breakout row goes 3 → 2 → 1 */
 @media (max-width: 900px) {
-  .cr-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
   .cr-hero-numeral { font-size: 88px !important; }
+  .cr-breakout-row { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 620px) {
+  .cr-breakout-row { grid-template-columns: 1fr !important; }
 }
 
 /* Landing hero: card stack drops below the copy on narrower viewports; the

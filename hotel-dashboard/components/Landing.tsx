@@ -117,25 +117,15 @@ function FanCard({
           background: 'var(--surface)', padding: front ? '5px 12px' : '4px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         }}>{mult}×</span>
       </div>
-      {/* Only the front card carries a text footer — the two peek cards behind it
-          stay image-only so they read as clean photos, not half-cut cards. */}
-      {front && (
-        <div style={{ padding: 20 }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{post.hotel_name}</div>
-          <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--body-mid)', margin: '3px 0 12px' }}>
-            {[post.hotel_country, fmtDayMonth(post.posted_at)].filter(Boolean).join(' · ')}
-          </div>
-          {post.post_insight && (
-            <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 14 }}>{post.post_insight}</p>
-          )}
-          <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
-            {hasVisibleLikesCount(post.likes_count) && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
-            )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>
-          </div>
-        </div>
-      )}
+      {/* All three cards share one footer: just the hotel name (date + likes live
+          on the detailed taster cards below). Keeps the fanned stack consistent —
+          image, multiplier badge, hotel name — front card only larger. */}
+      <div style={{ padding: front ? '16px 18px' : '11px 14px' }}>
+        <div style={{
+          fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: front ? 16 : 12.5,
+          color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>{post.hotel_name}</div>
+      </div>
     </div>
   );
 }
@@ -192,7 +182,19 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
 // ═══════════════════════════════════════════════════════════════════════════
 export default function Landing({ data }: { data: DashboardData }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const open = data.landing_featured.slice(0, 3);
+  // Six distinct previewed posts: the first three fan out in the hero stack, the
+  // next three fill the taster grid. Dedupe by post_id first (a collab shares one
+  // post_id across handles) so the same post never shows twice across the page.
+  const seenPost = new Set<string>();
+  const featured = data.landing_featured.filter(p => {
+    if (seenPost.has(p.post_id)) return false;
+    seenPost.add(p.post_id);
+    return true;
+  });
+  const hero = featured.slice(0, 3);
+  // Prefer three fresh posts for the taster; only fall back to reusing the hero
+  // set if there aren't six distinct posts to show (keeps the grid populated).
+  const taster = featured.length >= 4 ? featured.slice(3, 6) : featured.slice(0, 3);
 
   // Reveal-on-scroll, count-ups, and the founding-spots bar — all scoped to this
   // subtree. Base markup is the visible end-state, so nothing is ever stranded.
@@ -318,7 +320,7 @@ export default function Landing({ data }: { data: DashboardData }) {
       <header style={{ ...INNER, padding: '80px 40px 48px' }}>
         <div
           className="cr-landing-hero-grid"
-          style={{ display: 'grid', gridTemplateColumns: open.length > 0 ? 'minmax(0,1fr) minmax(340px,460px)' : '1fr', gap: 64, alignItems: 'center' }}
+          style={{ display: 'grid', gridTemplateColumns: hero.length > 0 ? 'minmax(0,1fr) minmax(340px,460px)' : '1fr', gap: 64, alignItems: 'center' }}
         >
           <div style={{ minWidth: 0 }}>
             <div data-reveal style={{ ...eyebrow(), marginBottom: 26 }}>Powered by High Elm Studio</div>
@@ -341,22 +343,22 @@ export default function Landing({ data }: { data: DashboardData }) {
             </div>
           </div>
 
-          {open.length > 0 && (
+          {hero.length > 0 && (
             <div data-reveal data-reveal-delay={140} className="cr-hero-cardstack" style={{ position: 'relative', minHeight: 420, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {open.length >= 3 && (
+              {hero.length >= 3 && (
                 <FanCard
-                  post={open[1]} index={1} front={false} rotateDeg={-5} animationDuration={7} animationDelay={0}
+                  post={hero[1]} index={1} front={false} rotateDeg={-5} animationDuration={7} animationDelay={0}
                   position={{ position: 'absolute', width: 'min(200px,62vw)', right: '58%', top: '10%', opacity: 0.92, zIndex: 1 }}
                 />
               )}
-              {open.length >= 2 && (
+              {hero.length >= 2 && (
                 <FanCard
-                  post={open.length >= 3 ? open[2] : open[1]} index={2} front={false} rotateDeg={5} animationDuration={8} animationDelay={1.2}
+                  post={hero.length >= 3 ? hero[2] : hero[1]} index={2} front={false} rotateDeg={5} animationDuration={8} animationDelay={1.2}
                   position={{ position: 'absolute', width: 'min(200px,62vw)', left: '58%', bottom: '8%', opacity: 0.95, zIndex: 1 }}
                 />
               )}
               <FanCard
-                post={open[0]} index={0} front rotateDeg={0} animationDuration={6} animationDelay={0.5}
+                post={hero[0]} index={0} front rotateDeg={0} animationDuration={6} animationDelay={0.5}
                 position={{ position: 'relative', zIndex: 2, width: 'min(256px,80vw)' }}
               />
             </div>
@@ -400,7 +402,7 @@ export default function Landing({ data }: { data: DashboardData }) {
         </div>
 
         {/* ===== LIVE TASTER (moved here) ===== */}
-        {open.length > 0 && (
+        {taster.length > 0 && (
           <div>
             <div data-reveal style={{ textAlign: 'center', marginBottom: 44 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, ...eyebrow() }}>
@@ -411,7 +413,7 @@ export default function Landing({ data }: { data: DashboardData }) {
 
             <div style={{ position: 'relative' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
-                {open.map((p, i) => <OpenCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
+                {taster.map((p, i) => <OpenCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
               </div>
 
               {/* Bottom fade-gate — the conversion gate. Fades the lower portion of the

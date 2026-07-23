@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { DashboardData, HotelRow } from '@/lib/data';
+import { Fragment, useEffect, useState } from 'react';
+import type { DashboardData, HotelRow, OutlierPost } from '@/lib/data';
+import { parseInsight } from '@/lib/data';
 import { fmtFollowers } from '@/lib/format';
-import ContentRadar from './ContentRadar';
+import { postKey } from '@/lib/post-key';
+import ContentRadar, { ImageWithFallback } from './ContentRadar';
+import SaveToggle from './SaveToggle';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
 import PageInfoButton from './PageInfoButton';
@@ -51,8 +54,11 @@ const INNER: React.CSSProperties = {
   paddingRight: 40,
 };
 
-// Auto-generated "This week in focus" bullets, derived live from the data:
-// this-week breakout highlights + the portfolio's current 30-day patterns.
+// Auto-generated "This week in focus" bullets, derived live from the data: the
+// portfolio's current 30-day PATTERNS only. The two breakout-specific bullets
+// (biggest breakout / how many cleared 10×) were dropped in the 2026-07-23
+// redesign — the breakout row above now shows the top three posts outright, and
+// the 10× count moved into the hero lede, so repeating them here was noise.
 function pluralFormat(label: string): string {
   const map: Record<string, string> = { Reel: 'Reels', Video: 'Videos', Carousel: 'Carousels', Photo: 'Photos' };
   return map[label] ?? `${label}s`;
@@ -68,29 +74,18 @@ function captionPhrase(label: string): string {
 function topBar(items: { label: string; value: number }[]) {
   return items.length ? [...items].sort((a, b) => b.value - a.value)[0] : null;
 }
+// by_day labels are abbreviated for the What's Working bar charts ("Wed"); in a
+// prose bullet the full weekday reads better. Falls through unchanged if the
+// label is already long-form or unrecognised.
+const WEEKDAY_LONG: Record<string, string> = {
+  Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday',
+  Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday',
+};
 
 function weekInFocus(data: DashboardData): React.ReactNode[] {
   const bullets: React.ReactNode[] = [];
   const strong = { color: '#F7F6F2', fontWeight: 600 } as const;
 
-  const top = data.standout['7d']?.[0];
-  if (top) {
-    bullets.push(
-      <>
-        <span style={strong}>{top.hotel_name}</span>{' '}posted the week&rsquo;s biggest breakout —{' '}
-        <span style={strong}>{top.multiplier.toFixed(1)}×</span>{' '}its usual engagement.
-      </>,
-    );
-  }
-  if (data.super_breakout_count > 0) {
-    bullets.push(
-      <>
-        <span style={strong}>{data.super_breakout_count}</span>{' '}
-        {data.super_breakout_count === 1 ? 'post' : 'posts'} cleared{' '}
-        <span style={strong}>10×</span>{' '}their hotel&rsquo;s usual engagement this week.
-      </>,
-    );
-  }
   const fmt = topBar(data.whatsWorking.by_format);
   if (fmt && fmt.value > 0) {
     bullets.push(
@@ -112,7 +107,8 @@ function weekInFocus(data: DashboardData): React.ReactNode[] {
   if (day && day.value > 0) {
     bullets.push(
       <>
-        <span style={strong}>{day.label}</span>{' '}is the strongest day to post across the portfolio.
+        <span style={strong}>{WEEKDAY_LONG[day.label] ?? day.label}</span>{' '}is the strongest day to
+        post across the portfolio.
       </>,
     );
   }
@@ -133,6 +129,8 @@ const PANEL_LABEL: React.CSSProperties = {
   letterSpacing: '0.2em',
   color: 'var(--muted-dark)',
 };
+/** The figures inside the hero's inline meta line — lifted out of the label grey. */
+const META_FIG: React.CSSProperties = { color: '#CFC9BE', fontWeight: 600 };
 
 // ─── Your watchlist — the member's followed hotels, or an empty-state nudge ────
 function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: string[] }) {
@@ -238,7 +236,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
-            gap: 14,
+            gap: 16,
           }}
         >
           <span
@@ -259,7 +257,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
               <circle cx="12" cy="12" r="2.6" stroke="currentColor" strokeWidth="1.7" />
             </svg>
           </span>
-          <div style={{ maxWidth: 360 }}>
+          <div style={{ maxWidth: 380 }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: '#F7F6F2', marginBottom: 6 }}>
               Nothing on your watchlist yet
             </div>
@@ -267,18 +265,23 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
               Follow the hotels you care about and their breakouts surface here first, every week.
             </p>
           </div>
+          {/* Primary → the watchlist page itself; the quiet second link stays on the
+              in-dashboard leaderboard, which is the other place hotels get added. */}
           <a
-            href="#leaderboard"
+            href="/watchlist"
             style={{
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: 600,
-              color: 'var(--ink)',
-              background: '#F7F6F2',
+              color: '#F7F6F2',
+              background: 'var(--signal)',
               borderRadius: 10,
-              padding: '10px 20px',
+              padding: '12px 24px',
               textDecoration: 'none',
             }}
           >
+            Add hotels to your watchlist
+          </a>
+          <a href="#leaderboard" style={{ fontSize: 12, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
             Browse the leaderboard →
           </a>
         </div>
@@ -331,15 +334,153 @@ function SourcesPanel() {
   );
 }
 
+// ─── This week · breakouts — the top three, up front ──────────────────────────
+// A compact dark sibling of ContentRadar's BreakoutCard: 4:5 media, multiplier
+// pill, and one line of "why". The full ranked list still lives in Top posts.
+const MEDIA_PLACEHOLDER = 'linear-gradient(135deg, #2b2824, #3c372e)';
+
+function permalink(p: OutlierPost): string {
+  return p.post_url ?? `https://www.instagram.com/p/${p.post_id}/`;
+}
+
+/** "posted Wednesday" — the weekday alone; the exact stamp lives on the full card. */
+function postedWeekday(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
+}
+
+function BreakoutMini({ post: p, saved }: { post: OutlierPost; saved: boolean }) {
+  const why = p.post_insight ? parseInsight(p.post_insight) : null;
+  const whyText = why?.whyItWorked ?? why?.freeform ?? null;
+
+  return (
+    <article
+      style={{
+        border: '1px solid rgba(245,240,232,0.13)',
+        borderRadius: 14,
+        background: 'var(--panel-dark)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <a
+        href={permalink(p)}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`View ${p.hotel_name}'s post on Instagram`}
+        style={{ position: 'relative', aspectRatio: '4 / 5', display: 'block', background: MEDIA_PLACEHOLDER }}
+      >
+        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={MEDIA_PLACEHOLDER} />
+        <span
+          style={{
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            fontFamily: DISPLAY,
+            fontWeight: 700,
+            fontSize: 15,
+            letterSpacing: '-0.01em',
+            color: '#F7F6F2',
+            background: 'var(--signal)',
+            borderRadius: 999,
+            padding: '5px 12px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+          }}
+        >
+          {p.multiplier.toFixed(1)}×
+        </span>
+        <span style={{ position: 'absolute', top: 12, right: 12 }}>
+          <SaveToggle
+            initialSaved={saved}
+            endpoint="/api/saves"
+            saveBody={{ post: p }}
+            deleteBody={{ post_id: p.post_id, instagram_handle: p.instagram_handle }}
+            label="Save post"
+            savedLabel="Saved — remove"
+            variant="overlay"
+          />
+        </span>
+      </a>
+
+      <div style={{ padding: '15px 17px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, color: '#F7F6F2', lineHeight: 1.3 }}>{p.hotel_name}</div>
+        {whyText ? (
+          <div
+            style={{
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: '#B4ADA0',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            <span style={{ color: 'var(--signal-light)', fontWeight: 600 }}>Why it worked · </span>
+            {whyText}
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, lineHeight: 1.55, color: '#8C867B' }}>
+            {[p.type, `posted ${postedWeekday(p.posted_at)}`].filter(Boolean).join(' · ')}
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function BreakoutsPanel({
+  posts,
+  total,
+  savedKeys,
+}: {
+  posts: OutlierPost[];
+  total: number;
+  savedKeys: Set<string>;
+}) {
+  if (posts.length === 0) return null;
+  return (
+    <section>
+      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>This week · breakouts</div>
+      <div className="cr-breakout-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+        {posts.map(p => {
+          const key = postKey(p.post_id, p.instagram_handle);
+          return <BreakoutMini key={key} post={p} saved={savedKeys.has(key)} />;
+        })}
+      </div>
+      {total > posts.length && (
+        <div style={{ marginTop: 20 }}>
+          <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
+            See all {total} breakouts →
+          </a>
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ─── This week — full-screen dark signal band ─────────────────────────────────
-function Hero({ data, watchlistHandles }: { data: DashboardData; watchlistHandles: string[] }) {
-  const stats = [
-    { figure: <>{data.hotel_count}<span style={{ color: 'var(--signal)' }}>+</span></>, caption: '5-star hotels' },
-    { figure: <>{data.countries_count}</>, caption: 'Countries' },
-    { figure: <>{data.total_posts_analysed.toLocaleString('en-GB')}</>, caption: 'Posts analysed' },
-    { figure: <>{data.week_ending}</>, caption: 'Week ending' },
-  ];
+function Hero({
+  data,
+  watchlistHandles,
+  savedPostKeys,
+}: {
+  data: DashboardData;
+  watchlistHandles: string[];
+  savedPostKeys: string[];
+}) {
   const focus = weekInFocus(data);
+  const savedKeys = new Set(savedPostKeys);
+  const topThree = (data.standout['7d'] ?? []).slice(0, 3);
+
+  // The band's supporting numbers — one quiet inline line rather than a stat
+  // panel, so the breakout count stays the only figure with weight.
+  const meta: React.ReactNode[] = [
+    <><span style={META_FIG}>{data.hotel_count}</span> hotels tracked</>,
+    <><span style={META_FIG}>{data.countries_count}</span> countries</>,
+    <><span style={META_FIG}>{data.total_posts_analysed.toLocaleString('en-GB')}</span> posts analysed</>,
+    <>Week ending <span style={META_FIG}>{data.week_ending}</span></>,
+  ];
 
   return (
     <div
@@ -354,7 +495,7 @@ function Hero({ data, watchlistHandles }: { data: DashboardData; watchlistHandle
     >
       <div
         className="cr-inner"
-        style={{ ...INNER, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 52, paddingTop: 56, paddingBottom: 56 }}
+        style={{ ...INNER, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: 44, paddingTop: 56, paddingBottom: 56 }}
       >
         {/* ── Headline ── */}
         <div>
@@ -384,15 +525,15 @@ function Hero({ data, watchlistHandles }: { data: DashboardData; watchlistHandle
                   {data.breakout_count === 1 ? 'post' : 'posts'} significantly<br />outperformed
                 </span>
               </div>
-              <p style={{ maxWidth: 520, fontSize: 15, lineHeight: 1.75, color: '#A49D92', marginTop: 26 }}>
-                Beating their hotel&rsquo;s own median this week
+              <p style={{ maxWidth: 560, fontSize: 15, lineHeight: 1.75, color: '#A49D92', marginTop: 26 }}>
+                Every one of them doubled what its hotel normally gets
                 {data.super_breakout_count > 0 ? (
                   <>
-                    {' '}— and <span style={{ color: '#F7F6F2' }}>{data.super_breakout_count}</span> cleared
-                    ten times their usual engagement
+                    {' '}— and <span style={{ color: '#F7F6F2' }}>{data.super_breakout_count}</span> went past
+                    ten times
                   </>
                 ) : null}
-                {' '}— refreshed every week.
+                . Refreshed every week.
               </p>
             </>
           ) : (
@@ -400,114 +541,77 @@ function Hero({ data, watchlistHandles }: { data: DashboardData; watchlistHandle
               No posts significantly outperformed their hotel&rsquo;s own median this week.
             </p>
           )}
-        </div>
 
-        {/* ── Lower grid: by the numbers · this week in focus ── */}
-        <div
-          className="cr-hero-grid"
-          style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 24, alignItems: 'stretch' }}
-        >
-          {/* By the numbers */}
+          {/* Supporting numbers — quiet, inline, dot-separated */}
           <div
             style={{
-              border: '1px solid rgba(245,240,232,0.13)',
-              borderRadius: 14,
-              background: 'var(--panel-dark)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                fontFamily: LABEL,
-                fontSize: 10,
-                textTransform: 'uppercase',
-                letterSpacing: '0.2em',
-                color: 'var(--muted-dark)',
-                padding: '22px 26px',
-                borderBottom: '1px solid rgba(245,240,232,0.10)',
-              }}
-            >
-              This week · by the numbers
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, background: 'rgba(245,240,232,0.10)' }}>
-              {stats.map(s => (
-                <div key={s.caption} style={{ background: 'var(--panel-dark)', padding: '22px 26px' }}>
-                  <div style={{ fontSize: 26, fontWeight: 700 }}>{s.figure}</div>
-                  <div
-                    style={{
-                      fontFamily: LABEL,
-                      fontSize: 10,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.14em',
-                      color: 'var(--muted-dark)',
-                      marginTop: 5,
-                    }}
-                  >
-                    {s.caption}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* This week in focus — auto analysis */}
-          <div
-            style={{
-              border: '1px solid rgba(245,240,232,0.13)',
-              borderRadius: 14,
-              background: 'var(--panel-dark)',
-              overflow: 'hidden',
               display: 'flex',
-              flexDirection: 'column',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 14,
+              marginTop: 22,
+              fontFamily: LABEL,
+              fontSize: 11,
+              textTransform: 'uppercase',
+              letterSpacing: '0.14em',
+              color: 'var(--muted-dark)',
             }}
           >
-            <div
-              style={{
-                fontFamily: LABEL,
-                fontSize: 10,
-                textTransform: 'uppercase',
-                letterSpacing: '0.2em',
-                color: 'var(--muted-dark)',
-                padding: '22px 26px',
-                borderBottom: '1px solid rgba(245,240,232,0.10)',
-              }}
-            >
-              This week · in focus
-            </div>
-            {focus.length > 0 ? (
-              <ul style={{ listStyle: 'none', margin: 0, padding: '10px 26px 22px', display: 'flex', flexDirection: 'column' }}>
-                {focus.map((b, i) => (
-                  <li
-                    key={i}
-                    style={{
-                      display: 'flex',
-                      gap: 14,
-                      alignItems: 'flex-start',
-                      padding: '13px 0',
-                      borderBottom: i < focus.length - 1 ? '1px solid rgba(245,240,232,0.08)' : 'none',
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{ flex: 'none', width: 7, height: 7, borderRadius: '50%', background: 'var(--signal-light)', marginTop: 7 }}
-                    />
-                    <span style={{ fontSize: 14, lineHeight: 1.6, color: '#CFC9BE' }}>{b}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div style={{ padding: '22px 26px', fontSize: 14, color: '#A49D92', lineHeight: 1.6 }}>
-                Not enough data this week to surface highlights yet — check back after the next scrape.
-              </div>
-            )}
+            {meta.map((m, i) => (
+              <Fragment key={i}>
+                {i > 0 && (
+                  <span
+                    aria-hidden="true"
+                    style={{ flex: 'none', width: 3, height: 3, borderRadius: '50%', background: 'rgba(245,240,232,0.3)' }}
+                  />
+                )}
+                <span>{m}</span>
+              </Fragment>
+            ))}
           </div>
         </div>
 
-        {/* ── Your watchlist ── */}
-        <WatchlistPanel hotels={data.hotels} handles={watchlistHandles} />
+        {/* ── This week · breakouts — the top three ── */}
+        <BreakoutsPanel posts={topThree} total={data.breakout_count} savedKeys={savedKeys} />
+
+        {/* ── This week in focus — auto analysis, now full width ── */}
+        <div style={PANEL}>
+          <div style={{ ...PANEL_LABEL, padding: '22px 26px', borderBottom: '1px solid rgba(245,240,232,0.10)' }}>
+            This week · in focus
+          </div>
+          {focus.length > 0 ? (
+            <ul style={{ listStyle: 'none', margin: 0, padding: '10px 26px 22px', display: 'flex', flexDirection: 'column' }}>
+              {focus.map((b, i) => (
+                <li
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    gap: 14,
+                    alignItems: 'flex-start',
+                    padding: '13px 0',
+                    borderBottom: i < focus.length - 1 ? '1px solid rgba(245,240,232,0.08)' : 'none',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{ flex: 'none', width: 7, height: 7, borderRadius: '50%', background: 'var(--signal-light)', marginTop: 7 }}
+                  />
+                  <span style={{ fontSize: 14, lineHeight: 1.6, color: '#CFC9BE' }}>{b}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div style={{ padding: '22px 26px', fontSize: 14, color: '#A49D92', lineHeight: 1.6 }}>
+              Not enough data this week to surface highlights yet — check back after the next scrape.
+            </div>
+          )}
+        </div>
 
         {/* ── Sources crawled ── */}
         <SourcesPanel />
+
+        {/* ── Your watchlist ── */}
+        <WatchlistPanel hotels={data.hotels} handles={watchlistHandles} />
       </div>
     </div>
   );
@@ -559,7 +663,9 @@ export default function Dashboard({
   return (
     <div className="cr-board">
       {/* ── This week (overview) ── */}
-      {active === 'overview' && <Hero data={data} watchlistHandles={watchlistHandles} />}
+      {active === 'overview' && (
+        <Hero data={data} watchlistHandles={watchlistHandles} savedPostKeys={savedPostKeys} />
+      )}
 
       {/* ── Top posts — filters then posts, no heading copy ── */}
       {active === 'breakouts' && (
