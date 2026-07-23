@@ -72,12 +72,17 @@ components/
                           credibility strip → how-it-works → LIVE TASTER (3 real breakout
                           cards, 4:5 real thumbnails, count-up multipliers + 2 blurred
                           behind one lock overlay) → dark "why believe it" → what-you-get
-                          2×2 → £39 founding pricing w/ animated spots bar → FAQ → dark
-                          closing CTA → footer. Reveal-on-scroll / count-ups / progress bar
-                          via a single scoped IntersectionObserver effect (base markup is
-                          the visible end-state, so nothing strands at opacity 0).
-                          Offer constants (FOUNDING_PRICE £39, TRIAL_DAYS 14,
-                          FOUNDING_CLAIMED 11) + TRIAL_HREF/LOGIN_HREF live at file top.
+                          2×2 → pricing band (value stack + £79-struck/£49-founding
+                          block on --surface) → FAQ → dark closing CTA → footer.
+                          Reveal-on-scroll / count-ups via a single scoped
+                          IntersectionObserver effect (base markup is the visible
+                          end-state, so nothing strands at opacity 0).
+                          EVERY price + seat number comes from lib/pricing.ts — the
+                          old FOUNDING_PRICE/FOUNDING_CAP/FOUNDING_CLAIMED locals are
+                          GONE, as is the animated spots progress bar. Only
+                          TRIAL_HREF/LOGIN_HREF + the derived HERO_FOUNDING_LINE live
+                          at file top. Exactly ONE founding line in the hero, under
+                          the CTA; the CTA sub-line is now price-free fine print.
                           Credibility per-list "last scan" figures are still hardcoded
                           sample values (not yet surfaced per-list by getPortfolioData).
                           TASTER RULE (Neil, 2026-07-03): cards come from
@@ -186,6 +191,16 @@ lib/
   require-access.ts     — THE gate: requireActiveUser (pages) + checkApiAccess (API
                           routes). Local-only DISABLE_DASHBOARD_AUTH bypass, nothing else
   subscriptions.ts      — subscriptions table access (service-role only; RLS: no policies)
+  pricing.ts            — THE SINGLE SOURCE OF TRUTH for every price + seat number.
+                          Founding £49/mo (first 20, locked for life) / standard
+                          £79/mo; TRIAL_DAYS; FOUNDING_PLACES_TAKEN (edited BY HAND
+                          — deliberately not counted from Stripe/DB); derived
+                          FOUNDING_PLACES_LEFT / FOUNDING_OPEN; pre-formatted display
+                          strings; the landing VALUE_STACK (total derived from rows).
+                          Read by Landing.tsx, api/checkout, scripts/stripe-setup.mjs.
+                          NEVER write a price anywhere else. Changing an amount here
+                          ALSO requires creating a new Stripe price (they're immutable)
+                          and repointing STRIPE_FOUNDING_PRICE_ID/STRIPE_STANDARD_PRICE_ID.
   stripe.ts / magic-link.ts — lazy Stripe client; Supabase OTP sender
   saves.ts / post-key.ts — per-user Save/Watchlist reads; composite post key helper
   accreditations.ts / accreditations.generated.ts — static Forbes/Gold List/Michelin map
