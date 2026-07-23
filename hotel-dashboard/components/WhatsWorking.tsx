@@ -1,254 +1,57 @@
 'use client';
 
 import { useState } from 'react';
-import type { WhatsWorkingData, WwScope, WwStat, WwObservation, BarItem, OutlierPost } from '@/lib/data';
-import { fmtFollowers, fmtPostedAt } from '@/lib/format';
-import { ImageWithFallback } from './ContentRadar';
+import type { WhatsWorkingData, WwScope, WwLever, WwLeverBar, WwDeltaDir } from '@/lib/data';
+import { WW_LEVERS_NOTE } from '@/lib/data';
 import PageInfoButton from './PageInfoButton';
 
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
-const THUMB_PLACEHOLDER = 'linear-gradient(135deg, #2f2b26, #3d382f)';
-
-// ── Plain-English findings ────────────────────────────────────────────────────
-// Each finding is DERIVED from the current bars (not hardcoded), so it stays
-// truthful as the data shifts week to week — the wording just describes whatever
-// is winning right now, in plain language with no ER/hour-block jargon on show.
-function cap(s: string): string { return s.charAt(0).toUpperCase() + s.slice(1); }
-function joinAnd(parts: string[]): string {
-  if (parts.length <= 1) return parts[0] ?? '';
-  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
-  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
-}
-const FORMAT_PLURAL: Record<string, string> = { Reel: 'reels', Video: 'videos', Carousel: 'carousels', Photo: 'photos', Other: 'other posts' };
-const formatPlural = (label: string) => FORMAT_PLURAL[label] ?? `${label.toLowerCase()}s`;
-const DAY_FULL: Record<string, string> = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
-
-/** Which post formats are pulling ahead, vs the weakest. */
-function formatFinding(data: BarItem[]): string | null {
-  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
-  if (s.length < 2 || !s[0].value) return null;
-  const top = s[0], bottom = s[s.length - 1];
-  const leaders = s.filter(d => d.value >= top.value * 0.92).map(d => formatPlural(d.label));
-  const low = bottom.label === 'Photo' ? 'plain photos' : formatPlural(bottom.label);
-  return `${cap(joinAnd(leaders))} are pulling ahead — they get noticeably more engagement than ${low} right now.`;
-}
-
-/** Whether shorter or longer captions are landing best. */
-function captionFinding(data: BarItem[]): string | null {
-  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
-  if (!s.length) return null;
-  if (s[0].label === 'Long') return 'Longer captions are winning — posts that tell a fuller story tend to do best, not one-liners.';
-  if (s[0].label === 'Short') return 'Shorter captions are winning — a tight one- or two-line caption tends to do best.';
-  return 'Medium-length captions are winning — a few lines tends to land better than very short or very long.';
-}
-
-/** Best day(s) of the week to post. */
-function dayFinding(data: BarItem[]): string | null {
-  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
-  if (!s.length || !s[0].value) return null;
-  const topDay = DAY_FULL[s[0].label] ?? s[0].label;
-  const runnersUp = s.slice(1, 3).filter(d => d.value >= s[0].value * 0.9).map(d => DAY_FULL[d.label] ?? d.label);
-  return runnersUp.length
-    ? `${topDay} posts get the most engagement, with ${joinAnd(runnersUp)} close behind.`
-    : `${topDay} posts get the most engagement.`;
-}
-
-/** Best time of day to post (plain-language time-of-day, no UTC on show). */
-function timeFinding(data: BarItem[]): string | null {
-  const s = data.filter(d => d.count > 0).sort((a, b) => b.value - a.value);
-  if (!s.length || !s[0].value) return null;
-  const PLAIN: Record<string, string> = {
-    'Midnight (0–5)': 'overnight',
-    'Morning (6–11)': 'in the morning',
-    'Afternoon (12–17)': 'in the early afternoon',
-    'Evening (18–23)': 'in the evening',
-  };
-  const when = PLAIN[s[0].label] ?? 'at that time';
-  return `Posts that go out ${when} tend to do best.`;
-}
-
-// ── Inline "i" — a small circled-i that reveals a plain-language explainer on
-// hover (desktop) or tap (mobile). Keeps the technical detail off the surface
-// but one gesture away. Matches the brand circled-i used elsewhere.
-function InfoDot({ label, children }: { label: string; children: React.ReactNode }) {
-  const [hover, setHover] = useState(false);
-  const [pinned, setPinned] = useState(false);
-  const open = hover || pinned;
-  return (
-    <span
-      style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle' }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <button
-        type="button"
-        aria-label={label}
-        aria-expanded={open}
-        onClick={() => setPinned(p => !p)}
-        onBlur={() => setPinned(false)}
-        onKeyDown={e => { if (e.key === 'Escape') setPinned(false); }}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 16,
-          height: 16,
-          borderRadius: '50%',
-          border: '1.4px solid var(--muted)',
-          background: 'transparent',
-          color: 'var(--muted)',
-          cursor: 'pointer',
-          padding: 0,
-          flex: 'none',
-        }}
-      >
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="7.4" r="1.3" fill="currentColor" />
-          <path d="M12 11v6.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-        </svg>
-      </button>
-      {open && (
-        <span
-          role="tooltip"
-          style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 8px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 240,
-            maxWidth: '70vw',
-            background: 'var(--ink)',
-            color: 'var(--on-dark)',
-            fontFamily: 'var(--font-body), sans-serif',
-            fontSize: 12,
-            lineHeight: 1.5,
-            fontWeight: 400,
-            textTransform: 'none',
-            letterSpacing: 0,
-            borderRadius: 10,
-            padding: '11px 13px',
-            boxShadow: 'var(--shadow-nav)',
-            zIndex: 40,
-          }}
-        >
-          {children}
-        </span>
-      )}
-    </span>
-  );
-}
-
-// Shared explainer for the median-engagement-rate charts.
-const ER_EXPLAINER = 'Median engagement rate (likes + comments ÷ followers) across all tracked hotels over the last 30 days. A pattern across the network, not a guarantee for any one post.';
-
-// Bar ramp: strongest bar takes the signal green, the rest fade back.
-const BAR_RAMP = ['var(--signal)', 'var(--bar-mid)', 'var(--bar-low)', 'var(--bar-low)', 'var(--bar-low)'];
 
 const SCOPES: { key: WwScope; label: string }[] = [
   { key: 'month', label: 'Last 30 days' },
   { key: 'all', label: 'All time' },
 ];
 
-// Delta line colour by direction (on the dark stat bar).
-const DELTA_COLOR: Record<WwStat['dir'], string> = {
-  up: 'var(--signal-light)',
-  down: '#D98A80',
-  flat: 'var(--muted-dark)',
+// Bar ramp: the leading bar takes the signal green and the rest step back
+// towards a pale sage, so rank reads off the colour as well as the length.
+const RAMP_TOP: [number, number, number] = [46, 115, 87];    // --signal #2E7357
+const RAMP_END: [number, number, number] = [196, 217, 206];  // pale sage
+
+/** Colour for bar `i` of `n`, interpolated along the ramp by rank. */
+function rampColor(rank: number, n: number): string {
+  if (n <= 1) return `rgb(${RAMP_TOP.join(',')})`;
+  const t = rank / (n - 1);
+  const c = RAMP_TOP.map((v, i) => Math.round(v + (RAMP_END[i] - v) * t));
+  return `rgb(${c.join(',')})`;
+}
+
+/** How a bar's multiple reads. Anything that rounds to 1.0× is not a lead. */
+function ratioLabel(ratio: number | null): { text: string; strong: boolean } {
+  if (ratio == null) return { text: 'baseline', strong: false };
+  if (ratio < 1.05) return { text: 'about the same', strong: false };
+  return { text: `${ratio.toFixed(1)}× more engagement per post`, strong: true };
+}
+
+// Small counts read better spelled out — "The five levers", not "The 5 levers".
+const COUNT_WORD: Record<number, string> = { 2: 'two', 3: 'three', 4: 'four', 5: 'five' };
+
+const TREND_MARK: Record<WwDeltaDir, string> = { up: '▲', down: '▼', flat: '—' };
+const TREND_COLOR: Record<WwDeltaDir, string> = {
+  up: 'var(--signal-deep)',
+  down: 'var(--body-mid)',
+  flat: 'var(--faint)',
 };
-const DELTA_ARROW: Record<WwStat['dir'], string> = { up: '↑', down: '↓', flat: '' };
-
-function permalink(p: OutlierPost): string {
-  return p.post_url ?? `https://www.instagram.com/p/${p.post_id}/`;
-}
-
-function barColors(data: BarItem[]): Record<string, string> {
-  const byValue = [...data].sort((a, b) => b.value - a.value);
-  const colors: Record<string, string> = {};
-  byValue.forEach((d, i) => {
-    colors[d.label] = BAR_RAMP[Math.min(i, BAR_RAMP.length - 1)];
-  });
-  return colors;
-}
-
-function BarChart({ data }: { data: BarItem[] }) {
-  const colors = barColors(data);
-  const max = Math.max(...data.map(d => d.value), 0.001);
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-      {data.map(d => (
-        <div key={d.label}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-            <span style={{ fontSize: 13, color: 'var(--ink)' }}>{d.label}</span>
-            <span style={{ fontSize: 11.5 }}>
-              <span style={{ color: 'var(--body-mid)', fontWeight: 600 }}>{d.value.toFixed(2)}%</span>
-              <span style={{ color: 'var(--faint)' }}> · n={d.count}</span>
-            </span>
-          </div>
-          <div style={{ height: 7, background: 'var(--track)', borderRadius: 4, overflow: 'hidden' }}>
-            <div
-              style={{
-                height: '100%',
-                width: `${(d.value / max) * 100}%`,
-                background: colors[d.label],
-                borderRadius: 4,
-                transition: 'width 400ms ease',
-              }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ChartCard({
-  title,
-  info,
-  finding,
-  children,
-}: {
-  title: string;
-  /** Optional "i" popover content — the technical detail behind the plain copy. */
-  info?: React.ReactNode;
-  /** Optional plain-English finding shown as a headline sentence above the chart. */
-  finding?: string | null;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--shadow-card)', padding: '22px 24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: finding ? 8 : 18 }}>
-        <h3 style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--muted)', margin: 0 }}>
-          {title}
-        </h3>
-        {info && <InfoDot label={`About: ${title}`}>{info}</InfoDot>}
-      </div>
-      {finding && (
-        <p style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.5, margin: '0 0 18px', fontWeight: 500 }}>
-          {finding}
-        </p>
-      )}
-      {children}
-    </div>
-  );
-}
-
-// Section eyebrow (uppercase micro-label above a block).
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--muted)', margin: '34px 0 14px' }}>
-      {children}
-    </div>
-  );
-}
 
 function ScopeToggle({ value, onChange }: { value: WwScope; onChange: (s: WwScope) => void }) {
   return (
     <div
       role="group"
       aria-label="Analysis period"
-      style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--surface-alt-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3, gap: 2, flexShrink: 0 }}
+      style={{
+        display: 'inline-flex', alignItems: 'center', background: 'var(--surface-alt-2)',
+        border: '1px solid var(--line)', borderRadius: 10, padding: 3, gap: 2, flexShrink: 0,
+      }}
     >
       {SCOPES.map(s => {
         const active = s.key === value;
@@ -256,22 +59,14 @@ function ScopeToggle({ value, onChange }: { value: WwScope; onChange: (s: WwScop
           <button
             key={s.key}
             type="button"
-            onClick={() => onChange(s.key)}
             aria-pressed={active}
+            onClick={() => onChange(s.key)}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 7,
-              border: 'none',
-              borderRadius: 6,
-              padding: '7px 15px',
-              fontSize: 12,
-              fontWeight: 500,
-              fontFamily: 'inherit',
+              display: 'flex', alignItems: 'center', gap: 7, border: 'none', borderRadius: 6,
+              padding: '7px 15px', fontSize: 12, fontWeight: 500, fontFamily: 'inherit',
               background: active ? 'var(--fill-strong)' : 'transparent',
               color: active ? 'var(--surface)' : 'var(--muted)',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
+              cursor: 'pointer', whiteSpace: 'nowrap',
             }}
           >
             {active && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', flexShrink: 0 }} />}
@@ -283,95 +78,174 @@ function ScopeToggle({ value, onChange }: { value: WwScope; onChange: (s: WwScop
   );
 }
 
-function StatBar({ stats }: { stats: WwStat[] }) {
+/** The sample-size chip. A "strong signal" chip is green; an early one stays grey. */
+function SamplePill({ lever }: { lever: WwLever }) {
+  const strong = lever.strength === 'strong';
   return (
-    <div
-      className="cr-stat-grid"
+    <span
       style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr 1fr',
-        gap: 1,
-        background: 'rgba(245,240,232,0.12)',
-        border: '1px solid var(--ink)',
-        borderRadius: 14,
-        overflow: 'hidden',
-        marginTop: 28,
+        display: 'inline-flex', alignItems: 'center', gap: 5, flex: 'none', fontFamily: LABEL,
+        fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+        color: strong ? 'var(--signal-deep)' : 'var(--muted)',
+        background: strong ? 'rgba(46,115,87,0.09)' : 'rgba(60,54,44,0.06)',
+        borderRadius: 999, padding: '4px 9px',
       }}
     >
-      {stats.map(s => (
-        <div key={s.caption} style={{ background: 'var(--fill-strong)', color: 'var(--on-dark)', padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 34, lineHeight: 1, color: 'var(--signal)' }}>{s.figure}</span>
-          <span style={{ fontFamily: LABEL, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.13em', color: 'var(--muted-dark)', lineHeight: 1.4 }}>
-            {s.caption}
-          </span>
-          <span style={{ fontSize: 11.5, color: DELTA_COLOR[s.dir], marginTop: 2 }}>
-            {DELTA_ARROW[s.dir] ? `${DELTA_ARROW[s.dir]} ` : ''}{s.delta}
-          </span>
-        </div>
-      ))}
-    </div>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: strong ? 'var(--signal)' : 'var(--faint)' }} />
+      {lever.sample}
+    </span>
   );
 }
 
-function ObservationCard({ o }: { o: WwObservation }) {
+function LeverHead({ index, lever }: { index: string; lever: WwLever }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--shadow-card)', padding: 24 }}>
-      <div style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 38, lineHeight: 1, letterSpacing: '-0.03em', color: 'var(--signal-deep)' }}>{o.stat}</div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginTop: 14, lineHeight: 1.3 }}>{o.title}</div>
-      <p style={{ fontSize: 13, color: 'var(--body-strong)', lineHeight: 1.6, marginTop: 8 }}>{o.text}</p>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+      <span style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 13, color: 'var(--signal-deep)' }}>{index}</span>
+      <span style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'var(--muted)' }}>
+        {lever.label}
+      </span>
+      <span style={{ marginLeft: 'auto' }}>
+        <SamplePill lever={lever} />
+      </span>
     </div>
   );
 }
 
-function BestPostRow({ post: p, rank }: { post: OutlierPost; rank: number }) {
-  const followersStr = fmtFollowers(p.hotel_followers);
-  const meta = [p.hotel_country, followersStr !== '—' ? `${followersStr} followers` : null].filter(Boolean).join(' · ');
-  const showType = !!p.type && p.type !== 'Other';
+function LeverHeadline({ lever }: { lever: WwLever }) {
+  return (
+    <>
+      <p style={{ fontSize: 18, lineHeight: 1.45, color: 'var(--ink)', fontWeight: 500, margin: 0, maxWidth: 780, textWrap: 'pretty' }}>
+        {lever.headline.pre}
+        <span style={{ color: 'var(--signal-deep)', fontWeight: 600 }}>{lever.headline.highlight}</span>
+        {lever.headline.post}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 16, fontSize: 12, color: 'var(--muted)' }}>
+        <span style={{ color: TREND_COLOR[lever.trend.dir], fontSize: 10 }}>{TREND_MARK[lever.trend.dir]}</span>
+        {lever.trend.text}
+      </div>
+    </>
+  );
+}
 
+function LeverBars({ bars, note, cta }: { bars: WwLeverBar[]; note: string; cta: WwLever['cta'] }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+      {bars.map(b => {
+        const r = ratioLabel(b.ratio);
+        // Rank by width so the colour ramp tracks the bar length even when the
+        // bars are held in a fixed order (days of the week).
+        const rank = [...bars].sort((x, y) => y.width - x.width).findIndex(x => x.label === b.label);
+        return (
+          <div key={b.label}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12 }}>
+              <span style={{ fontSize: 13, color: 'var(--ink)', fontWeight: rank === 0 ? 600 : 400 }}>
+                {b.label}
+                {b.sub && <span style={{ color: 'var(--faint)', fontWeight: 400, fontSize: 11.5 }}> {b.sub}</span>}
+              </span>
+              <span style={{ fontSize: 11.5, textAlign: 'right' }}>
+                <span style={{ color: r.strong ? 'var(--body-mid)' : 'var(--faint)', fontWeight: r.strong ? 600 : 400 }}>{r.text}</span>
+              </span>
+            </div>
+            <div style={{ height: 8, background: 'var(--track)', borderRadius: 4, overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '100%', width: `${b.width}%`, background: rampColor(rank, bars.length),
+                  borderRadius: 4, transition: 'width 400ms ease',
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+      <p style={{ fontSize: 11, color: 'var(--faint)', lineHeight: 1.5, margin: '2px 0 0' }}>{note}</p>
+      {cta && <LeverCta cta={cta} />}
+    </div>
+  );
+}
+
+function LeverCta({ cta }: { cta: NonNullable<WwLever['cta']> }) {
   return (
     <a
-      href={permalink(p)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="cr-post-row"
-      style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '16px 24px', borderBottom: '1px solid var(--line-soft)', textDecoration: 'none', color: 'inherit' }}
+      href={cta.href}
+      className="cr-link"
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, fontFamily: LABEL,
+        fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+        color: 'var(--signal-deep)', textDecoration: 'none', alignSelf: 'flex-start',
+      }}
     >
-      <span style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 18, color: 'var(--faint)', width: 26, flexShrink: 0 }}>
-        {String(rank).padStart(2, '0')}
-      </span>
-      <span style={{ position: 'relative', width: 64, height: 48, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: THUMB_PLACEHOLDER }}>
-        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={THUMB_PLACEHOLDER} blur={10} elevated={false} />
-      </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {p.hotel_name}
-        </span>
-        {meta && <span style={{ display: 'block', fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{meta}</span>}
-      </span>
-      {showType && (
-        <span className="cr-row-date" style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', width: 80, textAlign: 'right', flexShrink: 0 }}>
-          {p.type}
-        </span>
-      )}
-      <span style={{ width: 64, textAlign: 'right', flexShrink: 0 }}>
-        <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: 'var(--signal-deep)' }}>{p.multiplier.toFixed(1)}×</span>
-        <span style={{ display: 'block', fontFamily: LABEL, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
-          vs last 30 posts
-        </span>
-      </span>
+      {cta.label} <span aria-hidden="true">→</span>
     </a>
   );
 }
 
-export default function WhatsWorkingPanel({
-  data,
-  frequency,
-}: {
-  data: WhatsWorkingData;
-  frequency: { top10_ppw: number; rest_ppw: number };
-}) {
+function ThemeList({ title, themes }: { title: string; themes: NonNullable<WwLever['themes']> }) {
+  return (
+    <>
+      <div
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: LABEL, fontSize: 10,
+          fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em',
+          color: 'var(--signal-deep)', margin: '20px 0 4px',
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" />
+        </svg>
+        {title}
+      </div>
+      <ul style={{ listStyle: 'none', margin: '6px 0 0', padding: 0 }}>
+        {themes.map(t => (
+          <li key={t.title} style={{ display: 'flex', gap: 13, alignItems: 'flex-start', padding: '14px 0', borderTop: '1px solid var(--line-soft)' }}>
+            <span aria-hidden="true" style={{ flex: 'none', width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', marginTop: 8 }} />
+            <span style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--body-strong)' }}>
+              <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{t.title}.</span> {t.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+const CARD: React.CSSProperties = {
+  background: 'var(--surface)',
+  border: '1px solid var(--line)',
+  borderRadius: 16,
+  boxShadow: 'var(--shadow-card)',
+  padding: '28px 30px',
+};
+
+function LeverCard({ index, lever }: { index: string; lever: WwLever }) {
+  // A lever with a theme list runs full width; a lever with bars splits into
+  // prose on the left and the chart on the right.
+  if (!lever.bars.length) {
+    return (
+      <section style={CARD}>
+        <LeverHead index={index} lever={lever} />
+        <LeverHeadline lever={lever} />
+        {lever.themes && lever.themesTitle && <ThemeList title={lever.themesTitle} themes={lever.themes} />}
+        {lever.cta && <LeverCta cta={lever.cta} />}
+      </section>
+    );
+  }
+
+  return (
+    <section
+      className="cr-lever"
+      style={{ ...CARD, display: 'grid', gridTemplateColumns: '1fr 1.15fr', gap: 38, alignItems: 'start' }}
+    >
+      <div>
+        <LeverHead index={index} lever={lever} />
+        <LeverHeadline lever={lever} />
+      </div>
+      <LeverBars bars={lever.bars} note={lever.barsNote} cta={lever.cta} />
+    </section>
+  );
+}
+
+export default function WhatsWorkingPanel({ data }: { data: WhatsWorkingData }) {
   const [scope, setScope] = useState<WwScope>('month');
-  const [showDetail, setShowDetail] = useState(false);
   const d = data[scope];
 
   return (
@@ -390,117 +264,47 @@ export default function WhatsWorkingPanel({
           </div>
           <p style={{ fontSize: 14, color: 'var(--body-soft)', lineHeight: 1.7, marginTop: 12 }}>{d.lede}</p>
         </div>
-        <ScopeToggle value={scope} onChange={s => { setScope(s); setShowDetail(false); }} />
+        <ScopeToggle value={scope} onChange={setScope} />
       </div>
 
-      {/* Month-in-review stat bar */}
-      <StatBar stats={d.stats} />
-
-      {/* What we're seeing — observation cards */}
-      {d.observations.length > 0 && (
-        <>
-          <Eyebrow>What we&rsquo;re seeing</Eyebrow>
-          <div className="cr-stack-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-            {d.observations.map(o => (
-              <ObservationCard key={o.title} o={o} />
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Best posts of the period */}
-      {d.bestPosts.length > 0 && (
-        <>
-          <Eyebrow>{d.bestPostsTitle}</Eyebrow>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden', boxShadow: 'var(--shadow-card)' }}>
-            {d.bestPosts.map((p, i) => (
-              <BestPostRow key={`${p.post_id}-${p.instagram_handle}`} post={p} rank={i + 1} />
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Supporting signals — plain-English findings; technical detail behind the "i" */}
-      <Eyebrow>Supporting signals</Eyebrow>
-      <p style={{ fontSize: 12.5, color: 'var(--faint)', lineHeight: 1.6, margin: '-4px 0 16px' }}>
-        These are patterns across the tracked hotels over the last 30 days — correlation, not a promise.
-      </p>
-      <div className="cr-chart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <ChartCard
-          title="What kind of post works best"
-          finding={formatFinding(d.set.by_format)}
-          info={ER_EXPLAINER}
-        >
-          <BarChart data={d.set.by_format} />
-        </ChartCard>
-        <ChartCard
-          title="How long to make your captions"
-          finding={captionFinding(d.set.by_caption)}
-          info={<>{ER_EXPLAINER}{' '}“Longer” here means captions over ~300 characters; “short” is under ~100.</>}
-        >
-          <BarChart data={d.set.by_caption} />
-        </ChartCard>
+      {/* Section rule — what the stack is, and the standing caveat */}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', margin: '30px 0 18px' }}>
+        <div style={{ fontFamily: LABEL, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.16em', color: 'var(--muted)' }}>
+          {d.levers.length === 1 ? 'The lever' : `The ${COUNT_WORD[d.levers.length] ?? d.levers.length} levers`}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--faint)' }}>{WW_LEVERS_NOTE[scope]}</div>
       </div>
 
-      {/* Expander — frequency + timing detail (kept by Neil's decision) */}
-      <div style={{ marginTop: 20, textAlign: 'center' }}>
-        <button
-          onClick={() => setShowDetail(v => !v)}
-          className="cr-expander"
-          style={{ fontSize: 12, fontWeight: 500, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'var(--surface)', border: '1px solid var(--line-accent)', borderRadius: 10, padding: '11px 24px', cursor: 'pointer' }}
-        >
-          {showDetail ? 'Hide detail ↑' : 'Show more detail ↓'}
-        </button>
-      </div>
-
-      {showDetail && (
-        <div className="cr-chart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 20 }}>
-          <ChartCard title="Does posting more help?">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <div>
-                <div style={{ fontSize: 12, color: 'var(--body-mid)', marginBottom: 7 }}>Top 10 hotels (by engagement rate)</div>
-                <div style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 34, lineHeight: 1, color: 'var(--signal-deep)' }}>
-                  {frequency.top10_ppw.toFixed(1)}
-                  <span style={{ fontFamily: 'inherit', fontSize: 14, fontWeight: 400, color: 'var(--muted)', marginLeft: 8 }}>posts/week</span>
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: 'var(--body-mid)', marginBottom: 7 }}>Rest of portfolio</div>
-                <div style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 34, lineHeight: 1, color: 'var(--ink)' }}>
-                  {frequency.rest_ppw.toFixed(1)}
-                  <span style={{ fontFamily: 'inherit', fontSize: 14, fontWeight: 400, color: 'var(--muted)', marginLeft: 8 }}>posts/week</span>
-                </div>
-              </div>
-            </div>
-            <p style={{ marginTop: 22, fontSize: 12, color: 'var(--faint)' }}>Correlation only — other factors drive engagement too.</p>
-          </ChartCard>
-
-          <ChartCard title="When to post">
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--body-mid)' }}>Best days to post</div>
-                <InfoDot label="About: best days to post">{ER_EXPLAINER}</InfoDot>
-              </div>
-              {dayFinding(d.set.by_day) && (
-                <p style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5, margin: '0 0 12px', fontWeight: 500 }}>{dayFinding(d.set.by_day)}</p>
-              )}
-              <BarChart data={d.set.by_day} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--body-mid)' }}>Best times to post</div>
-                <InfoDot label="About: best times to post">
-                  {ER_EXPLAINER}{' '}Times are measured in UTC, so treat them as a rough guide. Day-of-week is a more reliable signal than exact hour.
-                </InfoDot>
-              </div>
-              {timeFinding(d.set.by_hour_block) && (
-                <p style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.5, margin: '0 0 12px', fontWeight: 500 }}>{timeFinding(d.set.by_hour_block)}</p>
-              )}
-              <BarChart data={d.set.by_hour_block} />
-            </div>
-          </ChartCard>
+      {d.levers.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {d.levers.map((lever, i) => (
+            <LeverCard key={lever.id} index={String(i + 1).padStart(2, '0')} lever={lever} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ ...CARD, fontSize: 14, color: 'var(--body-soft)', lineHeight: 1.7 }}>
+          Not enough posts in this period yet to call a pattern. The levers appear once
+          there are enough tracked posts to compare against.
         </div>
       )}
+
+      {/* Close — back to the posts the patterns came from */}
+      <div style={{ marginTop: 26, paddingTop: 24, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+        <a href="/dashboard#overview" className="cr-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--body-strong)', textDecoration: 'none' }}>
+          This week&rsquo;s breakouts are tracking the same patterns <span aria-hidden="true" style={{ color: 'var(--signal-deep)' }}>→</span>
+        </a>
+        <a
+          href="/dashboard#breakouts"
+          className="cr-link"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: LABEL, fontSize: 12,
+            fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+            color: 'var(--signal-deep)', textDecoration: 'none',
+          }}
+        >
+          See the posts behind these patterns <span aria-hidden="true">→</span>
+        </a>
+      </div>
     </div>
   );
 }

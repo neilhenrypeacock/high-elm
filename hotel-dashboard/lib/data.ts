@@ -1,6 +1,6 @@
 import { getSupabase } from './supabase';
 import { accreditationsFor } from './accreditations';
-import { fmtFollowers } from './format';
+import { fmtFollowers, fmtNumber } from './format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Shared "recent window" — the leaderboard ER and the breakout baseline both use
@@ -160,9 +160,51 @@ export type WwDeltaDir = 'up' | 'down' | 'flat';
 export type WwStat = { figure: string; caption: string; delta: string; dir: WwDeltaDir };
 /** An observation card: a headline stat, a title, and an explanatory paragraph. */
 export type WwObservation = { stat: string; title: string; text: string };
+// ── The five levers ─────────────────────────────────────────────────────────
+// The What's Working screen is built as a stack of "levers" — the things a hotel
+// can actually change. Each lever is one card: a plain-English headline, a
+// period-over-period trend line, and a set of bars measured as a MULTIPLE of the
+// weakest option ("1.6× more engagement per post than a photo"), which is the
+// only framing that reads without explaining engagement rate first.
+/** One bar: a label, an optional qualifier, and its multiple of the baseline. */
+export type WwLeverBar = {
+  label: string;
+  /** Qualifier shown small next to the label, e.g. "150+ words". */
+  sub: string | null;
+  /** Multiple of the weakest bar. null marks the baseline bar itself. */
+  ratio: number | null;
+  /** Bar width, 0–100, proportional to the underlying median. */
+  width: number;
+  count: number;
+};
+/** A named pattern with its real share of the tagged sample. */
+export type WwTheme = { title: string; text: string };
+export type WwLeverStrength = 'strong' | 'early';
+export type WwLever = {
+  id: 'content' | 'format' | 'frequency' | 'day' | 'caption';
+  /** Display label — 'Format', 'Day & time'. Numbering is assigned at render. */
+  label: string;
+  strength: WwLeverStrength;
+  /** Sample-size pill copy, e.g. "Strong signal · 1,532 posts". */
+  sample: string;
+  /** Headline split so the middle clause can carry the green accent. */
+  headline: { pre: string; highlight: string; post: string };
+  /** Period-over-period movement. 'flat' renders an em-dash, not an arrow. */
+  trend: { text: string; dir: WwDeltaDir };
+  bars: WwLeverBar[];
+  /** Caption under the bars — states the baseline and the sample size. */
+  barsNote: string;
+  cta: { label: string; href: string } | null;
+  /** Lever 01 only: the recurring subjects behind the breakouts. */
+  themes: WwTheme[] | null;
+  themesTitle: string | null;
+};
+
 export type WhatsWorkingScope = {
   /** Format / caption / day / hour median-engagement bars for this scope. */
   set: WhatsWorkingSet;
+  /** The five levers, in display order. Levers with no data are omitted. */
+  levers: WwLever[];
   /** The four-cell month-in-review stat bar. */
   stats: WwStat[];
   /** Up to three data-derived observation cards. */
@@ -426,6 +468,12 @@ function pluralFormat(label: string): string {
   return map[label] ?? `${label}s`;
 }
 
+/** The same format as one thing, with its article — "a photo", "a carousel". */
+function singleFormat(label: string): string {
+  const map: Record<string, string> = { Reel: 'a Reel', Video: 'a video', Carousel: 'a carousel', Photo: 'a photo', Other: 'another post type' };
+  return map[label] ?? `a ${label.toLowerCase()}`;
+}
+
 const MINUS = '−';
 /** Format a period-over-period delta with sign, magnitude and dir. Differences
  *  smaller than half the smallest representable unit read as flat. */
@@ -480,11 +528,318 @@ function buildObservations(set: WhatsWorkingSet, breakouts: OutlierPost[], onRec
   return obs;
 }
 
+// ── Lever construction ──────────────────────────────────────────────────────
+/** Posting-cadence buckets, measured per hotel over the scope's window. The
+ *  phrase is how the bucket reads mid-sentence ("posting once a week"). */
+const CADENCE_BUCKETS: [label: string, lo: number, hi: number, phrase: string][] = [
+  ['1× / week',   0,   1.5,      'once a week'],
+  ['2–3× / week', 1.5, 3.5,      'two to three times a week'],
+  ['4+× / week',  3.5, Infinity, 'four or more times a week'],
+];
+const cadencePhrase = (label: string) =>
+  CADENCE_BUCKETS.find(b => b[0] === label)?.[3] ?? label;
+/** Caption-length qualifiers. Buckets themselves are character-based
+ *  (captionBucket); these describe them in the words people actually think in. */
+const CAPTION_SUBS: Record<string, string> = {
+  Short:  `under ${CAPTION_SHORT_MAX} characters`,
+  Medium: `${CAPTION_SHORT_MAX}–${CAPTION_MEDIUM_MAX} characters`,
+  Long:   `${CAPTION_MEDIUM_MAX}+ characters`,
+};
+/** Plain-English gloss for each AI theme tag written by the pipeline. */
+const THEME_BLURB: Record<string, string> = {
+  'Place & Experience': 'The setting and what it feels like to be there — the landscape, the light, the view from the room.',
+  'The Property':       'The building itself — architecture, interiors, the design details people come for.',
+  'People':             'Someone in the frame — a guest, a chef, a host — giving the scene scale and a story.',
+  'Events':             'A moment with a date on it — a party, a launch, a seasonal opening.',
+};
+/** Below this many AI-tagged breakouts the content lever is withheld rather than
+ *  shown thin — a handful of tagged posts is not a portfolio pattern. */
+const MIN_TAGGED_THEMES = 5;
+/** At or above this many posts a lever reads as a settled signal, not a hint. */
+const STRONG_SIGNAL_POSTS = 500;
+
+/** "Afternoon (12–17)" → "afternoon". The UTC caveat lives under the bars, not
+ *  mid-sentence, so the prose stays readable. */
+function hourBlockPhrase(label: string): string {
+  return label.replace(/\s*\([^)]*\)\s*$/, '').toLowerCase();
+}
+
+const DAY_FULL_NAME: Record<string, string> = {
+  Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday',
+  Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday',
+};
+
+/** "a", "a and b", "a, b and c" — Oxford-comma-free, as the rest of the copy is. */
+function joinList(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? '';
+  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+function usableBars(items: BarItem[]): BarItem[] {
+  return items.filter(i => i.count > 0 && i.value > 0);
+}
+
+function leaderOf(items: BarItem[]): BarItem | null {
+  return usableBars(items).sort((a, b) => b.value - a.value)[0] ?? null;
+}
+
+/** Median engagement per post, bucketed by how often the hotel posts. */
+function cadenceBars(
+  posts: RawPost[],
+  cadencePosts: RawPost[],
+  windowDays: number,
+  latestFollowers: Record<string, number | null>,
+): BarItem[] {
+  if (windowDays <= 0) return [];
+  const perHandle: Record<string, number> = {};
+  for (const p of cadencePosts) perHandle[p.instagram_handle] = (perHandle[p.instagram_handle] ?? 0) + 1;
+  const weeks = windowDays / 7;
+  const rows: { er: number; label: string }[] = [];
+  for (const p of posts) {
+    const f = latestFollowers[p.instagram_handle];
+    if (!f || f <= 0) continue;
+    const ppw = (perHandle[p.instagram_handle] ?? 0) / weeks;
+    const bucket = CADENCE_BUCKETS.find(([, lo, hi]) => ppw >= lo && ppw < hi);
+    if (!bucket) continue;
+    rows.push({ er: (p.likes_count + (p.comments_count ?? 0)) / f, label: bucket[0] });
+  }
+  return groupMedianER(rows, CADENCE_BUCKETS.map(b => b[0]));
+}
+
+/** Turn median-ER bars into multiples of the weakest option. The lowest bar is
+ *  the baseline (ratio null); every other bar reads as "N× more than that". */
+function toLeverBars(items: BarItem[], subs: Record<string, string>, sort: boolean): WwLeverBar[] {
+  const usable = usableBars(items);
+  if (usable.length < 2) return [];
+  const values = usable.map(i => i.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const ordered = sort ? [...usable].sort((a, b) => b.value - a.value) : usable;
+  return ordered.map(i => ({
+    label: i.label,
+    sub: subs[i.label] ?? null,
+    ratio: i.value === min ? null : i.value / min,
+    width: Math.max(8, Math.round((i.value / max) * 100)),
+    count: i.count,
+  }));
+}
+
+/** The movement line under each headline. Without a previous period (all-time
+ *  scope) it states the standing pattern instead of inventing a direction. */
+function buildTrend(
+  now: BarItem[],
+  prev: BarItem[] | null,
+  /** How the bar reads as the sentence subject vs as its object — days stay
+   *  capitalised ("overtook Tuesday"), formats do not ("overtook videos"). */
+  say: { subject: (label: string) => string; object: (label: string) => string },
+  verb: { plural: boolean },
+): { text: string; dir: WwDeltaDir } {
+  const has = verb.plural ? 'have' : 'has';
+  const held = verb.plural ? 'held their lead' : 'held its lead';
+  const widened = verb.plural ? 'widened their lead' : 'widened its lead';
+  const nowLead = leaderOf(now);
+  if (!nowLead) return { text: 'Not enough posts yet to call this one', dir: 'flat' };
+  if (!prev) return { text: `${say.subject(nowLead.label)} ${has} led across everything tracked`, dir: 'flat' };
+  const prevLead = leaderOf(prev);
+  if (!prevLead) return { text: `${say.subject(nowLead.label)} ${held} — first period with enough posts to compare`, dir: 'flat' };
+  if (prevLead.label !== nowLead.label) {
+    return { text: `${say.subject(nowLead.label)} overtook ${say.object(prevLead.label)} this month`, dir: 'up' };
+  }
+  const gap = (bars: BarItem[]) => {
+    const s = usableBars(bars).sort((a, b) => b.value - a.value);
+    return s.length >= 2 && s[1].value > 0 ? s[0].value / s[1].value : 1;
+  };
+  return gap(now) > gap(prev) * 1.05
+    ? { text: `${say.subject(nowLead.label)} ${widened} this month`, dir: 'up' }
+    : { text: `${say.subject(nowLead.label)} ${held} — no change this month`, dir: 'flat' };
+}
+
+function samplePill(count: number, noun: string): { strength: WwLeverStrength; sample: string } {
+  const strength: WwLeverStrength = count >= STRONG_SIGNAL_POSTS ? 'strong' : 'early';
+  const words = strength === 'strong' ? 'Strong signal' : 'Early pattern';
+  return { strength, sample: `${words} · ${fmtNumber(count)} ${noun}` };
+}
+
+const totalCount = (bars: WwLeverBar[]) => bars.reduce((n, b) => n + b.count, 0);
+
+/** The recurring subjects behind the breakouts, from the pipeline's theme tags. */
+function buildThemes(breakouts: OutlierPost[]): { themes: WwTheme[]; tagged: number } {
+  const tagged = breakouts.filter(p => p.theme_tag);
+  const counts: Record<string, number> = {};
+  for (const p of tagged) counts[p.theme_tag!] = (counts[p.theme_tag!] ?? 0) + 1;
+  const themes = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag, n]) => ({
+      title: tag,
+      text: `${n} of the ${tagged.length} tagged breakouts. ${THEME_BLURB[tag] ?? ''}`.trim(),
+    }));
+  return { themes, tagged: tagged.length };
+}
+
+/** Build the lever stack for one scope. Any lever without enough data is left
+ *  out entirely — the screen renumbers around it rather than showing an empty card. */
+function buildLevers(
+  set: WhatsWorkingSet,
+  prev: WhatsWorkingSet | null,
+  cadence: BarItem[],
+  prevCadence: BarItem[] | null,
+  breakouts: OutlierPost[],
+  scope: WwScope,
+): WwLever[] {
+  const levers: WwLever[] = [];
+  const thisPeriod = scope === 'month' ? 'this month' : 'across everything tracked';
+
+  // 01 · The content — what the breakouts are actually about.
+  const { themes, tagged } = buildThemes(breakouts);
+  if (tagged >= MIN_TAGGED_THEMES && themes.length >= 2) {
+    levers.push({
+      id: 'content',
+      label: 'The content',
+      ...samplePill(tagged, 'tagged breakouts'),
+      headline: {
+        pre: 'The breakouts aren’t really about the hotel — they’re about ',
+        highlight: themes[0].title.toLowerCase(),
+        post: ` more than anything else. Reading the AI notes across the top posts, a few subjects keep coming back.`,
+      },
+      trend: { text: `${themes[0].title} leads the tagged breakouts ${thisPeriod}`, dir: 'flat' },
+      bars: [],
+      barsNote: '',
+      cta: { label: 'See this month’s breakouts', href: '/dashboard#breakouts' },
+      themes,
+      themesTitle: 'AI read · patterns across the tagged breakouts',
+    });
+  }
+
+  // 02 · Format.
+  const formatBars = toLeverBars(set.by_format, {}, true);
+  if (formatBars.length >= 2) {
+    const lead = formatBars.filter(b => b.ratio && b.ratio >= (formatBars[0].ratio ?? 1) * 0.92).map(b => pluralFormat(b.label).toLowerCase());
+    const baseline = formatBars[formatBars.length - 1];
+    const baseOne = singleFormat(baseline.label);
+    const n = totalCount(formatBars);
+    levers.push({
+      id: 'format',
+      label: 'Format',
+      ...samplePill(n, 'posts'),
+      headline: {
+        pre: 'Lead with ',
+        highlight: joinList(lead.length ? lead : [pluralFormat(formatBars[0].label).toLowerCase()]),
+        post: `. They pull noticeably more engagement than ${baseOne} on its own.`,
+      },
+      trend: buildTrend(set.by_format, prev?.by_format ?? null, {
+        subject: l => pluralFormat(l),
+        object: l => pluralFormat(l).toLowerCase(),
+      }, { plural: true }),
+      bars: formatBars,
+      barsNote: `Median engagement per post vs ${baseOne} · ${fmtNumber(n)} posts`,
+      cta: { label: 'See the top posts', href: '/dashboard#breakouts' },
+      themes: null,
+      themesTitle: null,
+    });
+  }
+
+  // 03 · Frequency.
+  const cadenceLever = toLeverBars(cadence, {}, true);
+  if (cadenceLever.length >= 2) {
+    const top = cadenceLever[0];
+    const baseline = cadenceLever[cadenceLever.length - 1];
+    const n = totalCount(cadenceLever);
+    levers.push({
+      id: 'frequency',
+      label: 'Frequency',
+      ...samplePill(n, 'posts'),
+      headline: {
+        pre: 'Hotels posting ',
+        highlight: cadencePhrase(top.label),
+        post: ' get the most out of each post — enough to stay seen, not so much that every post thins out.',
+      },
+      trend: buildTrend(cadence, prevCadence, {
+        subject: l => `Posting ${cadencePhrase(l)}`,
+        object: l => `posting ${cadencePhrase(l)}`,
+      }, { plural: false }),
+      bars: cadenceLever,
+      barsNote: `Median engagement per post vs posting ${cadencePhrase(baseline.label)} · ${fmtNumber(n)} posts`,
+      cta: null,
+      themes: null,
+      themesTitle: null,
+    });
+  }
+
+  // 04 · Day & time — bars stay in week order; the prose names the winner.
+  const dayBars = toLeverBars(set.by_day, {}, false);
+  const dayLead = leaderOf(set.by_day);
+  const hourLead = leaderOf(set.by_hour_block);
+  if (dayBars.length >= 2 && dayLead) {
+    const quietest = usableBars(set.by_day).sort((a, b) => a.value - b.value)[0];
+    const n = totalCount(dayBars);
+    levers.push({
+      id: 'day',
+      label: 'Day & time',
+      ...samplePill(n, 'posts'),
+      headline: {
+        pre: '',
+        highlight: DAY_FULL_NAME[dayLead.label] ?? dayLead.label,
+        post: hourLead
+          ? ` is the strongest day across the portfolio, and posts that land in the ${hourBlockPhrase(hourLead.label)} do best. ${DAY_FULL_NAME[quietest.label] ?? quietest.label} is the quietest.`
+          : ` is the strongest day across the portfolio. ${DAY_FULL_NAME[quietest.label] ?? quietest.label} is the quietest.`,
+      },
+      trend: buildTrend(set.by_day, prev?.by_day ?? null, {
+        subject: l => DAY_FULL_NAME[l] ?? l,
+        object: l => DAY_FULL_NAME[l] ?? l,
+      }, { plural: false }),
+      bars: dayBars,
+      barsNote: `Median engagement per post vs ${DAY_FULL_NAME[quietest.label] ?? quietest.label}, the quietest day · ${fmtNumber(n)} posts · times are UTC`,
+      cta: null,
+      themes: null,
+      themesTitle: null,
+    });
+  }
+
+  // 05 · Caption.
+  const captionBars = toLeverBars(set.by_caption, CAPTION_SUBS, true);
+  if (captionBars.length >= 2) {
+    const top = captionBars[0];
+    const baseline = captionBars[captionBars.length - 1];
+    const n = totalCount(captionBars);
+    const longest = top.label === 'Long';
+    levers.push({
+      id: 'caption',
+      label: 'Caption',
+      ...samplePill(n, 'posts'),
+      headline: {
+        pre: '',
+        highlight: longest ? 'Longer captions win' : `${top.label} captions win`,
+        post: longest
+          ? ' — the posts that tell a fuller story beat one-liners.'
+          : ` — ${top.label.toLowerCase()} captions beat both the very short and the very long.`,
+      },
+      trend: buildTrend(set.by_caption, prev?.by_caption ?? null, {
+        subject: l => `${l} captions`,
+        object: l => `${l.toLowerCase()} captions`,
+      }, { plural: true }),
+      bars: captionBars,
+      barsNote: `Median engagement per post vs a ${baseline.label.toLowerCase()} caption · ${fmtNumber(n)} posts`,
+      cta: { label: 'See the top posts', href: '/dashboard#breakouts' },
+      themes: null,
+      themesTitle: null,
+    });
+  }
+
+  return levers;
+}
+
 const WW_LEDE: Record<WwScope, string> = {
   month:
-    'What moved across the tracked hotels over the last 30 days — the patterns behind the breakouts, and the posts that drove them. Correlation, honestly hedged, not a guarantee.',
+    'The levers you can actually pull — what to post about, what format, how often, when to post, and how to write it. Drawn from the breakouts across every tracked hotel, honestly hedged.',
   all:
-    'Across everything we’ve tracked, the steady patterns behind the biggest breakouts — more stable, and more telling, than any single week suggests.',
+    'The same levers, measured across everything we’ve tracked rather than the last 30 days — steadier, and more telling than any single month suggests.',
+};
+
+/** Standing line under the lever stack: what the numbers are and are not. */
+export const WW_LEVERS_NOTE: Record<WwScope, string> = {
+  month: 'Patterns across the tracked hotels · last 30 days · correlation, not a promise',
+  all:   'Patterns across the tracked hotels · everything on record · correlation, not a promise',
 };
 
 /** Build the full What's Working analysis for both scopes. */
@@ -544,11 +899,24 @@ export function computeWhatsWorkingData(
   ];
 
   const setMonth = computeWhatsWorking(monthPosts, latestFollowers);
+  const setPrev  = computeWhatsWorking(prevPosts, latestFollowers);
   const setAll   = computeWhatsWorking(allValid, latestFollowers);
+
+  // Cadence is measured on ALL posts (a post with hidden likes still counts as
+  // posting), but the engagement it buckets comes from the analysable set.
+  const spanDays = (posts: RawPost[]) => {
+    if (!posts.length) return 0;
+    const ts = posts.map(p => new Date(p.posted_at).getTime());
+    return Math.max(1, (Math.max(...ts) - Math.min(...ts)) / DAY_MS_WW);
+  };
+  const cadenceMonth = cadenceBars(monthPosts, monthCadence, 30, latestFollowers);
+  const cadencePrev  = cadenceBars(prevPosts, prevCadence, 30, latestFollowers);
+  const cadenceAll   = cadenceBars(allValid, allPosts, spanDays(allPosts), latestFollowers);
 
   return {
     month: {
       set: setMonth,
+      levers: buildLevers(setMonth, setPrev, cadenceMonth, cadencePrev, mRes.posts, 'month'),
       stats: monthStats,
       observations: buildObservations(setMonth, mRes.posts, false),
       bestPosts: standout['30d'].slice(0, 5),
@@ -557,6 +925,7 @@ export function computeWhatsWorkingData(
     },
     all: {
       set: setAll,
+      levers: buildLevers(setAll, null, cadenceAll, null, aRes.posts, 'all'),
       stats: allStats,
       observations: buildObservations(setAll, aRes.posts, true),
       bestPosts: standout.all.slice(0, 5),
