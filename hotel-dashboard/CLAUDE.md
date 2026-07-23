@@ -101,9 +101,18 @@ components/
                           so it matches the dashboard's framing. LockedCard keeps its plain
                           CSS cover background — it sits behind the paywall blur overlay,
                           so crop is invisible there.
-  Dashboard.tsx         — shell: top bar + channel switcher, dark hero w/ by-the-numbers
-                          panel, section rules, floating bottom nav (mailto feature pill),
-                          dark footer.
+  Dashboard.tsx         — the four hash-switched sections. The "This week" overview was
+                          rebuilt 2026-07-23 to the Claude Design `dashboard.html` screen:
+                          dark band → giant breakout numeral + lede → ONE inline meta line
+                          (hotels · countries · posts · week ending — this REPLACED the
+                          "by the numbers" 2×2 stat panel) → "This week · breakouts" row of
+                          the top-3 posts (BreakoutMini: 4:5 media, multiplier pill, real
+                          SaveToggle, "Why it worked ·" from post_insight, else type ·
+                          posted <weekday>) → full-width "in focus" → Sources crawled →
+                          Your watchlist (empty state = green primary + text link).
+                          weekInFocus() now emits PATTERN bullets only (format/caption/day)
+                          — the biggest-breakout and 10×-count bullets were dropped as the
+                          breakout row and the lede already say both.
   ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list);
                           top-10 big cards, then a ranked list of compact rows
                           revealed 20 at a time via "Show more". BreakoutCard is exported
