@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "safari-edit",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/demos/safari-edit && python3 -m http.server $PORT"],
+      "port": 8899,
+      "autoPort": true
+    },
+    {
       "name": "firefly-dev",
       "runtimeExecutable": "bash",
       "runtimeArgs": ["-c", "cd /Users/neilpeacock/Projects/high-elm/demos/firefly && vercel dev --yes --listen $PORT"],
