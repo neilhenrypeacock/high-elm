@@ -3,6 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Consent Mode v2 — deny every storage type until the visitor chooses.
+     MUST run before Google Tag Manager loads. security_storage stays granted
+     (it is essential/anti-fraud, not tracking). -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    functionality_storage: 'denied',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
+    wait_for_update: 500
+  });
+</script>
+
+<!-- Google Tag Manager. Loads on every page view, but Consent Mode above holds
+     GA4 (and any tag you gate on consent, e.g. the Meta Pixel) until granted.
+     GA4 / Meta Pixel IDs are configured INSIDE this container, not on the page. -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MKT3D9G5');</script>
+<!-- End Google Tag Manager -->
+
 <title>The Safari Edit — The honeymoon your love deserves</title>
 <meta name="description" content="Bespoke African honeymoon safaris, designed around you by The Safari Edit. Book a free, no-obligation consultation with Alex, our Head of Travel.">
 <meta name="theme-color" content="#000000">
@@ -371,9 +400,40 @@
     .footer-links { gap:28px; }
     .footer-copy { margin-top:36px; }
   }
+
+  /* ============================================================
+     Cookie consent banner
+     ============================================================ */
+  .cc-banner { position:fixed; left:0; right:0; bottom:0; z-index:80;
+    background:var(--tse-cream); border-top:1px solid var(--border-sand);
+    box-shadow:0 -10px 34px rgba(26,23,20,.16); padding:18px clamp(16px,4vw,28px); }
+  .cc-banner[hidden] { display:none; }
+  .cc-inner { max-width:1040px; margin-inline:auto; display:flex; flex-direction:column; gap:16px; }
+  .cc-text { font-size:var(--text-small); line-height:1.55; color:var(--text-body); margin:0; }
+  .cc-text a { color:var(--accent-press); text-decoration:underline; text-underline-offset:2px; }
+  .cc-actions { display:flex; gap:12px; }
+  /* Accept and Reject are the SAME size and prominence — not a dark pattern. */
+  .cc-btn { flex:1; font-family:var(--font-label); text-transform:uppercase;
+    letter-spacing:var(--tracking-label-sm); font-size:12px; padding:14px 20px;
+    border-radius:var(--radius-pill); border:1.5px solid var(--tse-black); cursor:pointer;
+    transition:background .14s var(--ease-out), border-color .14s var(--ease-out), color .14s var(--ease-out); }
+  .cc-accept { background:var(--accent); border-color:var(--accent); color:var(--tse-black); }
+  .cc-accept:hover { background:var(--accent-hover); border-color:var(--accent-hover); }
+  .cc-reject { background:transparent; color:var(--tse-black); }
+  .cc-reject:hover { background:rgba(26,23,20,.07); }
+  @media (min-width:720px){
+    .cc-inner { flex-direction:row; align-items:center; justify-content:space-between; gap:28px; }
+    .cc-actions { flex:none; }
+    .cc-btn { flex:none; min-width:132px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MKT3D9G5"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
 <!-- ============================ Hero ============================ -->
 <section class="hero">
@@ -636,13 +696,26 @@
       <div class="footer-tag">Bespoke African Experiences</div>
     </div>
     <div class="footer-links">
-      <a href="#">Privacy Policy</a>
+      <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>
       <a href="#">Terms &amp; Conditions</a>
+      <a href="#" id="cookieSettings">Cookie settings</a>
       <a href="mailto:hello@thesafariedit.com">hello@thesafariedit.com</a>
     </div>
   </div>
   <p class="footer-copy">© 2026 The Safari Edit. All rights reserved. ATOL-protected trips arranged through our trusted partners.</p>
 </footer>
+
+<!-- ===================== Cookie consent ======================= -->
+<!-- Copy below is not from copy.md (it has no cookie wording) — Neil to confirm. -->
+<div class="cc-banner" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie choices" hidden>
+  <div class="cc-inner">
+    <p class="cc-text">We use cookies to measure how this page performs and to improve it. You choose what we may use. <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">Privacy policy</a>.</p>
+    <div class="cc-actions">
+      <button type="button" class="cc-btn cc-reject" id="cookieReject">Reject</button>
+      <button type="button" class="cc-btn cc-accept" id="cookieAccept">Accept</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // Reviews carousel (mobile) — scroll by ~one card width
@@ -731,6 +804,54 @@
         btn.textContent = label;
       });
     });
+  })();
+
+  // Cookie consent — drives Google Consent Mode and remembers the choice.
+  // Swappable: if the main site's CMP is adopted later, remove this block and
+  // let the CMP call gtag('consent','update',...) instead. GTM stays as-is.
+  (function () {
+    var COOKIE = 'tse_consent';
+    var banner = document.getElementById('cookieBanner');
+    var accept = document.getElementById('cookieAccept');
+    var reject = document.getElementById('cookieReject');
+    var settings = document.getElementById('cookieSettings');
+    if (!banner) return;
+
+    function readChoice() {
+      var m = document.cookie.match(/(?:^|;\s*)tse_consent=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : null;
+    }
+    function saveChoice(value) {
+      // Cross-subdomain: scope to .thesafariedit.com when we're on it, so a
+      // choice on go.thesafariedit.com is remembered on thesafariedit.com too.
+      var host = location.hostname;
+      var domain = /(^|\.)thesafariedit\.com$/.test(host) ? '; Domain=.thesafariedit.com' : '';
+      var secure = location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = COOKIE + '=' + value + '; Max-Age=' + (60 * 60 * 24 * 180) +
+        '; Path=/; SameSite=Lax' + domain + secure;
+    }
+    function applyConsent(granted) {
+      gtag('consent', 'update', {
+        ad_storage: granted ? 'granted' : 'denied',
+        ad_user_data: granted ? 'granted' : 'denied',
+        ad_personalization: granted ? 'granted' : 'denied',
+        analytics_storage: granted ? 'granted' : 'denied',
+        functionality_storage: granted ? 'granted' : 'denied',
+        personalization_storage: granted ? 'granted' : 'denied'
+      });
+      // Signal for non-Google tags (e.g. the Meta Pixel): fire it in GTM on this
+      // event, so the Pixel only loads once analytics/ads consent is granted.
+      dataLayer.push({ event: granted ? 'consent_granted' : 'consent_denied' });
+    }
+
+    var prior = readChoice();
+    if (prior === 'granted') { applyConsent(true); }
+    else if (prior === 'denied') { applyConsent(false); }
+    else { banner.hidden = false; } // no choice yet — Consent Mode already denies
+
+    accept.addEventListener('click', function () { saveChoice('granted'); applyConsent(true); banner.hidden = true; });
+    reject.addEventListener('click', function () { saveChoice('denied'); applyConsent(false); banner.hidden = true; });
+    if (settings) settings.addEventListener('click', function (e) { e.preventDefault(); banner.hidden = false; });
   })();
 </script>
 </body>
