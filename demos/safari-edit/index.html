@@ -327,6 +327,16 @@
   .form-err { font-size:var(--text-small); color:var(--tse-orange); margin:2px 0 0; }
   .form .btn { margin-top:8px; }
   .form-fine { font-size:var(--text-caption); line-height:1.5; color:var(--text-on-dark-mut); margin:8px 0 0; }
+  .form-fine a { color:var(--tse-orange); text-decoration:underline; text-underline-offset:2px; }
+  .form-fine a:hover { color:var(--accent-hover); }
+  /* Marketing consent — row layout, native checkbox tinted brand orange */
+  .field-check { flex-direction:row; align-items:flex-start; gap:12px; margin-top:2px; cursor:pointer; }
+  .field-check input { flex:none; width:20px; height:20px; margin:1px 0 0; padding:0;
+    background:none; border:none; border-radius:4px; accent-color:var(--accent); box-shadow:none; cursor:pointer; }
+  .field-check span { font-size:var(--text-small); line-height:1.5; color:var(--text-on-dark-mut);
+    font-family:var(--font-sans); text-transform:none; letter-spacing:0; }
+  /* Honeypot — off-screen, hidden from people and assistive tech */
+  .hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
   .form-done .done-ring { width:80px; height:80px; border-radius:50%; border:1.5px solid var(--accent);
     display:flex; align-items:center; justify-content:center; margin:0 0 26px; }
   .form-done h3 { font-size:clamp(1.7rem,2.4vw,1.9rem); line-height:1.15; color:var(--tse-cream); margin:0 0 14px; }
@@ -589,8 +599,30 @@
           <span class="field-label">Your fiancé&rsquo;s email <span class="opt">(optional)</span></span>
           <input type="text" name="partner" placeholder="sam@example.com">
         </label>
+
+        <!-- Honeypot: hidden from people, tempting to bots. If it's filled, the
+             submission is silently discarded (JS below + the Step 3 handler). -->
+        <div class="hp" aria-hidden="true">
+          <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
+        </div>
+
+        <!-- Attribution: filled from the URL query string on page load.
+             Absent parameters stay empty — never the string "undefined". -->
+        <input type="hidden" name="utm_source">
+        <input type="hidden" name="utm_medium">
+        <input type="hidden" name="utm_campaign">
+        <input type="hidden" name="utm_content">
+        <input type="hidden" name="fbclid">
+
+        <label class="field field-check">
+          <input type="checkbox" name="marketing_consent" value="yes">
+          <span>Send me the occasional email &mdash; where to go, when to go, and what we&rsquo;ve been up to.</span>
+        </label>
+
         <p class="form-err" id="formErr" role="alert" hidden></p>
         <button type="submit" class="btn btn--block">Start your free consultation today</button>
+        <!-- TODO(privacy): replace href="#" with the privacy policy URL (copy.md outstanding item 3) -->
+        <p class="form-fine">We&rsquo;ll only use your details to answer your enquiry. Here&rsquo;s our <a href="#" target="_blank" rel="noopener">privacy policy</a>.</p>
         <p class="form-fine">Alex replies personally, usually within a day.</p>
       </form>
       <div class="form-done" id="formDone" hidden>
@@ -640,7 +672,9 @@
     });
   })();
 
-  // Consultation form — client-side validation + mock confirmation
+  // Consultation form — attribution capture, validation, mock confirmation.
+  // NOTE: Step 3 will replace the local success below with a real POST to
+  // /api/enquiry (redirect to /thank-you on success).
   (function () {
     var form = document.getElementById('consultForm');
     var done = document.getElementById('formDone');
@@ -649,20 +683,40 @@
     var restart = document.getElementById('formRestart');
     if (!form) return;
 
+    // Fill the hidden attribution fields from the URL. An absent parameter
+    // leaves the field empty — never the literal string "undefined".
+    var params = new URLSearchParams(window.location.search);
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'fbclid'].forEach(function (key) {
+      var field = form.elements[key];
+      if (field) field.value = params.get(key) || '';
+    });
+
     function showErr(msg) { err.textContent = msg; err.hidden = false; }
+    function succeed(name) {
+      var first = (name || '').split(/\s+/)[0];
+      confirm.textContent = first ? ('Thank you, ' + first + ' — it’s with us.') : 'Thank you — it’s with us.';
+      form.hidden = true;
+      done.hidden = false;
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = (form.name.value || '').trim();
-      var email = (form.email.value || '').trim();
+
+      // Honeypot: a real person never fills this. If it is filled, treat it as
+      // spam — show the normal success response and quietly go no further.
+      var hp = form.elements['company'];
+      if (hp && hp.value.trim() !== '') { succeed(''); return; }
+
+      var name = (form.elements['name'].value || '').trim();
+      var email = (form.elements['email'].value || '').trim();
       if (!name || !/.+@.+\..+/.test(email)) {
         showErr('Please add your name and a valid email so Alex can reply.');
         return;
       }
-      var first = name.split(/\s+/)[0];
-      confirm.textContent = first ? ('Thank you, ' + first + ' — it’s with us.') : 'Thank you — it’s with us.';
-      form.hidden = true;
-      done.hidden = false;
+      err.hidden = true;
+
+      // Step 3 will POST the form to /api/enquiry here. For now, confirm locally.
+      succeed(name);
     });
 
     restart.addEventListener('click', function () {
