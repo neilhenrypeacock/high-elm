@@ -621,16 +621,9 @@
 
         <p class="form-err" id="formErr" role="alert" hidden></p>
         <button type="submit" class="btn btn--block">Start your free consultation today</button>
-        <!-- TODO(privacy): replace href="#" with the privacy policy URL (copy.md outstanding item 3) -->
-        <p class="form-fine">We&rsquo;ll only use your details to answer your enquiry. Here&rsquo;s our <a href="#" target="_blank" rel="noopener">privacy policy</a>.</p>
+        <p class="form-fine">We&rsquo;ll only use your details to answer your enquiry. Here&rsquo;s our <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">privacy policy</a>.</p>
         <p class="form-fine">Alex replies personally, usually within a day.</p>
       </form>
-      <div class="form-done" id="formDone" hidden>
-        <div class="done-ring"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="var(--tse-orange)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <h3 id="formConfirm">Thank you — it&rsquo;s with us.</h3>
-        <p>Alex will be in touch personally to set up your free consultation.</p>
-        <button class="restart" id="formRestart">Send another</button>
-      </div>
     </div>
   </div>
 </section>
@@ -672,16 +665,14 @@
     });
   })();
 
-  // Consultation form — attribution capture, validation, mock confirmation.
-  // NOTE: Step 3 will replace the local success below with a real POST to
-  // /api/enquiry (redirect to /thank-you on success).
+  // Consultation form — attribution capture, validation, submit to /api/enquiry.
   (function () {
     var form = document.getElementById('consultForm');
-    var done = document.getElementById('formDone');
     var err = document.getElementById('formErr');
-    var confirm = document.getElementById('formConfirm');
-    var restart = document.getElementById('formRestart');
     if (!form) return;
+
+    // copy.md section 5 — shown only if the enquiry can't reach Alex.
+    var SUBMIT_ERROR = 'Something’s gone wrong at our end. Please email Alex directly at alex@thesafariedit.com and he’ll pick it up from there.';
 
     // Fill the hidden attribution fields from the URL. An absent parameter
     // leaves the field empty — never the literal string "undefined".
@@ -692,20 +683,14 @@
     });
 
     function showErr(msg) { err.textContent = msg; err.hidden = false; }
-    function succeed(name) {
-      var first = (name || '').split(/\s+/)[0];
-      confirm.textContent = first ? ('Thank you, ' + first + ' — it’s with us.') : 'Thank you — it’s with us.';
-      form.hidden = true;
-      done.hidden = false;
-    }
+    function goThankYou() { window.location.href = '/thank-you'; }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      // Honeypot: a real person never fills this. If it is filled, treat it as
-      // spam — show the normal success response and quietly go no further.
-      var hp = form.elements['company'];
-      if (hp && hp.value.trim() !== '') { succeed(''); return; }
+      // Honeypot: a real person never fills this. If filled, treat it as spam —
+      // show the normal success response and send nothing.
+      if ((form.elements['company'].value || '').trim() !== '') { goThankYou(); return; }
 
       var name = (form.elements['name'].value || '').trim();
       var email = (form.elements['email'].value || '').trim();
@@ -715,15 +700,36 @@
       }
       err.hidden = true;
 
-      // Step 3 will POST the form to /api/enquiry here. For now, confirm locally.
-      succeed(name);
-    });
+      var btn = form.querySelector('button[type="submit"]');
+      var label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
 
-    restart.addEventListener('click', function () {
-      form.reset();
-      err.hidden = true;
-      done.hidden = true;
-      form.hidden = false;
+      var payload = {
+        name: name,
+        email: email,
+        partner: (form.elements['partner'].value || '').trim(),
+        marketing_consent: form.elements['marketing_consent'].checked,
+        utm_source: form.elements['utm_source'].value,
+        utm_medium: form.elements['utm_medium'].value,
+        utm_campaign: form.elements['utm_campaign'].value,
+        utm_content: form.elements['utm_content'].value,
+        fbclid: form.elements['fbclid'].value,
+        company: form.elements['company'].value
+      };
+
+      fetch('/api/enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (r) {
+        if (r.ok) { goThankYou(); return; }
+        throw new Error('bad status');
+      }).catch(function () {
+        showErr(SUBMIT_ERROR);
+        btn.disabled = false;
+        btn.textContent = label;
+      });
     });
   })();
 </script>
