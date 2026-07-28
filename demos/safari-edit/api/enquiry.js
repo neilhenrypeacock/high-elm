@@ -93,15 +93,12 @@ export default async function handler(req, res) {
     campaign: clean(body.utm_campaign),
     content: clean(body.utm_content),
   };
-  const firstName = names.split(/\s+/)[0] || names;
+  const firstName = firstNameOf(names);
   const { date, time, long } = ukParts();
   const id = enquiryId(date);
 
   // Orphan fields (no Sheet column) go into the Message column, labelled.
-  const messageParts = [];
-  if (partner) messageParts.push(`Fiancé's email: ${partner}`);
-  if (fbclid) messageParts.push(`fbclid: ${fbclid}`);
-  const messageCell = messageParts.join("; ");
+  const messageCell = composeMessage(partner, fbclid);
 
   // ---------- 2) Notification to Alex (the gate) ----------
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -156,21 +153,7 @@ export default async function handler(req, res) {
 
   // ---------- 4) Append to the Google Sheet ----------
   try {
-    await appendToSheet({
-      "enquiry id": id,
-      "date received": date,
-      "time received": time,
-      "first name": names, // whole name in First name (per decision)
-      "last name": "",
-      email,
-      phone: "",
-      message: messageCell,
-      "marketing consent": consent ? "Yes" : "No",
-      "utm source": utm.source,
-      "utm medium": utm.medium,
-      "utm campaign": utm.campaign,
-      "utm content": utm.content,
-    });
+    await appendToSheet(buildRowValues({ id, date, time, names, email, messageCell, consent, utm }));
   } catch (err) {
     console.error("[enquiry] Google Sheet append failed:", err);
     softFailures.push("sheet");
@@ -199,8 +182,41 @@ function escapeHtml(s) {
   return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 }
 
+// --- Pure mapping helpers (exported so they can be tested with real data) ---
+export function firstNameOf(names) {
+  const n = String(names || "").trim();
+  return n.split(/\s+/)[0] || n;
+}
+
+// Orphan fields (no Sheet column) go into the Message column, labelled.
+export function composeMessage(partner, fbclid) {
+  const parts = [];
+  if (partner) parts.push(`Fiancé's email: ${partner}`);
+  if (fbclid) parts.push(`fbclid: ${fbclid}`);
+  return parts.join("; ");
+}
+
+// Map an enquiry to Sheet columns, keyed by (lowercased) header name.
+export function buildRowValues({ id, date, time, names, email, messageCell, consent, utm }) {
+  return {
+    "enquiry id": id,
+    "date received": date,
+    "time received": time,
+    "first name": names, // whole name in First name (per decision)
+    "last name": "",
+    email,
+    phone: "",
+    message: messageCell,
+    "marketing consent": consent ? "Yes" : "No",
+    "utm source": utm.source,
+    "utm medium": utm.medium,
+    "utm campaign": utm.campaign,
+    "utm content": utm.content,
+  };
+}
+
 // --- Google Sheets: map values to the LIVE header row, by name ---
-async function appendToSheet(valuesByHeader) {
+export async function appendToSheet(valuesByHeader) {
   const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
   const auth = new google.auth.JWT({
     email: creds.client_email,
@@ -239,7 +255,7 @@ async function appendToSheet(valuesByHeader) {
 }
 
 // --- Mailchimp: email + first name only, tagged, "already a member" is fine ---
-async function addToMailchimp(email, firstName) {
+export async function addToMailchimp(email, firstName) {
   mailchimp.setConfig({
     apiKey: process.env.MAILCHIMP_API_KEY,
     server: process.env.MAILCHIMP_SERVER_PREFIX,
