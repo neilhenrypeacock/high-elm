@@ -53,6 +53,14 @@ function TopPostsIcon({ active }: IconProps) {
     </svg>
   );
 }
+function FeaturedIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+      <path d="M11 4.5l1.7 4.8 4.8 1.7-4.8 1.7L11 17.5l-1.7-4.8-4.8-1.7 4.8-1.7z" stroke={stroke(active)} strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M18.2 15.6l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" stroke={stroke(active)} strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
 function WhatsWorkingIcon({ active }: IconProps) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
@@ -115,11 +123,12 @@ function FeatureIcon() {
 const RADAR_SECTIONS: { id: string; label: string; Icon: (p: IconProps) => React.ReactNode }[] = [
   { id: 'overview', label: 'This week', Icon: ThisWeekIcon },
   { id: 'breakouts', label: 'Top posts', Icon: TopPostsIcon },
+  { id: 'featured', label: 'Featured', Icon: FeaturedIcon },
   { id: 'working', label: "What's working", Icon: WhatsWorkingIcon },
   { id: 'leaderboard', label: 'Leaderboard', Icon: LeaderboardIcon },
 ];
-// A dashboard hash that isn't one of the three inner sections resolves to overview.
-const INNER_SECTIONS = ['breakouts', 'working', 'leaderboard'];
+// A dashboard hash that isn't one of the inner sections resolves to overview.
+const INNER_SECTIONS = ['breakouts', 'featured', 'working', 'leaderboard'];
 
 const FEATURE_MAILTO =
   'mailto:hello@highelm.studio?subject=Content%20Radar%20%E2%80%94%20feature%20request';

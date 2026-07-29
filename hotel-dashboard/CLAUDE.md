@@ -106,7 +106,8 @@ components/
                           so it matches the dashboard's framing. LockedCard keeps its plain
                           CSS cover background — it sits behind the paywall blur overlay,
                           so crop is invisible there.
-  Dashboard.tsx         — the four hash-switched sections. The "This week" overview was
+  Dashboard.tsx         — the five hash-switched sections (overview / breakouts /
+                          featured / working / leaderboard). The "This week" overview was
                           rebuilt 2026-07-23 to the Claude Design `dashboard.html` screen:
                           dark band → giant breakout numeral + lede → ONE inline meta line
                           (hotels · countries · posts · week ending — this REPLACED the
@@ -134,6 +135,20 @@ components/
                           framing. `TagChip` now shows a per-format leading icon
                           (Video/Reel → play triangle, Carousel → stacked frames, Photo →
                           image glyph; Other/unknown → text only).
+  FeaturedPosts.tsx     — the "Featured" section (added 2026-07-29): the curated
+                          inspiration shelf. Lists data.featured — every post
+                          carrying standout_posts.editors_pick, best-first.
+                          Built in CURATED MODE (computeStandout opts
+                          {curated:true}): every breakout SELECTION gate (2×
+                          threshold, MIN_ENGAGEMENT, baseline floor, coverage)
+                          is skipped — the editor already selected the post —
+                          so a pick stays honoured after its hotel's numbers
+                          drift. The shown multiplier is vs the CURRENT median;
+                          only a pick with no computable baseline is skipped.
+                          Curated by ticking "Editor's Pick" in /admin
+                          (selectFeaturedPosts in lib/data.ts dedupes/orders).
+                          Reuses BreakoutCard (no rank badge); own sidebar entry
+                          in the RADAR group (#featured).
   WhatsWorking.tsx      — REBUILT 2026-07-23 to the Claude Design `whats-working.html`
                           screen: the page is now a stack of "LEVERS" — the things a hotel
                           can actually change — and nothing else. Header + lede → "The five
@@ -230,7 +245,7 @@ Removed in the 2026-07-12 cleanup: `StandoutPosts.tsx` + `TrendPanel.tsx` (unuse
 | `OUTLIER_WINDOW_DAYS` | 7 | The 7-day window (hero "this week" counts + default Top-posts view) |
 | `RECENT_POSTS` | 30 | Shared "recent window": leaderboard ER **and** breakout baseline (unified) |
 | `HOTEL_ER_POSTS` | =RECENT_POSTS | Last N posts for overall ER in leaderboard (now 30, was 12) |
-| `MIN_ENGAGEMENT` | 100 | Absolute floor; posts below this are noise |
+| `MIN_ENGAGEMENT` | 500 | Absolute floor; posts below this are noise |
 | `MIN_BASELINE_ENGAGEMENT` | 25 | Hotels with a median below this are excluded from breakouts |
 | `BASELINE_POSTS` | =RECENT_POSTS | Baseline = median over the hotel's last 30 valid posts |
 | `BASELINE_MIN_POSTS` | 12 | Fewer baseline posts → soft ⚠ warning (ER stays counted) |

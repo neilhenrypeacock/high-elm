@@ -6,6 +6,7 @@ import { parseInsight } from '@/lib/data';
 import { fmtFollowers } from '@/lib/format';
 import { postKey } from '@/lib/post-key';
 import ContentRadar, { ImageWithFallback } from './ContentRadar';
+import FeaturedPosts from './FeaturedPosts';
 import SaveToggle from './SaveToggle';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
@@ -623,7 +624,7 @@ function Hero({
 // (#overview / #breakouts / #working / #leaderboard) select the view — there is
 // no top nav. Only the active section is mounted, so each scrolls on its own.
 // Per-section explanations now live behind the sidebar's "i" (About this view).
-const SECTION_IDS = ['overview', 'breakouts', 'working', 'leaderboard'] as const;
+const SECTION_IDS = ['overview', 'breakouts', 'featured', 'working', 'leaderboard'] as const;
 type SectionId = (typeof SECTION_IDS)[number];
 
 function readHash(): SectionId {
@@ -672,6 +673,14 @@ export default function Dashboard({
         <div className="cr-inner" style={sectionPad}>
           <SectionInfo infoKey="breakouts" />
           <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} />
+        </div>
+      )}
+
+      {/* ── Featured — the hand-picked inspiration shelf ── */}
+      {active === 'featured' && (
+        <div className="cr-inner" style={sectionPad}>
+          <SectionInfo infoKey="featured" />
+          <FeaturedPosts posts={data.featured} savedPostKeys={savedPostKeys} />
         </div>
       )}
 

@@ -12,6 +12,7 @@ const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 export type InfoKey =
   | 'overview'
   | 'breakouts'
+  | 'featured'
   | 'working'
   | 'leaderboard'
   | 'hotel'
@@ -27,7 +28,7 @@ type InfoContent = { title: string; blocks: InfoBlock[] };
 export function resolveInfoKey(pathname: string, hash: string): InfoKey {
   if (pathname.startsWith('/dashboard')) {
     const h = hash.replace(/^#/, '');
-    if (h === 'breakouts' || h === 'working' || h === 'leaderboard') return h;
+    if (h === 'breakouts' || h === 'featured' || h === 'working' || h === 'leaderboard') return h;
     return 'overview';
   }
   if (pathname.startsWith('/hotel')) return 'hotel';
@@ -56,6 +57,14 @@ const CONTENT: Record<InfoKey, InfoContent> = {
       { h: 'What this is', p: 'The ranked list of breakout posts — every post beating its hotel’s own median by 2× or more, best first, no exceptions.' },
       { h: 'How it works', p: 'Choose a time window (7 days, 30 days, or all time) and filter by format or collaborations. Posts rank by multiple, not raw likes, so a smaller hotel’s genuine hit isn’t buried under a bigger grid’s baseline.' },
       { h: 'Why it helps', p: 'A refreshed ideas library — see exactly which posts are working right now, and why, so you can adapt the format for your own hotel.' },
+    ],
+  },
+  featured: {
+    title: 'Featured',
+    blocks: [
+      { h: 'What this is', p: 'A hand-picked shelf of standout posts — the ones we’ve flagged as genuine inspiration, worth studying and adapting for your own hotel.' },
+      { h: 'How it works', p: 'We review the breakouts every week and feature the best of them; most carry an Editor’s note explaining why the post worked. Unlike Top posts there’s no time window — the shelf simply grows as new standouts earn a place.' },
+      { h: 'Why it helps', p: 'When you want proven references rather than the full ranked feed, start here — the shortlist is already made.' },
     ],
   },
   working: {

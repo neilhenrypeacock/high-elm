@@ -123,7 +123,8 @@ export default function AdminEditor({
           Editor&rsquo;s notes &amp; picks
         </h1>
         <p style={{ fontSize: 14, color: 'var(--body-mid)', lineHeight: 1.5, margin: 0 }}>
-          Write the note that shows under each breakout, flag the ones worth replicating, and
+          Write the note that shows under each breakout, flag the ones worth replicating (an
+          Editor&rsquo;s Pick builds the members&rsquo; Featured shelf), and
           <strong style={{ color: 'var(--ink)', fontWeight: 600 }}> feature</strong> the ones you want
           to lead the public homepage. Saves straight to the live site. Featured posts jump to the
           front of the homepage taster (over the automatic pick); everything applies to the post
