@@ -13,7 +13,14 @@ import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 
 const MAX_DAYS = Number(process.env.FRESHNESS_MAX_DAYS ?? 8);
-const ALERT_EMAIL = process.env.ALERT_EMAIL ?? 'neil@highelmstudio.com';
+// ALERT_EMAIL may be a single address or a comma-separated list — every
+// address gets the alert. (Resend only delivers to addresses on a verified
+// domain; until the domain is verified, extra recipients are silently dropped
+// by Resend and the GitHub workflow-failure email remains the reliable channel.)
+const ALERT_EMAILS = (process.env.ALERT_EMAIL ?? 'neil@highelmstudio.com')
+  .split(',')
+  .map((e) => e.trim())
+  .filter(Boolean);
 const ALERT_FROM = process.env.ALERT_FROM ?? 'Content Radar <onboarding@resend.dev>';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -29,12 +36,12 @@ async function sendAlert(subject, body) {
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from: ALERT_FROM, to: [ALERT_EMAIL], subject, text: body }),
+    body: JSON.stringify({ from: ALERT_FROM, to: ALERT_EMAILS, subject, text: body }),
   });
   if (!res.ok) {
     console.error(`alert email failed: ${res.status} ${await res.text()}`);
   } else {
-    console.log(`alert email sent to ${ALERT_EMAIL}`);
+    console.log(`alert email sent to ${ALERT_EMAILS.join(', ')}`);
   }
 }
 

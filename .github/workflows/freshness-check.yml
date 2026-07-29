@@ -20,6 +20,11 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      # Comma-separate to alert more than one person, e.g.
+      #   ALERT_EMAIL: neil@highelmstudio.com,someone@example.com
+      # Note: Resend only delivers to addresses on a VERIFIED sending domain.
+      # To reach anyone other than the Resend account owner, also set ALERT_FROM
+      # to a sender on a verified domain (e.g. Content Radar <alerts@highelmstudio.com>).
       ALERT_EMAIL: neil@highelmstudio.com
     steps:
       - uses: actions/checkout@v4
