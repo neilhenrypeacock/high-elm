@@ -229,6 +229,10 @@ export type DashboardData = {
   standout: Record<TimeWindow, OutlierPost[]>;
   /** Landing-page taster: best non-collab breakouts of the last 30 days */
   landing_featured: OutlierPost[];
+  /** Featured — every post carrying editors_pick, best first (the curated
+   *  inspiration shelf). Breakout gates are relaxed so a pick stays honoured
+   *  after its hotel's median drifts; multiplier is vs the current median. */
+  featured: OutlierPost[];
   /** Total posts qualifying ≥2× this week (before top-25 slice) */
   breakout_count: number;
   /** Posts qualifying ≥10× this week */
@@ -954,18 +958,28 @@ export function computeStandout(
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
   limit: number = MAX_STANDOUT_POSTS,
+  // Curated mode (the Featured shelf): every gate that exists to SELECT
+  // breakouts — the 2× threshold, the absolute floor, the baseline floor and
+  // the coverage gate — is skipped, because the editor already selected the
+  // post. The one hard requirement left is a computable baseline (median > 0),
+  // without which no multiplier exists.
+  opts: { curated?: boolean } = {},
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
   for (const p of recentValidPosts) {
     const m = hotelMetrics[p.instagram_handle];
     const postEngagement = p.likes_count + (p.comments_count ?? 0);
-    if (postEngagement < MIN_ENGAGEMENT) continue;
-    if (!m?.medianPostEngagement || m.medianPostEngagement < MIN_BASELINE_ENGAGEMENT) continue;
-    // Coverage gate: a hotel that hides likes on most recent posts has a median
-    // built from too thin a sample to trust — drop its breakouts silently.
-    if (m.visibleLikeRatio < MIN_VISIBLE_LIKE_RATIO) continue;
+    if (!m?.medianPostEngagement) continue;
+    if (!opts.curated) {
+      if (postEngagement < MIN_ENGAGEMENT) continue;
+      if (m.medianPostEngagement < MIN_BASELINE_ENGAGEMENT) continue;
+      // Coverage gate: a hotel that hides likes on most recent posts has a
+      // median built from too thin a sample to trust — drop its breakouts
+      // silently.
+      if (m.visibleLikeRatio < MIN_VISIBLE_LIKE_RATIO) continue;
+    }
     const multiplier = postEngagement / m.medianPostEngagement;
-    if (multiplier < OUTLIER_THRESHOLD) continue;
+    if (!opts.curated && multiplier < OUTLIER_THRESHOLD) continue;
     const medL = m.medianLikes    ?? 1;
     const medC = m.medianComments ?? 1;
     standout.push({
@@ -1036,6 +1050,27 @@ export function orderLandingFeatured(
   if (pinned.length === 0) return autoFeatured.slice(0, limit);
   const filler = autoFeatured.filter(p => !pinnedIds.has(p.post_id));
   return [...pinned, ...filler].slice(0, limit);
+}
+
+/**
+ * The Featured shelf: every post in the pool carrying `editors_pick`, one row
+ * per post_id (the pool is multiplier-sorted, so a co-post's best grid wins),
+ * kept in the pool's best-first order.
+ *
+ * The caller builds the pool from the picked posts in curated mode
+ * ({ curated: true }), so a pick stays honoured even after its hotel's
+ * median drifts below the breakout gates.
+ * Pure + exported so the selection is unit-tested without a DB round-trip.
+ */
+export function selectFeaturedPosts(pool: OutlierPost[]): OutlierPost[] {
+  const seen = new Set<string>();
+  const out: OutlierPost[] = [];
+  for (const p of pool) {
+    if (!p.editors_pick || seen.has(p.post_id)) continue;
+    seen.add(p.post_id);
+    out.push(p);
+  }
+  return out;
 }
 
 /**
@@ -1395,6 +1430,21 @@ export async function getPortfolioData(): Promise<DashboardData> {
     );
   }
 
+  // ── Featured — the curated inspiration shelf ──────────────────────────────
+  // Every post carrying standout_posts.editors_pick, best-first. Built in
+  // curated mode: the breakout SELECTION gates are all skipped (the editor
+  // already selected the post), so a pick stays honoured even after its
+  // hotel's median drifts — the multiplier shown is simply vs the CURRENT
+  // median. Only a pick with no computable baseline at all is skipped.
+  const pickedRaw = validForAnalysis.filter(p => storedInsight[p.post_id]?.editors_pick);
+  const featured = pickedRaw.length
+    ? selectFeaturedPosts(computeStandout(
+        pickedRaw, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
+        storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
+        { curated: true },
+      ).posts)
+    : [];
+
   // ── What's Working — holistic analysis per scope (Last 30 days / All time) ─
   const whatsWorkingData = computeWhatsWorkingData(
     validForAnalysis, allPosts, now, latestFollowers, hotelMetrics,
@@ -1426,6 +1476,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     whatsWorkingData,
     standout,
     landing_featured,
+    featured,
     breakout_count,
     super_breakout_count,
     frequency,

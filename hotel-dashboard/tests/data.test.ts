@@ -12,6 +12,7 @@ import {
   parseInsight,
   orderLandingFeatured,
   rotateLandingFeatured,
+  selectFeaturedPosts,
   hasVisibleLikes,
   erFlagReasons,
   type RawPost,
@@ -538,6 +539,78 @@ describe('orderLandingFeatured', () => {
       NO_META,
     );
     expect(orderLandingFeatured(auto, [], 3)).toHaveLength(3);
+  });
+});
+
+// ─── selectFeaturedPosts (the Featured shelf) ────────────────────────────────
+
+describe('selectFeaturedPosts', () => {
+  const M = { hotel_a: metrics({ medianPostEngagement: 100 }) };
+
+  // storedInsight META tuple that marks the given post_ids as editors_pick=true.
+  const metaWithPicks = (ids: string[]): typeof NO_META => {
+    const insight: (typeof NO_META)[3] = {};
+    for (const id of ids) {
+      insight[id] = { insight: null, tag: null, theme_tag: null, editors_pick: true, landing_pin: false };
+    }
+    return [{}, {}, {}, insight];
+  };
+
+  const built = (raw: Parameters<typeof post>[0][], meta: typeof NO_META, m: Record<string, HotelMetrics> = M) =>
+    computeStandout(raw.map((o) => post(o)), m, ...meta, Number.MAX_SAFE_INTEGER).posts;
+
+  it('returns only picked posts, keeping the pool order (best first)', () => {
+    const pool = built(
+      [
+        { post_id: 'p1', likes_count: 800 },
+        { post_id: 'p2', likes_count: 700 },
+        { post_id: 'p3', likes_count: 600 },
+      ],
+      metaWithPicks(['p3', 'p1']),
+    );
+    expect(selectFeaturedPosts(pool).map((p) => p.post_id)).toEqual(['p1', 'p3']);
+  });
+
+  it('returns an empty list when nothing is picked (or the pool is empty)', () => {
+    const pool = built([{ post_id: 'p1', likes_count: 800 }], NO_META);
+    expect(selectFeaturedPosts(pool)).toEqual([]);
+    expect(selectFeaturedPosts([])).toEqual([]);
+  });
+
+  it('honours a pick that no longer clears the breakout gates (curated pool)', () => {
+    // 250+10 engagement against a median of 16: below MIN_ENGAGEMENT (500) and
+    // below MIN_BASELINE_ENGAGEMENT (25) — invisible to the normal breakout
+    // pool, but curated mode skips every selection gate so the pick surfaces.
+    const raw = [post({ post_id: 'drifted', likes_count: 250 })];
+    const meta = metaWithPicks(['drifted']);
+    const thinBaseline = { hotel_a: metrics({ medianPostEngagement: 16 }) };
+    const strict = computeStandout(raw, thinBaseline, ...meta, Number.MAX_SAFE_INTEGER).posts;
+    expect(strict).toHaveLength(0);
+    const curated = computeStandout(raw, thinBaseline, ...meta, Number.MAX_SAFE_INTEGER, { curated: true }).posts;
+    expect(selectFeaturedPosts(curated).map((p) => p.post_id)).toEqual(['drifted']);
+    expect(curated[0].multiplier).toBeCloseTo(260 / 16); // vs the current median, shown as-is
+  });
+
+  it('still skips a pick with no computable baseline, even in curated mode', () => {
+    const raw = [post({ post_id: 'nobase', likes_count: 900 })];
+    const noMedian = { hotel_a: metrics({ medianPostEngagement: null }) };
+    const curated = computeStandout(raw, noMedian, ...metaWithPicks(['nobase']), Number.MAX_SAFE_INTEGER, { curated: true }).posts;
+    expect(curated).toHaveLength(0);
+  });
+
+  it('keeps one row per picked post_id (a co-post is deduped, best grid wins)', () => {
+    const pool = built(
+      [
+        { post_id: 'dup', instagram_handle: 'a', likes_count: 800 },
+        { post_id: 'dup', instagram_handle: 'b', likes_count: 600 },
+      ],
+      metaWithPicks(['dup']),
+      { a: metrics({ medianPostEngagement: 100 }), b: metrics({ medianPostEngagement: 200 }) },
+    );
+    const result = selectFeaturedPosts(pool);
+    expect(result).toHaveLength(1);
+    // Pool is multiplier-sorted, so the 8× grid (a) wins over the 3× grid (b).
+    expect(result[0].instagram_handle).toBe('a');
   });
 });
 
