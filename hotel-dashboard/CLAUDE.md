@@ -122,16 +122,26 @@ components/
   ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list)
                           and the DESTINATION filter (added 2026-07-30): a
                           <select> on `OutlierPost.hotel_region` — the broad
-                          region (Europe / Americas / Asia-Pacific / Middle East
-                          / Africa), NOT country (46 of those is a list, not a
-                          filter). Options come from the `regions` prop the
-                          dashboard page already derives for the leaderboard, so
-                          both controls offer the same set. Display-only, like
-                          the format filters — it never changes breakout
-                          selection or the hero's count. "Reset filters" clears
-                          it too;
-                          top-10 big cards, then a ranked list of compact rows
-                          revealed 20 at a time via "Show more". BreakoutCard is exported
+                          region, NOT country (46 of those is a list, not a
+                          filter). Nothing is hardcoded: the options are whatever
+                          regions the tracked hotels carry, via the `regions`
+                          prop the dashboard page already derives for the
+                          leaderboard, so both controls offer the same set and a
+                          region rename in the `hotels` table just appears.
+                          Currently SEVEN — Africa, Asia-Pacific, Central
+                          America & Caribbean, Europe, Middle East, North
+                          America, South America (the old single "Americas" was
+                          split three ways on 2026-07-30, see
+                          instagram-pipeline/setup-split-americas.sql).
+                          Display-only, like the format filters — it never
+                          changes breakout selection or the hero's count.
+                          "Reset filters" clears it too.
+                          EVERY post renders as a FULL card (2026-07-30) — the
+                          old "top-10 big cards + compact PostRow list" split is
+                          gone, along with PostRow itself; one continuous ranked
+                          list, revealed 10 at a time via "Show more" (10 not 20
+                          because a card carries ~400px of media, not a 48px
+                          thumb). BreakoutCard is exported
                           for reuse by Landing.tsx. Post images render FRAMED, not
                           cover-cropped: the shared `ImageWithFallback` shows the whole
                           image at true aspect (objectFit:contain, centred, drop-shadow)
