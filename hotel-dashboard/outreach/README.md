@@ -84,7 +84,11 @@ and there, its own site means yes.
 
 ## Country data is dirty
 
-`hotels.country` stores the US two ways — `United States` (89) and `USA` (39) —
-and `region` has both `Asia-Pacific` (127) and `Asia` (35). UK/Ireland is clean,
-so batch 01 is unaffected, but any future US or Asia batch must match both
-spellings or it will silently miss hotels.
+`hotels.country` stores the US two ways — `United States` (89) and `USA` (39).
+UK/Ireland is clean, so batch 01 is unaffected, but any future US batch must
+match both spellings or it will silently miss hotels.
+
+`region` used to have the same problem — both `Asia-Pacific` and a legacy `Asia`
+(plus a one-row `Oceania`). Fixed on 2026-07-30, see
+`instagram-pipeline/setup-fold-asia-oceania.sql`; region is now one value per
+destination, so an Asia batch can match `Asia-Pacific` alone.

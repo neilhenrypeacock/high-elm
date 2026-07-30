@@ -22,12 +22,12 @@
 -- The country lists below deliberately include countries with no hotels yet, so
 -- the mapping still holds when coverage expands.
 --
--- ⚠ The `hotels` table also still holds legacy 'Asia' (35 rows) and 'Oceania'
--- (1 row) values on UNTRACKED hotels, left over from an earlier import. They are
--- invisible today (the dashboard only reads tracked=true), but if any of those
--- hotels is ever tracked, the filter would show 'Asia' AND 'Asia-Pacific' as
--- separate destinations. Fold them into 'Asia-Pacific' before expanding
--- coverage. NOT done here — out of scope for this change.
+-- ⚠ The `hotels` table also still held legacy 'Asia' (35 rows) and 'Oceania'
+-- (1 row) values on UNTRACKED hotels, left over from an earlier import. They
+-- were invisible (the dashboard only reads tracked=true), but if any of those
+-- hotels were ever tracked, the filter would have shown 'Asia' AND 'Asia-Pacific'
+-- as separate destinations. Out of scope for this change — FIXED separately the
+-- same day, all 36 folded into 'Asia-Pacific': see setup-fold-asia-oceania.sql.
 
 update public.hotels set region = 'North America'
  where region = 'Americas' and country in ('United States','USA','Mexico','Canada');
