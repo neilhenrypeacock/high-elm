@@ -39,7 +39,6 @@ function PostSaveToggle({
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
 const MEDIA_PLACEHOLDER = 'linear-gradient(135deg, #2b2824, #3c372e)';
-const THUMB_PLACEHOLDER = 'linear-gradient(135deg, #2f2b26, #3d382f)';
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -511,94 +510,6 @@ export function BreakoutCard({
   );
 }
 
-// ─── Ranks 6+ compact table row ───────────────────────────────────────────────
-function PostRow({
-  post: p,
-  rank,
-  saved,
-  onSavedChange,
-}: {
-  post: OutlierPost;
-  rank: number;
-  saved?: boolean;
-  onSavedChange?: (s: boolean) => void;
-}) {
-  const followersStr = fmtFollowers(p.hotel_followers);
-  const sub = [p.hotel_country, followersStr !== '—' ? `${followersStr} followers` : null]
-    .filter(Boolean)
-    .join(' · ');
-
-  const hasSave = saved !== undefined;
-
-  return (
-    <div style={{ position: 'relative' }}>
-    <a
-      href={permalink(p)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="cr-post-row"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 20,
-        padding: '16px 24px',
-        paddingRight: hasSave ? 62 : 24,
-        borderBottom: '1px solid var(--line-soft)',
-        textDecoration: 'none',
-        color: 'inherit',
-      }}
-    >
-      <span
-        style={{
-          fontFamily: DISPLAY,
-          fontWeight: 800,
-          fontSize: 18,
-          color: 'var(--faint)',
-          width: 26,
-          flexShrink: 0,
-        }}
-      >
-        {String(rank).padStart(2, '0')}
-      </span>
-
-      <span style={{ position: 'relative', width: 64, height: 48, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: THUMB_PLACEHOLDER }}>
-        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={THUMB_PLACEHOLDER} blur={10} elevated={false} />
-      </span>
-
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {p.hotel_name}
-        </span>
-        {sub && <span style={{ display: 'block', fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{sub}</span>}
-      </span>
-
-      <span className="cr-row-engage" style={{ fontSize: 12, color: 'var(--body-mid)', width: 170, textAlign: 'right', flexShrink: 0 }}>
-        {p.likes_multiple > 0 ? `↑${p.likes_multiple.toFixed(1)}× likes` : '— likes'} ·{' '}
-        {p.comments_multiple > 0 ? `↑${p.comments_multiple.toFixed(1)}× comments` : '— comments'}
-      </span>
-
-      <span style={{ width: 64, textAlign: 'right', flexShrink: 0 }}>
-        <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: 'var(--signal-deep)' }}>
-          {p.multiplier.toFixed(1)}×
-        </span>
-        <span style={{ display: 'block', fontFamily: LABEL, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
-          vs last 30 posts
-        </span>
-      </span>
-
-      <span className="cr-row-date" style={{ fontSize: 12, color: 'var(--faint)', width: 120, textAlign: 'right', flexShrink: 0 }}>
-        {fmtPostedAt(p.posted_at)}
-      </span>
-    </a>
-    {hasSave && (
-      <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
-        <PostSaveToggle post={p} saved={saved!} onSavedChange={onSavedChange} variant="inline" />
-      </div>
-    )}
-    </div>
-  );
-}
-
 // ─── Live time-window toggle (matches the shell's PillToggle visual style) ────
 function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: TimeWindow) => void }) {
   return (
@@ -667,10 +578,12 @@ const DEFAULT_FILTERS: FeedFilters = { collab: false, images: true, videos: true
 const COLLAB_CAVEAT =
   'Collaboration posts are true Instagram Collabs — posts co-authored by two accounts (the “X and Y” byline), including partners outside our tracked hotels. Posts that only mention or tag a partner in the caption aren’t counted.';
 
-// Feed shape: the top BIG_CARDS breakouts render as big cards; everything below
-// is a ranked list of compact rows, revealed SMALL_STEP at a time via "Show more".
-const BIG_CARDS = 10;
-const SMALL_STEP = 20;
+// Feed shape: EVERY breakout renders as a full card — there is no compact-row
+// tier — with CARD_STEP more revealed per "Show more" click. The step is half
+// the old row tier's 20 because each card carries ~400px of media rather than a
+// 48px thumbnail, so 20 at a time would add an unreadable amount of scroll.
+const INITIAL_CARDS = 10;
+const CARD_STEP = 10;
 
 const isImage = (t: string | null) => t === 'Photo' || t === 'Carousel';
 const isVideo = (t: string | null) => t === 'Video' || t === 'Reel';
@@ -842,9 +755,9 @@ export default function ContentRadar({
   postsByWindow: Record<TimeWindow, OutlierPost[]>;
   savedPostKeys?: string[];
 }) {
-  // How many compact rows are revealed below the big cards. Starts at 0 (the feed
-  // opens on the big cards alone); each "Show more" click appends SMALL_STEP more.
-  const [smallShown, setSmallShown] = useState(0);
+  // How many cards are revealed. Opens on INITIAL_CARDS; each "Show more" click
+  // appends CARD_STEP more. Reset whenever the window or filters change.
+  const [shown, setShown] = useState(INITIAL_CARDS);
   const [win, setWin] = useState<TimeWindow>('7d');
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
   const allFormatsOn = filters.collab && filters.images && filters.videos;
@@ -857,18 +770,16 @@ export default function ContentRadar({
   const windowPosts = postsByWindow[win];
   const posts = allFormatsOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
 
-  const bigPosts = posts.slice(0, BIG_CARDS);
-  const rest = posts.slice(BIG_CARDS);
-  const visibleRest = rest.slice(0, smallShown);
-  const remaining = rest.length - visibleRest.length;
+  const visible = posts.slice(0, shown);
+  const remaining = posts.length - visible.length;
 
   const toggle = (k: keyof FeedFilters) => {
     setFilters(f => ({ ...f, [k]: !f[k] }));
-    setSmallShown(0);
+    setShown(INITIAL_CARDS);
   };
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
-    setSmallShown(0);
+    setShown(INITIAL_CARDS);
   };
 
   const windowPhrase = (TIME_WINDOWS.find(w => w.key === win)?.label ?? '').toLowerCase();
@@ -883,7 +794,7 @@ export default function ContentRadar({
           with a single quiet status line beneath. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-          <WindowToggle value={win} onChange={w => { setWin(w); setSmallShown(0); }} />
+          <WindowToggle value={win} onChange={w => { setWin(w); setShown(INITIAL_CARDS); }} />
           <FormatDropdown filters={filters} onToggle={toggle} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -951,12 +862,13 @@ export default function ContentRadar({
           </button>
         </div>
       ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-      {/* Top 10 — big cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Eyebrow>Top {bigPosts.length}</Eyebrow>
+        {/* One tier: every breakout as a full card, ranked, revealed in steps. */}
+        <Eyebrow>
+          {remaining > 0 ? `Ranked 1 – ${visible.length} of ${posts.length}` : `All ${posts.length}`}
+        </Eyebrow>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {bigPosts.map((p, i) => (
+          {visible.map((p, i) => (
             <BreakoutCard
               key={`${p.post_id}-${p.instagram_handle}`}
               post={p}
@@ -965,57 +877,27 @@ export default function ContentRadar({
             />
           ))}
         </div>
-      </div>
-
-      {/* Ranked below the top 10 — compact rows, revealed SMALL_STEP at a time */}
-      {rest.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {visibleRest.length > 0 && (
-            <>
-              <Eyebrow>Ranked {BIG_CARDS + 1} – {BIG_CARDS + visibleRest.length}</Eyebrow>
-              <div
-                style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--line)',
-                  borderRadius: 14,
-                  overflow: 'hidden',
-                  boxShadow: 'var(--shadow-card)',
-                }}
-              >
-                {visibleRest.map((p, i) => (
-                  <PostRow
-                    key={`${p.post_id}-${p.instagram_handle}`}
-                    post={p}
-                    rank={i + BIG_CARDS + 1}
-                    saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-          {remaining > 0 && (
-            <div style={{ textAlign: 'center', marginTop: visibleRest.length > 0 ? 4 : 0 }}>
-              <button
-                onClick={() => setSmallShown(n => n + SMALL_STEP)}
-                className="cr-expander"
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  fontFamily: 'inherit',
-                  color: 'var(--signal-deep)',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--line-accent)',
-                  borderRadius: 10,
-                  padding: '11px 24px',
-                  cursor: 'pointer',
-                }}
-              >
-                Show {Math.min(SMALL_STEP, remaining)} more ↓
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        {remaining > 0 && (
+          <div style={{ textAlign: 'center', marginTop: 4 }}>
+            <button
+              onClick={() => setShown(n => n + CARD_STEP)}
+              className="cr-expander"
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                color: 'var(--signal-deep)',
+                background: 'var(--surface)',
+                border: '1px solid var(--line-accent)',
+                borderRadius: 10,
+                padding: '11px 24px',
+                cursor: 'pointer',
+              }}
+            >
+              Show {Math.min(CARD_STEP, remaining)} more ↓
+            </button>
+          </div>
+        )}
       </div>
       )}
     </div>
