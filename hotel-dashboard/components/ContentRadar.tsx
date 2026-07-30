@@ -596,10 +596,13 @@ function passesFilters(p: OutlierPost, f: FeedFilters): boolean {
 }
 
 // ─── Destination filter ───────────────────────────────────────────────────────
-// Filters by the hotel's broad REGION (Europe / Americas / Asia-Pacific / Middle
-// East / Africa), not its country — there are 46 countries, which is a list, not
-// a filter. Same <select> idiom as the leaderboard's region filter so the two
-// read as the same control. ALL_DESTINATIONS is the off position.
+// Filters by the hotel's broad REGION, not its country — there are 46 countries,
+// which is a list, not a filter. The options are whatever regions the tracked
+// hotels actually carry (currently seven: Europe, North America, Asia-Pacific,
+// Middle East, Central America & Caribbean, Africa, South America) — nothing
+// here is hardcoded, so a region rename in the hotels table just shows up.
+// Same <select> idiom as the leaderboard's region filter so the two read as the
+// same control. ALL_DESTINATIONS is the off position.
 const ALL_DESTINATIONS = 'All';
 
 function DestinationSelect({

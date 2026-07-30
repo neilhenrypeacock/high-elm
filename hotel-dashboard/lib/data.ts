@@ -114,7 +114,8 @@ export type HotelRow = {
 export type OutlierPost = {
   hotel_name: string;
   hotel_country: string | null;
-  /** Broad destination (Europe / Americas / Asia-Pacific / Middle East / Africa)
+  /** Broad destination (Europe / North America / Asia-Pacific / Middle East /
+   *  Central America & Caribbean / Africa / South America)
    *  — what the Top-posts destination filter works on. Country is too granular
    *  to filter by (46 of them). Undefined on posts saved before this field
    *  existed, since saved_posts stores a snapshot — treat as unknown. */
