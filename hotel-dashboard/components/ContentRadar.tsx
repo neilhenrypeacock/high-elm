@@ -595,6 +595,47 @@ function passesFilters(p: OutlierPost, f: FeedFilters): boolean {
   return true;
 }
 
+// ─── Destination filter ───────────────────────────────────────────────────────
+// Filters by the hotel's broad REGION (Europe / Americas / Asia-Pacific / Middle
+// East / Africa), not its country — there are 46 countries, which is a list, not
+// a filter. Same <select> idiom as the leaderboard's region filter so the two
+// read as the same control. ALL_DESTINATIONS is the off position.
+const ALL_DESTINATIONS = 'All';
+
+function DestinationSelect({
+  value,
+  regions,
+  onChange,
+}: {
+  value: string;
+  regions: string[];
+  onChange: (r: string) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      aria-label="Filter by destination"
+      style={{
+        border: '1px solid var(--line)',
+        background: 'var(--surface)',
+        color: value === ALL_DESTINATIONS ? 'var(--muted)' : 'var(--signal-deep)',
+        fontWeight: value === ALL_DESTINATIONS ? 500 : 600,
+        borderRadius: 10,
+        padding: '8px 13px',
+        fontSize: 12.5,
+        fontFamily: 'inherit',
+        cursor: 'pointer',
+      }}
+    >
+      <option value={ALL_DESTINATIONS}>All destinations</option>
+      {regions.map(r => (
+        <option key={r} value={r}>{r}</option>
+      ))}
+    </select>
+  );
+}
+
 // ─── ⓘ tooltip — hover on desktop, tap on touch. The simplest possible one, no
 // dependency: a button that reveals an absolutely-positioned note. ────────────
 function InfoTip({ text, label }: { text: string; label: string }) {
@@ -751,24 +792,33 @@ function FormatDropdown({
 export default function ContentRadar({
   postsByWindow,
   savedPostKeys = [],
+  regions = [],
 }: {
   postsByWindow: Record<TimeWindow, OutlierPost[]>;
   savedPostKeys?: string[];
+  /** Destination options, in display order (from the tracked hotels' regions). */
+  regions?: string[];
 }) {
   // How many cards are revealed. Opens on INITIAL_CARDS; each "Show more" click
   // appends CARD_STEP more. Reset whenever the window or filters change.
   const [shown, setShown] = useState(INITIAL_CARDS);
   const [win, setWin] = useState<TimeWindow>('7d');
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
+  const [destination, setDestination] = useState<string>(ALL_DESTINATIONS);
   const allFormatsOn = filters.collab && filters.images && filters.videos;
   const atDefaultFilters =
     filters.images === DEFAULT_FILTERS.images &&
     filters.videos === DEFAULT_FILTERS.videos &&
-    filters.collab === DEFAULT_FILTERS.collab;
+    filters.collab === DEFAULT_FILTERS.collab &&
+    destination === ALL_DESTINATIONS;
   const savedSet = useMemo(() => new Set(savedPostKeys), [savedPostKeys]);
 
   const windowPosts = postsByWindow[win];
-  const posts = allFormatsOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
+  const posts = useMemo(() => {
+    let list = allFormatsOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
+    if (destination !== ALL_DESTINATIONS) list = list.filter(p => p.hotel_region === destination);
+    return list;
+  }, [windowPosts, allFormatsOn, filters, destination]);
 
   const visible = posts.slice(0, shown);
   const remaining = posts.length - visible.length;
@@ -777,8 +827,13 @@ export default function ContentRadar({
     setFilters(f => ({ ...f, [k]: !f[k] }));
     setShown(INITIAL_CARDS);
   };
+  const changeDestination = (r: string) => {
+    setDestination(r);
+    setShown(INITIAL_CARDS);
+  };
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
+    setDestination(ALL_DESTINATIONS);
     setShown(INITIAL_CARDS);
   };
 
@@ -795,12 +850,18 @@ export default function ContentRadar({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <WindowToggle value={win} onChange={w => { setWin(w); setShown(INITIAL_CARDS); }} />
-          <FormatDropdown filters={filters} onToggle={toggle} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {regions.length > 0 && (
+              <DestinationSelect value={destination} regions={regions} onChange={changeDestination} />
+            )}
+            <FormatDropdown filters={filters} onToggle={toggle} />
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           {windowPosts.length > 0 && (
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>
               Showing {posts.length} of {windowPosts.length} breakout posts · {windowPhrase}
+              {destination !== ALL_DESTINATIONS && ` · ${destination}`}
             </span>
           )}
           {!atDefaultFilters && (

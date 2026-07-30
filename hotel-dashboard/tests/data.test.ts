@@ -72,10 +72,11 @@ function hotelRow(overrides: Partial<HotelRow> = {}): HotelRow {
   };
 }
 
-const NO_META = [{}, {}, {}, {}] as [
-  Record<string, string>,
-  Record<string, string | null>,
-  Record<string, string | null>,
+const NO_META = [{}, {}, {}, {}, {}] as [
+  Record<string, string>,          // hotelNameByHandle
+  Record<string, string | null>,   // hotelCountryByHandle
+  Record<string, string | null>,   // hotelRegionByHandle
+  Record<string, string | null>,   // storedImageUrl
   Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
 ];
 
@@ -395,12 +396,36 @@ describe('computeStandout', () => {
     const { posts } = computeStandout(
       [post({ post_id: 'p1', likes_count: 600, image_url: 'https://cdn.instagram.com/live.jpg' })],
       { hotel_a: metrics({ medianPostEngagement: 100 }) },
-      {},
-      {},
+      {}, // names
+      {}, // countries
+      {}, // regions
       { p1: 'https://supabase.storage/stored.jpg' },
       {}
     );
     expect(posts[0].image_url).toBe('https://supabase.storage/stored.jpg');
+  });
+
+  it('carries the hotel region onto the post (drives the destination filter)', () => {
+    const { posts } = computeStandout(
+      [post({ post_id: 'p1', likes_count: 600 })],
+      { hotel_a: metrics({ medianPostEngagement: 100 }) },
+      {}, // names
+      { hotel_a: 'France' }, // countries
+      { hotel_a: 'Europe' }, // regions
+      {},
+      {},
+    );
+    expect(posts[0].hotel_region).toBe('Europe');
+    expect(posts[0].hotel_country).toBe('France');
+  });
+
+  it('leaves the region null when the hotel has none', () => {
+    const { posts } = computeStandout(
+      [post({ post_id: 'p1', likes_count: 600 })],
+      { hotel_a: metrics({ medianPostEngagement: 100 }) },
+      ...NO_META,
+    );
+    expect(posts[0].hotel_region).toBeNull();
   });
 
   it('falls back to the handle when the hotel name is unknown', () => {
@@ -492,11 +517,11 @@ describe('orderLandingFeatured', () => {
 
   // storedInsight META tuple that marks the given post_ids as landing_pin=true.
   const metaWithPins = (ids: string[]): typeof NO_META => {
-    const insight: (typeof NO_META)[3] = {};
+    const insight: (typeof NO_META)[4] = {};
     for (const id of ids) {
       insight[id] = { insight: null, tag: null, theme_tag: null, editors_pick: false, landing_pin: true };
     }
-    return [{}, {}, {}, insight];
+    return [{}, {}, {}, {}, insight];
   };
 
   const built = (raw: Parameters<typeof post>[0][], meta: typeof NO_META, m: Record<string, HotelMetrics> = M) =>
@@ -549,11 +574,11 @@ describe('selectFeaturedPosts', () => {
 
   // storedInsight META tuple that marks the given post_ids as editors_pick=true.
   const metaWithPicks = (ids: string[]): typeof NO_META => {
-    const insight: (typeof NO_META)[3] = {};
+    const insight: (typeof NO_META)[4] = {};
     for (const id of ids) {
       insight[id] = { insight: null, tag: null, theme_tag: null, editors_pick: true, landing_pin: false };
     }
-    return [{}, {}, {}, insight];
+    return [{}, {}, {}, {}, insight];
   };
 
   const built = (raw: Parameters<typeof post>[0][], meta: typeof NO_META, m: Record<string, HotelMetrics> = M) =>

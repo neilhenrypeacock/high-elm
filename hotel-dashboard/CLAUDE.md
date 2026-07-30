@@ -119,7 +119,17 @@ components/
                           weekInFocus() now emits PATTERN bullets only (format/caption/day)
                           — the biggest-breakout and 10×-count bullets were dropped as the
                           breakout row and the lede already say both.
-  ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list);
+  ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list)
+                          and the DESTINATION filter (added 2026-07-30): a
+                          <select> on `OutlierPost.hotel_region` — the broad
+                          region (Europe / Americas / Asia-Pacific / Middle East
+                          / Africa), NOT country (46 of those is a list, not a
+                          filter). Options come from the `regions` prop the
+                          dashboard page already derives for the leaderboard, so
+                          both controls offer the same set. Display-only, like
+                          the format filters — it never changes breakout
+                          selection or the hero's count. "Reset filters" clears
+                          it too;
                           top-10 big cards, then a ranked list of compact rows
                           revealed 20 at a time via "Show more". BreakoutCard is exported
                           for reuse by Landing.tsx. Post images render FRAMED, not

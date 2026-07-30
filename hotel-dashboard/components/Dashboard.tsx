@@ -672,7 +672,7 @@ export default function Dashboard({
       {active === 'breakouts' && (
         <div className="cr-inner" style={sectionPad}>
           <SectionInfo infoKey="breakouts" />
-          <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} />
+          <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} regions={regions} />
         </div>
       )}
 
