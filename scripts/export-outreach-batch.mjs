@@ -11,10 +11,21 @@
  *   - has at least one row in `posts` (matched on instagram_handle)
  *   - has a non-blank `website`
  *   - country in COUNTRIES (default: UK + Ireland)
+ *   - independently-run only, unless --include-groups is passed (see below)
  *   - ordered by recent posting activity (posts in last 90 days), then followers
+ *
+ * Independent vs group is read off the website URL, not off brand knowledge.
+ * A hotel is treated as GROUP-run when either signal fires:
+ *   - its root domain is shared with another hotel in the `hotels` table
+ *     (fourseasons.com covers 44 properties, maybourne.com 4, ...)
+ *   - its website is a deep path under a brand site (/en/hotels/claridges)
+ * Both mean a contact-finding tool returns the group's head office rather than
+ * the property's own social lead, so a cold email lands in the wrong inbox.
+ * On the UK+Ireland set the two signals agree exactly: 10 independent, 11 group.
  *
  * Usage:
  *   node scripts/export-outreach-batch.mjs
+ *   node scripts/export-outreach-batch.mjs --include-groups
  *   node scripts/export-outreach-batch.mjs --countries "France,Italy" --limit 30 \
  *     --out outreach/apollo-batch-02-france-italy.csv
  *
@@ -33,6 +44,7 @@ const COUNTRIES = arg('countries', 'United Kingdom,Ireland')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 const LIMIT = Number(arg('limit', '0')) || Infinity;
 const OUT = arg('out', 'outreach/apollo-batch-01-uk-ireland.csv');
+const INCLUDE_GROUPS = ARGV.includes('--include-groups');
 const ACTIVITY_DAYS = 90;
 
 // ---------- credentials ----------
@@ -93,6 +105,15 @@ function rootDomain(website) {
   }
 }
 
+/** True when the website is a sub-page of a brand site rather than its own root. */
+function isDeepPath(website) {
+  try {
+    return new URL(website).pathname.split('/').filter(Boolean).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 const csvCell = v => {
   const s = v == null ? '' : String(v);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -127,6 +148,19 @@ for (const p of posts) {
   activity.set(handle, entry);
 }
 
+// How many hotels in the WHOLE table share each root domain. Counted across all
+// 764 rows, not just the batch, so a chain is caught even when only one of its
+// properties is in scope.
+const domainUse = new Map();
+for (const h of hotels) {
+  const d = rootDomain(h.website ?? '');
+  if (d) domainUse.set(d, (domainUse.get(d) ?? 0) + 1);
+}
+const ownershipOf = h => {
+  const shared = domainUse.get(rootDomain(h.website)) ?? 1;
+  return shared > 1 || isDeepPath(h.website) ? 'group' : 'independent';
+};
+
 // ---------- select ----------
 const inScope = hotels.filter(h =>
   h.tracked === true &&
@@ -134,30 +168,36 @@ const inScope = hotels.filter(h =>
   COUNTRIES.includes((h.country ?? '').trim().toLowerCase())
 );
 const noWebsite = inScope.filter(h => !(h.website ?? '').trim());
-const selected = inScope
-  .filter(h => (h.website ?? '').trim())
-  .sort((a, b) => {
-    const ra = activity.get(handleOf(a)).recent;
-    const rb = activity.get(handleOf(b)).recent;
-    if (rb !== ra) return rb - ra;
-    return (followers.get(handleOf(b)) ?? 0) - (followers.get(handleOf(a)) ?? 0);
-  })
+const withWebsite = inScope.filter(h => (h.website ?? '').trim());
+const groups = withWebsite.filter(h => ownershipOf(h) === 'group');
+
+const byReach = (a, b) => {
+  const ra = activity.get(handleOf(a)).recent;
+  const rb = activity.get(handleOf(b)).recent;
+  if (rb !== ra) return rb - ra;
+  return (followers.get(handleOf(b)) ?? 0) - (followers.get(handleOf(a)) ?? 0);
+};
+const selected = withWebsite
+  .filter(h => INCLUDE_GROUPS || ownershipOf(h) === 'independent')
+  .sort(byReach)
   .slice(0, LIMIT);
 
 // ---------- write ----------
 const COLUMNS = [
-  'hotel_id', 'hotel_name', 'website', 'root_domain', 'country', 'region',
-  'instagram_handle', 'followers', 'posts_last_90d', 'posts_total',
-  'last_posted', 'accreditation_lists', 'gold_list_editions',
+  'hotel_id', 'hotel_name', 'website', 'root_domain', 'ownership',
+  'hotels_sharing_domain', 'country', 'region', 'instagram_handle', 'followers',
+  'posts_last_90d', 'posts_total', 'last_posted', 'accreditation_lists',
+  'gold_list_editions',
 ];
-const lines = [COLUMNS.join(',')];
-for (const h of selected) {
+const toRow = h => {
   const a = activity.get(handleOf(h));
-  lines.push([
+  return [
     h.id,
     h.name,
     h.website,
     rootDomain(h.website),
+    ownershipOf(h),
+    domainUse.get(rootDomain(h.website)) ?? 1,
     h.country,
     h.region,
     h.instagram_handle,
@@ -167,26 +207,45 @@ for (const h of selected) {
     a.latest ? new Date(a.latest).toISOString().slice(0, 10) : '',
     h.sources ?? '',
     h.gold_list_listings ?? '',
-  ].map(csvCell).join(','));
+  ].map(csvCell).join(',');
+};
+
+function writeCsv(relPath, rows) {
+  const outPath = path.resolve(process.cwd(), relPath);
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, [COLUMNS.join(','), ...rows.map(toRow)].join('\n') + '\n');
 }
 
-const outPath = path.resolve(process.cwd(), OUT);
-fs.mkdirSync(path.dirname(outPath), { recursive: true });
-fs.writeFileSync(outPath, lines.join('\n') + '\n');
+writeCsv(OUT, selected);
+
+// The group-run properties aren't discarded — they're parked in a sibling file
+// so they can be picked up later via LinkedIn rather than a domain lookup.
+const DEFERRED = OUT.replace(/\.csv$/, '-deferred-groups.csv');
+if (!INCLUDE_GROUPS && groups.length) writeCsv(DEFERRED, [...groups].sort(byReach));
 
 // ---------- report ----------
-const groupDomains = new Map();
+console.log(`Countries            : ${COUNTRIES.join(', ')}`);
+console.log(`In scope             : ${inScope.length} (tracked + has posts + country match)`);
+console.log(`Excluded (no website): ${noWebsite.length}`);
+console.log(`Excluded (group-run) : ${INCLUDE_GROUPS ? 0 : groups.length}`);
+console.log(`Exported             : ${selected.length} -> ${OUT}`);
+
+if (!INCLUDE_GROUPS && groups.length) {
+  console.log(`Deferred             : ${groups.length} -> ${DEFERRED}`);
+  console.log('\nGroup-run, held back (contact tools return the group, not the property):');
+  for (const h of [...groups].sort(byReach)) {
+    const d = rootDomain(h.website);
+    console.log(`  ${h.name} — ${d} (${domainUse.get(d)} properties on this domain)`);
+  }
+}
+
+const stillShared = new Map();
 for (const h of selected) {
   const d = rootDomain(h.website);
-  groupDomains.set(d, (groupDomains.get(d) ?? 0) + 1);
+  stillShared.set(d, (stillShared.get(d) ?? 0) + 1);
 }
-const shared = [...groupDomains.entries()].filter(([, n]) => n > 1);
-
-console.log(`Countries      : ${COUNTRIES.join(', ')}`);
-console.log(`In scope       : ${inScope.length} (tracked + has posts + country match)`);
-console.log(`Excluded (no website): ${noWebsite.length}`);
-console.log(`Exported       : ${selected.length} -> ${OUT}`);
-if (shared.length) {
-  console.log('\nShared root domains (Apollo will return the group, not the property):');
-  for (const [d, n] of shared) console.log(`  ${d} x${n}`);
+const dupes = [...stillShared.entries()].filter(([, n]) => n > 1);
+if (dupes.length) {
+  console.log('\n⚠ Shared domains still present in the export:');
+  for (const [d, n] of dupes) console.log(`  ${d} x${n}`);
 }
