@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import type { HotelRow } from '@/lib/data';
+import { DORMANT_DAYS, type HotelRow } from '@/lib/data';
 import { fmtFollowers, fmtDate, fmtNumber } from '@/lib/format';
 import SaveToggle from './SaveToggle';
 
@@ -35,6 +35,9 @@ const GRID: React.CSSProperties = {
   alignItems: 'center',
 };
 const DEFAULT_VISIBLE = 10;
+// Snapshotted at load — render must stay pure (react-hooks/purity), and
+// page-load precision is plenty for a "posted in the last 60 days?" check.
+const LOADED_AT_MS = Date.now();
 
 // Discreet text pins for a hotel's accolades (Forbes / Gold List / Michelin Keys).
 // Text only — no official logos (trademark/endorsement risk). A hotel may carry more
@@ -311,6 +314,10 @@ export default function HotelTable({
           const rate = h.engagement_rate;
           const strong = rate !== null && rate >= medianRate;
           const barW = rate !== null ? Math.max(6, Math.round((rate / maxRate) * 100)) : 0;
+          // Mirror of the data layer's dormancy gate, so the "—" says why
+          const dormant =
+            h.last_posted === null ||
+            LOADED_AT_MS - new Date(h.last_posted).getTime() > DORMANT_DAYS * 24 * 60 * 60 * 1000;
 
           return (
             <div
@@ -367,8 +374,13 @@ export default function HotelTable({
                     </div>
                   </>
                 ) : (
-                  // Too few readable posts (or likes hidden) — nothing to rate
-                  <span style={{ color: 'var(--faint)' }} title="Not enough readable posts to rate">—</span>
+                  // Dormant, too few readable posts, or likes hidden — nothing to rate
+                  <span
+                    style={{ color: 'var(--faint)' }}
+                    title={dormant ? `Nothing posted in the last ${DORMANT_DAYS} days` : 'Not enough readable posts to rate'}
+                  >
+                    —
+                  </span>
                 )}
               </div>
 
@@ -430,7 +442,8 @@ export default function HotelTable({
         Eng. rate = the hotel&rsquo;s median (likes + comments) per post ÷ followers × 100, over its
         last 30 posts — what a typical post does, so one viral hit doesn&rsquo;t inflate it. Prefer
         to reward posting often too? Rank by Momentum: all engagement over the last 30 days ÷
-        followers × 100. Hotels with too few readable posts show <span aria-hidden="true">—</span>.
+        followers × 100. Hotels with too few readable posts — or nothing posted in the last{' '}
+        {DORMANT_DAYS} days — show <span aria-hidden="true">—</span>.
         Public Instagram data only — no reach or impressions. Pins mark hotels named on the Forbes
         Travel Guide five-star list, the Condé Nast Traveller Gold List, The World&rsquo;s 50 Best
         Hotels, or Michelin Keys (UK &amp; Ireland) — coverage of those lists is partial.

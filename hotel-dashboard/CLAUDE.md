@@ -184,7 +184,10 @@ components/
                           "Momentum" pill in the filter row (replaced the 30/90-day
                           toggle) — deliberately never displayed as a %, since volume +
                           virality push it far beyond any credible ER. d90 is still
-                          computed but currently unused by the UI.
+                          computed but currently unused by the UI. DORMANCY: ER is
+                          nulled when the hotel hasn't posted in DORMANT_DAYS (60) —
+                          the count-based median never ages out on its own, so dormant
+                          hotels would otherwise coast on stale numbers.
   Lockup.tsx / MarkSvg.tsx — brand lockup (0.724/0.207/0.172 ratios, Space Mono endorsement)
   YourHotel.tsx         — "Your Hotel" page ('use client'): header strip w/ example-data
                           pill + accreditation pins → own-breakout cards (BreakoutCard

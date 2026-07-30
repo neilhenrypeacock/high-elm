@@ -8,6 +8,11 @@ import { fmtFollowers, fmtNumber } from './format';
 // One source of truth so the two never drift apart.
 const RECENT_POSTS        = 30;
 const HOTEL_ER_POSTS      = RECENT_POSTS;
+// A hotel with nothing posted in this many days is dormant: its ER (a count-based
+// "last 30 posts" median, which never ages out on its own) is nulled so it sorts
+// to the bottom of the leaderboard instead of coasting on stale numbers.
+// Exported so HotelTable can label the dormant "—" accurately.
+export const DORMANT_DAYS = 60;
 const OUTLIER_THRESHOLD   = 2;
 const OUTLIER_WINDOW_DAYS = 7
 const POSTS_WEEK_WINDOW   = 28;
@@ -88,7 +93,8 @@ export type HotelRow = {
   followers_count: number | null;
   /** Median per-post rate (%) over the hotel's last 30 valid posts — what a
    *  typical post does, so one viral hit doesn't inflate it. Null when flagged
-   *  (too few posts or anomalous value) — excluded from all stats */
+   *  (too few posts or anomalous value) or dormant (nothing posted in
+   *  DORMANT_DAYS) — excluded from all stats */
   engagement_rate: number | null;
   /** Momentum — total engagement (likes+comments) over the last N days
    *  ÷ followers × 100. Rewards posting often as well as posting well; a
@@ -1340,6 +1346,11 @@ export async function getPortfolioData(): Promise<DashboardData> {
     // and sorts to the bottom, exactly like a dormant hotel. Deliberately sets NO
     // er_flag_reason, so there's no ⚠ or caveat on the leaderboard (Neil's call).
     const mostlyHidesLikes = (m?.visibleLikeRatio ?? 0) < MIN_VISIBLE_LIKE_RATIO;
+    // Dormancy gate: the ER is a "last 30 posts" median, so it never ages out on
+    // its own — a hotel that stopped posting would keep its old number forever.
+    // Nulled silently (no ⚠), like mostlyHidesLikes.
+    const lastPostedMs = m?.lastPosted ? new Date(m.lastPosted).getTime() : null;
+    const dormant = lastPostedMs === null || now - lastPostedMs > DORMANT_DAYS * 24 * 60 * 60 * 1000;
 
     hotelRows.push({
       name:             h.name,
@@ -1350,7 +1361,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       // Only a hard flag nulls the ER (excluded from medians, sorts to the
       // bottom). A soft baseline warning keeps the valid ER counted. A
       // mostly-hidden-likes hotel is nulled silently (no flag reason).
-      engagement_rate:  hard || mostlyHidesLikes ? null : rawER,
+      engagement_rate:  hard || mostlyHidesLikes || dormant ? null : rawER,
       recent_rate:      mostlyHidesLikes
         ? { d30: null, d90: null }
         : { d30: m?.recentRate30 ?? null, d90: m?.recentRate90 ?? null },
