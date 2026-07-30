@@ -156,9 +156,6 @@ section[id], div[id] { scroll-margin-top: 86px; }
 .cr-lift { transition: transform 0.16s ease, box-shadow 0.16s ease; }
 .cr-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
 
-.cr-post-row { transition: background 0.12s; }
-.cr-post-row:hover { background: var(--surface-alt); }
-
 .cr-lb-body-row { transition: background 0.12s; }
 .cr-lb-body-row:hover { background: var(--row-hover) !important; }
 
@@ -211,7 +208,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .cr-card-grid { grid-template-columns: 1fr !important; }
   .cr-card-media { min-height: 0 !important; aspect-ratio: 16 / 10; }
   .cr-card-body { padding: 24px 22px !important; }
-  .cr-row-date, .cr-row-engage { display: none !important; }
 }
 
 /* Stat + chart grids collapse */
