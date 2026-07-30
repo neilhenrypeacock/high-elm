@@ -227,7 +227,24 @@ export type WhatsWorkingScope = {
 };
 export type WhatsWorkingData = Record<WwScope, WhatsWorkingScope>;
 
+/** A post the admin has hidden — enough to recognise and un-hide it. */
+export type HiddenPost = {
+  post_id: string;
+  instagram_handle: string;
+  hotel_name: string;
+  image_url: string | null;
+  posted_at: string;
+};
+
 export type DashboardData = {
+  /** Publish-gate state, for the /admin banner. `cutoff` is the ISO timestamp
+   *  members can see up to; `pending` counts posts newer than it (they exist in
+   *  the DB but are held back until Publish). */
+  publish: { cutoff: string | null; pending: number };
+  /** What the admin has hidden. Hidden things are excluded from every figure
+   *  above, so this roster is the only place they can be seen and undone.
+   *  `posts` is populated on the admin view only; `hotels` always. */
+  hidden: { posts: HiddenPost[]; hotels: { instagram_handle: string; name: string }[] };
   hotels: HotelRow[];
   snapshot: Snapshot;
   /** What's Working medians — the last WHATS_WORKING_WINDOW_DAYS set (used by the
@@ -1127,20 +1144,50 @@ export function rotateLandingFeatured(
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export async function getPortfolioData(): Promise<DashboardData> {
+/**
+ * @param opts.adminView  Bypass the PUBLISH GATE so /admin sees the posts from
+ *   the latest scrape before they are released to members. It does NOT bypass
+ *   the hidden flags — hidden posts and hotels are excluded from the numbers
+ *   for everyone, so what the admin reviews is exactly what members will get.
+ */
+export async function getPortfolioData(
+  opts: { adminView?: boolean } = {},
+): Promise<DashboardData> {
   const supabase = getSupabase();
   const PAGE = 1000;
+  const adminView = opts.adminView === true;
+
+  // ── Publish gate ──────────────────────────────────────────────────────────
+  // Members only see posts dated at or before the cutoff, so a Sunday-night
+  // scrape lands invisibly and is released by hitting Publish in /admin on the
+  // Monday. A missing/unreadable settings row must never black out the
+  // dashboard, so the fallback is "everything is published".
+  const settingsRes = await supabase
+    .from('dashboard_settings')
+    .select('publish_cutoff, published_at')
+    .eq('id', true)
+    .maybeSingle();
+  if (settingsRes.error) console.error('dashboard_settings query failed:', settingsRes.error.message);
+  const publishCutoffIso = settingsRes.data?.publish_cutoff ?? null;
+  const publishCutoffMs = publishCutoffIso ? new Date(publishCutoffIso).getTime() : Number.POSITIVE_INFINITY;
 
   // Beta: only tracked hotels (the 200 most-followed — see
   // instagram-pipeline/setup-tracked.sql). Untracked hotels stay in the
-  // database but are invisible to the dashboard.
+  // database but are invisible to the dashboard. `hidden` is the separate,
+  // EDITORIAL flag set in /admin — deliberately not `tracked`, so hiding a
+  // hotel from the dashboard never stops the pipeline scraping it.
   const hotelsRes = await supabase
     .from('hotels')
-    .select('name, region, country, instagram_handle')
+    .select('name, region, country, instagram_handle, hidden')
     .eq('tracked', true)
     .order('name');
   if (hotelsRes.error) throw new Error(hotelsRes.error.message);
-  const trackedHandles = new Set((hotelsRes.data ?? []).map(h => h.instagram_handle));
+  const hiddenHotels = (hotelsRes.data ?? []).filter(h => h.hidden === true);
+  const hiddenHandles = new Set(hiddenHotels.map(h => h.instagram_handle));
+  // A hidden hotel is excluded from EVERY figure — it never reaches trackedHandles.
+  const trackedHandles = new Set(
+    (hotelsRes.data ?? []).filter(h => !hiddenHandles.has(h.instagram_handle)).map(h => h.instagram_handle),
+  );
 
   // NOTE: every paginated query orders by a UNIQUE key (or has a unique
   // tiebreaker). Offset pagination over non-unique columns (a scrape inserts
@@ -1157,12 +1204,13 @@ export async function getPortfolioData(): Promise<DashboardData> {
     theme_tag: string | null;
     editors_pick: boolean | null;
     landing_pin: boolean | null;
+    hidden: boolean | null;
   };
   const standoutRows: StandoutRow[] = [];
   for (let page = 0; ; page++) {
     const { data, error } = await supabase
       .from('standout_posts')
-      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag, editors_pick, landing_pin')
+      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag, editors_pick, landing_pin, hidden')
       .order('post_id')
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (error) {
@@ -1192,8 +1240,16 @@ export async function getPortfolioData(): Promise<DashboardData> {
     if (data.length < PAGE) break;
   }
 
+  // Posts hidden by the admin. Keyed on post_id (standout_posts' primary key),
+  // so — exactly like the Editor's note — hiding a co-post hides it on every
+  // partner's grid.
+  const hiddenPostIds = new Set(standoutRows.filter(r => r.hidden === true).map(r => r.post_id));
+
   // Paginate posts
   const allPosts: RawPost[] = [];
+  // Posts newer than the cutoff, awaiting release. Counted even when they're
+  // filtered out, so /admin can say how many are pending.
+  let pendingPosts = 0;
   // A co-post appears on each partner's grid as a separate row (same post_id,
   // different instagram_handle) — de-dupe on the composite, not post_id alone.
   const seenPostKeys = new Set<string>();
@@ -1208,18 +1264,65 @@ export async function getPortfolioData(): Promise<DashboardData> {
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
     for (const p of data) {
-      // Untracked hotels' historical posts stay in the DB but out of the stats
+      // Untracked + admin-hidden hotels' posts stay in the DB but out of the
+      // stats. Hidden is FULL exclusion: the post never reaches a baseline, a
+      // median, a breakout count or the What's Working buckets, so no figure
+      // can disagree with what's on screen.
       if (!trackedHandles.has(p.instagram_handle)) continue;
+      if (hiddenPostIds.has(p.post_id)) continue;
       // Rows can shift between pages if the pipeline uploads mid-fetch
       const key = `${p.post_id}|${p.instagram_handle}`;
       if (seenPostKeys.has(key)) continue;
       seenPostKeys.add(key);
+      // The publish gate. Admin sees through it; members don't.
+      if (new Date(p.posted_at).getTime() > publishCutoffMs) {
+        pendingPosts++;
+        if (!adminView) continue;
+      }
       allPosts.push(p);
     }
     if (data.length < PAGE) break;
   }
 
-  const allHotels = hotelsRes.data ?? [];
+  const allHotels = (hotelsRes.data ?? []).filter(h => !hiddenHandles.has(h.instagram_handle));
+
+  // ── The hidden roster (admin only) ────────────────────────────────────────
+  // Hidden things are excluded from the data above, so /admin needs this
+  // separate list to show what's hidden and undo it. Skipped entirely for
+  // members — it costs a query and they can't act on it.
+  const nameByHandleAll: Record<string, string> = {};
+  for (const h of hotelsRes.data ?? []) {
+    if (!(h.instagram_handle in nameByHandleAll)) nameByHandleAll[h.instagram_handle] = h.name;
+  }
+  const hiddenRoster: DashboardData['hidden'] = {
+    posts: [],
+    hotels: hiddenHotels.map(h => ({ instagram_handle: h.instagram_handle, name: h.name })),
+  };
+  if (adminView && hiddenPostIds.size > 0) {
+    // storedImageUrl proper is built further down; the roster needs it now.
+    const storedImg = new Map(standoutRows.map(r => [r.post_id, r.stored_image_url]));
+    const { data, error } = await supabase
+      .from('posts')
+      .select('post_id, instagram_handle, image_url, posted_at')
+      .in('post_id', [...hiddenPostIds])
+      .order('posted_at', { ascending: false });
+    if (error) {
+      console.error('hidden posts query failed:', error.message);
+    } else {
+      const seen = new Set<string>();
+      for (const p of data ?? []) {
+        if (seen.has(p.post_id)) continue; // one row per post_id (co-posts)
+        seen.add(p.post_id);
+        hiddenRoster.posts.push({
+          post_id: p.post_id,
+          instagram_handle: p.instagram_handle,
+          hotel_name: nameByHandleAll[p.instagram_handle] ?? p.instagram_handle,
+          image_url: storedImg.get(p.post_id) ?? p.image_url ?? null,
+          posted_at: p.posted_at,
+        });
+      }
+    }
+  }
 
   // ── Stored image URLs + per-post insights ─────────────────────────────────
   const storedImageUrl: Record<string, string | null> = {};
@@ -1488,6 +1591,8 @@ export async function getPortfolioData(): Promise<DashboardData> {
     .toUpperCase();
 
   return {
+    publish: { cutoff: publishCutoffIso, pending: pendingPosts },
+    hidden:  hiddenRoster,
     hotels: hotelRows,
     snapshot:      computeSnapshot(hotelRows),
     whatsWorking,

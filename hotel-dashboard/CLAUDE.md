@@ -310,6 +310,37 @@ the posts query lists columns explicitly, so the column must exist. Populates on
 next scrape (or a free backfill from the last Apify dataset); rows not yet re-scraped
 have null `coauthor_usernames` and read as non-collab until then.
 
+## The Monday publish gate + hide controls (added 2026-07-30)
+Neil's weekly flow: Sunday night the pipeline scrapes → Monday morning he reviews
+everything in `/admin`, hides anything that shouldn't go out → hits **Publish to
+members**, which releases the week in one click.
+
+- **The gate.** Members only see posts with `posted_at <= dashboard_settings.publish_cutoff`.
+  `getPortfolioData({ adminView: true })` (used ONLY by `/admin`) sees through it.
+  `POST /api/admin/publish` moves the cutoff to now — the timestamp is set
+  server-side, never from the request body, so a client can't release unreviewed
+  posts or wind the gate backwards. If the settings row is missing/unreadable the
+  cutoff falls back to `+Infinity` (everything published) — the gate must never
+  black out the dashboard.
+- **Hiding is FULL exclusion, for everyone including admin.** A hidden post or
+  hotel is filtered out at load, so it never reaches a baseline, a median, a
+  breakout count, the leaderboard or the What's Working buckets. That's the
+  point: no figure can disagree with what's on screen. Because the baseline is a
+  MEDIAN it barely moves when one post is removed — but the leaderboard ER is a
+  MEAN, so hiding a hotel's biggest post does visibly lower its rate.
+- **Two flags, both editorial.** `standout_posts.hidden` (per post, keyed on
+  post_id — so a co-post hides on every partner's grid, exactly like the Editor's
+  note) and `hotels.hidden` (whole hotel). ⚠ `hotels.hidden` is deliberately NOT
+  `hotels.tracked`: `tracked` is the pipeline's scraping scope, so reusing it
+  would silently stop collecting data and leave an unfillable hole in the
+  hotel's history. Hidden hotels keep being scraped.
+- **Undo.** Hidden things are excluded from the data, so they can't appear in the
+  admin's breakout list — `data.hidden` carries a roster (`posts` on the admin
+  view only, `hotels` always) rendered as the "Hidden from members" chip row at
+  the top of `/admin`, each with an Un-hide button.
+- Caveat: the public landing page is ISR (`revalidate = 3600`), so a Publish can
+  take up to an hour to show there. The gated dashboard is dynamic and immediate.
+
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
 - `profile_snapshots` and `posts` are both fully paginated (1,000/page); posts deduped by post_id.
@@ -336,6 +367,7 @@ have null `coauthor_usernames` and read as non-collab until then.
 - `posts` — all scraped posts (upserted on the composite `(post_id, instagram_handle)` — see the co-posts section above). `coauthor_usernames text[]` = Instagram's native co-author handles, the primary `is_collab` signal (setup-coauthors.sql).
 - `standout_posts` — per-post insights + driver/theme tags + `editors_pick` (written by generate-insight.js, or manually via `instagram-pipeline/set-insight.js` for the weekly editorial flow). `post_insight` renders as the card's **"Editor's note"** callout; `editors_pick` (bool, `setup-editors-pick.sql`) shows a subtle **"Editor's Pick"** badge. Set per post: `node set-insight.js <post_id> --insight "…" --pick`. NB: `getPortfolioData` selects `editors_pick`, so the column must exist before deploying (ordering trap, like coauthor_usernames).
 - `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01; drop candidate)
+- `dashboard_settings` — ONE row (`id = true`) holding `publish_cutoff` (+ `published_at`): the Monday publish gate. RLS on, anon SELECT only, so only the service-role key can move the gate.
 - `subscriptions` — Stripe trial/payment state, email-keyed; RLS on with NO policies = service-role only
 - `saved_posts` / `watchlist_hotels` — per-user Save/Watchlist; RLS keyed to auth.uid() (added 9 Jul 2026)
 

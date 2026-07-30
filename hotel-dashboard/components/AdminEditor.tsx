@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ImageWithFallback, TagChip } from './ContentRadar';
-import { fmtPostedAt } from '@/lib/format';
-import type { OutlierPost, TimeWindow } from '@/lib/data';
+import { fmtPostedAt, fmtDate } from '@/lib/format';
+import type { DashboardData, OutlierPost, TimeWindow } from '@/lib/data';
 
 // Admin-only editorial surface: the in-app replacement for
 // instagram-pipeline/set-insight.js. Lists the breakouts (per time window) and
@@ -31,6 +32,188 @@ type RowState = {
   message?: string;
 };
 
+// ─── The Monday publish gate ──────────────────────────────────────────────────
+// Sunday night's scrape lands invisible to members; this banner says how much is
+// waiting and releases it. Publishing refreshes the page so the pending count
+// and the member-facing figures both settle immediately.
+function PublishBanner({ publish }: { publish: DashboardData['publish'] }) {
+  const router = useRouter();
+  const [status, setStatus] = useState<'idle' | 'publishing' | 'error'>('idle');
+  const [message, setMessage] = useState<string | null>(null);
+  const pending = publish.pending;
+
+  async function publishNow() {
+    setStatus('publishing');
+    setMessage(null);
+    try {
+      const res = await fetch('/api/admin/publish', { method: 'POST' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setStatus('error');
+        setMessage(d.error ?? 'Publish failed.');
+        return;
+      }
+      setStatus('idle');
+      router.refresh();
+    } catch {
+      setStatus('error');
+      setMessage('Network error.');
+    }
+  }
+
+  const waiting = pending > 0;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 16,
+        flexWrap: 'wrap',
+        border: `1px solid ${waiting ? '#D8C48A' : 'var(--line)'}`,
+        background: waiting ? '#FBF4E2' : 'var(--surface)',
+        borderRadius: 12,
+        padding: '14px 16px',
+        margin: '18px 0 4px',
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+          {waiting
+            ? `${pending} post${pending === 1 ? '' : 's'} waiting to be published`
+            : 'Everything is published'}
+        </div>
+        <div style={{ fontSize: 12.5, color: 'var(--body-mid)', marginTop: 3 }}>
+          {waiting
+            ? 'Members can’t see these yet. Review the list below, hide anything that shouldn’t go out, then publish.'
+            : `Members are seeing everything up to ${fmtDate(publish.cutoff)}.`}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {status === 'error' && (
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: '#b4331f' }}>{message}</span>
+        )}
+        <button
+          type="button"
+          onClick={publishNow}
+          disabled={!waiting || status === 'publishing'}
+          style={{
+            padding: '10px 20px',
+            borderRadius: 9,
+            border: 'none',
+            background: !waiting || status === 'publishing' ? 'var(--line)' : 'var(--signal-deep)',
+            color: !waiting || status === 'publishing' ? 'var(--muted)' : 'var(--surface)',
+            fontFamily: 'var(--font-body), sans-serif',
+            fontSize: 13.5,
+            fontWeight: 600,
+            cursor: !waiting || status === 'publishing' ? 'default' : 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {status === 'publishing' ? 'Publishing…' : 'Publish to members'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Hidden roster ────────────────────────────────────────────────────────────
+// Hidden posts and hotels are excluded from every figure, so they can't appear
+// in the list below — this is the only place they can be seen and undone.
+function HiddenRoster({ hidden }: { hidden: DashboardData['hidden'] }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState<string | null>(null);
+  const total = hidden.posts.length + hidden.hotels.length;
+  if (total === 0) return null;
+
+  async function unhide(kind: 'post' | 'hotel', id: string) {
+    setBusy(id);
+    const [url, body] =
+      kind === 'post'
+        ? ['/api/admin/insight', { post_id: id, hidden: false }]
+        : ['/api/admin/hotel', { instagram_handle: id, hidden: false }];
+    try {
+      const res = await fetch(url as string, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const chip = (label: string, sub: string, id: string, kind: 'post' | 'hotel') => (
+    <span
+      key={`${kind}-${id}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 9,
+        background: 'var(--surface)',
+        border: '1px solid var(--line)',
+        borderRadius: 999,
+        padding: '6px 8px 6px 13px',
+        fontSize: 12.5,
+        color: 'var(--body-strong)',
+      }}
+    >
+      <span>
+        {label} <span style={{ color: 'var(--muted)' }}>· {sub}</span>
+      </span>
+      <button
+        type="button"
+        onClick={() => unhide(kind, id)}
+        disabled={busy === id}
+        style={{
+          border: 'none',
+          background: 'var(--top3-tint)',
+          color: 'var(--signal-deep)',
+          borderRadius: 999,
+          padding: '3px 10px',
+          fontSize: 11.5,
+          fontWeight: 600,
+          fontFamily: 'inherit',
+          cursor: busy === id ? 'default' : 'pointer',
+        }}
+      >
+        {busy === id ? '…' : 'Un-hide'}
+      </button>
+    </span>
+  );
+
+  return (
+    <section
+      style={{
+        border: '1px solid var(--line)',
+        background: 'var(--page)',
+        borderRadius: 12,
+        padding: '14px 16px',
+        margin: '14px 0 4px',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--font-body), sans-serif',
+          fontSize: 10.5,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'var(--muted)',
+          marginBottom: 10,
+        }}
+      >
+        Hidden from members · {total}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {hidden.hotels.map(h => chip(h.name, 'whole hotel', h.instagram_handle, 'hotel'))}
+        {hidden.posts.map(p => chip(p.hotel_name, fmtPostedAt(p.posted_at), p.post_id, 'post'))}
+      </div>
+    </section>
+  );
+}
+
 function initialRow(p: OutlierPost): RowState {
   const note = p.post_insight ?? '';
   const pick = p.editors_pick === true;
@@ -40,10 +223,49 @@ function initialRow(p: OutlierPost): RowState {
 
 export default function AdminEditor({
   windows,
+  publish,
+  hidden,
 }: {
   windows: Record<TimeWindow, OutlierPost[]>;
+  publish: DashboardData['publish'];
+  hidden: DashboardData['hidden'];
 }) {
+  const router = useRouter();
   const [win, setWin] = useState<TimeWindow>('7d');
+  // Which card is mid-hide. Hiding removes the post from the data entirely, so
+  // the page is refreshed afterwards and the card disappears from this list —
+  // it reappears in the Hidden roster above, where it can be undone.
+  const [hiding, setHiding] = useState<string | null>(null);
+
+  async function hidePost(p: OutlierPost) {
+    if (!confirm(`Hide this ${p.hotel_name} post from members?\n\nIt drops out of the breakouts and every figure. You can un-hide it from the "Hidden from members" list.`)) return;
+    setHiding(p.post_id);
+    try {
+      const res = await fetch('/api/admin/insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: p.post_id, hidden: true }),
+      });
+      if (res.ok) router.refresh();
+    } finally {
+      setHiding(null);
+    }
+  }
+
+  async function hideHotel(p: OutlierPost) {
+    if (!confirm(`Hide ${p.hotel_name} entirely?\n\nEvery post from @${p.instagram_handle} leaves the leaderboard, the breakouts and all the portfolio figures. The pipeline keeps scraping it, so nothing is lost and you can un-hide it at any time.`)) return;
+    setHiding(p.post_id);
+    try {
+      const res = await fetch('/api/admin/hotel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instagram_handle: p.instagram_handle, hidden: true }),
+      });
+      if (res.ok) router.refresh();
+    } finally {
+      setHiding(null);
+    }
+  }
 
   // One editable row per post_id (a co-post shares a post_id across grids; the
   // note is written by post_id, so we edit it once). Keyed by post_id.
@@ -131,6 +353,9 @@ export default function AdminEditor({
           everywhere it appears.
         </p>
       </header>
+
+      <PublishBanner publish={publish} />
+      <HiddenRoster hidden={hidden} />
 
       {/* Window toggle */}
       <div role="tablist" aria-label="Time window" style={{ display: 'flex', gap: 6, margin: '20px 0 18px' }}>
@@ -330,6 +555,44 @@ export default function AdminEditor({
                     />
                     Feature on homepage
                   </label>
+
+                  {/* Removal — destructive, so styled as quiet text buttons
+                      rather than checkboxes, and both confirm first. */}
+                  <button
+                    type="button"
+                    onClick={() => hidePost(p)}
+                    disabled={hiding === p.post_id}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      padding: 0,
+                      fontFamily: 'inherit',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: '#b4331f',
+                      cursor: hiding === p.post_id ? 'default' : 'pointer',
+                    }}
+                  >
+                    {hiding === p.post_id ? 'Hiding…' : 'Hide post'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => hideHotel(p)}
+                    disabled={hiding === p.post_id}
+                    title={`Hide every post from @${p.instagram_handle}`}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      padding: 0,
+                      fontFamily: 'inherit',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: '#b4331f',
+                      cursor: hiding === p.post_id ? 'default' : 'pointer',
+                    }}
+                  >
+                    Hide hotel
+                  </button>
 
                   <div style={{ flex: 1 }} />
 
