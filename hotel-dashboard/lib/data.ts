@@ -114,6 +114,11 @@ export type HotelRow = {
 export type OutlierPost = {
   hotel_name: string;
   hotel_country: string | null;
+  /** Broad destination (Europe / Americas / Asia-Pacific / Middle East / Africa)
+   *  — what the Top-posts destination filter works on. Country is too granular
+   *  to filter by (46 of them). Undefined on posts saved before this field
+   *  existed, since saved_posts stores a snapshot — treat as unknown. */
+  hotel_region: string | null;
   hotel_followers: number | null;
   instagram_handle: string;
   post_id: string;
@@ -865,6 +870,7 @@ export function computeWhatsWorkingData(
   hotelMetrics: Record<string, HotelMetrics>,
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
+  hotelRegionByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
   standout: Record<TimeWindow, OutlierPost[]>,
@@ -880,7 +886,7 @@ export function computeWhatsWorkingData(
   const prevCadence  = allPosts.filter(between(30, 60));
 
   const breakoutsIn = (posts: RawPost[]) =>
-    computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT);
+    computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, hotelRegionByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT);
   const mRes = breakoutsIn(monthPosts);
   const pRes = breakoutsIn(prevPosts);
   const aRes = breakoutsIn(allValid);
@@ -965,6 +971,7 @@ export function computeStandout(
   hotelMetrics: Record<string, HotelMetrics>,
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
+  hotelRegionByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
   limit: number = MAX_STANDOUT_POSTS,
@@ -995,6 +1002,7 @@ export function computeStandout(
     standout.push({
       hotel_name:           hotelNameByHandle[p.instagram_handle] ?? p.instagram_handle,
       hotel_country:        hotelCountryByHandle[p.instagram_handle] ?? null,
+      hotel_region:         hotelRegionByHandle[p.instagram_handle] ?? null,
       hotel_followers:      m.followers,
       instagram_handle:     p.instagram_handle,
       post_id:              p.post_id,
@@ -1323,6 +1331,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const hotelRows: HotelRow[] = [];
   const hotelNameByHandle:    Record<string, string>      = {};
   const hotelCountryByHandle: Record<string, string | null> = {};
+  const hotelRegionByHandle:  Record<string, string | null> = {};
 
   for (const h of allHotels) {
     // First entry wins for duplicated handles — keeps cards and leaderboard
@@ -1330,6 +1339,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     if (!(h.instagram_handle in hotelNameByHandle)) {
       hotelNameByHandle[h.instagram_handle]    = h.name;
       hotelCountryByHandle[h.instagram_handle] = h.country ?? null;
+      hotelRegionByHandle[h.instagram_handle]  = h.region ?? null;
     }
     if (seenHandles.has(h.instagram_handle)) continue;
     if (!postsByHandle[h.instagram_handle])  continue;
@@ -1400,7 +1410,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       validForAnalysis.filter(p => now - new Date(p.posted_at).getTime() <= days * DAY_MS);
     const res = computeStandout(
       windowPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-      storedImageUrl, storedInsight, STANDOUT_LIMIT,
+      hotelRegionByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT,
     );
     standout[key] = res.posts;
     if (key === '7d') {
@@ -1419,7 +1429,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   );
   const autoFeatured = computeStandout(
     landingCandidates, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-    storedImageUrl, storedInsight,
+    hotelRegionByHandle, storedImageUrl, storedInsight,
   ).posts;
 
   // Admin override: any breakout flagged standout_posts.landing_pin is forced to
@@ -1437,7 +1447,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     // pinned ones to the front.
     const allBreakouts = computeStandout(
       validForAnalysis, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-      storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
+      hotelRegionByHandle, storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
     ).posts;
     landing_featured = orderLandingFeatured(autoFeatured, allBreakouts, MAX_STANDOUT_POSTS);
     // Hybrid marquee rotation: first open card cycles the marquee hotels; the
@@ -1458,7 +1468,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const featured = pickedRaw.length
     ? selectFeaturedPosts(computeStandout(
         pickedRaw, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-        storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
+        hotelRegionByHandle, storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
         { curated: true },
       ).posts)
     : [];
@@ -1466,8 +1476,8 @@ export async function getPortfolioData(): Promise<DashboardData> {
   // ── What's Working — holistic analysis per scope (Last 30 days / All time) ─
   const whatsWorkingData = computeWhatsWorkingData(
     validForAnalysis, allPosts, now, latestFollowers, hotelMetrics,
-    hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight,
-    standout,
+    hotelNameByHandle, hotelCountryByHandle, hotelRegionByHandle, storedImageUrl,
+    storedInsight, standout,
   );
 
   // ── Global frequency (top 10 vs rest by overall ER) ──────────────────────
