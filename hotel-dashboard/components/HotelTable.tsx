@@ -21,9 +21,10 @@ function HotelWatchToggle({ handle, name, saved }: { handle: string; name: strin
   );
 }
 
-type SortKey = 'name' | 'followers_count' | 'engagement_rate' | 'posts_per_week' | 'last_posted';
+// 'momentum' is a rank-only option (no column of its own): total engagement
+// over the last 30 days ÷ followers — rewards posting often as well as posting well.
+type SortKey = 'name' | 'followers_count' | 'engagement_rate' | 'posts_per_week' | 'last_posted' | 'momentum';
 type SortDir = 'asc' | 'desc';
-type RateWindow = '30' | '90';
 
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const GRID: React.CSSProperties = {
@@ -94,12 +95,11 @@ export default function HotelTable({
   const [regionFilter, setRegionFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(false);
-  const [win, setWin] = useState<RateWindow>('30');
 
-  // Leaderboard rate for the selected day-window (total engagement ÷ followers).
-  const rateOf = useCallback(
-    (h: HotelRow) => (win === '30' ? h.recent_rate.d30 : h.recent_rate.d90),
-    [win]
+  // Sort value per key — 'momentum' isn't a HotelRow field, so it's mapped here.
+  const sortValue = useCallback(
+    (h: HotelRow, key: SortKey) => (key === 'momentum' ? h.recent_rate.d30 : h[key]),
+    []
   );
 
   function handleSort(key: SortKey) {
@@ -122,9 +122,8 @@ export default function HotelTable({
       );
     }
     return [...rows].sort((a, b) => {
-      // The "Eng. rate" column now ranks by the selected day-window rate.
-      const av = sortKey === 'engagement_rate' ? rateOf(a) : a[sortKey];
-      const bv = sortKey === 'engagement_rate' ? rateOf(b) : b[sortKey];
+      const av = sortValue(a, sortKey);
+      const bv = sortValue(b, sortKey);
       if (av === null && bv === null) return 0;
       if (av === null) return 1;
       if (bv === null) return -1;
@@ -135,25 +134,24 @@ export default function HotelTable({
           : av < bv ? -1 : av > bv ? 1 : 0;
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [hotels, sortKey, sortDir, regionFilter, search, rateOf]);
+  }, [hotels, sortKey, sortDir, regionFilter, search, sortValue]);
 
-  // Bar scale + a relative "strong performer" threshold (≥ the portfolio median
-  // rate for the window) — the metric's magnitude shifts with the window, so a
-  // fixed threshold wouldn't hold.
+  // Bar scale + a relative "strong performer" threshold (≥ the portfolio
+  // median of per-hotel median ERs) — relative, so it holds as the field shifts.
   const maxRate = useMemo(
-    () => Math.max(...hotels.map(h => rateOf(h) ?? 0), 0.001),
-    [hotels, rateOf]
+    () => Math.max(...hotels.map(h => h.engagement_rate ?? 0), 0.001),
+    [hotels]
   );
   const medianRate = useMemo(() => {
-    const vals = hotels.map(rateOf).filter((v): v is number => v !== null).sort((a, b) => a - b);
+    const vals = hotels.map(h => h.engagement_rate).filter((v): v is number => v !== null).sort((a, b) => a - b);
     if (!vals.length) return 0;
     const m = Math.floor(vals.length / 2);
     return vals.length % 2 ? vals[m] : (vals[m - 1] + vals[m]) / 2;
-  }, [hotels, rateOf]);
+  }, [hotels]);
 
   const visible = showAll ? filtered : filtered.slice(0, DEFAULT_VISIBLE);
-  // Top-3 emphasis only means something when ranked by ER descending (the default)
-  const highlightTop3 = sortKey === 'engagement_rate' && sortDir === 'desc';
+  // Top-3 emphasis only means something under a performance ranking, descending
+  const highlightTop3 = (sortKey === 'engagement_rate' || sortKey === 'momentum') && sortDir === 'desc';
 
   return (
     <div style={{ marginTop: 32 }}>
@@ -199,20 +197,25 @@ export default function HotelTable({
           ))}
         </select>
 
-        {/* Rate window — the leaderboard ranks by engagement over this many days */}
+        {/* Rank by — Eng. rate (the typical post) or Momentum (30-day output).
+            Neither pill lights when the user sorts by another column header. */}
         <div
           role="group"
-          aria-label="Rate window"
+          aria-label="Rank by"
           style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--surface-alt-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3, gap: 2 }}
         >
-          {(['30', '90'] as const).map(w => {
-            const active = w === win;
+          {([
+            { key: 'engagement_rate', label: 'Eng. rate', title: 'Rank by the typical post — median engagement per post ÷ followers' },
+            { key: 'momentum', label: 'Momentum', title: 'Rank by 30-day output — all engagement in the last 30 days ÷ followers, so posting often counts too' },
+          ] as const).map(opt => {
+            const active = sortKey === opt.key;
             return (
               <button
-                key={w}
+                key={opt.key}
                 type="button"
-                onClick={() => setWin(w)}
+                onClick={() => { setSortKey(opt.key); setSortDir('desc'); }}
                 aria-pressed={active}
+                title={opt.title}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -230,7 +233,7 @@ export default function HotelTable({
                 }}
               >
                 {active && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', flexShrink: 0 }} />}
-                {w} days
+                {opt.label}
               </button>
             );
           })}
@@ -257,7 +260,7 @@ export default function HotelTable({
         <div role="row" className="cr-lb-row" style={{ ...GRID, background: 'var(--fill-strong)' }}>
           {COLUMNS.map(col => {
             const active = col.key !== null && sortKey === col.key;
-            const headerLabel = col.key === 'engagement_rate' ? `Eng. rate · ${win}d` : col.label;
+            const headerLabel = col.label;
             const headerStyle: React.CSSProperties = {
               fontFamily: LABEL,
               fontSize: 10,
@@ -305,7 +308,7 @@ export default function HotelTable({
         {visible.map((h, i) => {
           const top3 = highlightTop3 && i < 3 && !search.trim() && regionFilter === 'All';
           const bg = top3 ? 'var(--top3-tint)' : i % 2 === 1 ? 'var(--surface-alt)' : 'var(--surface)';
-          const rate = rateOf(h);
+          const rate = h.engagement_rate;
           const strong = rate !== null && rate >= medianRate;
           const barW = rate !== null ? Math.max(6, Math.round((rate / maxRate) * 100)) : 0;
 
@@ -350,7 +353,7 @@ export default function HotelTable({
                 {rate !== null ? (
                   <>
                     <span style={{ fontSize: 14, fontWeight: 700, color: strong ? 'var(--signal-deep)' : 'var(--ink)' }}>
-                      {fmtNumber(rate, 1)}%
+                      {fmtNumber(rate, 2)}%
                     </span>
                     <div style={{ height: 4, marginTop: 5, marginRight: 24, background: 'var(--track)', borderRadius: 2, overflow: 'hidden' }}>
                       <div
@@ -364,8 +367,8 @@ export default function HotelTable({
                     </div>
                   </>
                 ) : (
-                  // No valid posts in the window (dormant) — nothing to rate
-                  <span style={{ color: 'var(--faint)' }} title="No posts in this window">—</span>
+                  // Too few readable posts (or likes hidden) — nothing to rate
+                  <span style={{ color: 'var(--faint)' }} title="Not enough readable posts to rate">—</span>
                 )}
               </div>
 
@@ -424,9 +427,10 @@ export default function HotelTable({
       </div>
 
       <p style={{ marginTop: 14, fontSize: 12, color: 'var(--faint)', lineHeight: 1.6 }}>
-        Eng. rate = total (likes + comments) over the last {win} days ÷ followers × 100 — how much of
-        its audience a hotel moved, relative to its size, over the window (so it rewards both strong
-        posts and posting often). Hotels with no posts in the window show <span aria-hidden="true">—</span>.
+        Eng. rate = the hotel&rsquo;s median (likes + comments) per post ÷ followers × 100, over its
+        last 30 posts — what a typical post does, so one viral hit doesn&rsquo;t inflate it. Prefer
+        to reward posting often too? Rank by Momentum: all engagement over the last 30 days ÷
+        followers × 100. Hotels with too few readable posts show <span aria-hidden="true">—</span>.
         Public Instagram data only — no reach or impressions. Pins mark hotels named on the Forbes
         Travel Guide five-star list, the Condé Nast Traveller Gold List, The World&rsquo;s 50 Best
         Hotels, or Michelin Keys (UK &amp; Ireland) — coverage of those lists is partial.

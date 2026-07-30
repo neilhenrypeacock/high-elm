@@ -175,7 +175,16 @@ components/
                           `bestPosts`; nothing renders them since the rebuild.
   HotelTable.tsx        — functional leaderboard in the spec's 7-col grid: dark header,
                           sortable buttons w/ aria-sort, rank col, ER mini-bars, top-3 tint,
-                          top-10 + view more, live search + region filter
+                          top-10 + view more, live search + region filter.
+                          ER COLUMN = MEDIAN per-post rate (2026-07-30): `engagement_rate`
+                          is the median (likes+comments)/followers over the hotel's last 30
+                          valid posts (was mean; a 32k-like viral post was rendering as a
+                          "36.4%" rate). The old period-total metric (`recent_rate.d30` =
+                          all engagement in 30 days ÷ followers) is now the sort-only
+                          "Momentum" pill in the filter row (replaced the 30/90-day
+                          toggle) — deliberately never displayed as a %, since volume +
+                          virality push it far beyond any credible ER. d90 is still
+                          computed but currently unused by the UI.
   Lockup.tsx / MarkSvg.tsx — brand lockup (0.724/0.207/0.172 ratios, Space Mono endorsement)
   YourHotel.tsx         — "Your Hotel" page ('use client'): header strip w/ example-data
                           pill + accreditation pins → own-breakout cards (BreakoutCard

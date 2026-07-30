@@ -86,11 +86,15 @@ export type HotelRow = {
   country: string | null;
   instagram_handle: string;
   followers_count: number | null;
-  /** Null when flagged (too few posts or anomalous value) — excluded from all stats */
+  /** Median per-post rate (%) over the hotel's last 30 valid posts — what a
+   *  typical post does, so one viral hit doesn't inflate it. Null when flagged
+   *  (too few posts or anomalous value) — excluded from all stats */
   engagement_rate: number | null;
-  /** Leaderboard rate — total engagement (likes+comments) over the last N days
-   *  ÷ followers × 100, per selectable window. Null when the hotel has no valid
-   *  posts in the window (dormant) or no follower count. */
+  /** Momentum — total engagement (likes+comments) over the last N days
+   *  ÷ followers × 100. Rewards posting often as well as posting well; a
+   *  sort-only rank option on the leaderboard, never displayed as a rate.
+   *  Null when the hotel has no valid posts in the window (dormant) or no
+   *  follower count. */
   recent_rate: { d30: number | null; d90: number | null };
   posts_per_week: number | null;
   last_posted: string | null;
@@ -410,7 +414,7 @@ export type HotelMetrics = {
   /** Share of the hotel's last RECENT_POSTS that have a visible like count (0–1).
    *  Below MIN_VISIBLE_LIKE_RATIO the hotel is gated out of breakouts + leaderboard. */
   visibleLikeRatio: number;
-  /** Leaderboard rate: total engagement over the last 30 / 90 days ÷ followers × 100 */
+  /** Momentum: total engagement over the last 30 / 90 days ÷ followers × 100 */
   recentRate30: number | null;
   recentRate90: number | null;
 };
@@ -1254,12 +1258,13 @@ export async function getPortfolioData(): Promise<DashboardData> {
       ? recentWindow.filter(hasVisibleLikes).length / recentWindow.length
       : 0;
 
-    // Overall ER — mean over the hotel's last 30 valid posts (RECENT_POSTS, the
-    // same recent window as the breakout baseline). Used for the leaderboard.
+    // Overall ER — MEDIAN per-post rate over the hotel's last 30 valid posts
+    // (RECENT_POSTS, the same recent window as the breakout baseline). Median,
+    // not mean: one viral post shouldn't set a hotel's "typical post" number.
     const recentERs = followers && followers > 0
       ? validPosts.slice(0, HOTEL_ER_POSTS).map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers)
       : [];
-    const er = mean(recentERs);
+    const er = median(recentERs);
 
     // Breakout baseline: median engagement across the hotel's last 30 valid
     // posts — matches what the pipeline scrapes per run, and stays recent as
@@ -1276,10 +1281,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
     const recentCount = posts.filter(p => now - new Date(p.posted_at).getTime() < weekWindowMs).length;
     const ppw = recentCount / (POSTS_WEEK_WINDOW / 7);
 
-    // Leaderboard rate — TOTAL engagement (likes+comments) over the last N days
+    // Momentum — TOTAL engagement (likes+comments) over the last N days
     // ÷ followers × 100. A period "reach relative to size": rewards both post
-    // quality AND frequency. Null when the hotel has no valid posts in the window
-    // (dormant → sorts to the bottom) or no follower count.
+    // quality AND frequency, so it's a sort-only rank option (a single viral
+    // post or heavy posting cadence can push it far above any credible ER).
+    // Null when the hotel has no valid posts in the window (dormant → sorts
+    // to the bottom) or no follower count.
     const DAY = 24 * 60 * 60 * 1000;
     const rateOverDays = (days: number): number | null => {
       if (!followers || followers <= 0) return null;
