@@ -215,6 +215,16 @@ export type WwLever = {
   themesTitle: string | null;
 };
 
+/** The collaboration note — deliberately NOT a sixth lever. A collab needs a
+ *  partner, so it isn't a thing a hotel can simply change the way format or
+ *  posting day is; it's shown as a standing "worth considering" note instead. */
+export type WwCollabNote = {
+  /** Headline split so the figure can carry the green accent (lever idiom). */
+  headline: { pre: string; highlight: string; post: string };
+  /** Sample sizes + the standing caveat. */
+  note: string;
+};
+
 export type WhatsWorkingScope = {
   /** Format / caption / day / hour median-engagement bars for this scope. */
   set: WhatsWorkingSet;
@@ -229,6 +239,9 @@ export type WhatsWorkingScope = {
   bestPostsTitle: string;
   /** Editorial lede shown under the section title. */
   lede: string;
+  /** How collaboration posts are performing vs solo posts. Null when there are
+   *  too few collabs in scope to say anything honest. */
+  collab: WwCollabNote | null;
 };
 export type WhatsWorkingData = Record<WwScope, WhatsWorkingScope>;
 
@@ -503,6 +516,75 @@ function fmtDelta(diff: number, decimals: number, unit: string, period: string):
   return { delta: `${sign}${Math.abs(diff).toFixed(decimals)}${unit} ${period}`, dir: diff > 0 ? 'up' : 'down' };
 }
 
+/**
+ * How collaboration posts are performing against solo posts in a scope.
+ *
+ * Measured the same way the levers are — median per-post engagement rate — so
+ * the multiple is comparable to them. Also reports how far collabs over- (or
+ * under-) index in the breakout list, which is the thing that prompted this:
+ * collabs keep appearing near the top of the breakouts.
+ *
+ * Returns null below MIN_COLLAB_POSTS collabs, or when either median can't be
+ * computed. `breakouts` is the scope's breakout LIST (capped at
+ * STANDOUT_LIMIT), so the share is "of the breakouts shown", which is what the
+ * copy says.
+ */
+export function buildCollabNote(
+  scopePosts: RawPost[],
+  breakouts: OutlierPost[],
+  latestFollowers: Record<string, number | null>,
+  scope: WwScope,
+): WwCollabNote | null {
+  const isCollabRaw = (p: RawPost) => (p.coauthor_usernames?.length ?? 0) > 0;
+  const collab = scopePosts.filter(isCollabRaw);
+  const solo = scopePosts.filter(p => !isCollabRaw(p));
+  if (collab.length < MIN_COLLAB_POSTS || solo.length === 0) return null;
+
+  const erCollab = medianPostERPct(collab, latestFollowers);
+  const erSolo = medianPostERPct(solo, latestFollowers);
+  if (erCollab === null || erSolo === null || erSolo <= 0) return null;
+
+  const ratio = erCollab / erSolo;
+  const postShare = Math.round((collab.length / scopePosts.length) * 100);
+  const collabBreakouts = breakouts.filter(p => p.is_collab).length;
+  const periodWord = scope === 'month' ? 'this month' : 'on record';
+
+  // Copy adapts to direction — a note that only ever says "collabs win" would be
+  // marketing, not analysis.
+  const headline =
+    ratio >= 1.05
+      ? {
+          pre: 'Collaboration posts are pulling ',
+          highlight: `${ratio.toFixed(1)}× the engagement`,
+          post: ' of a solo post — worth considering who you partner with, not just what you post.',
+        }
+      : ratio <= 0.95
+        ? {
+            pre: 'Collaboration posts are pulling ',
+            highlight: `${ratio.toFixed(1)}× a solo post’s engagement`,
+            post: ' — they are not automatically the stronger play here.',
+          }
+        : {
+            pre: 'Collaboration posts are performing ',
+            highlight: 'about the same as solo posts',
+            post: ' — the partner brings reach, but not a reliable lift on this measure.',
+          };
+
+  const breakoutClause =
+    breakouts.length > 0
+      ? ` They are ${collabBreakouts} of the ${breakouts.length} breakouts shown ${periodWord}, from ${postShare}% of posts.`
+      : '';
+
+  return {
+    headline,
+    note:
+      `${fmtNumber(collab.length)} collaboration posts vs ${fmtNumber(solo.length)} solo, by median engagement rate per post.` +
+      `${breakoutClause}` +
+      ' A collab is a true Instagram co-author byline, appears on both partners’ grids, and borrows the partner’s audience —' +
+      ' so treat it as a partnership decision rather than a posting tweak.',
+  };
+}
+
 /** Up to three data-derived observation cards for a scope. */
 function buildObservations(set: WhatsWorkingSet, breakouts: OutlierPost[], onRecord: boolean): WwObservation[] {
   const obs: WwObservation[] = [];
@@ -574,6 +656,9 @@ const THEME_BLURB: Record<string, string> = {
 /** Below this many AI-tagged breakouts the content lever is withheld rather than
  *  shown thin — a handful of tagged posts is not a portfolio pattern. */
 const MIN_TAGGED_THEMES = 5;
+/** Below this many collabs in scope the collaboration note is withheld — the
+ *  same discipline as MIN_TAGGED_THEMES: say nothing rather than say it thinly. */
+const MIN_COLLAB_POSTS = 30;
 /** At or above this many posts a lever reads as a settled signal, not a hint. */
 const STRONG_SIGNAL_POSTS = 500;
 
@@ -942,6 +1027,7 @@ export function computeWhatsWorkingData(
       bestPosts: standout['30d'].slice(0, 5),
       bestPostsTitle: 'Best posts this month',
       lede: WW_LEDE.month,
+      collab: buildCollabNote(monthPosts, mRes.posts, latestFollowers, 'month'),
     },
     all: {
       set: setAll,
@@ -951,6 +1037,7 @@ export function computeWhatsWorkingData(
       bestPosts: standout.all.slice(0, 5),
       bestPostsTitle: 'Best posts on record',
       lede: WW_LEDE.all,
+      collab: buildCollabNote(allValid, aRes.posts, latestFollowers, 'all'),
     },
   };
 }

@@ -11,6 +11,7 @@ import {
   computeStandout,
   parseInsight,
   orderLandingFeatured,
+  buildCollabNote,
   rotateLandingFeatured,
   selectFeaturedPosts,
   hasVisibleLikes,
@@ -714,5 +715,69 @@ describe('rotateLandingFeatured', () => {
     expect(out).toHaveLength(3);
     expect(out[0].instagram_handle).toBe('savoy');
     expect(new Set(out.map(p => p.post_id)).size).toBe(3);
+  });
+});
+
+// ─── buildCollabNote (the collaboration note in What's Working) ───────────────
+
+describe('buildCollabNote', () => {
+  const FOLLOWERS = { hotel_a: 10_000 };
+
+  /** n posts, `collab` marking them as true Instagram co-authored posts. */
+  const posts = (n: number, likes: number, collab: boolean) =>
+    Array.from({ length: n }, (_, i) =>
+      post({
+        post_id: `${collab ? 'c' : 's'}${i}`,
+        likes_count: likes,
+        comments_count: 0,
+        coauthor_usernames: collab ? ['partner'] : null,
+      }),
+    );
+
+  it('returns null below the 30-collab threshold', () => {
+    const scope = [...posts(29, 400, true), ...posts(100, 200, false)];
+    expect(buildCollabNote(scope, [], FOLLOWERS, 'month')).toBeNull();
+  });
+
+  it('returns null when there are no solo posts to compare against', () => {
+    expect(buildCollabNote(posts(40, 400, true), [], FOLLOWERS, 'month')).toBeNull();
+  });
+
+  it('reports the multiple when collabs outperform', () => {
+    const scope = [...posts(40, 400, true), ...posts(100, 200, false)];
+    const note = buildCollabNote(scope, [], FOLLOWERS, 'month');
+    expect(note?.headline.highlight).toBe('2.0× the engagement');
+    expect(note?.note).toContain('40 collaboration posts vs 100 solo');
+  });
+
+  it('flips the copy when collabs UNDER-perform', () => {
+    const scope = [...posts(40, 100, true), ...posts(100, 400, false)];
+    const note = buildCollabNote(scope, [], FOLLOWERS, 'month');
+    expect(note?.headline.highlight).toContain('0.3×');
+    expect(note?.headline.post).toContain('not automatically the stronger play');
+  });
+
+  it('says so plainly when the two are level', () => {
+    const scope = [...posts(40, 200, true), ...posts(100, 200, false)];
+    const note = buildCollabNote(scope, [], FOLLOWERS, 'month');
+    expect(note?.headline.highlight).toBe('about the same as solo posts');
+  });
+
+  it('reports the breakout share against the list it was given', () => {
+    const scope = [...posts(40, 400, true), ...posts(60, 200, false)];
+    const breakouts = [
+      { post_id: 'b1', is_collab: true },
+      { post_id: 'b2', is_collab: true },
+      { post_id: 'b3', is_collab: false },
+      { post_id: 'b4', is_collab: false },
+    ] as Parameters<typeof buildCollabNote>[1];
+    const note = buildCollabNote(scope, breakouts, FOLLOWERS, 'month');
+    expect(note?.note).toContain('2 of the 4 breakouts shown this month');
+    expect(note?.note).toContain('40% of posts'); // 40 collabs of 100 posts
+  });
+
+  it('omits the breakout clause when there are no breakouts in scope', () => {
+    const scope = [...posts(40, 400, true), ...posts(100, 200, false)];
+    expect(buildCollabNote(scope, [], FOLLOWERS, 'month')?.note).not.toContain('breakouts shown');
   });
 });
