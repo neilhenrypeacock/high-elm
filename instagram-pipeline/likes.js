@@ -33,3 +33,15 @@ export function normalizeLikesCount(raw) {
   if (HIDDEN_LIKE_SENTINELS.has(raw)) return null;
   return raw;
 }
+
+/**
+ * READ-side filter for rows already in the DB — mirrors `hasVisibleLikes` in
+ * hotel-dashboard/lib/data.ts (the app's single source of truth for this
+ * rule). Sentinels should all be null after the 2026-07-31 backfill, but the
+ * -1/3 checks guard rows written between an actor drift and the next deploy.
+ * Every pipeline script that filters "posts with readable engagement" must use
+ * this, not its own inline null/-1 check.
+ */
+export function hasVisibleLikes(p) {
+  return normalizeLikesCount(p?.likes_count) !== null;
+}

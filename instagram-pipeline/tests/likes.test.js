@@ -1,7 +1,7 @@
 // node --test — no test framework dependency; run with `npm test` in this folder.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeLikesCount } from '../likes.js';
+import { normalizeLikesCount, hasVisibleLikes } from '../likes.js';
 
 test('real like counts pass through unchanged', () => {
   assert.equal(normalizeLikesCount(0), 0);
@@ -20,6 +20,15 @@ test('the 3 preview-count leak is stored as null', () => {
 
 test('the -1 hidden sentinel is stored as null', () => {
   assert.equal(normalizeLikesCount(-1), null);
+});
+
+test('hasVisibleLikes (read side) mirrors the app rule', () => {
+  assert.equal(hasVisibleLikes({ likes_count: 250 }), true);
+  assert.equal(hasVisibleLikes({ likes_count: 0 }), true);
+  assert.equal(hasVisibleLikes({ likes_count: null }), false);
+  assert.equal(hasVisibleLikes({ likes_count: -1 }), false);
+  assert.equal(hasVisibleLikes({ likes_count: 3 }), false);
+  assert.equal(hasVisibleLikes(undefined), false);
 });
 
 test('missing or unreadable values are stored as null', () => {
