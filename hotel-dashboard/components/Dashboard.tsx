@@ -150,7 +150,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
           borderBottom: '1px solid rgba(245,240,232,0.10)',
         }}
       >
-        <span style={PANEL_LABEL}>Your watchlist</span>
+        <span style={PANEL_LABEL}>Your hotel watchlist</span>
         <a
           href="#leaderboard"
           style={{
@@ -260,7 +260,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
           </span>
           <div style={{ maxWidth: 380 }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: '#F7F6F2', marginBottom: 6 }}>
-              Nothing on your watchlist yet
+              Nothing on your hotel watchlist yet
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.6, color: '#A49D92', margin: 0 }}>
               Follow the hotels you care about and their breakouts surface here first, every week.
@@ -283,7 +283,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
             Add hotels to your watchlist
           </a>
           <a href="#leaderboard" style={{ fontSize: 12, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
-            Browse the leaderboard →
+            Browse the hotel leaderboard →
           </a>
         </div>
       )}

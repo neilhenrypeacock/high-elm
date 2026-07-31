@@ -46,7 +46,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
   overview: {
     title: 'This week',
     blocks: [
-      { h: 'What this is', p: 'A weekly snapshot of every post across the 400+ tracked five-star hotels that beat its own hotel’s usual engagement this week — plus the hotels on your watchlist.' },
+      { h: 'What this is', p: 'A weekly snapshot of every post across the 400+ tracked five-star hotels that beat its own hotel’s usual engagement this week — plus the hotels on your hotel watchlist.' },
       { h: 'How it works', p: 'Every Monday we scrape the latest posts, compare each to its hotel’s median over the last 30 posts, and count the ones that cleared 2×. The headline number is that count; “in focus” summarises the patterns behind it.' },
       { h: 'Why it helps', p: 'You see the week’s biggest movers at a glance — the proof, ranked, in ten seconds — without scrolling a single feed.' },
     ],
@@ -76,10 +76,11 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     ],
   },
   leaderboard: {
-    title: 'Leaderboard',
+    title: 'Hotel leaderboard',
     blocks: [
       { h: 'What this is', p: 'Every tracked hotel ranked by engagement rate, with followers, posting cadence, last-posted date and certification-list membership.' },
-      { h: 'How it works', p: 'Engagement rate = the hotel’s median (likes + comments) per post over its last 30 posts ÷ followers × 100 — what a typical post does, so one viral hit doesn’t inflate it. Prefer to reward posting often too? Rank by Momentum: all engagement over the last 30 days ÷ followers. Sort any column, filter by region, search a hotel, or add one to your watchlist. Public Instagram data only — no reach or impressions.' },
+      { h: 'The two rankings', p: 'Eng. rate — how well a hotel’s typical post does, for its size. A small hotel whose posts land can rank above a much bigger one, and a single viral hit won’t carry it. Momentum — how much attention a hotel pulled in over the last 30 days, for its size; posting more often lifts it, so it rewards hotels that show up regularly.' },
+      { h: 'How it works', p: 'Engagement rate = the hotel’s median (likes + comments) per post over its last 30 posts ÷ followers × 100. Momentum = all engagement over the last 30 days ÷ followers. Sort any column, filter by region, search a hotel, or add one to your hotel watchlist. Public Instagram data only — no reach or impressions.' },
       { h: 'Why it helps', p: 'Benchmark yourself against the field and spot who’s punching above their follower count — the hotels worth studying.' },
     ],
   },
@@ -92,7 +93,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     ],
   },
   saved: {
-    title: 'Saved',
+    title: 'Saved posts',
     blocks: [
       { h: 'What this is', p: 'Every post you’ve saved from Top posts, gathered in one place.' },
       { h: 'How it works', p: 'Saving a post adds it here; removing it here or on the dashboard keeps the two in sync.' },
@@ -100,10 +101,10 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     ],
   },
   watchlist: {
-    title: 'Watchlist',
+    title: 'Hotel watchlist',
     blocks: [
       { h: 'What this is', p: 'The hotels you’re keeping an eye on.' },
-      { h: 'How it works', p: 'Add hotels from the Leaderboard and they collect here.' },
+      { h: 'How it works', p: 'Hit Watchlist on any row of the hotel leaderboard and the hotel collects here.' },
       { h: 'Why it helps', p: 'Track a shortlist without scrolling the full portfolio every time — and their breakouts surface first on your dashboard.' },
     ],
   },

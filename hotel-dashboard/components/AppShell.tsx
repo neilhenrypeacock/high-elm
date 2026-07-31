@@ -125,7 +125,7 @@ const RADAR_SECTIONS: { id: string; label: string; Icon: (p: IconProps) => React
   { id: 'breakouts', label: 'Top posts', Icon: TopPostsIcon },
   { id: 'featured', label: 'Featured', Icon: FeaturedIcon },
   { id: 'working', label: "What's working", Icon: WhatsWorkingIcon },
-  { id: 'leaderboard', label: 'Leaderboard', Icon: LeaderboardIcon },
+  { id: 'leaderboard', label: 'Hotel leaderboard', Icon: LeaderboardIcon },
 ];
 // A dashboard hash that isn't one of the inner sections resolves to overview.
 const INNER_SECTIONS = ['breakouts', 'featured', 'working', 'leaderboard'];
@@ -313,8 +313,8 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
 
         <SectionLabel>Yours</SectionLabel>
         {navItem('/hotel', 'Your hotel', YourHotelIcon)}
-        {navItem('/saved', 'Saved', SavedIcon)}
-        {navItem('/watchlist', 'Watchlist', WatchlistIcon)}
+        {navItem('/saved', 'Saved posts', SavedIcon)}
+        {navItem('/watchlist', 'Hotel watchlist', WatchlistIcon)}
 
         <div style={{ height: 1, background: 'var(--line-soft)', margin: '10px 6px' }} />
         {navItem('/settings', 'Settings', SettingsIcon)}
