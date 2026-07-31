@@ -411,6 +411,19 @@ members**, which releases the week in one click.
 ## Image storage
 Post images are saved to the **`standout-images`** Supabase Storage bucket by the pipeline at scrape time; the permanent URL is written straight into `posts.image_url` (~95% of rows). `standout_posts.stored_image_url` takes priority when present. Remaining rows fall back to the live Instagram CDN URL (signed, expires — the branded fallback gradient shows when those die).
 
+**The bucket is pruned, and NOT every post has a cover (2026-07-30).** It reached
+3.2 GB against Supabase's 1 GB free-tier limit and put the org into overage, so the
+pipeline now (a) re-encodes covers to WebP q80 / max 1000px wide on upload and
+(b) runs `instagram-pipeline/cleanup-images.js` after every scrape, deleting covers
+no view can reach. Retained: posts on tracked, non-hidden hotels that are ≤35 days
+old or ≥1.5× their hotel's median, plus `editors_pick`/`landing_pin` and anything a
+member has saved. Everything else 404s and lands on `MEDIA_PLACEHOLDER` — which is
+fine today because nothing outside that set renders. ⚠ If you ever widen what the
+dashboard displays (a longer window, a lower breakout threshold, a new list), widen
+the keep rules in `cleanup-images.js` FIRST or the new view will show gradients.
+Deleting a cover changes no figure: engagement lives in the `posts` columns and no
+median, ER, breakout count or What's Working bucket reads an image.
+
 ## Hidden like counts
 Instagram hides likes on some posts/accounts — stored as `likes_count = null` (the bulk, heavily carousels) or `-1` (a few older rows). `hasVisibleLikes` in lib/data.ts excludes BOTH from every engagement calculation (ER, baseline, breakouts, What's Working). Consequence: a hotel that hides all its likes gets no ER/baseline and is invisible to breakouts.
 
