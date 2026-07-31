@@ -1,0 +1,765 @@
+hotel_name,instagram_handle,country,lists,followers,visible_like_posts_12mo,posts_90d,median_engagement_rate_pct,breakouts_12mo,score,rank,currently_tracked,recommendation,note
+"Four Seasons Hotel George V, Paris",fsgeorgevparis,France,Forbes,461244,41,38,0.353,10,87.7,1,yes,keep,
+Santa Caterina,hotel_santa_caterina,Italy,Gold List,213187,39,44,0.277,11,87.7,2,yes,keep,
+Claridge's,claridgeshotel,United Kingdom,"Forbes, Gold List, World's 50 Best",532938,43,42,0.260,10,86.7,3,yes,keep,
+The Sanctuary at Kiawah Island Golf Resort,kiawahresort,United States,Forbes,88518,41,41,0.576,11,86.3,4,yes,keep,
+Le Bristol Paris,lebristolparis,France,"Forbes, Gold List, World's 50 Best",354046,43,43,0.202,13,86.0,5,yes,keep,
+Ocean House,oceanhouseri,United States,Forbes,127083,38,40,0.301,11,84.4,6,yes,keep,
+The Maybourne Riviera,themaybourneriviera,France,Forbes,166520,22,34,0.410,7,83.2,7,yes,keep,
+Four Seasons Resort Maui at Wailea,fsmaui,United States,Forbes,198455,43,43,0.189,10,82.4,8,yes,keep,
+The Broadmoor,thebroadmoor,United States,Forbes,88678,38,38,0.395,8,81.6,9,yes,keep,
+The Taj Mahal Palace,tajmahalmumbai,India,World's 50 Best,218529,24,38,0.208,8,81.5,10,yes,keep,
+Beaverbrook,beaverbrook,United Kingdom,Gold List,152493,36,41,0.230,9,81.0,11,yes,keep,
+"Hotel das Cataratas, A Belmond Hotel, Iguassu Falls",belmondhoteldascataratas,Brazil,Forbes,271961,42,36,0.222,11,80.7,12,yes,keep,
+Borgo Santo Pietro,borgosantopietro,Italy,Manual add,596946,40,34,0.317,7,80.3,13,yes,keep,
+"Cipriani, A Belmond Hotel, Venice",belmondhotelcipriani,Italy,Forbes,127748,39,31,0.483,9,79.8,14,yes,keep,
+Cheval Blanc Paris,chevalblancparis,France,"Forbes, World's 50 Best",226055,36,30,0.348,9,78.7,15,yes,keep,
+"Carlton Cannes, a Regent Hotel",carltoncannes,France,Forbes,134272,31,30,0.695,11,78.5,16,yes,keep,
+"Splendido, A Belmond Hotel, Portofino",belmondhotelsplendido,Italy,Gold List,289427,41,30,0.749,6,78.5,17,yes,keep,
+Estelle Manor,estellemanor,United Kingdom,World's 50 Best,297724,39,33,0.187,11,78.2,18,yes,keep,
+"Caiman, Pantanal",caimanpantanal,Brazil,Gold List,138204,39,34,0.349,7,77.6,19,yes,keep,
+Hôtel de Paris Monte-Carlo,hoteldeparismc,Monaco,"Forbes, World's 50 Best",178064,38,38,0.228,5,77.6,20,yes,keep,
+Castelfalfi,castelfalfi,Italy,"Forbes, Gold List",293521,37,24,0.312,12,77.3,21,yes,keep,
+"Hotel de Russie, a Rocco Forte Hotel",hotelderussie,Italy,Forbes,136552,36,24,0.526,11,77.3,22,yes,keep,
+"Copacabana Palace, A Belmond Hotel",belmondcopacabanapalace,Brazil,World's 50 Best,522252,41,32,0.138,15,77.0,23,yes,keep,
+Wynn Las Vegas,wynnlasvegas,United States,Gold List,568779,49,55,0.078,14,77.0,24,yes,keep,
+Okada Manila,okadamanila,Philippines,Forbes,92177,37,42,0.275,14,76.7,25,yes,keep,
+Blackberry Farm,blackberryfarm,United States,Gold List,330430,43,43,0.112,8,75.7,26,yes,keep,
+Hotel Plaza Athénée Paris,plaza_athenee,France,Forbes,1159822,27,20,0.405,8,75.6,27,yes,keep,
+Fogo Island Inn,fogoislandinn,Canada,Gold List,107850,43,43,0.346,5,75.6,28,yes,keep,
+The Ranch at Rock Creek,theranchatrockcreek,United States,Forbes,217092,29,34,0.183,7,75.5,29,yes,keep,
+Hotel du Cap-Eden-Roc,hotelducapedenroc,France,Forbes,381257,41,39,0.397,7,75.1,30,yes,keep,
+"Grand-Hôtel du Cap-Ferrat, A Four Seasons Hotel",fscapferrat,France,Forbes,205601,37,30,0.574,5,74.4,31,yes,keep,
+"Las Ventanas al Paraíso, A Rosewood Resort",lasventanasalparaiso,Mexico,"Forbes, World's 50 Best",266924,43,48,0.081,10,74.0,32,yes,keep,
+Çırağan Palace Kempinski Istanbul,cpkempinski,Turkey,Forbes,166649,43,43,0.230,5,73.9,33,yes,keep,
+"Caruso, A Belmond Hotel, Amalfi Coast",belmondhotelcaruso,Italy,Forbes,196813,36,27,0.315,9,73.5,34,yes,keep,
+"Le Royal Monceau, Raffles Paris",leroyalmonceau,France,Gold List,185694,38,41,0.118,9,73.2,35,yes,keep,
+"Le Meurice, Dorchester Collection",lemeuriceparis,France,Forbes,1008748,38,28,0.165,10,72.9,36,yes,keep,
+The Beverly Hills Hotel,bevhillshotel,United States,"Forbes, Gold List",349945,35,19,0.841,6,71.4,37,yes,keep,
+Hotel Castello di Reschio,reschio,Italy,Gold List,1629952,42,39,0.102,14,70.8,38,yes,keep,
+La Réserve Paris,lareserveparis,France,"Forbes, Gold List",151831,35,36,0.205,6,70.2,39,yes,keep,
+Badrutt's Palace Hotel,badruttspalace,Switzerland,"Forbes, Gold List",182263,40,20,0.569,9,69.6,40,yes,keep,
+La Mamounia,lamamouniamarrakech,Morocco,World's 50 Best,370669,38,39,0.112,7,69.0,41,yes,keep,
+Six Senses Douro Valley,sixsensesdourovalley,Portugal,Gold List,168380,34,32,0.204,5,68.2,42,yes,keep,
+Singita Kruger National Park,singita_,South Africa,World's 50 Best,483887,20,21,0.206,7,67.6,43,yes,keep,
+The Savoy,thesavoylondon,United Kingdom,Forbes,241655,37,29,0.186,6,67.3,44,yes,keep,
+Rockhouse Hotel & Spa,rockhousehotel,Jamaica,Gold List,132213,27,30,0.203,9,66.9,45,yes,keep,
+Hotel Sacher Wien,sacherhotels,Austria,World's 50 Best,95501,32,24,0.527,7,66.9,46,yes,keep,
+Four Seasons Resort Maldives at Kuda Huraa,fsmaldives,Maldives,Forbes,361102,37,37,0.150,4,66.6,47,yes,keep,
+Gstaad Palace,gstaadpalace,Switzerland,Gold List,88960,39,30,0.504,5,65.5,48,yes,keep,
+Four Seasons Hotel London at Park Lane,fslondon,United Kingdom,Forbes,150603,40,35,0.136,9,64.0,49,yes,keep,
+"Patina Maldives, Fari Islands",patinamaldives,Maldives,Forbes,226186,28,30,0.106,7,64.0,50,yes,keep,
+The Little Nell,thelittlenell,United States,Forbes,123931,23,40,0.140,4,63.9,51,yes,keep,
+Four Seasons Hotel Firenze,fsflorence,Italy,"Forbes, Gold List, World's 50 Best",219082,39,29,0.696,3,63.6,52,yes,keep,
+The Connaught,theconnaught,United Kingdom,"Forbes, Gold List, World's 50 Best",302046,25,32,0.269,3,63.3,53,yes,keep,
+The Peninsula Hong Kong,peninsulahongkong,China,"Forbes, Gold List",88536,36,36,0.206,4,63.0,54,yes,keep,
+Rosewood Miramar Beach,rosewoodmiramarbeach,United States,Forbes,159987,26,31,0.137,5,62.6,55,yes,keep,
+Aman Tokyo,aman_tokyo,Japan,World's 50 Best,166732,34,15,0.852,6,62.5,56,yes,keep,
+Rosewood Mayakoba,rwmayakoba,Mexico,Forbes,184172,37,38,0.066,5,62.2,57,yes,keep,
+"Cap Juluca, A Belmond Hotel, Anguilla",belmondcapjuluca,Anguilla,Forbes,129847,32,43,0.310,2,62.2,58,yes,keep,
+"The Ritz-Carlton, Grand Cayman",ritzcarltongrandcayman,Cayman Islands,Forbes,88767,33,24,0.270,7,61.8,59,yes,keep,
+Ritz Paris,ritzparis,France,Forbes,990462,32,31,0.403,2,61.1,60,yes,keep,
+Bvlgari Resort Bali,bvlgariresortbali,Indonesia,"Forbes, Gold List",83479,39,31,0.361,4,60.5,61,yes,keep,
+La Posta Vecchia,lapostavecchiahotel,Italy,Gold List,87230,27,15,0.503,7,60.4,62,yes,keep,
+"Mandarin Oriental, Bangkok",mo_bangkok,Thailand,"Forbes, Gold List, World's 50 Best",102418,22,26,0.352,6,60.2,63,yes,keep,
+Amangiri,amangiri,United States,Gold List,646873,34,23,0.181,5,60.1,64,yes,keep,
+Rosewood Hong Kong,rosewoodhongkong,China,World's 50 Best,95647,25,20,0.449,5,60.0,65,yes,keep,
+Aman Kyoto,aman_kyoto,Japan,Gold List,103778,36,23,0.655,8,59.9,66,yes,keep,
+The St. Regis New York,stregisnewyork,United States,Forbes,107615,33,21,0.223,7,59.8,67,yes,keep,
+Rosewood São Paulo,rosewoodsaopaulo,Brazil,World's 50 Best,489245,34,17,0.101,9,59.8,68,yes,keep,
+The Peninsula New York,thepeninsulanyc,United States,Forbes,83448,37,38,0.110,4,59.6,69,yes,keep,
+Crockfords at Resorts World Genting,resortsworldgenting,Malaysia,Forbes,101958,74,74,0.037,7,58.2,70,yes,dead audience,"large following, implausibly low engagement — audience looks bought or dead"
+Grand Velas Los Cabos,grandvelascabos,Mexico,Forbes,234992,42,43,0.044,4,57.7,71,yes,dead audience,"large following, implausibly low engagement — audience looks bought or dead"
+"Mandarin Oriental Ritz, Madrid",mo_ritzmadrid,Spain,Forbes,89488,35,38,0.197,3,57.6,72,yes,keep,
+"Esperanza, Auberge Collection",esperanzaauberge,Mexico,Forbes,116731,43,28,0.384,4,57.5,73,yes,keep,
+Cheval Blanc St-Barth,chevalblancstbarth,St Barts,Forbes,92769,33,30,0.355,3,57.5,74,yes,keep,
+JOALI Maldives,joalimaldives,Maldives,Forbes,242698,33,32,0.077,5,57.0,75,yes,keep,
+The Newt in Somerset,thenewtinsomerset,United Kingdom,Manual add,379991,23,41,0.118,4,56.2,76,yes,keep,
+Montage Palmetto Bluff,montagepalmettobluff,United States,Forbes,157934,31,23,0.155,7,56.1,77,yes,keep,
+Wilderness Bisate Lodge,wearewilderness,Rwanda,Gold List,206729,33,32,0.274,2,56.0,78,yes,keep,
+"Hôtel de Crillon, A Rosewood Hotel",rosewoodhoteldecrillon,France,"Forbes, World's 50 Best",241001,34,22,0.180,5,55.8,79,yes,keep,
+"Airelles Gordes, La Bastide",airellesgordes,France,Forbes,139165,37,23,0.488,7,55.5,80,yes,keep,
+Jumeirah Burj Al Arab,jumeirahburjalarab,United Arab Emirates,"Forbes, Gold List",1095585,32,8,0.167,8,55.4,81,yes,keep,
+Gleneagles,thegleneagleshotel,United Kingdom,Manual add,189311,31,32,0.366,5,54.9,82,yes,keep,
+The Dorchester,thedorchester,United Kingdom,Forbes,398795,27,28,0.101,4,54.8,83,yes,keep,
+Park Hotel Vitznau,parkhotelvitznau,Switzerland,Forbes,113295,25,11,0.520,6,54.6,84,yes,keep,
+The Berkeley,the_berkeley,United Kingdom,Forbes,201761,16,30,0.187,4,54.4,85,yes,keep,
+"Mandarin Oriental, Lago di Como",mo_lagodicomo,Italy,Forbes,194371,18,16,0.349,4,54.3,86,yes,keep,
+Chatham Bars Inn,chathambarsinn,United States,Forbes,89609,24,30,0.806,2,54.3,87,yes,keep,
+"Mandarin Oriental, Bodrum",mo_bodrum,Turkey,Forbes,184142,18,32,0.118,4,54.2,88,yes,keep,
+Baccarat Hotel New York,baccarathotels,United States,Forbes,146675,36,27,0.146,5,53.6,89,yes,keep,
+Passalacqua,passalacqualakecomo,Italy,"Gold List, World's 50 Best",293584,32,16,0.425,3,53.5,90,yes,keep,
+Cheval Blanc Randheli,chevalblancrandheli,Maldives,Forbes,117738,35,32,0.220,7,53.1,91,yes,keep,
+The Cloister at Sea Island,seaisland,United States,Forbes,146186,30,32,0.397,1,52.6,92,yes,keep,
+The Lodge at Sea Island,seaisland,United States,Forbes,146186,30,32,0.397,1,52.6,93,yes,keep,
+"Dorado Beach, a Ritz-Carlton Reserve",doradobeachreserve,Puerto Rico,Forbes,102651,42,39,0.138,3,52.6,94,yes,keep,
+"The Ritz-Carlton Maldives, Fari Islands",ritzcarltonmaldives,Maldives,Forbes,244504,24,17,0.177,6,52.4,95,yes,keep,
+Four Seasons Resort Hualalai,fshualalai,United States,"Forbes, Gold List",133896,48,45,0.158,3,52.1,96,yes,keep,
+Casa Angelina,casaangelinalifestyle,Italy,Forbes,221447,38,30,0.189,8,51.6,97,yes,keep,
+Raffles London at The OWO,raffleslondon.theowo,United Kingdom,"Forbes, World's 50 Best",83131,30,27,0.295,9,51.5,98,yes,keep,
+Le Sirenuse,lesirenuse,Italy,Forbes,539192,27,24,0.328,2,51.3,99,yes,keep,
+Lime Wood,limewoodhotel,United Kingdom,Gold List,104135,48,49,0.107,2,51.1,100,yes,keep,
+Hotel Bel-Air,hotelbelair,United States,World's 50 Best,120215,34,20,0.345,3,50.6,101,yes,keep,
+Rosewood San Miguel de Allende,rosewoodsanmiguel,Mexico,Forbes,116572,22,26,0.139,3,50.4,102,yes,keep,
+Jumeirah Al Naseem,jumeirahalnaseem,United Arab Emirates,Forbes,202359,33,25,0.078,10,49.8,103,yes,keep,
+Four Seasons Resort Bali at Jimbaran Bay,fsbali,Indonesia,Forbes,204382,42,42,0.087,2,49.7,104,yes,keep,
+Four Seasons Resort Bali at Sayan,fsbali,Indonesia,Forbes,204382,42,42,0.087,2,49.7,105,yes,keep,
+Jumeirah Marsa Al Arab,jumeirahmarsaalarab,United Arab Emirates,World's 50 Best,119680,36,19,3.419,2,49.2,106,yes,keep,
+Adare Manor,theadaremanor,Ireland,"Forbes, Gold List",188377,24,29,0.224,5,49.0,107,yes,keep,
+JOALI BEING,joalibeing,Maldives,Forbes,161630,39,38,0.070,3,48.8,108,yes,keep,
+The Goring,thegoring,United Kingdom,Forbes,114333,31,8,0.355,6,48.5,109,yes,keep,
+Sterrekopje Farm,sterrekopjefarm,South Africa,Gold List,64553,30,27,0.373,2,48.5,110,no,keep,
+Beach Club at The Boca Raton,thebocaraton,United States,Forbes,148418,34,32,0.222,3,47.7,111,yes,keep,
+Yacht Club at The Boca Raton,thebocaraton,United States,Forbes,148418,34,32,0.222,3,47.7,112,yes,keep,
+Tierra Patagonia,tierrahotels,Chile,Gold List,149386,27,12,0.141,6,47.2,113,yes,keep,
+LUX* South Ari Atoll,luxsouthari,Maldives,Forbes,467445,34,17,0.070,8,46.5,114,yes,keep,
+Hurawalhi Island Resort,hurawalhi,Maldives,Forbes,248282,37,32,0.099,4,46.4,115,yes,keep,
+One&Only Reethi Rah,ooreethirah,Maldives,Forbes,263385,34,21,0.090,5,46.2,116,yes,keep,
+Address Beach Resort Dubai,addressbeachresort,United Arab Emirates,Forbes,224660,35,12,0.084,7,45.8,117,yes,keep,
+Salamander Middleburg,salamanderresort,United States,Forbes,136239,34,38,0.050,2,44.9,118,yes,keep,
+The Brando,thebrandoresort,French Polynesia,"Forbes, Gold List",148023,31,26,0.192,3,44.9,119,yes,keep,
+Four Seasons Astir Palace Hotel Athens,fsathens,Greece,"Forbes, Gold List, World's 50 Best",120869,37,29,0.532,1,44.9,120,yes,keep,
+Hassler Roma,hotelhasslerroma,Italy,Forbes,37165,30,23,0.396,3,44.8,121,no,keep,
+Eden Rock - St Barths,er_stbarths,St Barts,Forbes,123163,12,25,1.069,1,44.5,122,yes,keep,
+Nay Palad Hideaway,naypalad,Philippines,Gold List,126389,21,22,0.111,4,44.0,123,yes,keep,
+Hotel Il Pellicano,hotelilpellicano,Italy,"Forbes, Gold List, World's 50 Best",226223,24,8,0.416,3,43.5,124,yes,keep,
+Lily of the Valley,lilyofthevalleyhotel,France,Gold List,166561,41,39,0.176,3,43.5,125,yes,keep,
+Forestis,forestis.dolomites,Italy,Gold List,395672,25,14,0.273,3,42.8,126,yes,keep,
+"Mandarin Oriental, New York",mo_newyork,United States,"Forbes, Gold List",157662,22,34,0.082,2,42.6,127,yes,keep,
+The Mark,themarkhotelny,United States,World's 50 Best,100164,36,36,3.199,0,41.7,128,yes,keep,
+Les Roches Rouges,lesrochesrouges,France,Gold List,107575,33,17,0.217,6,41.7,129,yes,keep,
+Four Seasons Hotel Madrid,fsmadrid,Spain,Forbes,113442,37,30,0.313,1,41.5,130,yes,keep,
+"Chileno Bay Resort & Residences, Auberge Collection",chilenobayauberge,Mexico,Forbes,98864,37,30,0.184,2,41.5,131,yes,keep,
+Trump International Hotel & Tower Chicago,trumpchicago,United States,Forbes,86117,28,17,0.283,3,41.2,132,yes,keep,
+"Four Seasons Resort Punta Mita, Mexico",fspuntamita,Mexico,Forbes,132589,32,26,0.136,3,40.9,133,yes,keep,
+Royal Mansour Marrakech,royalmansourmarrakech,Morocco,"Forbes, World's 50 Best",268744,30,11,0.228,2,40.7,134,yes,keep,
+The St. Regis Maldives Vommuli Resort,stregismaldives,Maldives,Forbes,222020,29,14,0.123,4,40.5,135,yes,keep,
+Raffles Hotel Singapore,raffleshotelsingapore,Singapore,"Forbes, World's 50 Best",93244,17,39,0.146,1,40.1,136,yes,keep,
+Waldorf Astoria Maldives Ithaafushi,waldorfastoriamaldives,Maldives,"Forbes, Gold List",343095,28,8,0.133,5,39.1,137,yes,keep,
+Palace Hotel Tokyo,palacehoteltokyo,Japan,Forbes,62784,12,10,0.762,3,38.4,138,no,keep,
+Post Ranch Inn,postranchinn,United States,Gold List,104401,22,12,0.221,6,38.1,139,yes,keep,
+One&Only Mandarina,oomandarina,Mexico,"Gold List, World's 50 Best",312267,32,22,0.052,3,37.5,140,yes,keep,
+"Mandarin Oriental, Tokyo",mo_tokyo,Japan,Forbes,108777,26,34,0.159,1,37.3,141,yes,keep,
+SUJÁN Jawai,thesujanlife,India,Gold List,109380,19,27,0.350,1,35.8,142,yes,keep,
+SUJÁN Sher Bagh,thesujanlife,India,Gold List,109380,19,27,0.350,1,35.8,143,yes,keep,
+The Fife Arms,thefifearms,United Kingdom,Gold List,114459,19,29,0.408,0,35.7,144,yes,keep,
+Hotel Esencia,hotelesencia,Mexico,Forbes,225448,31,10,0.127,5,35.6,145,yes,keep,
+Four Seasons Hotel Seoul,fsseoul,South Korea,Forbes,33154,14,14,0.306,1,34.4,146,no,keep,
+Montage Los Cabos,montageloscabos,Mexico,Forbes,114813,35,29,0.158,1,33.5,147,yes,keep,
+Kasbah Tamadot,kasbahtamadot,Morocco,Gold List,33262,12,9,0.869,2,33.1,148,no,keep,
+Ett Hem,etthemstockholm,Sweden,Gold List,139041,12,2,1.302,0,33.0,149,yes,keep,
+Four Seasons Hotel at The Surf Club,fssurfside,United States,Forbes,94193,39,35,0.133,1,32.0,150,yes,keep,
+Four Seasons Resort Dubai at Jumeirah Beach,fsdubai,United Arab Emirates,Forbes,156627,39,36,0.117,1,31.6,151,yes,keep,
+"Emirates Palace Mandarin Oriental, Abu Dhabi",mo_emiratespalace,United Arab Emirates,Forbes,228965,33,21,0.065,2,31.5,152,yes,keep,
+Velaa Private Island,velaaprivateisland,Maldives,Forbes,116158,17,16,0.280,1,30.9,153,yes,keep,
+Six Senses Zighy Bay,sixsenseszighybay,Oman,Gold List,146861,31,29,0.093,1,30.6,154,yes,keep,
+Mashpi Lodge,mashpilodge,Ecuador,Gold List,127129,38,30,0.105,3,30.4,155,yes,keep,
+LUX* Belle Mare,luxbellemare,Mauritius,Forbes,85742,38,21,0.141,3,30.1,156,yes,keep,
+Montage Laguna Beach,montagelaguna,United States,Forbes,111777,27,22,0.174,2,29.7,157,yes,keep,
+One&Only Le Saint Géran,oolesaintgeran,Mauritius,Forbes,82908,34,20,0.122,2,29.3,158,yes,keep,
+Delaire Graff Lodge,delairegraff,South Africa,Forbes,87896,41,36,0.130,2,29.0,159,yes,keep,
+Jade Mountain,jademountainstlucia,St Lucia,Gold List,360355,13,40,0.049,1,29.0,160,yes,dead audience,"large following, implausibly low engagement — audience looks bought or dead"
+Kudadoo Maldives Private Island,kudadoomaldives,Maldives,Forbes,104375,36,30,0.080,2,28.9,161,yes,keep,
+La Casa de la Playa,lacasadelaplaya,Mexico,Forbes,461383,33,27,0.143,0,28.6,162,yes,keep,
+Four Seasons Resort and Residences Napa Valley,fsnapavalley,United States,Forbes,52034,12,10,0.217,1,28.1,163,no,keep,
+Chablé Yucatán,chableyucatan,Mexico,"Gold List, World's 50 Best",93155,28,32,0.075,3,28.0,164,yes,keep,
+Uxua Casa Hotel & Spa,uxua,Brazil,Gold List,113623,31,14,0.160,2,27.3,165,yes,keep,
+"Mandapa, a Ritz-Carlton Reserve",mandapareserve,Indonesia,"Forbes, World's 50 Best",100784,23,34,0.105,2,26.7,166,yes,keep,
+"Four Seasons Resort Peninsula Papagayo, Costa Rica",fscostarica,Costa Rica,Forbes,136086,47,47,0.090,0,26.7,167,yes,keep,
+Four Seasons Hotel Istanbul at the Bosphorus,fsbosphorus,Turkey,Forbes,117266,15,11,0.181,1,26.5,168,yes,keep,
+Four Seasons Hotel London at Tower Bridge,fstowerbridge,United Kingdom,Forbes,83493,44,44,0.131,0,26.5,169,yes,keep,
+J.K. Place Capri,jkplacecapri,Italy,Forbes,87572,35,14,0.120,4,26.3,170,yes,keep,
+Iniala Valletta,inialavalletta,Malta,Forbes,13788,31,28,0.239,0,26.3,171,no,keep,
+Four Seasons Resort Palm Beach,fspalmbeach,United States,Forbes,89754,21,12,0.195,1,25.7,172,yes,keep,
+Raffles Doha,rafflesdoha,Qatar,"Forbes, Gold List",99861,18,25,0.116,1,25.7,173,yes,keep,
+LUX* Grand Baie,luxgrandbaie,Mauritius,Forbes,113396,31,7,0.125,3,25.3,174,yes,keep,
+"Mandarin Oriental, Hyde Park, London",mo_hydepark,United Kingdom,Forbes,111571,31,28,0.073,1,24.2,175,yes,keep,
+"Maroma, A Belmond Hotel, Riviera Maya",belmondmaroma,Mexico,"Forbes, World's 50 Best",117209,33,20,0.194,0,23.9,176,yes,keep,
+Acqualina Resort and Residences on the Beach,acqualinaresort,United States,Forbes,126416,43,46,0.059,0,23.2,177,yes,keep,
+One&Only Portonovi,ooportonovi,Montenegro,Forbes,88391,33,21,0.137,1,22.9,178,yes,keep,
+"One&Only Palmilla, Los Cabos Resort",oneandonlypalmilla,Mexico,Forbes,157252,33,21,0.084,2,22.6,179,yes,keep,
+One&Only Royal Mirage - The Residence,ooroyalmirage,United Arab Emirates,Forbes,142102,33,19,0.102,1,22.5,180,yes,keep,
+"Mandarin Oriental Bosphorus, Istanbul",mo_istanbul,Turkey,Forbes,92928,30,39,0.101,0,22.3,181,yes,keep,
+Four Seasons Hotel Macao,fsmacau,China,Forbes,9947,15,12,0.281,0,21.6,182,no,keep,
+"Coworth Park, Dorchester Collection",coworthpark,United Kingdom,Gold List,101549,38,28,0.126,0,20.2,183,yes,keep,
+The Calile,thecalilehotel,Australia,World's 50 Best,138376,35,30,0.073,0,18.4,184,yes,keep,
+Four Seasons Hotel Kuwait at Burj Alshaya,fskuwait,Kuwait,Forbes,100631,36,30,0.085,0,17.4,185,yes,keep,
+The Resort at Pelican Hill,pelicanhillresort,United States,Forbes,99086,30,13,0.112,1,17.1,186,yes,keep,
+Trump Turnberry,trumpturnberryscotland,United Kingdom,Forbes,78704,12,13,0.175,0,16.9,187,no,keep,
+"The Ritz-Carlton, Hong Kong",ritzcarltonhongkong,China,Forbes,58221,14,14,0.162,0,16.4,188,no,keep,
+Raffles Istanbul,rafflesistanbul,Turkey,Forbes,107761,16,19,0.115,0,15.7,189,yes,keep,
+"Mandarin Oriental Jumeira, Dubai",mo_jumeira,United Arab Emirates,Forbes,114536,31,27,0.077,0,15.7,190,yes,keep,
+Waldorf Astoria Los Cabos Pedregal,wapedregal,Mexico,Forbes,154733,28,22,0.074,0,15.6,191,yes,keep,
+Four Seasons Hotel Toronto,fstoronto,Canada,Forbes,66086,12,12,0.138,0,14.1,192,no,keep,
+"Mandarin Oriental, Milan",mo_milan,Italy,Forbes,101320,34,25,0.078,0,13.8,193,yes,keep,
+Pan Pacific London,panpacificlondon,United Kingdom,Forbes,60926,12,12,0.097,0,9.2,194,no,keep,
+Wynn Palace,wynn.palace,China,Forbes,36711,17,17,0.054,0,7.2,195,no,keep,
+Sky Tower at Solaire Resort Entertainment City,solaireresort,Philippines,Forbes,70213,15,15,0.019,0,6.2,196,no,dead audience,"large following, implausibly low engagement — audience looks bought or dead"
+Grand Lisboa Palace Macau,grandlisboapalace,China,Forbes,42728,13,13,0.042,0,5.5,197,no,dead audience,"large following, implausibly low engagement — audience looks bought or dead"
+Soneva Fushi,soneva,Maldives,World's 50 Best,1370083,5,21,0.051,1,,,yes,drop,only 5 visible-like posts in 12mo
+Soneva Jani,soneva,Maldives,Forbes,1370083,5,21,0.051,1,,,yes,drop,only 5 visible-like posts in 12mo
+"Atlantis, The Royal",atlantistheroyal,United Arab Emirates,"Forbes, World's 50 Best",637388,3,11,0.190,0,,,yes,drop,only 3 visible-like posts in 12mo
+Our Habitas AlUla,habitasalula,Saudi Arabia,Gold List,378288,1,28,1.257,0,,,yes,drop,only 1 visible-like posts in 12mo
+Shangri-La Paris,shangrilaparis,France,Forbes,294400,0,32,,0,,,yes,drop,only 0 visible-like posts in 12mo
+"Castiglion del Bosco, A Rosewood Hotel",rosewoodcastigliondelbosco,Italy,Forbes,232486,0,41,,0,,,yes,drop,only 0 visible-like posts in 12mo
+"The Mulia - Nusa Dua, Bali",themuliabali,Indonesia,Forbes,229198,4,13,0.077,0,,,yes,drop,only 4 visible-like posts in 12mo
+Nizuc Resort & Spa,nizucresort,Mexico,Forbes,200864,3,29,0.060,0,,,yes,drop,only 3 visible-like posts in 12mo
+The Colony Hotel,thecolonypalmbeach,United States,Gold List,192700,9,19,0.318,0,,,yes,drop,only 9 visible-like posts in 12mo
+Marbella Club,marbellaclubh,Spain,Gold List,192577,11,38,0.145,3,,,yes,drop,only 11 visible-like posts in 12mo
+Rosewood London,rosewoodlondon,United Kingdom,Forbes,184990,5,26,0.171,0,,,yes,drop,only 5 visible-like posts in 12mo
+"The Setai, Miami Beach",thesetaimiamibeach,United States,Forbes,170917,11,27,0.074,0,,,yes,drop,only 11 visible-like posts in 12mo
+Four Seasons Resort and Residences Anguilla,fsanguilla,Anguilla,Forbes,169117,0,37,,0,,,yes,drop,only 0 visible-like posts in 12mo
+"Mandarin Oriental, Paris",mo_paris,France,Forbes,162834,7,33,0.117,2,,,yes,drop,only 7 visible-like posts in 12mo
+"Shangri-La The Shard, London",shangrilalondon,United Kingdom,Forbes,162757,7,27,0.057,1,,,yes,drop,only 7 visible-like posts in 12mo
+The Lana,thelanadubai,United Arab Emirates,World's 50 Best,157191,11,28,0.221,2,,,yes,drop,only 11 visible-like posts in 12mo
+"Mandarin Oriental, Marrakech",mo_marrakech,Morocco,Forbes,156983,2,28,0.143,0,,,yes,drop,only 2 visible-like posts in 12mo
+Ashford Castle,ashfordcastle,Ireland,Forbes,147341,11,41,0.427,2,,,yes,drop,only 11 visible-like posts in 12mo
+San Ysidro Ranch,sanysidroranch,United States,Gold List,142817,10,20,0.756,1,,,yes,drop,only 10 visible-like posts in 12mo
+Maçakizi,macakizihotel,Turkey,Gold List,106470,3,42,0.295,0,,,yes,drop,only 3 visible-like posts in 12mo
+Hôtel du Couvent,hotelducouvent,France,World's 50 Best,89178,0,6,,0,,,yes,drop,only 0 visible-like posts in 12mo
+The Dolder Grand,thedoldergrand,Switzerland,Forbes,87584,9,10,0.791,1,,,yes,drop,only 9 visible-like posts in 12mo
+Armani Hotel Dubai,armanihoteldxb,United Arab Emirates,Forbes,324849,30,0,0.039,1,,,yes,drop,nothing posted in 90 days
+Rosewood Villa Magna,rosewoodvillamagna,Spain,Forbes,81057,3,7,0.181,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The St. Regis Abu Dhabi,stregisabudhabi,United Arab Emirates,Forbes,80465,0,4,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Waldorf Astoria Beverly Hills,waldorfbevhills,United States,Forbes,80384,4,3,0.123,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Chedi Andermatt,thechediandermatt,Switzerland,Forbes,80167,8,8,0.113,2,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental The Landmark, Hong Kong",mo_landmarkhk,China,Forbes,78686,3,4,0.117,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel New York Downtown,fsnydowntown,United States,Forbes,78312,3,7,0.066,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Leela Palace Jaipur,theleelapalace_jaipur,India,Gold List,77748,9,10,0.273,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Taj Falaknuma Palace,tajfalaknuma,India,Gold List,76762,2,4,0.238,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+BLESS Hotel Madrid,blesshotelmadrid,Spain,Forbes,76599,2,5,0.050,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Barcelona",mo_barcelona,Spain,Forbes,76540,8,8,0.087,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Royal Champagne Hotel & Spa,royalchampagne,France,Forbes,75079,4,8,0.610,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Oberoi, Mumbai",theoberoimumbai,India,Gold List,74593,4,10,0.632,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Prince Gallery Tokyo Kioicho, a Luxury Collection Hotel",princegallerytokyokioicho,Japan,Forbes,74195,5,10,16.244,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Doha,fsdoha,Qatar,Forbes,73414,4,4,0.091,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Resort Lanai,fslanai,United States,Forbes,73003,3,7,0.168,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Hacienda AltaGracia, Auberge Resorts Collection",altagraciaauberge,Costa Rica,Gold List,72903,3,6,0.085,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Inn at Little Washington,innatlittlewash,United States,Forbes,72358,9,9,0.709,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Encore Boston Harbor,encorebostonharbor,United States,Forbes,72303,1,7,0.033,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Nujuma, a Ritz-Carlton Reserve",nujumareserve,Saudi Arabia,Forbes,72145,10,8,0.144,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Lodge at Primland, Auberge Collection",primlandauberge,United States,Gold List,71885,8,8,0.170,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Peninsula Tokyo,thepeninsulatokyo,Japan,Forbes,71135,8,7,0.449,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Auberge du Soleil, Auberge Collection",aubergedusoleil,United States,Forbes,70943,9,9,0.092,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Brown's Hotel, a Rocco Forte Hotel",browns_hotel,United Kingdom,Forbes,70086,9,9,0.151,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Conrad Abu Dhabi Etihad Towers,conradetihadtowers,United Arab Emirates,Forbes,69519,0,2,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The St. Regis Saadiyat Island Resort, Abu Dhabi",stregissaadiyatisland,United Arab Emirates,"Forbes, Gold List",69442,0,2,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Langham, Chicago",langhamchicago,United States,Forbes,69409,5,6,0.097,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Grand Hotel Excelsior Vittoria,excelsiorvittoria,Italy,Gold List,68937,4,6,0.232,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Hotel de la Ville, a Rocco Forte Hotel",hoteldelavillerome,Italy,Forbes,68596,6,6,0.375,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Hotel Grande Bretagne, a Luxury Collection Hotel, Athens",hotelgrandebretagne,Greece,Gold List,68431,1,4,0.516,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The St. Regis Bal Harbour Resort,stregisbalharbour,United States,Forbes,68415,0,6,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Waldorf Astoria Kuwait,waldorfastoriakuwait,Kuwait,Forbes,67960,8,7,0.057,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Gasparilla Inn & Club,gasparillainn,United States,Gold List,67553,1,1,1.134,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Faena Hotel Miami Beach,faenamiamibeach,United States,Forbes,66968,2,2,2.229,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Upper House,upperhouse_hkg,China,World's 50 Best,66861,4,4,0.114,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+BLESS Ibiza Cala Nova,blessibizacalanova,Spain,Forbes,66842,1,6,0.202,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton New York, Central Park",ritzcarltonnycentralpark,United States,Forbes,66838,0,3,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Kona Village, a Rosewood Resort",konavillagerosewood,United States,Gold List,66188,7,7,0.443,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Wymara Villas, Sunset Cove",wymaravillas,Turks & Caicos,Forbes,65559,0,0,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Hong Kong",mo_hkg,China,"Forbes, World's 50 Best",65476,3,3,0.333,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Oberoi Amarvilas, Agra",oberoiamarvilas,India,Gold List,64163,9,9,2.643,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Trump International Hotel & Tower New York,trumpnyc,United States,Forbes,63072,4,4,0.070,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Inkaterra La Casona,inkaterrahotels,Peru,Gold List,63069,1,0,0.230,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel des Bergues Geneva,fsgeneva,Switzerland,Forbes,62156,8,8,0.169,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Ritz Lisbon,fslisbon,Portugal,Forbes,60882,6,6,0.173,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Dubai",ritzcarltondubai,United Arab Emirates,Forbes,60859,1,5,0.099,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mount Nelson, A Belmond Hotel, Cape Town",belmondmountnelsonhotel,South Africa,Forbes,60721,5,5,0.397,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Rosewood Little Dix Bay,rosewoodlittledixbay,British Virgin Islands,Gold List,60270,7,7,0.209,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton New York, NoMad",ritzcarltonnewyorknomad,United States,Gold List,60220,10,12,0.076,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Hong Kong,fshongkong,China,Forbes,59811,9,7,0.242,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Lodge at Blue Sky, Auberge Collection",blueskyauberge,United States,Forbes,59620,1,1,0.290,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Woodstock Inn & Resort,woodstock.inn,United States,Gold List,59342,4,4,0.185,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Zadún, a Ritz-Carlton Reserve",zadunreserve,Mexico,Forbes,59247,11,10,0.056,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Rancho Valencia Resort & Spa,ranchovalencia,United States,Forbes,59020,3,3,0.098,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Kimpton Seafire Resort + Spa,seafireresort,Cayman Islands,Forbes,58853,1,2,0.044,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Bangkok at Chao Phraya River,fsbangkok,Thailand,World's 50 Best,58807,2,7,0.883,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Post Oak Hotel at Uptown Houston,postoakuptown,United States,Forbes,58793,2,2,19.769,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Balmoral, a Rocco Forte Hotel",thebalmoral,United Kingdom,Forbes,58499,4,4,0.251,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Capella Bangkok,capellabangkok,Thailand,"Forbes, Gold List, World's 50 Best",58441,6,9,0.212,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Fairmont Hotel Vier Jahreszeiten,fairmont_hotelvierjahreszeiten,Germany,Gold List,58441,11,11,0.375,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Dubai International Financial Centre,fsdubaidifc,United Arab Emirates,Forbes,56954,7,7,0.118,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Venice Venice Hotel,venicevenicehotel,Italy,Gold List,56839,2,4,0.461,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Sussurro,sussurro.co,Mozambique,Gold List,56620,0,0,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Okura Tokyo,theokuratokyo,Japan,Forbes,56317,0,4,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Baku,fsbaku,Azerbaijan,Forbes,56025,2,5,0.337,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Montage Deer Valley,montagedeervalley,United States,Forbes,55385,6,6,0.136,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Peninsula Manila,thepeninsulamanila,Philippines,"Forbes, Gold List",54888,11,8,0.106,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Doha",mo_doha,Qatar,Forbes,54379,4,4,0.090,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Halekulani Okinawa,halekulani_okinawa,Japan,Forbes,53972,5,3,1.827,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Tokyo EDITION, Toranomon",toranomonedition,Japan,World's 50 Best,53921,4,5,0.500,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Istanbul at Sultanahmet,fssultanahmet,Turkey,Forbes,53092,0,3,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Narendra Bhawan Bikaner,narendra.bhawan.bikaner,India,Gold List,53062,0,6,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Island Shangri La,islandshangrila,Hong Kong,Gold List,52735,2,2,0.201,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Abu Dhabi at Al Maryah Island,fsabudhabi,United Arab Emirates,Forbes,52329,1,5,0.013,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Capella Sydney,capellasydney,Australia,World's 50 Best,51687,8,7,0.342,2,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Verina Astra,verinasifnos,Greece,Gold List,51222,1,1,0.674,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Four Seasons Resort The Nam Hai, Hoi An",fsnamhai,Vietnam,Forbes,50806,7,11,0.232,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Bvlgari Hotel Roma,bvlgarihotelroma,Italy,World's 50 Best,50295,3,5,0.692,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Tokyo",ritzcarltontokyo,Japan,Forbes,49464,6,6,0.722,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Montage Big Sky,montagebigsky,United States,Forbes,49230,7,7,0.242,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Meadowood Napa Valley,meadowoodnapavalley,United States,Forbes,48529,2,1,0.726,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Al Moudira Hotel,moudira_hotel,Egypt,Gold List,48076,0,6,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Maybourne Beverly Hills,themaybournebh,United States,Forbes,48048,2,4,0.697,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Nautilus,thenautilusisland,Maldives,Gold List,47721,7,6,0.054,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Shangri-La Hotel, Toronto",shangrilato,Canada,Forbes,47291,8,12,0.133,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Fairmont Pacific Rim,fairmontpacific,Canada,Forbes,47230,8,8,0.286,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Carlton Hotel St. Moritz,carltonstmoritz,Switzerland,Forbes,47084,3,3,0.722,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Ser Casasandra,sercasasandra,Mexico,Gold List,47063,6,6,0.208,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Lowell,thelowellhotel,United States,Gold List,46749,7,7,0.289,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Sandy Lane Hotel,sandylanehotel,Barbados,Forbes,46691,7,6,0.553,2,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton Ras Al Khaimah, Al Wadi Desert",ritzcarltonalwadidesert,United Arab Emirates,Gold List,46579,3,3,0.146,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Osaka",ritzcarlton.osaka,Japan,Forbes,46381,10,10,0.741,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Emory,theemorylondon,United Kingdom,World's 50 Best,46063,2,3,1.857,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Wequassett Resort and Golf Club,wequassett,United States,Forbes,45830,5,7,0.362,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Kalesma Mykonos,kalesma,Greece,Gold List,45828,4,5,0.171,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Twin Farms,twinfarms,United States,Forbes,45696,0,6,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Half Moon Bay",ritzcarltonhmb,United States,Forbes,44998,7,6,0.180,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Wickaninnish Inn,wickinnbc,Canada,Gold List,44684,6,5,0.199,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Desa Potato Head,potatoheadbali,Indonesia,World's 50 Best,44512,1,1,0.443,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Peninsula Chicago,thepeninsulachi,United States,Forbes,44288,6,8,0.294,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Grosvenor House, a Luxury Collection Hotel, Dubai",grosvenorhouse,United Arab Emirates,Forbes,44123,1,0,0.111,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Grand Hotel Son Net,grandhotelsonnet,Spain,Gold List,44083,10,10,0.192,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Chiva-Som,chivasomhuahin,Thailand,Gold List,43996,9,9,0.250,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Huka Lodge,hukalodge,New Zealand,Gold List,43851,6,5,0.217,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Hotel Le Toiny,hotelletoinystbarth,St Barthélemy,Gold List,43406,0,9,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+One&Only Gorilla's Nest,oorwanda,Rwanda,Forbes,43305,4,4,0.242,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Zero George,zerogeorgest,United States,Gold List,43248,8,5,0.087,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Riyadh at Kingdom Centre,fsriyadh,Saudi Arabia,Forbes,43193,0,6,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton Orlando, Grande Lakes",ritzcarltonorlando,United States,Forbes,43156,10,10,0.342,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Weissenhaus Private Nature Luxury Resort,weissenhaus,Germany,Gold List,43112,1,2,0.445,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Prague,fsprague,Czech Republic,Forbes,42813,11,11,0.243,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Coral Sands Inn & Cottages,coralsands_harbourisland,Bahamas,Gold List,42428,2,2,1.582,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Samode Palace,samode_hotels,India,Gold List,42055,6,6,0.347,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Saxon Hotel, Villas and Spa",thesaxonhotel,South Africa,Forbes,41799,3,3,0.452,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"HOTEL THE MITSUI KYOTO, A Luxury Collection Hotel & Spa",hotel_the_mitsui_kyoto,Japan,"Forbes, World's 50 Best",41557,9,6,0.693,3,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Grand Hôtel,grandhotelstockholm,Sweden,Gold List,41436,5,5,0.425,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Waldorf Astoria Amsterdam,waldorfamsterdam,Netherlands,Forbes,40856,2,1,0.689,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Londoner Court,the_londoner_macao,China,Forbes,40533,4,4,0.178,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Paiza Grand,the_londoner_macao,China,Forbes,40533,4,4,0.178,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Londoner Hotel,the_londoner_macao,China,Forbes,40533,4,4,0.178,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Mii amo,mii_amo_spa,United States,Forbes,40258,9,9,0.102,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Cadogan, A Belmond Hotel, London",belmondcadogan,United Kingdom,Forbes,39389,4,4,0.216,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Lizard Island,lizardisland,Australia,Gold List,39285,7,5,0.611,2,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Capella Singapore,capellasingapore,Singapore,"Forbes, Gold List",38893,9,8,0.285,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Kyoto",ritzcarltonkyoto,Japan,"Forbes, Gold List",38650,5,5,0.668,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Canouan",mo_canouan,Saint Vincent and the Grenadines,Forbes,38190,6,6,0.119,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Gresham Palace Budapest,fsbudapest,Hungary,Forbes,38137,6,8,0.299,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Galaxy Hotel Macau,galaxymacau,China,Forbes,37898,2,2,0.310,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Ellerman House,ellermanhousehotel,South Africa,Gold List,37565,2,7,6.893,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+El Questro Homestead,elquestro,Australia,Gold List,37201,7,7,0.161,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Naviva, A Four Seasons Resort, Punta Mita",naviva,Mexico,Gold List,36830,4,7,0.410,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+THE KARL LAGERFELD,thekarllagerfeld,China,Forbes,36416,1,1,0.088,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Grand Park Hotel Rovinj,maistra_collection,Croatia,World's 50 Best,36371,6,4,1.090,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Montage Healdsburg,montagehealdsburg,United States,Forbes,35583,8,9,0.108,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Peninsula Bangkok,thepeninsulabangkok,Thailand,Forbes,35278,4,3,0.157,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Trisara,trisararesort,Thailand,Gold List,34794,5,5,0.109,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Waldorf Astoria Dubai International Financial Centre,waldorfdifc,United Arab Emirates,Forbes,34764,4,4,0.322,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Nikko",ritzcarltonnikko,Japan,"Forbes, Gold List",33792,7,7,1.068,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The St. Regis Toronto,stregistoronto,Canada,Forbes,33681,4,5,0.368,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Park Hyatt Sydney,parkhyattsydney,Australia,Gold List,32802,2,4,0.273,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+J.K. Place Roma,jkplaceroma,Italy,Forbes,32770,2,1,0.183,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"ROKU KYOTO, LXR Hotels & Resorts",roku.kyoto,Japan,Forbes,32451,7,7,0.462,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Il Salviatino,ilsalviatino,Italy,Gold List,32048,4,6,0.490,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Geneva",mo_geneva,Switzerland,Forbes,31938,6,6,0.208,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Shilla Seoul,theshillaseoul,South Korea,Forbes,30840,5,5,0.733,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Hotel Savoy, a Rocco Forte Hotel",hotelsavoyflorence,Italy,Forbes,30652,4,4,0.192,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Bvlgari Resort and Residences Dubai,bvlgariresortdubai,United Arab Emirates,"Forbes, Gold List",29881,2,5,1.156,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Weekapaug Inn,weekapauginn,United States,Forbes,29488,2,3,0.760,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Costa Navarino",mo_costanavarino,Greece,Forbes,29253,6,4,0.702,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Umstead Hotel and Spa,theumstead,United States,Forbes,29005,1,4,0.186,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Matetsi Victoria Falls,matetsivictoriafalls,Zimbabwe,Gold List,28695,3,6,0.282,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Amansara,amansara,Cambodia,Forbes,28659,1,1,0.646,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+andBeyond Mnemba Island,andbeyondmnemba,Tanzania,Gold List,27850,1,1,0.413,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Four Seasons Hotel Boston,fsboston,United States,Forbes,27834,4,4,0.144,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Hermitage Bay,hermitagebay,Antigua and Barbuda,Gold List,27270,0,14,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Dwarika's Hotel,dwarikas_collection,Nepal,Gold List,26828,6,6,0.578,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The St. Regis Atlanta,stregisatl,United States,Forbes,26298,4,3,0.487,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental Palace, Luzern",mo_luzern,Switzerland,Forbes,25068,10,10,0.355,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Four Seasons Hotel One Dalton Street, Boston",fsbostondalton,United States,Forbes,24973,5,7,0.629,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Four Seasons Hotel Washington, D.C.",fswashington,United States,Forbes,24950,5,5,0.176,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Wynn Macau,wynn.macau,China,Forbes,24790,1,1,0.020,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Rosewood Doha,rosewooddoha,Qatar,Forbes,24092,5,3,0.502,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Chanler at Cliff Walk,thechanler,United States,Forbes,24000,0,2,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Mayfair House Hotel & Garden,mayfairhousemiami,United States,Gold List,23908,10,7,0.201,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Regent Hong Kong,hongkongregent,China,Forbes,22531,8,7,0.399,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Oberoi Beach Resort, Mauritius",theoberoimauritius,Mauritius,Forbes,22477,3,6,0.218,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Address Istanbul,addresshotelistanbul,Turkey,Forbes,22373,0,11,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The St. Regis Hong Kong,stregishk,China,Forbes,22370,1,2,0.156,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental Savoy, Zurich",mo_savoyzurich,Switzerland,Forbes,21725,7,6,0.442,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Gran Hotel Inglés,granhotelingles,Spain,Gold List,21102,10,10,0.126,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Gardena Grödnerhof,gardenagroednerhof,Italy,Forbes,21038,7,6,0.575,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Posada Ayana,posadaayana,Uruguay,Gold List,20978,0,0,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Bvlgari Hotel Tokyo,bvlgarihoteltokyo,Japan,"Forbes, World's 50 Best",20749,9,9,1.162,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Raya Heritage,rayaheritage,Thailand,Gold List,20739,4,5,0.104,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Refugia Chiloé,refugia_chiloe,Chile,Gold List,20262,0,1,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Royal Palm Beachcomber Luxury,royalpalmbeachcomber,Mauritius,Forbes,20046,2,3,0.821,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Cempedak Island,cempedakisland,Indonesia,Gold List,19893,1,4,0.468,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Boston",mo_boston,United States,Forbes,19767,1,5,2.256,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Sheldon Chalet,sheldonchalet,United States,Gold List,19742,1,2,0.689,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Riyadh",theritzcarltonruh,Saudi Arabia,Forbes,19634,4,4,0.237,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Altira Macau,altira.macau,China,Forbes,19613,5,5,0.061,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Capella Hanoi,capellahanoi,Vietnam,Forbes,19602,6,5,0.398,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Akelarre,akelarrehotel,Spain,Gold List,19392,9,9,0.299,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Dove Mountain",ritzcarltondovemountain,United States,Forbes,19351,9,9,0.160,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Point,the_pointresort,United States,"Forbes, Gold List",18525,2,2,0.613,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Rosewood Sand Hill,rosewoodsandhill,United States,Forbes,17724,5,5,0.214,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Hazelton Hotel,hazeltonto,Canada,Forbes,17719,2,4,1.185,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Boston Harbor Hotel,bostonharborhotel,United States,Forbes,17018,9,12,0.353,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Capitol Hotel Tokyu,thecapitolhoteltokyu,Japan,Forbes,16833,10,8,0.855,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Severin's Resort & Spa,severins_resort_spa,Germany,Gold List,16576,1,4,2.769,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Paiza Lofts,parisian_macao,China,Forbes,15566,3,3,0.276,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Welcomhotel By ITC Hotels, Pine N Peak, Pahalgam",welcomhotel.pinenpeak_pahalgam,India,Gold List,15358,3,4,0.651,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Waldorf Astoria Seychelles Platte Island,waldorfastoriaplatteisland,Seychelles,Forbes,15224,2,8,0.634,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Turtle Inn,turtleinn,Belize,Gold List,15123,0,2,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Prince Akatoki London,theprinceakatokilondon,United Kingdom,Forbes,14744,6,6,0.054,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Takanawa Hanakohro,takanawa_hanakohro,Japan,Forbes,14622,5,2,0.260,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Dallas",ritzcarltondallas,United States,Forbes,13563,8,9,0.162,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Bvlgari Hotel London,bvlgarihotellondon,United Kingdom,Forbes,13329,4,5,0.874,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Jack's Camp,jackscampbotswana,Botswana,Gold List,13095,0,1,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Sofitel Legend Metropole Hanoi,sofitellegendmetropolehanoi,Vietnam,Gold List,12712,8,8,0.464,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Portrait Firenze  — Lungarno Collection,portraitfirenze,Italy,Forbes,12095,7,7,0.537,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Hotel 41,41hotel,United Kingdom,Forbes,11804,3,3,0.347,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Egerton House Hotel,egerton_house,United Kingdom,Forbes,11567,5,5,0.398,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental Pudong, Shanghai",mo_pudong,China,Forbes,10806,0,1,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Gangtey Lodge,gangteylodge,Bhutan,Gold List,10484,8,7,0.358,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The St. Regis San Francisco,stregissf,United States,Forbes,9417,3,3,0.181,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The St. Regis Macao,stregismacao,China,Forbes,9041,9,8,0.066,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Canyon Suites at The Phoenician,  A Luxury Collection Resort",canyonsuitesscottsdale,United States,Forbes,8849,0,0,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Rosewood Guangzhou,rosewoodguangzhou,China,Forbes,8542,5,5,0.304,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Capella Shanghai, Jian Ye Li",capellashanghai,China,Forbes,8513,1,5,0.787,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental, Shenzhen",mo_shenzhen_,China,Forbes,8469,2,5,0.254,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Chatham Inn,chatham.inn,United States,Forbes,8048,11,11,0.422,1,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental Qianmen, Beijing",mo_qianmen,China,"Forbes, World's 50 Best",7931,5,5,0.517,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+ESPACIO The Jewel of Waikiki,espaciowaikiki,United States,Forbes,7507,9,8,0.173,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Peninsula Shanghai,thepeninsulashanghai,China,Forbes,6743,2,2,0.475,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Mandarin Oriental Wangfujing, Beijing",mo_wangfujing,China,Forbes,6549,0,2,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+The Peninsula Beijing,thepeninsulabeijing,China,Forbes,5158,6,7,0.485,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"The Ritz-Carlton, Guangzhou",ritzcarltonguangzhou,China,Forbes,4467,5,5,0.291,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+RiverView Ranch,riverviewranchretreat,United States,Forbes,4347,0,4,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Dolphin Island,dolphinislandfiji,Fiji,Forbes,3657,0,0,,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Canaves Ena,canavesena,Greece,Gold List,3003,6,6,1.965,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+Hotel Okura Macau,hotelokuramacau,China,Forbes,2994,2,2,0.234,0,,,no,needs sample scrape,"untracked — data is partial (scraping stopped), cannot judge without a sample scrape"
+"Airelles Courchevel, Les Airelles",airellescourchevel,France,Forbes,73202,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Janu Tokyo,januhotels,Japan,World's 50 Best,60486,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Stein Eriksen Lodge Deer Valley,steinlodge,United States,Forbes,56088,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Adlon Kempinski Berlin,hoteladlonkempinski,Germany,Gold List,43313,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"The St. Regis Dubai, The Palm",stregisdubaithepalm,United Arab Emirates,Forbes,41529,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"The Ritz-Carlton, Chengdu",theritzcarltonchengdu,China,Forbes,32676,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Palazzo Margherita,palazzomargherita,Italy,Gold List,24877,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Happy House,happyhousenepal,Nepal,Gold List,13263,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Kinondo Kwetu,kinondokwetu,Kenya,Gold List,12749,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"The Ritz-Carlton, Macau",ritzcarltonmacau,China,Forbes,7813,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Banyan Tree Macau,banyantreemacau,China,Forbes,5685,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel New Otani Tokyo Executive House Zen,executivehousezen,Japan,Forbes,3355,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Grand Suites at Four Seasons,grandsuitesmacau,China,Forbes,3097,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Raffles at Galaxy Macau,raffles.galaxymacau,China,Forbes,2425,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Zannier Hotels Bãi San Hô,zannierbaisanho,Vietnam,Gold List,1728,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Palazzo Versace Macau,palazzoversacemacau,China,Forbes,1067,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Bohemian Bali,thebohemianbali,Indonesia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Magia De Uma,magiadeuma,Indonesia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Somewhere Lombok,somewherelombok,Indonesia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Innit Lombok,innitlombok,Indonesia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Cap Karoso,cap_karoso,Indonesia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Iki Retreat by Onko Chishin,okcs_kairi_iki,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+SOIL Nagatoyumoto,soil_nagatoyumoto,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Setouchi Retreat by Onko Chishin,okcs_setouchi_aonagi,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Yoruya,yoruya_kurashiki,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Zentis Osaka,zentishotels,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Genji Kyoto,genjikyoto,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Koo Otsu Hyakucho,,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Matsumoto Jujo,matsumotojujo,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Trunk Hotel Cat Street,trunkhotel_catstreet,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Trunk House,trunkhousekagurazaka,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Satoyama Jujo,satoyamajujo,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Kimamaya by Odin,kimamayabyodin,Japan,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Macalister Mansion,macalister.mansion,Malaysia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Prestige,theprestigehotelpg,Malaysia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Luma Hotel,thelumahotel,Malaysia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Else Kuala Lumpur,elseretreats,Malaysia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+SALT of Palmar,saltofpalmar,Mauritius,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Villa Sahrai,villasahrai,Morocco,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+AnaYela,riad_anayela,Morocco,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Gorgeous George,gorgeousgeorgecpt,South Africa,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Ten Bompas,ten_bompas_hotel,South Africa,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Zuri Zanzibar,zurizanzibar,Tanzania,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Voaara,,Madagascar,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+FORM Hotel Al Jaddaf,formhoteldubai,United Arab Emirates,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Blique by Nobis,bliquebynobis,Sweden,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Miss Clara by Nobis,missclarabynobis,Sweden,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Stallmastaregarden,stallmastaregarden,Sweden,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rote Wand Gourmet Hotel,rotewandgourmet,Austria,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Dominican,thedominican,Belgium,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Adelphi Hotel,adelphi_hotel,Australia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Nobis Hotel Copenhagen,,Denmark,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+La Maison Champs Elysees,lamaisonchampselyseesparis,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sir Prague Hotel,sirhotels,Czech Republic,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Almyra,almyrahotel,Cyprus,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+L'Ovella Negra Mountain Lodge,lovellanegradincles,Andorra,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Augarten Art Hotel,augarten_art_hotel,Austria,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+DO & CO Hotel Vienna,docovienna,Austria,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+the comodo,thecomodo,Austria,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+stieg'nhaus,stiegnhaus,Austria,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sense Hotel Sofia,sensehotelsofia,Bulgaria,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Juno Hotel Sofia,junohotelsofia,Bulgaria,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Boutique Hotel Venturo,boutiquehotelventuro,Croatia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Amyth of Nicosia,amyth_nicosia,Cyprus,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Josef,hotel_josef_prg,Czech Republic,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel St. George,stgeorgehelsinki,Finland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Five Seas Cannes,fiveseashotel,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Sezz Saint-Tropez,hotelsezz_sainttropez,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Vertigo Hotel,,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Chateau de la Resle,chateaudelaresle,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Le Pigalle,lepigalleparis,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Le Roch Hotel & Spa,lerochhotel,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Wallace,hotelwallaceparis,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Rochechouart,hotelrochechouart,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel de Tourrel,hoteldetourrel,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Domaine des Andeols,domainedesandeols,France,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rooms Batumi,rooms.hotels,Georgia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rooms Kazbegi,rooms.hotels,Georgia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Stamba Hotel,,Georgia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rooms Tbilisi,rooms.hotels,Georgia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Blue Fox Hotel,,Georgia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Qvest Hideaway,theqvest,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+La Maison Hotel & Spa,lamaison_hotel,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Mauritzhof Hotel Munster,mauritzhofhotel,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Pure,thepurehotel,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Liberty,hotellibertyog,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+FREIgeist Goettingen Innenstadt,freigeistgoettingen.innenstadt,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+FREIgeist Goettingen Nordstadt,freigeistgoettingen.nordstadt,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+FREIgeist Einbeck,freigeist.einbeck_,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Zum Loewen Design Hotel Resort & Spa,,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Seegut Zeppelin,seegut_zeppelin,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Gastwerk Hotel Hamburg,gastwerkhotel,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Tortue Hamburg,tortue_hamburg,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Nobis Hotel Stockholm,nobishotelstockholm,Sweden,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Skeppsholmen,hotelskeppsholmen,Sweden,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel J,hotel_j,Sweden,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+SIDE,sidehamburg,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The George,thegeorgehotelhamburg,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+LOUIS Hotel,louishotelmunich,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Cortiina Hotel,cortiina,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Provocateur,provocateurberlin,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+KPM Hotel & Residences,kpmberlin,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Mandala Hotel,themandalahotel,Germany,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Met Hotel,themethotel,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Olea All Suite Hotel,oleaallsuitehotel,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Dexamenes Seaside Hotel,dexamenes,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Ekies All Senses Resort,ekiesresort,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Manna,,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Fresh Hotel,freshhotelathens,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Perianth Hotel,perianthhotel,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+New Hotel,newhotel_athens,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Semiramis,semiramis.kifisia,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+AthensWas,athenswas,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Periscope,periscope_athens,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Pnoes Tinos,pnoes_tinos,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Erema,erema_milos,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Stamna Sifnos,stamnasifnos,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rocabella Mykonos Hotel,rocabellamykonos,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Mykonian Theoxenia,mykonostheoxenia,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Myconian Kyma,myconiankyma,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Myconian O,o_bymyconiancollection,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Myconian Avaton,myconianavaton,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Tella Thera,tellathera,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Parilio,pariliohotel,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Tanneries Hotel & Spa,thetanneries,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Vora,vora_santorini,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Nous Santorini,nous_santorini,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Istoria,istoriahotel,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Phaea Cretan Malia,phaeacretanmalia,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Minos Beach Art Hotel,minosbeachart_hotel,Greece,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Ion Adventure Hotel,,Iceland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+101 hotel Reykjavik,101hotelreykjavik,Iceland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Ion City Hotel,,Iceland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Schgaguler Hotel,schgagulerhotel,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Arua Private Spa Villas,aruavillas,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Parkhotel Mondschein,parkhotelmondschein,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Greif,hotelgreif,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Villa Arnica,villaarnica,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Schwarzschmied,schwarzschmied,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+guesthouse by good neighbor,,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Kinsley,hotelkinsley,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Scribner's Catskill Lodge,scribnerslodge,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+11 Howard,11_howard,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Crosby Street Hotel, Firmdale Hotels",crosbystreet_hotel,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Ludlow Hotel,ludlowhotelnyc,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"The Whitby Hotel, Firmdale Hotels",thewhitby_hotel,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Warren Street Hotel, Firmdale Hotels",warrenstreet_hotel,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Moore,,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Bradford House,bradfordhouseokc,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Dwell Hotel,thedwellhotel,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Drift Nashville,,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Austin Proper Hotel,austinproperhotel,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Shelborne By Proper,theshelborne,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Granada,,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Municipal Grand,municipal_grand,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Flat Iron Hotel,theflatironavl,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Ramble Hotel,theramblehotel,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+ARRIVE Albuquerque,arrivehotels,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel St. Paul,hotelstpaul,Canada,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Boca de Agua,bocadeagua,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Casa Habita,casahabita,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Lo Sereno Casa de Playa,losereno_casadeplaya,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotelito at MUSA,hotelitoatmusa,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Elena de Cobre,hotelelenadecobre,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+1477 Reichhalter,1477reichhalter,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Vigilius Mountain Resort,vigiliusmountainresort,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+GombitHotel,gombithotel,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Filario Hotel & Residences,filariohotel,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Elizabeth Country House,elizabeth.country.house,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+C-Hotel & Spa,chotelspa,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Viu Milan,hotelviumilan,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+STRAF,strafhotel,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Vocabolo Moscatelli,vocabolo_moscatelli,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rastrello,rastrello.panicale,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+La Bandita Townhouse,banditatuscany,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Eremito,eremitohotel,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sextantio Albergo Diffuso,sextantio,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Windsor,designhotelwindsor,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Elizabeth Unique Hotel,elizabeth.unique.hotel,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+G-Rough,,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Chapter Roma,chapterroma,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Palazzo Velabro,palazzovelabro,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sextantio Le Grotte della Civita,sextantio,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Palazzo Daniele,palazzo.daniele,Italy,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+La Maison Palmier,lamaisonpalmier,Ivory Coast,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Trademark Hotel,trademarkhotel,Kenya,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Tribe Hotel,tribehotel,Kenya,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Reja,hotelreja,Lithuania,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Pacai,hotelpacai,Lithuania,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Esperanza Lake Resort,,Lithuania,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Finca Victoria,fincavictoriabegur,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sir Victor Hotel,sirhotels,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+ORA Hotel Priorat,orahotelpriorat,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+El Vicenc de la Mar,hotelelvicenc,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Bikini Island & Mountain Hotel Port de Soller,bikinihotel_portdesoller,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Es Raco d'Arta,esracodartadestino,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Concepcio by Nobis,concepciobynobis,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Nobis Hotel Palma,nobishotelpalma,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Condesa DF,condesadfhotel,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Downtown Mexico,grupohabita,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Habita,grupohabita,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rosas & Xocolate,rosasyxocolate,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Sevilla,sevilla.merida,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Escondido Oaxaca,escondidooaxaca,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Escondido,hotelescondido,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Terrestre,terrestrehotel,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Humano,,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Otro Oaxaca,otrooaxaca,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel La Semilla,hotellasemilla,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+La Purificadora,,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Matilda,hotelmatilda,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Santa Monica Proper Hotel,santamonicaproper,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel 850 SVB,hotel850svb,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Palihotel Hollywood,palisociety,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Avalon Hotel & Bungalows Palm Springs,avalonhotels,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Drift Palm Springs,,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+ARRIVE Palm Springs,arrivehotels,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+El Llorenc Parc de la Mar,hotelelllorenc,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Maricel & Spa,hospeshotelsmallorca,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Palau de la Mar,hospeshotelsvalencia,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Puerta de Alcala,hospeshotels_madrid,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Palacio de San Esteban,hospeshotelsalamanca,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Amerigo,hospeshotelsalicante,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Palacio del Bailio,hospeshotelscordoba,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Palacio de los Patos,hospeshotelsgranada,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hospes Las Casas del Rey de Baeza,hospeshotels_sevilla,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Bohemia Suites & Spa,bohemiasuites,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Seaside Palm Beach,seasidepalmbeach,Spain,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Torre de Palma Wine Hotel,torredepalma,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Memmo Alfama,memmoalfama,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Hotel,ohotelhotel,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Memmo Principe Real,memmoprincipereal,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Immerso Hotel,immersohotel,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Altis Belem Hotel & Spa,altishotels,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Memmo Baleeira,memmobaleeira,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Estalagem da Ponta do Sol,estalagemdapontadosol,Portugal,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Cambrian,thecambrianadelboden,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Giardino Ascona,giardino.ascona,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Art House Basel,arthouse.basel,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Nomad Design & Lifestyle Hotel,nomad_basel,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Gasthaus Traube,traube_buchs,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Chandolin Boutique Hotel,chandolinboutiquehotel,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Chetzeron,chetzeron,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rocksresort,rocksresort,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Borsari,quartier.lodze,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Giardino Lago,giardino.lago,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Giardino Mountain,giardino.mountain,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Nira Alpina,niraalpina,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Spedition Thun,hotelspedition,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Cervo Mountain Resort,cervozermatt,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Omnia,omnia.zermatt,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Home Hotel Zurich,thehomehotelzurich,Switzerland,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Market Street Hotel,,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Inhabit Southwick Street,inhabit_hotels,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Boundary Shoreditch,,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Charlotte Street Hotel, Firmdale Hotels",charlottestreet_hotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Covent Garden Hotel, Firmdale Hotels",coventgarden_hotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Dorset Square Hotel, Firmdale Hotels",dorsetsquarehotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Ham Yard Hotel, Firmdale Hotels",hamyard_hotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Haymarket Hotel, Firmdale Hotels",haymarket_hotellondon,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Knightsbridge Hotel, Firmdale Hotels",knightsbridgehotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Number Sixteen, Firmdale Hotels",numbersixteenhotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"The Soho Hotel, Firmdale Hotels",thesoho_hotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Town Hall Hotel,townhallhotel,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Inhabit Queen's Gardens,inhabit_hotels,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sir Devonshire Square Hotel London,sirhotels,United Kingdom,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Kruisherenhotel Maastricht,kruisherenhotel,The Netherlands,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Kazerne,kazerneehv,The Netherlands,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sir Adam Hotel,sirhotels,The Netherlands,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Finolhu, A Seaside Collection Resort",finolhu_maldives,Maldives,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Sir Albert Hotel,sirhotels,The Netherlands,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Warehouse Hotel,thewarehousehotel,Singapore,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+21 Carpenter,21carpenter_sg,Singapore,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Nest Hotel,nest__hotel,South Korea,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Public House Bangkok,publichousebkk,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Mason,masonpattaya,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Casa de La Flora,casadelaflora,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Iniala Beach House,iniala_thailand,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Naka Phuket,thenakaphuket,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Slate,theslatephuket,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Surin Phuket,thesurinphuket,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+sala bang pa-in,,Thailand,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Bach Suites Saigon,bachsuitessaigon,Vietnam,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Irada,hotelirada,India,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Papaya Playa Project,papayaplayaproject,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+XELA Tulum,xelatulum,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Azucar,,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Maison Couturier,,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Drift San Jose del Cabo,drift.hotels,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+NEST Baja,nestbaja,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Baja Club,bajaclubhotel,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+MIRA Earth Studios,miraearthstudios,Mexico,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Dr. Wilkinson's Backyard Resort & Mineral Springs,drwilkinsonsresort,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Harmon Guest House,harmonguesthouse,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Healdsburg,hotelhealdsburg,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Timber Cove Resort,timbercoveresort,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Avalon Hotel Beverly Hills,avalonhotels,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel June West L.A.,hoteljunewestla,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Downtown L.A. Proper Hotel,downtownlaproper,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Andronis Luxury Suites,andronissuites,Greece,Forbes,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Capella at Galaxy Macau,capellamacau,China,Forbes,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+"Buahan, A Banyan Tree Escape",banyantreeescape.buahan,Indonesia,Gold List,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Bullo River Station,bulloriverstation,Australia,Gold List,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Cap Rocat,cap_rocat,Spain,Gold List,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Cape Weligama,capeweligama,Sri Lanka,Gold List,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Eden,hoteledenrome,Italy,Forbes,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+One&Only Nyungwe House,oonyungwehouse,Rwanda,Forbes,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Granger Hotel Gaslamp Quarter,grangerhotel,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+San Francisco Proper Hotel,sanfranciscoproper,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Drift Santa Barbara,,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Le Petit Pali Laguna Beach,palisociety,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Wren,,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+The Robey,therobeychicago,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Ulysses,hotelulysses,USA,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Hotel Belmar,hotelbelmar,Costa Rica,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Esh Hotel & Spa,eshhotelnosara,Costa Rica,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Rabot Hotel From Hotel Chocolat,hotelchocolatsaintlucia,Saint Lucia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Laluna,lalunagrenada,Grenada,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Good Hotel Antigua,goodhotel.co,Guatemala,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Atix Hotel,atixhotel,Bolivia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Wake BioHotel,wake.biohotel,Colombia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Wake Medellin,wake_medellin,Colombia,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
+Carlota,hotelcarlotaquito,Ecuador,Design Hotels,,0,0,,0,,,no,needs sample scrape,no post data at all — needs a sample scrape before it can be ranked
