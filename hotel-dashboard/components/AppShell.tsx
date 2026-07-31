@@ -312,7 +312,12 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
         <div className="cr-rail-divider" aria-hidden="true" />
 
         <SectionLabel>Yours</SectionLabel>
-        {navItem('/hotel', 'Your hotel', YourHotelIcon)}
+        {/* "Your hotel" (/hotel) was removed from the nav on 2026-07-31. The
+            route is still live and still works if you type the URL — it's useful
+            for demos — but it renders a fictional property (The Lansmere) with
+            invented numbers, and it was the most tempting link on the page for
+            someone who had just paid. Put it back when hotel claiming lands and
+            the page shows the member's real hotel. */}
         {navItem('/saved', 'Saved', SavedIcon)}
         {navItem('/watchlist', 'Watchlist', WatchlistIcon)}
 
