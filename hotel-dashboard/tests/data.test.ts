@@ -15,6 +15,8 @@ import {
   rotateLandingFeatured,
   selectFeaturedPosts,
   hasVisibleLikes,
+  selectBaselinePosts,
+  isMeasurable,
   erFlagReasons,
   type RawPost,
   type HotelMetrics,
@@ -50,6 +52,8 @@ function metrics(overrides: Partial<HotelMetrics> = {}): HotelMetrics {
     followers: 10_000,
     validPostCount: 20,
     visibleLikeRatio: 1,
+    visibleInWindow: 20,
+    measurable: true,
     recentRate30: 5,
     recentRate90: 4,
     ...overrides,
@@ -256,6 +260,56 @@ describe('hasVisibleLikes', () => {
     expect(hasVisibleLikes({ likes_count: 0 })).toBe(true);
     expect(hasVisibleLikes({ likes_count: 250 })).toBe(true);
   });
+
+  it('excludes the 3 preview-count leak (Apify Jun–Jul 2026 sentinel)', () => {
+    // Belt-and-braces: the pipeline now normalises 3 → null at scrape time,
+    // but the actor's sentinel has drifted before, so the app filters it too.
+    expect(hasVisibleLikes({ likes_count: 3 })).toBe(false);
+    // The neighbours stay real — only the sentinel value is excluded.
+    expect(hasVisibleLikes({ likes_count: 2 })).toBe(true);
+    expect(hasVisibleLikes({ likes_count: 4 })).toBe(true);
+  });
+});
+
+describe('selectBaselinePosts', () => {
+  const NOW = Date.parse('2026-07-31T12:00:00Z');
+  const daysAgo = (d: number) => new Date(NOW - d * 24 * 60 * 60 * 1000).toISOString();
+
+  it('keeps visible-like posts and skips hidden ones (null / -1 / 3)', () => {
+    const posts = [
+      { likes_count: 500,  posted_at: daysAgo(1) },
+      { likes_count: null, posted_at: daysAgo(2) },
+      { likes_count: -1,   posted_at: daysAgo(3) },
+      { likes_count: 3,    posted_at: daysAgo(4) },
+      { likes_count: 200,  posted_at: daysAgo(5) },
+    ];
+    expect(selectBaselinePosts(posts, NOW).map(p => p.likes_count)).toEqual([500, 200]);
+  });
+
+  it('reaches past hidden posts but never past 12 months', () => {
+    const posts = [
+      { likes_count: null, posted_at: daysAgo(10) },  // hidden — reached past
+      { likes_count: 400,  posted_at: daysAgo(300) }, // old but inside the year
+      { likes_count: 900,  posted_at: daysAgo(366) }, // outside the cap — dropped
+    ];
+    expect(selectBaselinePosts(posts, NOW).map(p => p.likes_count)).toEqual([400]);
+  });
+
+  it('returns empty for a hotel with nothing readable in the window', () => {
+    const posts = [
+      { likes_count: null, posted_at: daysAgo(5) },
+      { likes_count: 800,  posted_at: daysAgo(400) },
+    ];
+    expect(selectBaselinePosts(posts, NOW)).toEqual([]);
+  });
+});
+
+describe('isMeasurable', () => {
+  it('needs 12 visible-like posts in the window', () => {
+    expect(isMeasurable(11)).toBe(false);
+    expect(isMeasurable(12)).toBe(true);
+    expect(isMeasurable(0)).toBe(false);
+  });
 });
 
 describe('erFlagReasons', () => {
@@ -332,6 +386,17 @@ describe('computeStandout', () => {
       ...NO_META
     );
     expect(breakout_count).toBe(1);
+  });
+
+  it('excludes breakouts from unmeasurable hotels (the measurability gate)', () => {
+    const { breakout_count } = computeStandout(
+      [post({ likes_count: 500, comments_count: 0 })], // 5× its median — would qualify
+      // Good coverage ratio, but too few visible posts in 12 months: the two
+      // gates catch different offenders, and this one must fail alone.
+      { hotel_a: metrics({ medianPostEngagement: 100, visibleLikeRatio: 1, visibleInWindow: 8, measurable: false }) },
+      ...NO_META
+    );
+    expect(breakout_count).toBe(0);
   });
 
   it('skips hotels with no baseline (zero or missing median)', () => {
