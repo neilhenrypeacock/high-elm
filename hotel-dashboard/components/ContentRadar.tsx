@@ -5,6 +5,7 @@ import type { OutlierPost, TimeWindow } from '@/lib/data';
 import { TIME_WINDOWS, parseInsight } from '@/lib/data';
 import { postKey } from '@/lib/post-key';
 import { fmtFollowers, fmtPostedAt } from '@/lib/format';
+import { formatMultiplier } from '@/lib/format-multiplier';
 import { accreditationsFor } from '@/lib/accreditations';
 import { AccreditationPins } from './HotelTable';
 import SaveToggle from './SaveToggle';
@@ -419,7 +420,7 @@ export function BreakoutCard({
                 color: 'var(--signal-deep)',
               }}
             >
-              {p.multiplier.toFixed(1)}×
+              {formatMultiplier(p.multiplier)}
             </span>
             <span
               style={{
@@ -482,7 +483,7 @@ export function BreakoutCard({
                   </span>
                   {cell.mult > 0 && (
                     <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--signal-deep)' }}>
-                      ↑{cell.mult.toFixed(1)}×
+                      ↑{formatMultiplier(cell.mult)}
                     </span>
                   )}
                 </div>
