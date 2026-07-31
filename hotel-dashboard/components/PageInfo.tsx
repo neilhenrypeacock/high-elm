@@ -56,6 +56,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     blocks: [
       { h: 'What this is', p: 'The ranked list of breakout posts — every post beating its hotel’s own median by 2× or more, best first, no exceptions.' },
       { h: 'How it works', p: 'Choose a time window (7 days, 30 days, or all time) and filter by format or collaborations. Posts rank by multiple, not raw likes, so a smaller hotel’s genuine hit isn’t buried under a bigger grid’s baseline.' },
+      { h: 'Quiet weeks', p: 'Some weeks produce very few breakouts, or only collaborations. Rather than show you an empty week — or quietly lower the bar — the 7-day view adds a short “Closest this week” group below the ranking: posts that beat their hotel’s own typical post, but by less than 2×. They’re never counted as breakouts and never appear in the 30-day or all-time lists.' },
       { h: 'Why it helps', p: 'A refreshed ideas library — see exactly which posts are working right now, and why, so you can adapt the format for your own hotel.' },
     ],
   },

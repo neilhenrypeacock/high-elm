@@ -382,13 +382,14 @@ function BreakoutMini({ post: p, saved }: { post: OutlierPost; saved: boolean })
             fontSize: 15,
             letterSpacing: '-0.01em',
             color: '#F7F6F2',
-            background: 'var(--signal)',
+            // A top-up isn't a breakout, so it doesn't wear the signal green.
+            background: p.near_miss ? 'rgba(20,18,15,0.72)' : 'var(--signal)',
             borderRadius: 999,
             padding: '5px 12px',
             boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
           }}
         >
-          {p.multiplier.toFixed(1)}×
+          {p.multiplier.toFixed(1)}×{p.near_miss && ' · closest'}
         </span>
         <span style={{ position: 'absolute', top: 12, right: 12 }}>
           <SaveToggle
@@ -440,22 +441,26 @@ function BreakoutsPanel({
   savedKeys: Set<string>;
 }) {
   if (posts.length === 0) return null;
+  // A week too quiet to fill this row gets topped up from the 7-day view (see
+  // NEAR_MISS_FLOOR in lib/data.ts). If NOTHING broke out, the row is entirely
+  // top-ups and must not be headed "breakouts".
+  const allTopUps = posts.every(p => p.near_miss);
   return (
     <section>
-      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>This week · breakouts</div>
+      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>
+        {allTopUps ? 'This week · closest to breaking out' : 'This week · breakouts'}
+      </div>
       <div className="cr-breakout-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
         {posts.map(p => {
           const key = postKey(p.post_id, p.instagram_handle);
           return <BreakoutMini key={key} post={p} saved={savedKeys.has(key)} />;
         })}
       </div>
-      {total > posts.length && (
-        <div style={{ marginTop: 20 }}>
-          <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
-            See all {total} breakouts →
-          </a>
-        </div>
-      )}
+      <div style={{ marginTop: 20 }}>
+        <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
+          {total > posts.length ? `See all ${total} breakouts →` : 'See the full week →'}
+        </a>
+      </div>
     </section>
   );
 }

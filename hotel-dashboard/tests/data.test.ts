@@ -14,6 +14,7 @@ import {
   buildCollabNote,
   rotateLandingFeatured,
   selectFeaturedPosts,
+  selectWeekTopUps,
   hasVisibleLikes,
   erFlagReasons,
   type RawPost,
@@ -779,5 +780,64 @@ describe('buildCollabNote', () => {
   it('omits the breakout clause when there are no breakouts in scope', () => {
     const scope = [...posts(40, 400, true), ...posts(100, 200, false)];
     expect(buildCollabNote(scope, [], FOLLOWERS, 'month')?.note).not.toContain('breakouts shown');
+  });
+});
+
+// ─── selectWeekTopUps — the empty-week fallback ───────────────────────────────
+
+describe('selectWeekTopUps', () => {
+  // Only the fields the selector reads.
+  const p = (post_id: string, multiplier: number, is_collab = false) =>
+    ({ post_id, instagram_handle: `h_${post_id}`, multiplier, is_collab, near_miss: false }) as Parameters<typeof selectWeekTopUps>[0][number];
+
+  it('adds nothing when the week already stands up on its own', () => {
+    const breakouts = [p('a', 9), p('b', 6), p('c', 4), p('d', 3), p('e', 2.2)];
+    const pool = [...breakouts, p('f', 1.6), p('g', 1.4)];
+    expect(selectWeekTopUps(breakouts, pool)).toEqual([]);
+  });
+
+  it('tops up a collab-only week with the best solo posts', () => {
+    // The real shape of the week ending 27 Jul: every breakout a collab.
+    const breakouts = [p('c1', 84, true), p('c2', 31, true), p('c3', 19, true), p('c4', 18, true), p('c5', 16, true)];
+    const pool = [...breakouts, p('s1', 1.66), p('s2', 1.61), p('s3', 1.55), p('s4', 1.41), p('c6', 1.9, true)];
+
+    const topUps = selectWeekTopUps(breakouts, pool);
+    expect(topUps.map(t => t.post_id)).toEqual(['s1', 's2', 's3']);
+    expect(topUps.every(t => t.near_miss)).toBe(true);
+    // The solo shortfall is filled before anything else, so the higher-scoring
+    // collab near-miss doesn't crowd out the posts a hotel can act on alone.
+    expect(topUps.map(t => t.post_id)).not.toContain('c6');
+  });
+
+  it('fills to the minimum post count once the solo floor is met', () => {
+    const breakouts = [p('b1', 5)];
+    const pool = [...breakouts, p('s1', 1.9), p('s2', 1.8), p('s3', 1.7), p('c1', 1.95, true), p('s4', 1.4)];
+    const topUps = selectWeekTopUps(breakouts, pool);
+    // 1 breakout + 4 top-ups = the 5-post minimum; solo floor (3) satisfied first,
+    // then the best remaining candidate regardless of collab status.
+    expect(topUps).toHaveLength(4);
+    expect(topUps.map(t => t.post_id)).toEqual(['c1', 's1', 's2', 's3']);
+  });
+
+  it('never promotes a real breakout into the top-ups, or repeats one', () => {
+    const breakouts = [p('a', 3, true)];
+    const pool = [p('a', 3, true), p('s1', 1.5), p('s2', 1.4), p('s3', 1.3), p('s4', 1.26)];
+    const topUps = selectWeekTopUps(breakouts, pool);
+    expect(topUps.map(t => t.post_id)).not.toContain('a');
+    expect(new Set(topUps.map(t => t.post_id)).size).toBe(topUps.length);
+    expect(topUps.every(t => t.multiplier < 2)).toBe(true);
+  });
+
+  it('returns what it can when the pool is thin, rather than inventing posts', () => {
+    const breakouts: Parameters<typeof selectWeekTopUps>[0] = [];
+    const pool = [p('s1', 1.4)];
+    expect(selectWeekTopUps(breakouts, pool).map(t => t.post_id)).toEqual(['s1']);
+  });
+
+  it('leaves its inputs untouched', () => {
+    const breakouts = [p('c1', 9, true)];
+    const pool = [...breakouts, p('s1', 1.7)];
+    selectWeekTopUps(breakouts, pool);
+    expect(pool.every(x => x.near_miss === false)).toBe(true);
   });
 });

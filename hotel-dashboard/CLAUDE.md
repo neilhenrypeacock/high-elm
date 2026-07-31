@@ -291,6 +291,39 @@ Removed in the 2026-07-12 cleanup: `StandoutPosts.tsx` + `TrendPanel.tsx` (unuse
 | `BASELINE_MIN_POSTS` | 12 | Fewer baseline posts → soft ⚠ warning (ER stays counted) |
 | `WHATS_WORKING_WINDOW_DAYS` | 30 | Static window for the What's Working median charts |
 | `TIME_WINDOWS` | 7d / 30d / all | Time-window options for the **Top posts** toggle (drives that list) |
+| `NEAR_MISS_FLOOR` | 1.25 | Empty-week top-up: minimum multiple for a "closest this week" post (7d only) |
+| `WEEK_MIN_POSTS` | 5 | Posts the 7-day view aims to offer in total, breakouts + top-ups |
+| `WEEK_MIN_SOLO` | 3 | How many of those should be non-collab (the case the top-up exists for) |
+
+## The empty-week top-up (added 2026-07-31)
+Some weeks produce no breakouts a hotel can act on **alone**. Measured on the week
+ending 27 Jul: 11 posts cleared 2× and **all eleven were collabs** (six of them one
+hotel's), while the best solo post of the week managed 1.66×.
+
+Dropping `OUTLIER_THRESHOLD` was the obvious fix and the wrong one — at 1.5× it
+would have added three solo posts, at 1.2× ten, while permanently rewriting what
+"breakout" means in the 30-day and all-time lists too. So **the threshold stays at
+2×** and the SEVEN-DAY view tops itself up instead:
+
+- `selectWeekTopUps` (lib/data.ts, exported + tested) takes the week's real breakouts
+  plus a pool built by a second `computeStandout` call at `{ minMultiplier:
+  NEAR_MISS_FLOOR }`, and returns the posts to append — the **solo** shortfall first,
+  then the overall count. Appended posts carry `OutlierPost.near_miss = true`.
+- **A near-miss is never a breakout.** `computeStandout` counts `breakout_count` /
+  `super_breakout_count` at `OUTLIER_THRESHOLD` regardless of any `minMultiplier`
+  override, so the hero numeral, the 30d/all-time lists, What's Working and the
+  landing taster are all untouched. `ContentRadar` derives `breakoutTotal` /
+  `windowBreakouts` by filtering `near_miss` out of every count it states.
+- In the UI they sit below the ranking under a **"Closest this week"** divider, take
+  no rank badge, and render the multiple in `--ink` with "below the 2× bar" rather
+  than the signal green. The divider's copy reads the UNFILTERED window, so filtering
+  to a region with no breakouts never claims the week had none.
+
+⚠ **`DEFAULT_FILTERS.collab` flipped `false` → `true` at the same time.** The feed
+used to hide collabs by default, which is what actually emptied the week for a
+member: the default 7-day feed said "no posts match these filters" while the hero
+above it read "11 posts significantly outperformed". Collabs count as breakouts
+everywhere else, so they now show by default; the Format toggle still removes them.
 
 ## Tracked hotels (beta scope)
 The dashboard shows ONLY hotels with `tracked = true` — currently the 200

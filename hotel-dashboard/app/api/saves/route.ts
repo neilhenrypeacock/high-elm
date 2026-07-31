@@ -50,6 +50,9 @@ function sanitizePost(raw: Record<string, unknown>, post_id: string, instagram_h
     is_collab:              raw.is_collab === true,
     editors_pick:           raw.editors_pick === true,
     landing_pin:            raw.landing_pin === true,
+    // Snapshotted like the multiplier beside it, so a saved near-miss keeps
+    // saying what it was rather than being promoted to a breakout on the Saved page.
+    near_miss:              raw.near_miss === true,
   };
 }
 
