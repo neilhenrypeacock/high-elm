@@ -8,7 +8,7 @@
 //   2. Google Sheet — append a synthetic row, read it back, assert every
 //      column landed correctly, then delete the row (self-cleaning)
 //   3. Mailchimp — confirm the FNAME merge field exists (read-only, no writes)
-//   4. Handler control flow — honeypot / validation / notify-gate branches,
+//   4. Handler control flow — honeypot / validation / capture branches,
 //      driven through a real HTTP server (also tests raw-body parsing)
 //
 // Run: npm run test:handler
@@ -139,6 +139,11 @@ await new Promise((r) => server.listen(0, r));
 const base = `http://127.0.0.1:${server.address().port}`;
 const post = (b) => fetch(base + "/api/enquiry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
 
+// The valid submission below writes a REAL row, because the Sheet is now the
+// first step and runs before the email that fails. Tag it so we can find and
+// delete it again — a test must not leave rows in the live Sheet.
+const flowStamp = Math.random().toString(36).slice(2, 8).toUpperCase();
+
 try {
   const hp = await post({ name: "Bot", email: "bot@x.com", company: "spam-co" });
   ok("honeypot filled → 200, no processing", hp.status === 200);
@@ -146,13 +151,58 @@ try {
   const bad = await post({ name: "", email: "notanemail" });
   ok("missing name / bad email → 400", bad.status === 400);
 
-  const good = await post({ name: "Jane & Sam", email: "jane@example.com", marketing_consent: true });
-  ok("valid → 502 (notify gate fails; Resend domain unverified, as expected)", good.status === 502,
-    `— got ${good.status}`);
+  // Resend is unverified, so the notification fails — but the Sheet write
+  // succeeded first, so the enquiry IS captured and the enquirer must not be
+  // shown an error. This is the whole point of putting the Sheet first.
+  const good = await post({
+    name: `Jane & Sam ${flowStamp}`,
+    email: `flow-${flowStamp}@example.com`,
+    marketing_consent: false,
+  });
+  ok("valid → 200 even though the notification email fails (Sheet captured it)",
+    good.status === 200, `— got ${good.status}`);
+
+  const payload = await good.json().catch(() => ({}));
+  ok("response carries an enquiry id", Boolean(payload.id), `— got ${JSON.stringify(payload)}`);
 } catch (err) {
   ok("handler HTTP control flow", false, `— ${err.message}`);
 } finally {
   server.close();
+}
+
+// --- Clean up the row the control-flow test just wrote ---
+try {
+  const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  const auth = new google.auth.JWT({
+    email: creds.client_email, key: creds.private_key,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+  const sheets = google.sheets({ version: "v4", auth });
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+  const meta = await sheets.spreadsheets.get({ spreadsheetId, fields: "sheets.properties(sheetId,title)" });
+  const tabProps = meta.data.sheets[0].properties;
+  const read = await sheets.spreadsheets.values.get({ spreadsheetId, range: tabProps.title });
+  const rows = read.data.values || [];
+  const cols = rows[0].map((h) => String(h).trim().toLowerCase());
+  const nameCol = cols.indexOf("first name");
+  let idx = -1;
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][nameCol] || "").includes(flowStamp)) { idx = i; break; }
+  }
+  if (idx !== -1) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: { requests: [{ deleteDimension: {
+        range: { sheetId: tabProps.sheetId, dimension: "ROWS", startIndex: idx, endIndex: idx + 1 },
+      } }] },
+    });
+    console.log(`     🧹 cleaned up control-flow row ${idx + 1}`);
+  } else {
+    ok("control-flow test row found for cleanup", false,
+      `— row tagged ${flowStamp} not found; check the Sheet by hand`);
+  }
+} catch (err) {
+  ok("control-flow row cleanup", false, `— ${err.message}`);
 }
 
 console.log(`\n${fail ? "❌" : "✅"}  ${pass} passed, ${fail} failed\n`);

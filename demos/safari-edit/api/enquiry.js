@@ -1,13 +1,22 @@
 // ============================================================
 // The Safari Edit — enquiry submission handler (Vercel function)
 // ------------------------------------------------------------
-// Sequence (per the brief):
+// Sequence:
 //   1. Accept POST. If the honeypot is filled -> succeed and stop.
-//   2. Email Alex (notification). MUST succeed or the whole thing fails.
-//   3. Email the enquirer (auto-reply).            } these three "fail soft":
-//   4. Append a row to the Google Sheet.           } if any fails after step 2
-//   5. If consent given, add to Mailchimp.         } succeeded, we still return
-//                                                    success and log the error.
+//   2. Append a row to the Google Sheet — FIRST, because it is the durable
+//      record of the enquiry and the one thing that must not be lost.
+//   3. Email Alex (notification).
+//   4. Email the enquirer (auto-reply).      } fail soft — logged, never fatal
+//   5. If consent given, add to Mailchimp.   }
+//
+// We reject the submission ONLY if BOTH the Sheet and the notification failed,
+// i.e. nothing captured the enquiry anywhere. That is the only case where the
+// enquirer retrying is useful; in every other case they have been recorded and
+// telling them to try again would risk losing them for no reason.
+//
+// The trade this makes: an enquiry can now land in the Sheet while the email to
+// Alex fails, so he would not know it exists. That case logs the greppable
+// marker "[enquiry] ALERT" — see the note by the log line.
 //
 // All secrets come from environment variables — never the client.
 // ============================================================
@@ -104,7 +113,21 @@ export default async function handler(req, res) {
   // Orphan fields (no Sheet column) go into the Message column, labelled.
   const messageCell = composeMessage(partner, fbclid);
 
-  // ---------- 2) Notification to Alex (the gate) ----------
+  // Tracks what failed, for the response and the logs.
+  const softFailures = [];
+
+  // ---------- 2) Google Sheet — FIRST, it is the durable record ----------
+  let sheetOk = false;
+  try {
+    await appendToSheet(buildRowValues({ id, date, time, names, email, messageCell, consent, utm }));
+    sheetOk = true;
+  } catch (err) {
+    console.error("[enquiry] Google Sheet append failed:", err);
+    softFailures.push("sheet");
+  }
+
+  // ---------- 3) Notification to Alex ----------
+  let notifyOk = false;
   const resend = new Resend(process.env.RESEND_API_KEY);
   const notifyLines = [
     `Names: ${names}`,
@@ -132,15 +155,28 @@ export default async function handler(req, res) {
       html: `<pre style="font:14px/1.6 -apple-system,Segoe UI,Arial,sans-serif;white-space:pre-wrap;margin:0;">${escapeHtml(notifyText)}</pre>`,
     });
     if (error) throw new Error(error.message || JSON.stringify(error));
+    notifyOk = true;
   } catch (err) {
-    console.error("[enquiry] Notification email FAILED — submission rejected:", err);
-    return res.status(502).json({ ok: false, error: "notification_failed" });
+    console.error("[enquiry] Notification email failed:", err);
+    softFailures.push("notification");
   }
 
-  // Everything below is best-effort. A failure here still returns success.
-  const softFailures = [];
+  // Nothing captured the enquiry — the ONLY case worth asking the enquirer to
+  // try again, because a retry might actually land somewhere.
+  if (!sheetOk && !notifyOk) {
+    console.error(`[enquiry] ALERT ${id} LOST — Sheet and notification both failed. Enquiry not recorded anywhere. Name: ${names} Email: ${email}`);
+    return res.status(502).json({ ok: false, error: "capture_failed" });
+  }
 
-  // ---------- 3) Auto-reply to the enquirer ----------
+  // Recorded, but Alex has no email about it. He will not know it exists until
+  // someone opens the Sheet, so this line carries the ALERT marker: point a
+  // Vercel log drain or alert rule at "[enquiry] ALERT" and it catches both
+  // this and the total-loss case above.
+  if (sheetOk && !notifyOk) {
+    console.error(`[enquiry] ALERT ${id} is in the Sheet but Alex was NOT emailed. Check the Sheet manually. Name: ${names} Email: ${email}`);
+  }
+
+  // ---------- 4) Auto-reply to the enquirer ----------
   try {
     await resend.emails.send({
       from: REPLY_FROM,
@@ -153,14 +189,6 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("[enquiry] Auto-reply email failed:", err);
     softFailures.push("auto-reply");
-  }
-
-  // ---------- 4) Append to the Google Sheet ----------
-  try {
-    await appendToSheet(buildRowValues({ id, date, time, names, email, messageCell, consent, utm }));
-  } catch (err) {
-    console.error("[enquiry] Google Sheet append failed:", err);
-    softFailures.push("sheet");
   }
 
   // ---------- 5) Mailchimp (only if consent) ----------
