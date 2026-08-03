@@ -44,7 +44,14 @@ The three records to add:
 - Priority: `10`
 - TTL: default / automatic
 
-Two notes in case your DNS panel behaves differently:
+Three notes in case your DNS panel behaves differently:
+
+- I can see there's already an A record on `mail.thesafariedit.com` itself,
+  pointing at the StackCP webmail. **That one should stay exactly as it is.**
+  The records above sit on names one level below it (`resend._domainkey.mail`
+  and `send.mail`), so they don't collide with it and nothing about the existing
+  webmail changes. There's no SPF or MX on `mail` today, so nothing is being
+  overwritten either.
 
 - If the panel wants fully-qualified names rather than relative ones, they are
   `resend._domainkey.mail.thesafariedit.com`, `send.mail.thesafariedit.com` and
@@ -84,3 +91,17 @@ records resolve — usually minutes, occasionally a few hours.
 
 **The DKIM key is not a secret.** It's the public half of the signing pair; it is
 published in DNS by design. Safe to email.
+
+**Checked so there isn't a third request.** Before sending this I went through
+everything else that could conceivably need a DNS record:
+
+| Thing | State | Action |
+|---|---|---|
+| `go` CNAME → Vercel | live | none — done by P4P |
+| Meta domain verification TXT | live on root | none — covers `go.` as a subdomain |
+| Resend DKIM / SPF / MX | missing | **this request** |
+| DMARC | root has `p=none; sp=none; adkim=r; aspf=r` | none needed — `sp=none` means the subdomain inherits a no-action policy, and relaxed alignment means our subdomain DKIM and SPF align correctly |
+| Existing root email (Microsoft 365) | live, MX → outlook | none — must not be touched |
+| Existing `mail.` webmail (StackCP) | live A record | none — our records sit below it |
+
+So this should be the last DNS ask for this project.
