@@ -46,12 +46,12 @@ The three records to add:
 
 Three notes in case your DNS panel behaves differently:
 
-- I can see there's already an A record on `mail.thesafariedit.com` itself,
-  pointing at the StackCP webmail. **That one should stay exactly as it is.**
-  The records above sit on names one level below it (`resend._domainkey.mail`
-  and `send.mail`), so they don't collide with it and nothing about the existing
-  webmail changes. There's no SPF or MX on `mail` today, so nothing is being
-  overwritten either.
+- There's a wildcard A record on the domain (any subdomain currently resolves to
+  the StackCP server on 185.151.30.209). **Please leave that as it is** — I'm
+  only flagging it so nothing above looks like it conflicts. It doesn't: a
+  wildcard only answers address lookups, and all three records above are TXT and
+  MX, which are looked up separately. There is no TXT or MX on `mail` or
+  `send.mail` today, so nothing is being replaced.
 
 - If the panel wants fully-qualified names rather than relative ones, they are
   `resend._domainkey.mail.thesafariedit.com`, `send.mail.thesafariedit.com` and
@@ -102,6 +102,6 @@ everything else that could conceivably need a DNS record:
 | Resend DKIM / SPF / MX | missing | **this request** |
 | DMARC | root has `p=none; sp=none; adkim=r; aspf=r` | none needed — `sp=none` means the subdomain inherits a no-action policy, and relaxed alignment means our subdomain DKIM and SPF align correctly |
 | Existing root email (Microsoft 365) | live, MX → outlook | none — must not be touched |
-| Existing `mail.` webmail (StackCP) | live A record | none — our records sit below it |
+| Wildcard A record → StackCP | live, answers every subdomain | none — wildcards answer address lookups only, so they don't shadow our TXT/MX |
 
 So this should be the last DNS ask for this project.
