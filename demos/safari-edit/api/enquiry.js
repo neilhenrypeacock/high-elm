@@ -17,10 +17,14 @@ import { google } from "googleapis";
 import mailchimp from "@mailchimp/mailchimp_marketing";
 
 // --- Fixed brand addresses (copy, not secrets) ---
-const NOTIFY_FROM = "The Safari Edit <enquiries@thesafariedit.com>";
+// Both emails SEND from the mail. subdomain, which is what's verified in Resend.
+// Sending from the root domain would fail — it carries the Outlook/Stackmail SPF
+// record and is not a verified Resend sender. Replies still go to Alex's real
+// inbox on the root domain.
+const NOTIFY_FROM = "The Safari Edit <enquiries@mail.thesafariedit.com>";
 const NOTIFY_TO = "alex@thesafariedit.com";
 const NOTIFY_CC = "neil@highelmstudio.com";
-const REPLY_FROM = "Alex, The Safari Edit <alex@thesafariedit.com>";
+const REPLY_FROM = "The Safari Edit <hello@mail.thesafariedit.com>";
 const REPLY_TO = "alex@thesafariedit.com";
 
 // --- Read and normalise the incoming submission ---
@@ -142,7 +146,7 @@ export default async function handler(req, res) {
       from: REPLY_FROM,
       to: [email],
       replyTo: REPLY_TO,
-      subject: "Thanks — I've got your enquiry",
+      subject: "Your enquiry — The Safari Edit",
       text: AUTO_REPLY_TEXT,
       html: autoReplyHtml(),
     });
@@ -277,32 +281,32 @@ export async function addToMailchimp(email, firstName) {
 // ============================================================
 // Auto-reply content (copy.md section 1, verbatim)
 // ============================================================
-const AUTO_REPLY_TEXT = `Thanks for getting in touch — good to hear from you.
+const AUTO_REPLY_TEXT = `Thank you for getting in touch.
 
-I'm Alex, Senior Travel Specialist here. I pick up every enquiry myself, so I'll be the one planning your trip and on the end of the phone while you're away. No handovers, no call centre.
+Your enquiry has reached us. Alex, our Head of Travel, will be in touch personally within one working day.
 
-I'll come back to you within a working day. When we speak, I'll ask roughly when you're thinking of going, who's coming, and what you'd like to get out of it. Don't worry about having answers ready — most people don't at this stage, and that conversation is where it all starts to take shape anyway.
+He handles every enquiry himself, from the first conversation through to the finished itinerary. When he writes, he'll want to know who's travelling, roughly when, and what you'd like the trip to do for you. There's no need to have any of it worked out yet.
 
-If anything changes before then, or you'd rather just talk it through sooner, hit reply and it comes straight to me.
+Until then, there's nothing you need to do.
 
-Alex
-Senior Travel Specialist, The Safari Edit`;
+The Safari Edit
+Bespoke African Experiences`;
 
 function autoReplyHtml() {
   const paras = [
-    "Thanks for getting in touch &mdash; good to hear from you.",
-    "I'm Alex, Senior Travel Specialist here. I pick up every enquiry myself, so I'll be the one planning your trip and on the end of the phone while you're away. No handovers, no call centre.",
-    "I'll come back to you within a working day. When we speak, I'll ask roughly when you're thinking of going, who's coming, and what you'd like to get out of it. Don't worry about having answers ready &mdash; most people don't at this stage, and that conversation is where it all starts to take shape anyway.",
-    "If anything changes before then, or you'd rather just talk it through sooner, hit reply and it comes straight to me.",
+    "Thank you for getting in touch.",
+    "Your enquiry has reached us. Alex, our Head of Travel, will be in touch personally within one working day.",
+    "He handles every enquiry himself, from the first conversation through to the finished itinerary. When he writes, he'll want to know who's travelling, roughly when, and what you'd like the trip to do for you. There's no need to have any of it worked out yet.",
+    "Until then, there's nothing you need to do.",
   ].map((p) => `<p style="margin:0 0 18px;">${p}</p>`).join("");
 
   return `<!doctype html><html><body style="margin:0;background:#FFF7EC;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">I'll be in touch tomorrow&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Alex will be in touch within one working day&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>
   <div style="max-width:560px;margin:0 auto;padding:40px 28px;font:16px/1.6 Georgia,'Times New Roman',serif;color:#4A433C;">
     <div style="width:44px;height:2px;background:#FCA520;margin:0 0 28px;"></div>
     ${paras}
-    <p style="margin:26px 0 0;font-weight:bold;color:#1A1714;">Alex</p>
-    <p style="margin:0;font:12px/1.5 Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#7A7066;">Senior Travel Specialist, The Safari Edit</p>
+    <p style="margin:26px 0 0;font-weight:bold;color:#1A1714;">The Safari Edit</p>
+    <p style="margin:0;font:12px/1.5 Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#7A7066;">Bespoke African Experiences</p>
   </div>
 </body></html>`;
 }

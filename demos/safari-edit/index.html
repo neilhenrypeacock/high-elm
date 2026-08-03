@@ -409,6 +409,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     box-shadow:0 -10px 34px rgba(26,23,20,.16); padding:18px clamp(16px,4vw,28px); }
   .cc-banner[hidden] { display:none; }
   .cc-inner { max-width:1040px; margin-inline:auto; display:flex; flex-direction:column; gap:16px; }
+  .cc-copy { display:flex; flex-direction:column; gap:6px; }
+  .cc-heading { font-family:var(--font-display); font-weight:400; font-size:1.15rem; line-height:1.2;
+    color:var(--tse-ink-900); margin:0; }
   .cc-text { font-size:var(--text-small); line-height:1.55; color:var(--text-body); margin:0; }
   .cc-text a { color:var(--accent-press); text-decoration:underline; text-underline-offset:2px; }
   .cc-actions { display:flex; gap:12px; }
@@ -707,9 +710,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ===================== Cookie consent ======================= -->
 <!-- Copy below is not from copy.md (it has no cookie wording) — Neil to confirm. -->
-<div class="cc-banner" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie choices" hidden>
+<div class="cc-banner" id="cookieBanner" role="dialog" aria-live="polite" aria-labelledby="cookieHeading" hidden>
   <div class="cc-inner">
-    <p class="cc-text">We use cookies to measure how this page performs and to improve it. You choose what we may use. <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">Privacy policy</a>.</p>
+    <div class="cc-copy">
+      <h2 class="cc-heading" id="cookieHeading">Cookies</h2>
+      <p class="cc-text">We use cookies to understand how people find and use this page, and to measure our advertising. Nothing is set until you choose. <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">Privacy policy</a></p>
+    </div>
     <div class="cc-actions">
       <button type="button" class="cc-btn cc-reject" id="cookieReject">Reject</button>
       <button type="button" class="cc-btn cc-accept" id="cookieAccept">Accept</button>
@@ -756,14 +762,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
 
     function showErr(msg) { err.textContent = msg; err.hidden = false; }
-    function goThankYou() { window.location.href = '/thank-you'; }
+
+    // Mark that THIS visit submitted the form. The thank-you page reads the flag
+    // and pushes `enquiry_submitted` (the Lead trigger in GTM), then clears it —
+    // so refreshing or revisiting /thank-you never counts a second conversion.
+    // The event fires there, not here, because the redirect below can abort an
+    // in-flight tag on this page.
+    function goThankYou() {
+      try { sessionStorage.setItem('tse_enquiry', '1'); } catch (e) {}
+      window.location.href = '/thank-you';
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
       // Honeypot: a real person never fills this. If filled, treat it as spam —
       // show the normal success response and send nothing.
-      if ((form.elements['company'].value || '').trim() !== '') { goThankYou(); return; }
+      // Redirect WITHOUT the flag: a bot sees the same page, but never counts
+      // as a Lead conversion.
+      if ((form.elements['company'].value || '').trim() !== '') {
+        window.location.href = '/thank-you';
+        return;
+      }
 
       var name = (form.elements['name'].value || '').trim();
       var email = (form.elements['email'].value || '').trim();

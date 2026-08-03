@@ -3,7 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Thanks — that's with us · The Safari Edit</title>
+
+<!-- Consent Mode v2 — identical defaults to the landing page. MUST run before
+     Google Tag Manager loads. The visitor's earlier choice is restored further
+     down, from the shared .thesafariedit.com cookie. -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    functionality_storage: 'denied',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
+    wait_for_update: 500
+  });
+
+  // Restore the choice made on the landing page, before GTM loads, so a
+  // consenting visitor's Lead event is not held back by the default deny.
+  (function () {
+    var m = document.cookie.match(/(?:^|;\s*)tse_consent=([^;]+)/);
+    var prior = m ? decodeURIComponent(m[1]) : null;
+    if (prior !== 'granted' && prior !== 'denied') return;
+    var granted = prior === 'granted';
+    gtag('consent', 'update', {
+      ad_storage: granted ? 'granted' : 'denied',
+      ad_user_data: granted ? 'granted' : 'denied',
+      ad_personalization: granted ? 'granted' : 'denied',
+      analytics_storage: granted ? 'granted' : 'denied',
+      functionality_storage: granted ? 'granted' : 'denied',
+      personalization_storage: granted ? 'granted' : 'denied'
+    });
+    dataLayer.push({ event: granted ? 'consent_granted' : 'consent_denied' });
+  })();
+
+  // The conversion. Only fires when THIS visit submitted the form — the flag is
+  // set by the landing page and cleared here, so a refresh or a revisit never
+  // counts a second Lead. Build the GTM Lead trigger on this event.
+  (function () {
+    var submitted;
+    try { submitted = sessionStorage.getItem('tse_enquiry') === '1'; } catch (e) { submitted = false; }
+    if (!submitted) return;
+    try { sessionStorage.removeItem('tse_enquiry'); } catch (e) {}
+    dataLayer.push({ event: 'enquiry_submitted' });
+  })();
+</script>
+
+<!-- Google Tag Manager — same container as the landing page. -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MKT3D9G5');</script>
+<!-- End Google Tag Manager -->
+
+<title>Your enquiry — The Safari Edit</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FCA520'/%3E%3C/svg%3E">
@@ -47,13 +103,16 @@
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MKT3D9G5"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
   <main class="wrap">
     <img class="logo" src="/assets/logo-white.png" alt="The Safari Edit">
     <div class="rule"></div>
-    <h1>Thanks &mdash; that&rsquo;s with us.</h1>
-    <p>Alex, our Senior Travel Specialist, will be in touch within a working day. He looks after every enquiry himself, so he&rsquo;ll be the one putting your trip together from here.</p>
-    <p>There&rsquo;s a confirmation heading to your inbox now. If it hasn&rsquo;t turned up in a few minutes, have a quick look in your spam folder &mdash; it occasionally ends up there.</p>
-    <p>Nothing else for you to do in the meantime.</p>
+    <h1>Your enquiry has reached us.</h1>
+    <p>Alex will be in touch personally within one working day. Look out for an email &mdash; and check your junk folder if nothing arrives.</p>
     <div class="foot">The Safari Edit · Bespoke African Experiences</div>
   </main>
 </body>
