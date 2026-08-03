@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImageWithFallback, TagChip } from './ContentRadar';
 import { fmtPostedAt, fmtDate } from '@/lib/format';
+import { formatMultiplier } from '@/lib/format-multiplier';
 import type { DashboardData, OutlierPost, TimeWindow } from '@/lib/data';
 
 // Admin-only editorial surface: the in-app replacement for
@@ -442,7 +443,7 @@ export default function AdminEditor({
                       color: 'var(--signal-deep)',
                     }}
                   >
-                    {p.multiplier.toFixed(1)}×
+                    {formatMultiplier(p.multiplier)}
                   </span>
                   <span style={{ fontSize: 12, color: 'var(--muted)' }}>· {fmtPostedAt(p.posted_at)}</span>
                   {row.feature && (

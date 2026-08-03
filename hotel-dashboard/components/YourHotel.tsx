@@ -5,6 +5,10 @@ import { ImageWithFallback, TagChip, TypeIcon } from './ContentRadar';
 import { AccreditationPins } from './HotelTable';
 import PageInfoButton from './PageInfoButton';
 import { fmtFollowers } from '@/lib/format';
+// Demo data never reaches the cap today, but this page is the template a real
+// getYourHotelData() will fill — so it renders multipliers the same way as the
+// rest of the product rather than growing its own rule later.
+import { formatMultiplier } from '@/lib/format-multiplier';
 import {
   BREAKOUT_HIGHLIGHT,
   type ComparisonPeriod,
@@ -218,7 +222,7 @@ function YourBreakoutCard({ post: p, followers }: { post: YourBreakout; follower
                 color: 'var(--signal-deep)',
               }}
             >
-              {p.multiplier.toFixed(1)}×
+              {formatMultiplier(p.multiplier)}
             </span>
             <span
               style={{
@@ -277,7 +281,7 @@ function YourBreakoutCard({ post: p, followers }: { post: YourBreakout; follower
                     {cell.value.toLocaleString('en-GB')}
                   </span>
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--signal-deep)' }}>
-                    ↑{cell.mult.toFixed(1)}×
+                    ↑{formatMultiplier(cell.mult)}
                   </span>
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 5 }}>
@@ -565,7 +569,7 @@ function GrowthMomentRow({
             }}
           >
             <span style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 19, color: 'var(--signal-deep)', letterSpacing: '-0.01em' }}>
-              {mult.toFixed(1)}×
+              {formatMultiplier(mult)}
             </span>
             <span
               style={{
@@ -669,7 +673,7 @@ function PeriodPostRow({ post: p }: { post: PeriodPost }) {
           color: up ? 'var(--signal-deep)' : 'var(--faint)',
         }}
       >
-        {p.vsTypical.toFixed(1)}×
+        {formatMultiplier(p.vsTypical)}
         <br />
         your typical
       </span>
@@ -836,7 +840,7 @@ function Comparison({ hotel }: { hotel: YourHotelData }) {
             <div style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 11 }}>
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 9 }}>
                 <span style={{ fontFamily: DISPLAY, fontWeight: 800, fontSize: 36, color: 'var(--signal-deep)', lineHeight: 1, letterSpacing: '-0.03em' }}>
-                  {t.multiplier.toFixed(1)}×
+                  {formatMultiplier(t.multiplier)}
                 </span>
                 <span style={{ fontFamily: LABEL, fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--muted)' }}>
                   vs their own median

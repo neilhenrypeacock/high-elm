@@ -4,6 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
+    "test": "node --test 'tests/**/*.test.js'",
     "test5": "node test-run.js",
     "weekly": "SCRAPE_WINDOW_DAYS=10 node scrape-run.js && npm run cleanup",
     "monthly": "SCRAPE_WINDOW_DAYS=35 node scrape-run.js && npm run cleanup",

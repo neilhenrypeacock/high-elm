@@ -85,6 +85,21 @@ const ER_ANOMALY_THRESHOLD    = 10;  // ER above 10% is implausibly high — fla
 // exactly this many per tracked hotel, so baseline and scrape stay in step.
 const BASELINE_POSTS          = RECENT_POSTS;
 const BASELINE_MIN_POSTS      = 12;  // fewer posts in the baseline → low-confidence warning
+// The baseline window's reach (2026-07-31, brief 02). The baseline is the last
+// BASELINE_POSTS VISIBLE-like posts — reaching past hidden-like posts so every
+// hotel gets the same sample size (what makes multipliers comparable between
+// hotels) — but never further back than this. Without the cap, a hotel that
+// mostly hides likes would have "today's typical post" quietly defined by
+// engagement from years ago.
+const BASELINE_MAX_AGE_DAYS   = 365;
+// The measurability gate (2026-07-31, brief 02). A hotel that cannot supply
+// this many visible-like posts within BASELINE_MAX_AGE_DAYS has no honest
+// baseline at any sample size — it is removed from the leaderboard and the
+// breakout feed entirely (absent, not warned; ~21 of 200 tracked hotels when
+// introduced). It runs ALONGSIDE the coverage-ratio gate below, not instead of
+// it: this one catches "too little readable data overall", the ratio catches
+// "hides likes on most recent posts" — different offenders (Neil, 2026-07-31).
+const MEASURABLE_MIN_POSTS    = 12;
 // Visible-like coverage gate (Neil, 2026-07-22). Instagram lets accounts hide
 // like counts; a hotel that hides likes on most of its recent posts can't be
 // measured reliably — its median and ER come from a thin, self-selected sample.
@@ -347,13 +362,51 @@ export function normalizeType(t: string | null): string {
   }
 }
 
-/** Instagram hides like counts on some posts — the pipeline stores those as -1 or null. */
+/**
+ * Instagram hides like counts on some posts — the pipeline stores those as
+ * null (its one convention since 2026-07-31; likes.js normalises at scrape
+ * time). The -1 and 3 checks are belt-and-braces against pipeline regression:
+ * the Apify actor's hidden-likes sentinel has DRIFTED before (-1 as of late
+ * Jul 2026; a literal 3 — the "liked by A, B and others" preview count leaking
+ * through as data — through Jun/Jul 2026, which put 813 fake 3-like rows in
+ * the DB and poisoned 57 hotels' baselines before the 2026-07-31 audit).
+ * Trade-off, made knowingly: a GENUINE 3-like post is excluded too — across
+ * 10k+ rows the neighbouring values (1, 2, 4, 5) occur 0–4 times each, so
+ * genuine 3s are a handful, and they carry no signal for any figure here.
+ */
 export function hasVisibleLikesCount(likes_count: number | null): boolean {
-  return likes_count !== -1 && likes_count !== null;
+  return likes_count !== null && likes_count !== -1 && likes_count !== 3;
 }
 /** Object form of {@link hasVisibleLikesCount} — the single source of truth for the hidden-likes rule. */
 export function hasVisibleLikes(p: { likes_count: number | null }): boolean {
   return hasVisibleLikesCount(p.likes_count);
+}
+
+/**
+ * The posts a hotel's baseline and ER may draw from: every VISIBLE-like post
+ * within BASELINE_MAX_AGE_DAYS, newest first. Callers take the first
+ * BASELINE_POSTS of these — "the last 30 posts with visible likes, going back
+ * up to 12 months" — so every measurable hotel gets the same sample size,
+ * which is what makes multipliers comparable between hotels.
+ *
+ * The MEASURABLE_MIN_POSTS gate reads the same list: fewer than 12 of these
+ * and the hotel has no honest baseline at any sample size.
+ *
+ * Pure + exported so the window and the gate are unit-testable without a render.
+ */
+export function selectBaselinePosts<T extends { likes_count: number | null; posted_at: string }>(
+  postsNewestFirst: T[],
+  now: number,
+): T[] {
+  const oldest = now - BASELINE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+  return postsNewestFirst.filter(
+    p => hasVisibleLikes(p) && new Date(p.posted_at).getTime() >= oldest,
+  );
+}
+
+/** The measurability gate: can this many visible-like posts support a baseline? */
+export function isMeasurable(visiblePostsInWindow: number): boolean {
+  return visiblePostsInWindow >= MEASURABLE_MIN_POSTS;
 }
 
 /**
@@ -483,6 +536,13 @@ export type HotelMetrics = {
   /** Share of the hotel's last RECENT_POSTS that have a visible like count (0–1).
    *  Below MIN_VISIBLE_LIKE_RATIO the hotel is gated out of breakouts + leaderboard. */
   visibleLikeRatio: number;
+  /** Visible-like posts within BASELINE_MAX_AGE_DAYS — what the baseline/ER
+   *  windows draw from, and what the measurability gate counts. */
+  visibleInWindow: number;
+  /** false = fewer than MEASURABLE_MIN_POSTS visible-like posts in the window:
+   *  no honest baseline exists, so the hotel is ABSENT from the leaderboard and
+   *  the breakout feed (not warned — absent). */
+  measurable: boolean;
   /** Momentum: total engagement over the last 30 / 90 days ÷ followers × 100 */
   recentRate30: number | null;
   recentRate90: number | null;
@@ -1131,6 +1191,11 @@ export function computeStandout(
       // median built from too thin a sample to trust — drop its breakouts
       // silently.
       if (m.visibleLikeRatio < MIN_VISIBLE_LIKE_RATIO) continue;
+      // Measurability gate: no honest baseline exists (fewer than
+      // MEASURABLE_MIN_POSTS visible-like posts inside BASELINE_MAX_AGE_DAYS),
+      // so no multiplier from this hotel can be trusted either. Runs alongside
+      // the ratio gate — they catch different offenders.
+      if (!m.measurable) continue;
     }
     const multiplier = postEngagement / m.medianPostEngagement;
     if (!opts.curated && multiplier < (opts.minMultiplier ?? OUTLIER_THRESHOLD)) continue;
@@ -1550,18 +1615,26 @@ export async function getPortfolioData(
       ? recentWindow.filter(hasVisibleLikes).length / recentWindow.length
       : 0;
 
+    // The baseline/ER window: the last BASELINE_POSTS visible-like posts,
+    // reaching back at most BASELINE_MAX_AGE_DAYS (selectBaselinePosts). Same
+    // sample size for every measurable hotel; the measurability gate counts
+    // the same list. Runs ALONGSIDE the coverage ratio above — the gate
+    // catches "too little readable data", the ratio "hides likes on most
+    // recent posts". Both must pass.
+    const windowPosts = selectBaselinePosts(posts, now);
+    const measurable  = isMeasurable(windowPosts.length);
+
     // Overall ER — MEDIAN per-post rate over the hotel's last 30 valid posts
-    // (RECENT_POSTS, the same recent window as the breakout baseline). Median,
-    // not mean: one viral post shouldn't set a hotel's "typical post" number.
+    // in the window. Median, not mean: one viral post shouldn't set a hotel's
+    // "typical post" number.
     const recentERs = followers && followers > 0
-      ? validPosts.slice(0, HOTEL_ER_POSTS).map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers)
+      ? windowPosts.slice(0, HOTEL_ER_POSTS).map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers)
       : [];
     const er = median(recentERs);
 
     // Breakout baseline: median engagement across the hotel's last 30 valid
-    // posts — matches what the pipeline scrapes per run, and stays recent as
-    // history accumulates.
-    const baselinePosts    = validPosts.slice(0, BASELINE_POSTS);
+    // posts in the window — recency-weighted, and never older than 12 months.
+    const baselinePosts    = windowPosts.slice(0, BASELINE_POSTS);
     const baseLikes        = baselinePosts.map(p => p.likes_count!);
     const baseComments     = baselinePosts.map(p => p.comments_count ?? 0);
     const baseEngagements  = baseLikes.map((l, i) => l + baseComments[i]);
@@ -1599,6 +1672,8 @@ export async function getPortfolioData(
       followers,
       validPostCount: validPosts.length,
       visibleLikeRatio,
+      visibleInWindow: windowPosts.length,
+      measurable,
       recentRate30:  rateOverDays(30),
       recentRate90:  rateOverDays(90),
     };
@@ -1639,6 +1714,16 @@ export async function getPortfolioData(
     // Nulled silently (no ⚠), like mostlyHidesLikes.
     const lastPostedMs = m?.lastPosted ? new Date(m.lastPosted).getTime() : null;
     const dormant = lastPostedMs === null || now - lastPostedMs > DORMANT_DAYS * 24 * 60 * 60 * 1000;
+
+    // The measurability gate: fewer than MEASURABLE_MIN_POSTS visible-like
+    // posts within BASELINE_MAX_AGE_DAYS means no honest baseline exists at any
+    // sample size — the hotel is ABSENT from the leaderboard, not warned on it
+    // (brief 02, 2026-07-31). It stays tracked and scraped (hero counts below
+    // use trackedHotelCount, not this list), so it returns by itself once
+    // enough readable posts accumulate. The watchlist page has its own
+    // fallback row for hotels missing from this list, so a watchlisted
+    // unmeasurable hotel still renders there by name.
+    if (m && !m.measurable) continue;
 
     hotelRows.push({
       name:             h.name,
@@ -1785,6 +1870,14 @@ export async function getPortfolioData(
     .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
     .toUpperCase();
 
+  // Hero figures count everything TRACKED AND SCRAPED — including hotels the
+  // measurability gate keeps off the leaderboard. "200 hotels tracked" is true
+  // (we scan them every week); the leaderboard lists only the ones we can
+  // honestly measure. Mirrors the old hotelRows rule (deduped, scraped-only).
+  const scrapedTracked = allHotels.filter(h => postsByHandle[h.instagram_handle]);
+  const trackedHotelCount = new Set(scrapedTracked.map(h => h.instagram_handle)).size;
+  const trackedCountryCount = new Set(scrapedTracked.map(h => h.country).filter(Boolean)).size;
+
   return {
     publish: { cutoff: publishCutoffIso, pending: pendingPosts },
     hidden:  hiddenRoster,
@@ -1798,8 +1891,8 @@ export async function getPortfolioData(
     breakout_count,
     super_breakout_count,
     frequency,
-    hotel_count:          hotelRows.length,
-    countries_count:      new Set(hotelRows.map(h => h.country).filter(Boolean)).size,
+    hotel_count:          trackedHotelCount,
+    countries_count:      trackedCountryCount,
     total_posts_analysed: validForAnalysis.length,
     week_ending,
     week_ending_long,

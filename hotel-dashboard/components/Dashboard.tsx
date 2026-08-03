@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from 'react';
 import type { DashboardData, HotelRow, OutlierPost } from '@/lib/data';
 import { parseInsight } from '@/lib/data';
 import { fmtFollowers } from '@/lib/format';
+import { belowCap, formatMultiplier } from '@/lib/format-multiplier';
 import { postKey } from '@/lib/post-key';
 import ContentRadar, { ImageWithFallback } from './ContentRadar';
 import FeaturedPosts from './FeaturedPosts';
@@ -32,11 +33,17 @@ function SectionInfo({ infoKey }: { infoKey: InfoKey }) {
 
 // The lists every tracked hotel is drawn from — shown on the overview so members
 // can see the sourcing is the industry's own, not ours.
+//
+// Michelin Keys was removed on 2026-07-31: the panel claimed we crawl the list,
+// but only 20 of its 139 hotels are tracked and 107 aren't in the database at
+// all — The Ritz, The Peninsula, Cliveden and Chewton Glen among them, which any
+// UK hotelier would notice at a glance. The per-hotel Michelin pins on the
+// leaderboard STAY: those come from a verified CSV and are correct for the
+// hotels that carry them. Only put a list back here once it is actually crawled.
 const SOURCES: { name: string; sub: string }[] = [
   { name: 'Forbes Travel Guide', sub: 'Five-star list' },
   { name: 'Condé Nast Traveller', sub: 'Gold List' },
   { name: 'The World’s 50 Best Hotels', sub: 'Annual ranking' },
-  { name: 'Michelin Keys', sub: 'UK & Ireland' },
 ];
 
 function nameInitials(name: string): string {
@@ -389,7 +396,7 @@ function BreakoutMini({ post: p, saved }: { post: OutlierPost; saved: boolean })
             boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
           }}
         >
-          {p.multiplier.toFixed(1)}×{p.near_miss && ' · closest'}
+          {formatMultiplier(p.multiplier)}{p.near_miss && ' · closest'}
         </span>
         <span style={{ position: 'absolute', top: 12, right: 12 }}>
           <SaveToggle
@@ -477,7 +484,10 @@ function Hero({
 }) {
   const focus = weekInFocus(data);
   const savedKeys = new Set(savedPostKeys);
-  const topThree = (data.standout['7d'] ?? []).slice(0, 3);
+  // The three posts we show off this week. belowCap() keeps posts whose
+  // multiplier is too large to be credible out of this showcase — they stay in
+  // the ranked feed below, they just aren't the number we lead with.
+  const topThree = belowCap(data.standout['7d'] ?? []).slice(0, 3);
 
   // The band's supporting numbers — one quiet inline line rather than a stat
   // panel, so the breakout count stays the only figure with weight.

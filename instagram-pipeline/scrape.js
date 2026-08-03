@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { ApifyClient } from 'apify-client';
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
+import { normalizeLikesCount } from './likes.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -275,7 +276,10 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
           instagram_handle: h,
           posted_at:        p.timestamp || null,
           type:             p.type || null,
-          likes_count:      p.likesCount ?? null,
+          // normalizeLikesCount (likes.js): the actor's hidden-likes sentinels
+          // (-1, and the `3` preview-count leak) are stored as null, the DB's
+          // one convention for "no readable like count".
+          likes_count:      normalizeLikesCount(p.likesCount),
           comments_count:   p.commentsCount ?? null,
           caption,
           hashtags:         p.hashtags ?? parseHashtags(caption),
