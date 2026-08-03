@@ -32,6 +32,47 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-MKT3D9G5');</script>
 <!-- End Google Tag Manager -->
 
+<!-- Hero picker. Runs in <head>, BEFORE the body is parsed, and preloads the
+     chosen image so the download starts as early as a plain src attribute would
+     have started it. Doing this down at the <img> instead would hand the
+     browser's look-ahead scanner nothing to find, and the hero is almost
+     certainly the largest thing on the page — the one asset where a late start
+     is visible to the visitor. -->
+<script>
+(function () {
+  var HEROES = [
+    { src: 'uploads/hero-mara-firepit.jpg', alt: 'A fire pit and deck above the Mara plains at sunset' },
+    { src: 'uploads/hero-kilimanjaro.jpg',  alt: 'A safari deck in the treetops with Kilimanjaro beyond' },
+    { src: 'uploads/hero-elephants.jpg',    alt: 'A herd of elephants crossing golden grass at dusk' },
+    { src: 'uploads/hero-lion.jpg',         alt: 'A lion at rest in golden grass at first light' }
+  ];
+  // Chosen once per visit and remembered for the rest of it. Re-rolling on every
+  // page load would change the hero when someone comes back from the thank-you
+  // page or hits back, which reads as a glitch rather than as variety.
+  var pick;
+  try {
+    var saved = sessionStorage.getItem('tse_hero');
+    if (saved !== null && HEROES[saved]) {
+      pick = saved;
+    } else {
+      pick = String(Math.floor(Math.random() * HEROES.length));
+      sessionStorage.setItem('tse_hero', pick);
+    }
+  } catch (e) {
+    pick = String(Math.floor(Math.random() * HEROES.length)); // private mode: rotates, just isn't remembered
+  }
+  var hero = HEROES[pick] || HEROES[0];
+  window.__tseHero = hero;
+
+  var link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = hero.src;
+  link.setAttribute('fetchpriority', 'high');
+  document.head.appendChild(link);
+})();
+</script>
+
 <title>The Safari Edit — The honeymoon your love deserves</title>
 <meta name="description" content="Bespoke African honeymoon safaris, designed around you by The Safari Edit. Book a free, no-obligation consultation with Alex, our Head of Travel.">
 <meta name="theme-color" content="#000000">
@@ -440,7 +481,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ============================ Hero ============================ -->
 <section class="hero">
-  <div class="hero-media"><img src="uploads/hero-dawn.jpg" alt="Golden dawn light across the African savannah"></div>
+  <!-- Hero rotates per visit. It ships without a src because the choice is made
+       in <head> (see the hero-picker script there), which also preloads the
+       chosen file — so the download starts before the parser ever reaches this
+       point. The <noscript> covers the no-JS case. -->
+  <div class="hero-media">
+    <img id="heroImg" alt="" fetchpriority="high">
+    <noscript><img src="uploads/hero-lion.jpg" alt="A lion at rest in golden grass at first light"></noscript>
+  </div>
+  <script>
+  (function () {
+    var hero = (window.__tseHero) || { src: 'uploads/hero-lion.jpg', alt: 'A lion at rest in golden grass at first light' };
+    var el = document.getElementById('heroImg');
+    el.src = hero.src;
+    el.alt = hero.alt;
+  })();
+  </script>
   <div class="hero-overlay" aria-hidden="true"></div>
   <header class="hero-bar">
     <img class="hero-logo" src="assets/logo-white.png" alt="The Safari Edit">
