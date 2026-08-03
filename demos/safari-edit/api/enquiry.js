@@ -31,8 +31,11 @@ import mailchimp from "@mailchimp/mailchimp_marketing";
 // record and is not a verified Resend sender. Replies still go to Alex's real
 // inbox on the root domain.
 const NOTIFY_FROM = "The Safari Edit <enquiries@mail.thesafariedit.com>";
+// Alex only, by Neil's decision 3 Aug. If he is ever away, nothing else is
+// watching the inbox — the enquiry is still safe in the Google Sheet, but the
+// one-working-day reply promised on the thank-you page is not being kept.
+// Add a second recipient here before any period of leave.
 const NOTIFY_TO = "alex@thesafariedit.com";
-const NOTIFY_CC = "neil@highelmstudio.com";
 const REPLY_FROM = "The Safari Edit <hello@mail.thesafariedit.com>";
 const REPLY_TO = "alex@thesafariedit.com";
 
@@ -149,7 +152,6 @@ export default async function handler(req, res) {
     const { error } = await resend.emails.send({
       from: NOTIFY_FROM,
       to: [NOTIFY_TO],
-      cc: [NOTIFY_CC],
       subject: `New enquiry — ${names}`,
       text: notifyText,
       html: `<pre style="font:14px/1.6 -apple-system,Segoe UI,Arial,sans-serif;white-space:pre-wrap;margin:0;">${escapeHtml(notifyText)}</pre>`,
