@@ -70,6 +70,61 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   link.href = hero.src;
   link.setAttribute('fetchpriority', 'high');
   document.head.appendChild(link);
+
+  // --- The three-image band ---
+  // Grouped, and one tile is drawn from EACH group. Picking three at random from
+  // a flat pool looked fine on paper and wasn't: it showed no wildlife at all on
+  // 17% of visits and two-or-more coast shots on 18%, which on a safari page
+  // reads as a different company's website. One of each also happens to tell the
+  // right story — the bush, where you sleep, and the beach most safari
+  // honeymoons end on.
+  var BAND = {
+    wildlife: [
+      { src: 'uploads/band-leopards.jpg',         alt: 'A leopard cub reaching up to its mother in golden grass' },
+      { src: 'uploads/band-zebras.jpg',           alt: 'Two zebras backlit in tall golden grass' },
+      { src: 'uploads/band-elephant-water.jpg',   alt: "An elephant at the water's edge, reflected",             avoidWith: 'uploads/hero-elephants.jpg' },
+      { src: 'uploads/band-wildebeest.jpg',       alt: 'Wildebeest running through a cloud of dust' }
+    ],
+    camp: [
+      { src: 'uploads/band-mara-firepit.jpg',     alt: 'A fire pit and lantern-lit deck above the Mara at dusk', avoidWith: 'uploads/hero-mara-firepit.jpg' },
+      { src: 'uploads/band-tented-camp.jpg',      alt: 'A lantern-lit tented suite among the trees at dusk' },
+      { src: 'uploads/band-kilimanjaro-pool.jpg', alt: 'A guest in the pool with Kilimanjaro beyond',            avoidWith: 'uploads/hero-kilimanjaro.jpg' }
+    ],
+    coast: [
+      { src: 'uploads/band-island-lodge.jpg',     alt: 'A thatched suite above turquoise water on the coast' },
+      { src: 'uploads/band-beach-dinner.jpg',     alt: 'A private dinner set with lanterns on an empty beach' },
+      { src: 'uploads/band-island-aerial.jpg',    alt: 'An aerial view of a beach lodge and pool on white sand' }
+    ]
+  };
+  var GROUPS = ['wildlife', 'camp', 'coast'];
+
+  var bandPick;
+  try { bandPick = JSON.parse(sessionStorage.getItem('tse_band') || 'null'); } catch (e) { bandPick = null; }
+  // Each entry carries its own group name, because the shuffle below means
+  // position no longer tells you which group a tile came from.
+  var valid = Array.isArray(bandPick) && bandPick.length === 3 &&
+    bandPick.every(function (p) { return p && BAND[p.g] && BAND[p.g][p.i]; });
+
+  if (!valid) {
+    bandPick = GROUPS.map(function (g) {
+      // Some tiles share a subject with a hero (the Mara fire pit, Kilimanjaro,
+      // elephants). Showing both in one visit reads as the page repeating itself,
+      // so drop the clashing tile for this visit. Every group keeps at least two
+      // options, so this can never empty one.
+      var opts = [];
+      for (var k = 0; k < BAND[g].length; k++) {
+        if (BAND[g][k].avoidWith !== hero.src) { opts.push(k); }
+      }
+      return { g: g, i: opts[Math.floor(Math.random() * opts.length)] };
+    });
+    // Shuffle which group lands in which tile, so the running order varies too.
+    for (var s = bandPick.length - 1; s > 0; s--) {
+      var r = Math.floor(Math.random() * (s + 1));
+      var t = bandPick[s]; bandPick[s] = bandPick[r]; bandPick[r] = t;
+    }
+    try { sessionStorage.setItem('tse_band', JSON.stringify(bandPick)); } catch (e) {}
+  }
+  window.__tseBand = bandPick.map(function (p) { return BAND[p.g][p.i]; });
 })();
 </script>
 
@@ -591,11 +646,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ========================= Image band ======================== -->
 <section class="band">
+  <!-- Three tiles drawn from a pool of ten, three DISTINCT ones per visit.
+       loading="lazy" because the band sits well below the fold: without it these
+       would compete with the hero for bandwidth at the moment that matters. -->
   <div class="band-grid">
-    <div class="band-item"><img src="uploads/wildlife.jpg" alt="Wildlife on the African plains"></div>
-    <div class="band-item"><img src="uploads/landscape.jpg" alt="Sweeping African landscape"></div>
-    <div class="band-item band-item--3"><img src="uploads/hero-dawn.jpg" alt="Safari camp at dawn"></div>
+    <div class="band-item"><img id="bandImg0" alt="" loading="lazy"></div>
+    <div class="band-item"><img id="bandImg1" alt="" loading="lazy"></div>
+    <div class="band-item band-item--3"><img id="bandImg2" alt="" loading="lazy"></div>
+    <noscript>
+      <div class="band-item"><img src="uploads/band-leopards.jpg" alt="A leopard cub reaching up to its mother in golden grass"></div>
+      <div class="band-item"><img src="uploads/band-beach-dinner.jpg" alt="A private dinner set with lanterns on an empty beach"></div>
+      <div class="band-item band-item--3"><img src="uploads/band-tented-camp.jpg" alt="A lantern-lit tented suite among the trees at dusk"></div>
+    </noscript>
   </div>
+  <script>
+  (function () {
+    var picks = window.__tseBand || [];
+    for (var i = 0; i < 3; i++) {
+      var el = document.getElementById('bandImg' + i);
+      if (el && picks[i]) { el.src = picks[i].src; el.alt = picks[i].alt; }
+    }
+  })();
+  </script>
 </section>
 
 <!-- ========================= Value stack ======================= -->
@@ -685,7 +757,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ========================= Who we are ======================== -->
 <section class="who">
-  <div class="who-media"><img src="uploads/wildlife.jpg" alt="A quiet moment on the African plains"></div>
+  <div class="who-media"><img src="uploads/who-lion.jpg" alt="A male lion at rest, close up" loading="lazy"></div>
   <div class="who-overlay" aria-hidden="true"></div>
   <div class="who-body">
     <img class="who-logo" src="assets/logo-white.png" alt="The Safari Edit">
