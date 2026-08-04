@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import type { OutlierPost, TimeWindow } from '@/lib/data';
 import { TIME_WINDOWS, parseInsight } from '@/lib/data';
 import { postKey } from '@/lib/post-key';
@@ -40,6 +40,35 @@ function PostSaveToggle({
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
 const MEDIA_PLACEHOLDER = 'linear-gradient(135deg, #2b2824, #3c372e)';
+
+// Divider above the 7-day view's top-up posts. These beat their hotel's own
+// median but not by the 2× a breakout requires, so the heading says exactly
+// that rather than letting them pass as breakouts further down a ranked list.
+function TopUpHeading({ anyBreakouts }: { anyBreakouts: boolean }) {
+  return (
+    <div style={{ borderTop: '1px solid var(--line)', paddingTop: 22, marginTop: 8 }}>
+      <div
+        style={{
+          fontFamily: LABEL,
+          fontSize: 10,
+          textTransform: 'uppercase',
+          letterSpacing: '0.16em',
+          color: 'var(--muted)',
+          marginBottom: 8,
+        }}
+      >
+        Closest this week
+      </div>
+      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.65, color: 'var(--body-mid)', maxWidth: 620 }}>
+        {anyBreakouts
+          ? 'A quiet week for breakouts, so here are the posts that came closest. '
+          : 'Nothing cleared the 2× bar this week, so here are the posts that came closest. '}
+        Each one beat its own hotel&rsquo;s typical post — just not by enough to count as a
+        breakout. Worth a look, but read them as a thinner signal.
+      </p>
+    </div>
+  );
+}
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -408,7 +437,8 @@ export function BreakoutCard({
               Editor&rsquo;s Pick
             </span>
           )}
-          {/* Multiplier */}
+          {/* Multiplier. A top-up isn't a breakout, so it doesn't get the
+              signal green — the figure stays in ink and says what it is. */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
             <span
               style={{
@@ -417,7 +447,7 @@ export function BreakoutCard({
                 fontSize: 60,
                 lineHeight: 1,
                 letterSpacing: '-0.03em',
-                color: 'var(--signal-deep)',
+                color: p.near_miss ? 'var(--ink)' : 'var(--signal-deep)',
               }}
             >
               {formatMultiplier(p.multiplier)}
@@ -433,7 +463,7 @@ export function BreakoutCard({
                 paddingBottom: 6,
               }}
             >
-              vs last 30<br />posts
+              {p.near_miss ? <>below the<br />2× bar</> : <>vs last 30<br />posts</>}
             </span>
           </div>
 
@@ -569,10 +599,19 @@ function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: Ti
 // This filters the DISPLAYED list only; it never changes breakout selection or
 // the hero's "X posts outperformed" count (those come straight from the data).
 type FeedFilters = { collab: boolean; images: boolean; videos: boolean };
-// The feed opens on Images & carousels + Videos, collabs hidden. Not persisted —
-// every session starts here (the product leads with this week's signal, not an
-// archive), so a reload always returns to these defaults.
-const DEFAULT_FILTERS: FeedFilters = { collab: false, images: true, videos: true };
+// The feed opens showing everything. Not persisted — every session starts here
+// (the product leads with this week's signal, not an archive), so a reload
+// always returns to these defaults.
+//
+// Collabs used to be hidden by default, on the reasoning that a co-post borrows
+// the partner's audience and so clears the 2× bar too easily. In practice that
+// silently emptied whole weeks: on the week ending 27 Jul all eleven breakouts
+// were collabs, so the default feed showed "no posts match these filters" while
+// the hero above it read "11 posts significantly outperformed" — the dashboard
+// contradicting itself. Collabs are counted as breakouts everywhere else, so
+// they now show by default too, and the toggle is there for anyone who wants
+// them out.
+const DEFAULT_FILTERS: FeedFilters = { collab: true, images: true, videos: true };
 
 // The collaboration caveat — an honesty note about a real data limitation. Shown
 // verbatim behind the ⓘ next to "Collaboration posts" in the Format dropdown.
@@ -827,6 +866,14 @@ export default function ContentRadar({
   const visible = posts.slice(0, shown);
   const remaining = posts.length - visible.length;
 
+  // Near-misses are the 7-day view's top-up (lib/data.ts, NEAR_MISS_FLOOR) and
+  // are always appended after the real breakouts, so every count the UI states
+  // as a "breakout" count has to exclude them — otherwise the page claims more
+  // breakouts than the hero numeral does.
+  const breakoutTotal   = posts.filter(p => !p.near_miss).length;
+  const breakoutShown   = visible.filter(p => !p.near_miss).length;
+  const windowBreakouts = windowPosts.filter(p => !p.near_miss).length;
+
   const toggle = (k: keyof FeedFilters) => {
     setFilters(f => ({ ...f, [k]: !f[k] }));
     setShown(INITIAL_CARDS);
@@ -864,7 +911,9 @@ export default function ContentRadar({
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           {windowPosts.length > 0 && (
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-              Showing {posts.length} of {windowPosts.length} breakout posts · {windowPhrase}
+              {windowBreakouts > 0
+                ? `Showing ${breakoutTotal} of ${windowBreakouts} breakout posts`
+                : 'No breakouts'} · {windowPhrase}
               {destination !== ALL_DESTINATIONS && ` · ${destination}`}
             </span>
           )}
@@ -928,19 +977,32 @@ export default function ContentRadar({
         </div>
       ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* One tier: every breakout as a full card, ranked, revealed in steps. */}
-        <Eyebrow>
-          {remaining > 0 ? `Ranked 1 – ${visible.length} of ${posts.length}` : `All ${posts.length}`}
-        </Eyebrow>
+        {/* One tier: every breakout as a full card, ranked, revealed in steps.
+            On the 7-day view the week's top-ups follow, under their own
+            heading and without a rank — they aren't in the ranking. */}
+        {breakoutTotal > 0 && (
+          <Eyebrow>
+            {breakoutShown < breakoutTotal
+              ? `Ranked 1 – ${breakoutShown} of ${breakoutTotal}`
+              : `All ${breakoutTotal}`}
+          </Eyebrow>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {visible.map((p, i) => (
-            <BreakoutCard
-              key={`${p.post_id}-${p.instagram_handle}`}
-              post={p}
-              rank={i + 1}
-              saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
-            />
-          ))}
+          {visible.map((p, i) => {
+            const firstTopUp = p.near_miss && (i === 0 || !visible[i - 1].near_miss);
+            return (
+              <Fragment key={`${p.post_id}-${p.instagram_handle}`}>
+                {/* anyBreakouts reads the UNFILTERED window: filtering to a
+                    region with no breakouts must not claim the week had none. */}
+                {firstTopUp && <TopUpHeading anyBreakouts={windowBreakouts > 0} />}
+                <BreakoutCard
+                  post={p}
+                  rank={p.near_miss ? undefined : i + 1}
+                  saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
+                />
+              </Fragment>
+            );
+          })}
         </div>
         {remaining > 0 && (
           <div style={{ textAlign: 'center', marginTop: 4 }}>

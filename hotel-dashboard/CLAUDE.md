@@ -291,6 +291,39 @@ Removed in the 2026-07-12 cleanup: `StandoutPosts.tsx` + `TrendPanel.tsx` (unuse
 | `BASELINE_MIN_POSTS` | 12 | Fewer baseline posts → soft ⚠ warning (ER stays counted) |
 | `WHATS_WORKING_WINDOW_DAYS` | 30 | Static window for the What's Working median charts |
 | `TIME_WINDOWS` | 7d / 30d / all | Time-window options for the **Top posts** toggle (drives that list) |
+| `NEAR_MISS_FLOOR` | 1.25 | Empty-week top-up: minimum multiple for a "closest this week" post (7d only) |
+| `WEEK_MIN_POSTS` | 5 | Posts the 7-day view aims to offer in total, breakouts + top-ups |
+| `WEEK_MIN_SOLO` | 3 | How many of those should be non-collab (the case the top-up exists for) |
+
+## The empty-week top-up (added 2026-07-31)
+Some weeks produce no breakouts a hotel can act on **alone**. Measured on the week
+ending 27 Jul: 11 posts cleared 2× and **all eleven were collabs** (six of them one
+hotel's), while the best solo post of the week managed 1.66×.
+
+Dropping `OUTLIER_THRESHOLD` was the obvious fix and the wrong one — at 1.5× it
+would have added three solo posts, at 1.2× ten, while permanently rewriting what
+"breakout" means in the 30-day and all-time lists too. So **the threshold stays at
+2×** and the SEVEN-DAY view tops itself up instead:
+
+- `selectWeekTopUps` (lib/data.ts, exported + tested) takes the week's real breakouts
+  plus a pool built by a second `computeStandout` call at `{ minMultiplier:
+  NEAR_MISS_FLOOR }`, and returns the posts to append — the **solo** shortfall first,
+  then the overall count. Appended posts carry `OutlierPost.near_miss = true`.
+- **A near-miss is never a breakout.** `computeStandout` counts `breakout_count` /
+  `super_breakout_count` at `OUTLIER_THRESHOLD` regardless of any `minMultiplier`
+  override, so the hero numeral, the 30d/all-time lists, What's Working and the
+  landing taster are all untouched. `ContentRadar` derives `breakoutTotal` /
+  `windowBreakouts` by filtering `near_miss` out of every count it states.
+- In the UI they sit below the ranking under a **"Closest this week"** divider, take
+  no rank badge, and render the multiple in `--ink` with "below the 2× bar" rather
+  than the signal green. The divider's copy reads the UNFILTERED window, so filtering
+  to a region with no breakouts never claims the week had none.
+
+⚠ **`DEFAULT_FILTERS.collab` flipped `false` → `true` at the same time.** The feed
+used to hide collabs by default, which is what actually emptied the week for a
+member: the default 7-day feed said "no posts match these filters" while the hero
+above it read "11 posts significantly outperformed". Collabs count as breakouts
+everywhere else, so they now show by default; the Format toggle still removes them.
 
 ## Tracked hotels (beta scope)
 The dashboard shows ONLY hotels with `tracked = true` — currently the 200
@@ -410,6 +443,19 @@ members**, which releases the week in one click.
 
 ## Image storage
 Post images are saved to the **`standout-images`** Supabase Storage bucket by the pipeline at scrape time; the permanent URL is written straight into `posts.image_url` (~95% of rows). `standout_posts.stored_image_url` takes priority when present. Remaining rows fall back to the live Instagram CDN URL (signed, expires — the branded fallback gradient shows when those die).
+
+**The bucket is pruned, and NOT every post has a cover (2026-07-30).** It reached
+3.2 GB against Supabase's 1 GB free-tier limit and put the org into overage, so the
+pipeline now (a) re-encodes covers to WebP q80 / max 1000px wide on upload and
+(b) runs `instagram-pipeline/cleanup-images.js` after every scrape, deleting covers
+no view can reach. Retained: posts on tracked, non-hidden hotels that are ≤35 days
+old or ≥1.5× their hotel's median, plus `editors_pick`/`landing_pin` and anything a
+member has saved. Everything else 404s and lands on `MEDIA_PLACEHOLDER` — which is
+fine today because nothing outside that set renders. ⚠ If you ever widen what the
+dashboard displays (a longer window, a lower breakout threshold, a new list), widen
+the keep rules in `cleanup-images.js` FIRST or the new view will show gradients.
+Deleting a cover changes no figure: engagement lives in the `posts` columns and no
+median, ER, breakout count or What's Working bucket reads an image.
 
 ## Hidden like counts
 Instagram hides likes on some posts/accounts — stored as `likes_count = null` (the bulk, heavily carousels) or `-1` (a few older rows). `hasVisibleLikes` in lib/data.ts excludes BOTH from every engagement calculation (ER, baseline, breakouts, What's Working). Consequence: a hotel that hides all its likes gets no ER/baseline and is invisible to breakouts.

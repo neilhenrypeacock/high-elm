@@ -33,6 +33,8 @@ Credentials are also documented in `../keys/README.md`.
 | `scrape-run.js` | Runs the scrape across all tracked handles in batches of 50. One runner, three modes (weekly/monthly/full) selected by env — see "How to run" |
 | `test-run.js` | Runs scrape for 5 handles only (smoke test) |
 | `check-images.js` / `audit-post-counts.js` | Read-only diagnostics (image coverage / posts per hotel) |
+| `cleanup-images.js` | Prunes `standout-images` of covers no view can reach. Chained onto every scrape via `npm run weekly`/`monthly`/`full`. Dry-run unless `--apply`. See "Image storage" |
+| `compress-images.js` | One-off backfill: re-encodes pre-2026-07-30 covers to WebP in place. Already applied to prod. Dry-run unless `--apply` |
 | `backfill-themes.js` | Ad-hoc AI theme-tag backfill for standout_posts |
 | `setup-tables.sql` | SQL to create Supabase tables (already run — do not re-run) |
 | `setup-standout-posts.sql` | SQL for standout_posts table (already run) |
@@ -53,6 +55,40 @@ Credentials are also documented in `../keys/README.md`.
 Post images are downloaded and uploaded to the **`standout-images`** Supabase Storage bucket (public) at scrape time. The permanent URL is written to **`posts.image_url`** (scrape.js); `standout_posts.stored_image_url` is written by `generate-insight.js` for its featured posts. Falls back to the raw Instagram CDN URL (which expires) only if the upload fails.
 
 The **cover** is stored durably (it's shown on the dashboard). The **full media** for AI analysis is NOT stored permanently — scrape.js records the raw CDN URLs (`posts.child_image_urls`, `posts.video_url`), and generate-insight.js fetches them at insight time (run right after the scrape, while the URLs are fresh). If a URL has expired, the analysis falls back to the stored cover.
+
+### Keeping the bucket inside the free tier (added 2026-07-30)
+The bucket hit **3.2 GB against Supabase's 1 GB free-tier limit** and the org went into
+overage. Two causes, both now fixed — it is back to ~360 MB.
+
+- **Covers are resized on upload.** `uploadImage` in scrape.js re-encodes to
+  **WebP q80, max 1000px wide** (~85 kB) instead of storing Instagram's
+  full-resolution file byte-for-byte (~329 kB). The dashboard never renders an
+  image wider than a ~400px box, so there is no visible loss. New objects are
+  named `.webp` and the superseded `.jpg`/`.png` is removed on re-scrape.
+- **`cleanup-images.js` prunes what no view can reach.** scrape.js stores a cover
+  for EVERY post, but only breakouts and the last ~30 days ever render — that was
+  ~90% of the bucket sitting unreachable. It now runs automatically after every
+  scrape (`npm run weekly` / `monthly` / `full` chain it), so the bucket holds a
+  steady state instead of growing ~800 MB/month.
+  Keeps: posts on tracked, non-hidden hotels that are ≤35 days old **or** ≥1.5×
+  their hotel's median, plus anything with `editors_pick`/`landing_pin` or saved
+  by a member. The 1.5× (vs the dashboard's 2×) is deliberate headroom — a post
+  below 2× today can cross the line later if its hotel's median drifts down.
+- **`compress-images.js`** is the one-off backfill for objects written before this
+  date. It overwrites **in place at the same path**, so `posts.image_url` and
+  `standout_posts.stored_image_url` need no rewrite and no URL ever breaks — an
+  object can therefore be WebP bytes at a `.jpg` name, which is cosmetic only
+  (browsers dispatch on Content-Type). It skips anything already `image/webp`, so
+  re-runs are cheap. Already applied to prod; you shouldn't need it again.
+
+⚠ **Deleting a cover changes no figure on the dashboard.** Engagement lives in the
+`posts` columns; baselines, medians, ER, breakout selection and the What's Working
+buckets never read an image. A post whose cover is gone falls back to the branded
+`MEDIA_PLACEHOLDER` gradient — the same path the ~5% of rows on expired CDN URLs
+already take.
+
+Both scripts are **dry-run by default**; pass `--apply` to write.
+`npm run cleanup:dry` / `npm run compress:dry` to preview.
 
 ## Hidden like counts
 Instagram hides likes on some posts/accounts, and the Apify actor's sentinel for it has DRIFTED over time: `null`/missing (the documented case), `-1` (its behaviour as of late Jul 2026), and — through Jun/Jul 2026 — a literal **`3`** (the 3-avatar "liked by A, B and others" preview count leaking through as data; 813 rows reached the DB looking like genuine 3-like posts before the 2026-07-31 audit caught it). Since then `likes.js → normalizeLikesCount` maps every sentinel to `null` at scrape time — `null` is the ONE stored convention — and the historical `3` rows were backfilled to `null` (`backfill-likes-sentinel.sql`). The dashboard's `hasVisibleLikes` excludes hidden-like rows from every engagement calculation. If engagement figures ever look collapsed again (a hotel whose "typical post" is single-digit likes), suspect a NEW sentinel value first: check the raw dataset of the latest run before trusting the numbers.
