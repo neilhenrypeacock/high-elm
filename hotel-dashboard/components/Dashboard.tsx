@@ -7,7 +7,6 @@ import { fmtFollowers } from '@/lib/format';
 import { belowCap, formatMultiplier } from '@/lib/format-multiplier';
 import { postKey } from '@/lib/post-key';
 import ContentRadar, { ImageWithFallback } from './ContentRadar';
-import FeaturedPosts from './FeaturedPosts';
 import SaveToggle from './SaveToggle';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
@@ -639,7 +638,16 @@ function Hero({
 // (#overview / #breakouts / #working / #leaderboard) select the view — there is
 // no top nav. Only the active section is mounted, so each scrolls on its own.
 // Per-section explanations now live behind the sidebar's "i" (About this view).
-const SECTION_IDS = ['overview', 'breakouts', 'featured', 'working', 'leaderboard'] as const;
+// ⚠ 'featured' is WITHDRAWN (2026-08-04), not deleted. It was pulled after the
+// hidden-likes fix re-baselined the picks: an Editor's Pick is a permanent manual
+// flag and curated mode skips every gate, so an Ashford Castle post that read
+// 65.7x when picked was still sitting on the "worth replicating" shelf at 0.4x.
+// The shelf needs a floor before it comes back. components/FeaturedPosts.tsx,
+// lib/data.ts selectFeaturedPosts + data.featured, and their tests are all still
+// here — restoring is: re-add the FeaturedPosts import, put 'featured' back in
+// this list, in AppShell's RADAR_SECTIONS + INNER_SECTIONS (and its FeaturedIcon),
+// in PageInfo's resolveInfoKey, and re-mount the section below.
+const SECTION_IDS = ['overview', 'breakouts', 'working', 'leaderboard'] as const;
 type SectionId = (typeof SECTION_IDS)[number];
 
 function readHash(): SectionId {
@@ -691,13 +699,7 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* ── Featured — the hand-picked inspiration shelf ── */}
-      {active === 'featured' && (
-        <div className="cr-inner" style={sectionPad}>
-          <SectionInfo infoKey="featured" />
-          <FeaturedPosts posts={data.featured} savedPostKeys={savedPostKeys} />
-        </div>
-      )}
+      {/* ── Featured — WITHDRAWN 2026-08-04, see the note on SECTION_IDS ── */}
 
       {/* ── What's working ── */}
       {active === 'working' && (
