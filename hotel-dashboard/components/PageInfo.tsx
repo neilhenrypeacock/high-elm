@@ -28,7 +28,8 @@ type InfoContent = { title: string; blocks: InfoBlock[] };
 export function resolveInfoKey(pathname: string, hash: string): InfoKey {
   if (pathname.startsWith('/dashboard')) {
     const h = hash.replace(/^#/, '');
-    if (h === 'breakouts' || h === 'featured' || h === 'working' || h === 'leaderboard') return h;
+    // 'featured' withdrawn 2026-08-04 — falls through to overview.
+    if (h === 'breakouts' || h === 'working' || h === 'leaderboard') return h;
     return 'overview';
   }
   if (pathname.startsWith('/hotel')) return 'hotel';
