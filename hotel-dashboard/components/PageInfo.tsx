@@ -12,6 +12,7 @@ const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 export type InfoKey =
   | 'overview'
   | 'breakouts'
+  | 'featured'
   | 'working'
   | 'leaderboard'
   | 'hotel'
@@ -27,7 +28,7 @@ type InfoContent = { title: string; blocks: InfoBlock[] };
 export function resolveInfoKey(pathname: string, hash: string): InfoKey {
   if (pathname.startsWith('/dashboard')) {
     const h = hash.replace(/^#/, '');
-    if (h === 'breakouts' || h === 'working' || h === 'leaderboard') return h;
+    if (h === 'breakouts' || h === 'featured' || h === 'working' || h === 'leaderboard') return h;
     return 'overview';
   }
   if (pathname.startsWith('/hotel')) return 'hotel';
@@ -58,6 +59,14 @@ const CONTENT: Record<InfoKey, InfoContent> = {
       { h: 'Why it helps', p: 'A refreshed ideas library — see exactly which posts are working right now, and why, so you can adapt the format for your own hotel.' },
     ],
   },
+  featured: {
+    title: 'Featured',
+    blocks: [
+      { h: 'What this is', p: 'A hand-picked shelf of standout posts — the ones we’ve flagged as genuine inspiration, worth studying and adapting for your own hotel.' },
+      { h: 'How it works', p: 'We review the breakouts every week and feature the best of them; most carry an Editor’s note explaining why the post worked. Unlike Top posts there’s no time window — the shelf simply grows as new standouts earn a place.' },
+      { h: 'Why it helps', p: 'When you want proven references rather than the full ranked feed, start here — the shortlist is already made.' },
+    ],
+  },
   working: {
     title: "What's working",
     blocks: [
@@ -70,7 +79,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     title: 'Leaderboard',
     blocks: [
       { h: 'What this is', p: 'Every tracked hotel ranked by engagement rate, with followers, posting cadence, last-posted date and certification-list membership.' },
-      { h: 'How it works', p: 'Engagement rate = total (likes + comments) over the last 30 or 90 days — your choice via the toggle — ÷ followers × 100, so it rewards both strong posts and posting often. Sort any column, filter by region, search a hotel, or add one to your watchlist. Public Instagram data only — no reach or impressions.' },
+      { h: 'How it works', p: 'Engagement rate = the hotel’s median (likes + comments) per post over its last 30 posts ÷ followers × 100 — what a typical post does, so one viral hit doesn’t inflate it. Prefer to reward posting often too? Rank by Momentum: all engagement over the last 30 days ÷ followers. Sort any column, filter by region, search a hotel, or add one to your watchlist. Public Instagram data only — no reach or impressions.' },
       { h: 'Why it helps', p: 'Benchmark yourself against the field and spot who’s punching above their follower count — the hotels worth studying.' },
     ],
   },

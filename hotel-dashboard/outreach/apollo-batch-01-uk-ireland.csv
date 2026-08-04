@@ -1,0 +1,11 @@
+hotel_id,hotel_name,website,root_domain,ownership,hotels_sharing_domain,country,region,instagram_handle,followers,posts_last_90d,posts_total,last_posted,accreditation_lists,gold_list_editions
+203,Lime Wood,https://www.limewoodhotel.co.uk/,limewoodhotel.co.uk,independent,1,United Kingdom,Europe,limewoodhotel,104135,49,49,2026-07-27,Gold List,"US 2025, UK 2025"
+375,The Newt in Somerset,https://thenewtinsomerset.com/,thenewtinsomerset.com,independent,1,United Kingdom,Europe,thenewtinsomerset,379991,41,42,2026-07-26,Manual add,
+24,Beaverbrook,https://beaverbrook.co.uk,beaverbrook.co.uk,independent,1,United Kingdom,Europe,beaverbrook,152493,41,41,2026-07-26,Gold List,"US 2026, UK 2026"
+17,Ashford Castle,https://ashfordcastle.com,ashfordcastle.com,independent,1,Ireland,Europe,ashfordcastle,147341,41,43,2026-07-24,Forbes,
+82,Estelle Manor,https://estellemanor.com/,estellemanor.com,independent,1,United Kingdom,Europe,estellemanor,297724,34,39,2026-07-23,World's 50 Best,
+133,Gleneagles,https://gleneagles.com/,gleneagles.com,independent,1,United Kingdom,Europe,thegleneagleshotel,189311,32,35,2026-07-23,Manual add,
+414,The Savoy,https://www.thesavoylondon.com/,thesavoylondon.com,independent,1,United Kingdom,Europe,thesavoylondon,241655,30,37,2026-07-25,Forbes,
+2,Adare Manor,https://www.adaremanor.com,adaremanor.com,independent,1,Ireland,Europe,theadaremanor,188377,30,34,2026-07-26,"Forbes, Gold List","US 2025, UK 2025"
+353,The Fife Arms,https://thefifearms.com/,thefifearms.com,independent,1,United Kingdom,Europe,thefifearms,114459,30,34,2026-07-26,Gold List,"US 2025, UK 2025"
+355,The Goring,https://www.thegoring.com/,thegoring.com,independent,1,United Kingdom,Europe,thegoring,114333,9,31,2026-07-17,Forbes,

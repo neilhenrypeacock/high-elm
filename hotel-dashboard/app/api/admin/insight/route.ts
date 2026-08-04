@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing post_id.' }, { status: 400 });
   }
 
-  const row: { post_id: string; post_insight?: string | null; editors_pick?: boolean; landing_pin?: boolean } = { post_id };
+  const row: { post_id: string; post_insight?: string | null; editors_pick?: boolean; landing_pin?: boolean; hidden?: boolean } = { post_id };
 
   if ('insight' in (body ?? {})) {
     const raw = body.insight;
@@ -62,6 +62,15 @@ export async function POST(request: NextRequest) {
     row.landing_pin = body.landing_pin;
   }
 
+  // hidden = full exclusion: the post drops out of every figure, not just the
+  // lists. Keyed on post_id, so a co-post is hidden on every partner's grid.
+  if ('hidden' in (body ?? {})) {
+    if (typeof body.hidden !== 'boolean') {
+      return NextResponse.json({ error: 'hidden must be a boolean.' }, { status: 400 });
+    }
+    row.hidden = body.hidden;
+  }
+
   if (Object.keys(row).length === 1) {
     return NextResponse.json({ error: 'Nothing to update.' }, { status: 400 });
   }
@@ -78,5 +87,6 @@ export async function POST(request: NextRequest) {
     post_insight: row.post_insight,
     editors_pick: row.editors_pick,
     landing_pin: row.landing_pin,
+    hidden: row.hidden,
   });
 }

@@ -28,6 +28,7 @@ function sanitizePost(raw: Record<string, unknown>, post_id: string, instagram_h
   return {
     hotel_name:             str(raw.hotel_name, 200) ?? instagram_handle,
     hotel_country:          str(raw.hotel_country, 100),
+    hotel_region:           str(raw.hotel_region, 60),
     hotel_followers:        numOrNull(raw.hotel_followers),
     instagram_handle,
     post_id,

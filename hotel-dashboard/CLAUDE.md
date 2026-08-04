@@ -106,7 +106,8 @@ components/
                           so it matches the dashboard's framing. LockedCard keeps its plain
                           CSS cover background — it sits behind the paywall blur overlay,
                           so crop is invisible there.
-  Dashboard.tsx         — the four hash-switched sections. The "This week" overview was
+  Dashboard.tsx         — the five hash-switched sections (overview / breakouts /
+                          featured / working / leaderboard). The "This week" overview was
                           rebuilt 2026-07-23 to the Claude Design `dashboard.html` screen:
                           dark band → giant breakout numeral + lede → ONE inline meta line
                           (hotels · countries · posts · week ending — this REPLACED the
@@ -118,9 +119,29 @@ components/
                           weekInFocus() now emits PATTERN bullets only (format/caption/day)
                           — the biggest-breakout and 10×-count bullets were dropped as the
                           breakout row and the lede already say both.
-  ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list);
-                          top-10 big cards, then a ranked list of compact rows
-                          revealed 20 at a time via "Show more". BreakoutCard is exported
+  ContentRadar.tsx      — OWNS the 7d/30d/all time-window toggle (windows the list)
+                          and the DESTINATION filter (added 2026-07-30): a
+                          <select> on `OutlierPost.hotel_region` — the broad
+                          region, NOT country (46 of those is a list, not a
+                          filter). Nothing is hardcoded: the options are whatever
+                          regions the tracked hotels carry, via the `regions`
+                          prop the dashboard page already derives for the
+                          leaderboard, so both controls offer the same set and a
+                          region rename in the `hotels` table just appears.
+                          Currently SEVEN — Africa, Asia-Pacific, Central
+                          America & Caribbean, Europe, Middle East, North
+                          America, South America (the old single "Americas" was
+                          split three ways on 2026-07-30, see
+                          instagram-pipeline/setup-split-americas.sql).
+                          Display-only, like the format filters — it never
+                          changes breakout selection or the hero's count.
+                          "Reset filters" clears it too.
+                          EVERY post renders as a FULL card (2026-07-30) — the
+                          old "top-10 big cards + compact PostRow list" split is
+                          gone, along with PostRow itself; one continuous ranked
+                          list, revealed 10 at a time via "Show more" (10 not 20
+                          because a card carries ~400px of media, not a 48px
+                          thumb). BreakoutCard is exported
                           for reuse by Landing.tsx. Post images render FRAMED, not
                           cover-cropped: the shared `ImageWithFallback` shows the whole
                           image at true aspect (objectFit:contain, centred, drop-shadow)
@@ -134,6 +155,20 @@ components/
                           framing. `TagChip` now shows a per-format leading icon
                           (Video/Reel → play triangle, Carousel → stacked frames, Photo →
                           image glyph; Other/unknown → text only).
+  FeaturedPosts.tsx     — the "Featured" section (added 2026-07-29): the curated
+                          inspiration shelf. Lists data.featured — every post
+                          carrying standout_posts.editors_pick, best-first.
+                          Built in CURATED MODE (computeStandout opts
+                          {curated:true}): every breakout SELECTION gate (2×
+                          threshold, MIN_ENGAGEMENT, baseline floor, coverage)
+                          is skipped — the editor already selected the post —
+                          so a pick stays honoured after its hotel's numbers
+                          drift. The shown multiplier is vs the CURRENT median;
+                          only a pick with no computable baseline is skipped.
+                          Curated by ticking "Editor's Pick" in /admin
+                          (selectFeaturedPosts in lib/data.ts dedupes/orders).
+                          Reuses BreakoutCard (no rank badge); own sidebar entry
+                          in the RADAR group (#featured).
   WhatsWorking.tsx      — REBUILT 2026-07-23 to the Claude Design `whats-working.html`
                           screen: the page is now a stack of "LEVERS" — the things a hotel
                           can actually change — and nothing else. Header + lede → "The five
@@ -156,12 +191,34 @@ components/
                           RANK (not order), so the day lever keeps Mon–Sun order and still
                           reads. Levers with too little data are OMITTED and the rest
                           renumber — all-time currently shows three, not five.
-                          `WhatsWorkingScope` is now just `set` + `levers` + `lede`: the
-                          orphaned `stats`/`observations`/`bestPosts`/`bestPostsTitle`
-                          fields (and `data.frequency`) were deleted after the rebuild.
+                          The `stats`/`observations`/`bestPosts` the rebuild left
+                          computed-but-unrendered were DELETED 2026-08-04, along
+                          with buildObservations/fmtDelta/medianPPWInWindow and
+                          DashboardData.frequency. WhatsWorkingScope is now
+                          set + levers + lede + collab.
+                          COLLABORATION NOTE (added 2026-07-30): a tinted
+                          "Also worth considering · Collaborations" card sits
+                          AFTER the lever stack — deliberately NOT a sixth
+                          lever, because a collab needs a willing partner and
+                          so isn't a dial a hotel can turn alone (and adding
+                          one would break the "five levers" count). Copy comes
+                          from `scope.collab` (buildCollabNote in lib/data.ts);
+                          it renders even when the levers are withheld.
   HotelTable.tsx        — functional leaderboard in the spec's 7-col grid: dark header,
                           sortable buttons w/ aria-sort, rank col, ER mini-bars, top-3 tint,
-                          top-10 + view more, live search + region filter
+                          top-10 + view more, live search + region filter.
+                          ER COLUMN = MEDIAN per-post rate (2026-07-30): `engagement_rate`
+                          is the median (likes+comments)/followers over the hotel's last 30
+                          valid posts (was mean; a 32k-like viral post was rendering as a
+                          "36.4%" rate). The old period-total metric (`recent_rate.d30` =
+                          all engagement in 30 days ÷ followers) is now the sort-only
+                          "Momentum" pill in the filter row (replaced the 30/90-day
+                          toggle) — deliberately never displayed as a %, since volume +
+                          virality push it far beyond any credible ER. d90 is still
+                          computed but currently unused by the UI. DORMANCY: ER is
+                          nulled when the hotel hasn't posted in DORMANT_DAYS (60) —
+                          the count-based median never ages out on its own, so dormant
+                          hotels would otherwise coast on stale numbers.
   Lockup.tsx / MarkSvg.tsx — brand lockup (0.724/0.207/0.172 ratios, Space Mono endorsement)
   YourHotel.tsx         — "Your Hotel" page ('use client'): header strip w/ example-data
                           pill + accreditation pins → own-breakout cards (BreakoutCard
@@ -231,7 +288,7 @@ Removed in the 2026-07-12 cleanup: `StandoutPosts.tsx` + `TrendPanel.tsx` (unuse
 | `OUTLIER_WINDOW_DAYS` | 7 | The 7-day window (hero "this week" counts + default Top-posts view) |
 | `RECENT_POSTS` | 30 | Shared "recent window": leaderboard ER **and** breakout baseline (unified) |
 | `HOTEL_ER_POSTS` | =RECENT_POSTS | Last N posts for overall ER in leaderboard (now 30, was 12) |
-| `MIN_ENGAGEMENT` | 100 | Absolute floor; posts below this are noise |
+| `MIN_ENGAGEMENT` | 500 | Absolute floor; posts below this are noise |
 | `MIN_BASELINE_ENGAGEMENT` | 25 | Hotels with a median below this are excluded from breakouts |
 | `BASELINE_POSTS` | =RECENT_POSTS | Baseline = median over the hotel's last 30 valid posts |
 | `BASELINE_MIN_POSTS` | 12 | Fewer baseline posts → soft ⚠ warning (ER stays counted) |
@@ -284,6 +341,37 @@ the posts query lists columns explicitly, so the column must exist. Populates on
 next scrape (or a free backfill from the last Apify dataset); rows not yet re-scraped
 have null `coauthor_usernames` and read as non-collab until then.
 
+## The Monday publish gate + hide controls (added 2026-07-30)
+Neil's weekly flow: Sunday night the pipeline scrapes → Monday morning he reviews
+everything in `/admin`, hides anything that shouldn't go out → hits **Publish to
+members**, which releases the week in one click.
+
+- **The gate.** Members only see posts with `posted_at <= dashboard_settings.publish_cutoff`.
+  `getPortfolioData({ adminView: true })` (used ONLY by `/admin`) sees through it.
+  `POST /api/admin/publish` moves the cutoff to now — the timestamp is set
+  server-side, never from the request body, so a client can't release unreviewed
+  posts or wind the gate backwards. If the settings row is missing/unreadable the
+  cutoff falls back to `+Infinity` (everything published) — the gate must never
+  black out the dashboard.
+- **Hiding is FULL exclusion, for everyone including admin.** A hidden post or
+  hotel is filtered out at load, so it never reaches a baseline, a median, a
+  breakout count, the leaderboard or the What's Working buckets. That's the
+  point: no figure can disagree with what's on screen. Because the baseline is a
+  MEDIAN it barely moves when one post is removed — but the leaderboard ER is a
+  MEAN, so hiding a hotel's biggest post does visibly lower its rate.
+- **Two flags, both editorial.** `standout_posts.hidden` (per post, keyed on
+  post_id — so a co-post hides on every partner's grid, exactly like the Editor's
+  note) and `hotels.hidden` (whole hotel). ⚠ `hotels.hidden` is deliberately NOT
+  `hotels.tracked`: `tracked` is the pipeline's scraping scope, so reusing it
+  would silently stop collecting data and leave an unfillable hole in the
+  hotel's history. Hidden hotels keep being scraped.
+- **Undo.** Hidden things are excluded from the data, so they can't appear in the
+  admin's breakout list — `data.hidden` carries a roster (`posts` on the admin
+  view only, `hotels` always) rendered as the "Hidden from members" chip row at
+  the top of `/admin`, each with an Un-hide button.
+- Caveat: the public landing page is ISR (`revalidate = 3600`), so a Publish can
+  take up to an hour to show there. The gated dashboard is dynamic and immediate.
+
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
 - `profile_snapshots` and `posts` are both fully paginated (1,000/page); posts deduped by post_id.
@@ -301,7 +389,16 @@ have null `coauthor_usernames` and read as non-collab until then.
   Backfilling tags (`instagram-pipeline/generate-insight.js` across the breakout set) is what
   makes this lever solid; the vocabulary is currently just 4 values (Events / Place &
   Experience / The Property / People), each with a fixed gloss in `THEME_BLURB`.
-- What's Working also has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`), each carrying the per-scope format/caption/day/hour bars (`set`), the `levers` and the `lede`, and nothing else. `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. The pre-rebuild stat bar, observation cards and best-posts rows — and the helpers behind them (`medianPostERPct`, `medianPPWInWindow`, `fmtDelta`, `buildObservations`) plus the global `data.frequency` top-10-vs-rest figure — were deleted on 2026-07-23 once nothing rendered them.
+- **Collaboration note (2026-07-30).** `buildCollabNote` (exported, tested) compares the
+  median per-post ER of true collabs (`coauthor_usernames` non-empty) against solo posts in
+  the scope, and reports how far collabs over-index in that scope's breakout list. Measured
+  2026-07-30: **1.3× on 30 days** (273 collabs / 1,247 solo) and **1.5× all-time** (1,204 /
+  5,388), collabs being 18% of posts either way. Withheld below `MIN_COLLAB_POSTS` (30). The
+  copy flips direction if collabs ever under-perform — it is not hardcoded to "collabs win".
+  Caveat carried in the note itself: a collab borrows the partner's audience, and a null
+  `coauthor_usernames` can't distinguish "no co-author" from "not yet re-scraped", so the
+  solo bucket may hide a few collabs (which would understate, not overstate, the effect).
+- What's Working also has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`): the per-scope format/caption/day/hour bars (`set`), the `levers`, the `lede` and the `collab` note — and nothing else, since 2026-08-04. It no longer takes the `standout` windows, and no longer runs a previous-period breakout pass; `prevPosts` is still needed, but only for the levers' trend lines. `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. Median engagement rate here is the median *per-post* ER within the window (not the hotel-level leaderboard ER).
 - ContentRadar tiers: top 10 = large cards; everything below is a ranked list of compact rows, revealed 20 at a time via "Show more" (button disappears when the list runs out).
 
 ## Supabase tables
@@ -310,6 +407,7 @@ have null `coauthor_usernames` and read as non-collab until then.
 - `posts` — all scraped posts (upserted on the composite `(post_id, instagram_handle)` — see the co-posts section above). `coauthor_usernames text[]` = Instagram's native co-author handles, the primary `is_collab` signal (setup-coauthors.sql).
 - `standout_posts` — per-post insights + driver/theme tags + `editors_pick` (written by generate-insight.js, or manually via `instagram-pipeline/set-insight.js` for the weekly editorial flow). `post_insight` renders as the card's **"Editor's note"** callout; `editors_pick` (bool, `setup-editors-pick.sql`) shows a subtle **"Editor's Pick"** badge. Set per post: `node set-insight.js <post_id> --insight "…" --pick`. NB: `getPortfolioData` selects `editors_pick`, so the column must exist before deploying (ordering trap, like coauthor_usernames).
 - `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01; drop candidate)
+- `dashboard_settings` — ONE row (`id = true`) holding `publish_cutoff` (+ `published_at`): the Monday publish gate. RLS on, anon SELECT only, so only the service-role key can move the gate.
 - `subscriptions` — Stripe trial/payment state, email-keyed; RLS on with NO policies = service-role only
 - `saved_posts` / `watchlist_hotels` — per-user Save/Watchlist; RLS keyed to auth.uid() (added 9 Jul 2026)
 

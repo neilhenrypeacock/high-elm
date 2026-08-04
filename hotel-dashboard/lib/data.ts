@@ -1,6 +1,6 @@
 import { getSupabase } from './supabase';
 import { accreditationsFor } from './accreditations';
-import { fmtNumber } from './format';
+import { fmtFollowers, fmtNumber } from './format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Shared "recent window" — the leaderboard ER and the breakout baseline both use
@@ -8,6 +8,11 @@ import { fmtNumber } from './format';
 // One source of truth so the two never drift apart.
 const RECENT_POSTS        = 30;
 const HOTEL_ER_POSTS      = RECENT_POSTS;
+// A hotel with nothing posted in this many days is dormant: its ER (a count-based
+// "last 30 posts" median, which never ages out on its own) is nulled so it sorts
+// to the bottom of the leaderboard instead of coasting on stale numbers.
+// Exported so HotelTable can label the dormant "—" accurately.
+export const DORMANT_DAYS = 60;
 const OUTLIER_THRESHOLD   = 2;
 const OUTLIER_WINDOW_DAYS = 7
 const POSTS_WEEK_WINDOW   = 28;
@@ -60,6 +65,21 @@ const ER_ANOMALY_THRESHOLD    = 10;  // ER above 10% is implausibly high — fla
 // exactly this many per tracked hotel, so baseline and scrape stay in step.
 const BASELINE_POSTS          = RECENT_POSTS;
 const BASELINE_MIN_POSTS      = 12;  // fewer posts in the baseline → low-confidence warning
+// The baseline window's reach (2026-07-31, brief 02). The baseline is the last
+// BASELINE_POSTS VISIBLE-like posts — reaching past hidden-like posts so every
+// hotel gets the same sample size (what makes multipliers comparable between
+// hotels) — but never further back than this. Without the cap, a hotel that
+// mostly hides likes would have "today's typical post" quietly defined by
+// engagement from years ago.
+const BASELINE_MAX_AGE_DAYS   = 365;
+// The measurability gate (2026-07-31, brief 02). A hotel that cannot supply
+// this many visible-like posts within BASELINE_MAX_AGE_DAYS has no honest
+// baseline at any sample size — it is removed from the leaderboard and the
+// breakout feed entirely (absent, not warned; ~21 of 200 tracked hotels when
+// introduced). It runs ALONGSIDE the coverage-ratio gate below, not instead of
+// it: this one catches "too little readable data overall", the ratio catches
+// "hides likes on most recent posts" — different offenders (Neil, 2026-07-31).
+const MEASURABLE_MIN_POSTS    = 12;
 // Visible-like coverage gate (Neil, 2026-07-22). Instagram lets accounts hide
 // like counts; a hotel that hides likes on most of its recent posts can't be
 // measured reliably — its median and ER come from a thin, self-selected sample.
@@ -86,11 +106,16 @@ export type HotelRow = {
   country: string | null;
   instagram_handle: string;
   followers_count: number | null;
-  /** Null when flagged (too few posts or anomalous value) — excluded from all stats */
+  /** Median per-post rate (%) over the hotel's last 30 valid posts — what a
+   *  typical post does, so one viral hit doesn't inflate it. Null when flagged
+   *  (too few posts or anomalous value) or dormant (nothing posted in
+   *  DORMANT_DAYS) — excluded from all stats */
   engagement_rate: number | null;
-  /** Leaderboard rate — total engagement (likes+comments) over the last N days
-   *  ÷ followers × 100, per selectable window. Null when the hotel has no valid
-   *  posts in the window (dormant) or no follower count. */
+  /** Momentum — total engagement (likes+comments) over the last N days
+   *  ÷ followers × 100. Rewards posting often as well as posting well; a
+   *  sort-only rank option on the leaderboard, never displayed as a rate.
+   *  Null when the hotel has no valid posts in the window (dormant) or no
+   *  follower count. */
   recent_rate: { d30: number | null; d90: number | null };
   posts_per_week: number | null;
   last_posted: string | null;
@@ -104,6 +129,12 @@ export type HotelRow = {
 export type OutlierPost = {
   hotel_name: string;
   hotel_country: string | null;
+  /** Broad destination (Europe / North America / Asia-Pacific / Middle East /
+   *  Central America & Caribbean / Africa / South America)
+   *  — what the Top-posts destination filter works on. Country is too granular
+   *  to filter by (46 of them). Undefined on posts saved before this field
+   *  existed, since saved_posts stores a snapshot — treat as unknown. */
+  hotel_region: string | null;
   hotel_followers: number | null;
   instagram_handle: string;
   post_id: string;
@@ -195,6 +226,16 @@ export type WwLever = {
   themesTitle: string | null;
 };
 
+/** The collaboration note — deliberately NOT a sixth lever. A collab needs a
+ *  partner, so it isn't a thing a hotel can simply change the way format or
+ *  posting day is; it's shown as a standing "worth considering" note instead. */
+export type WwCollabNote = {
+  /** Headline split so the figure can carry the green accent (lever idiom). */
+  headline: { pre: string; highlight: string; post: string };
+  /** Sample sizes + the standing caveat. */
+  note: string;
+};
+
 export type WhatsWorkingScope = {
   /** Format / caption / day / hour median-engagement bars for this scope. */
   set: WhatsWorkingSet;
@@ -202,10 +243,30 @@ export type WhatsWorkingScope = {
   levers: WwLever[];
   /** Editorial lede shown under the section title. */
   lede: string;
+  /** How collaboration posts are performing vs solo posts. Null when there are
+   *  too few collabs in scope to say anything honest. */
+  collab: WwCollabNote | null;
 };
 export type WhatsWorkingData = Record<WwScope, WhatsWorkingScope>;
 
+/** A post the admin has hidden — enough to recognise and un-hide it. */
+export type HiddenPost = {
+  post_id: string;
+  instagram_handle: string;
+  hotel_name: string;
+  image_url: string | null;
+  posted_at: string;
+};
+
 export type DashboardData = {
+  /** Publish-gate state, for the /admin banner. `cutoff` is the ISO timestamp
+   *  members can see up to; `pending` counts posts newer than it (they exist in
+   *  the DB but are held back until Publish). */
+  publish: { cutoff: string | null; pending: number };
+  /** What the admin has hidden. Hidden things are excluded from every figure
+   *  above, so this roster is the only place they can be seen and undone.
+   *  `posts` is populated on the admin view only; `hotels` always. */
+  hidden: { posts: HiddenPost[]; hotels: { instagram_handle: string; name: string }[] };
   hotels: HotelRow[];
   snapshot: Snapshot;
   /** What's Working medians — the last WHATS_WORKING_WINDOW_DAYS set (used by the
@@ -217,10 +278,15 @@ export type DashboardData = {
   standout: Record<TimeWindow, OutlierPost[]>;
   /** Landing-page taster: best non-collab breakouts of the last 30 days */
   landing_featured: OutlierPost[];
+  /** Featured — every post carrying editors_pick, best first (the curated
+   *  inspiration shelf). Breakout gates are relaxed so a pick stays honoured
+   *  after its hotel's median drifts; multiplier is vs the current median. */
+  featured: OutlierPost[];
   /** Total posts qualifying ≥2× this week (before top-25 slice) */
   breakout_count: number;
   /** Posts qualifying ≥10× this week */
   super_breakout_count: number;
+  /** Global: top-10 vs rest, by overall ER */
   hotel_count: number;
   /** Distinct countries among hotels with post data */
   countries_count: number;
@@ -256,13 +322,51 @@ export function normalizeType(t: string | null): string {
   }
 }
 
-/** Instagram hides like counts on some posts — the pipeline stores those as -1 or null. */
+/**
+ * Instagram hides like counts on some posts — the pipeline stores those as
+ * null (its one convention since 2026-07-31; likes.js normalises at scrape
+ * time). The -1 and 3 checks are belt-and-braces against pipeline regression:
+ * the Apify actor's hidden-likes sentinel has DRIFTED before (-1 as of late
+ * Jul 2026; a literal 3 — the "liked by A, B and others" preview count leaking
+ * through as data — through Jun/Jul 2026, which put 813 fake 3-like rows in
+ * the DB and poisoned 57 hotels' baselines before the 2026-07-31 audit).
+ * Trade-off, made knowingly: a GENUINE 3-like post is excluded too — across
+ * 10k+ rows the neighbouring values (1, 2, 4, 5) occur 0–4 times each, so
+ * genuine 3s are a handful, and they carry no signal for any figure here.
+ */
 export function hasVisibleLikesCount(likes_count: number | null): boolean {
-  return likes_count !== -1 && likes_count !== null;
+  return likes_count !== null && likes_count !== -1 && likes_count !== 3;
 }
 /** Object form of {@link hasVisibleLikesCount} — the single source of truth for the hidden-likes rule. */
 export function hasVisibleLikes(p: { likes_count: number | null }): boolean {
   return hasVisibleLikesCount(p.likes_count);
+}
+
+/**
+ * The posts a hotel's baseline and ER may draw from: every VISIBLE-like post
+ * within BASELINE_MAX_AGE_DAYS, newest first. Callers take the first
+ * BASELINE_POSTS of these — "the last 30 posts with visible likes, going back
+ * up to 12 months" — so every measurable hotel gets the same sample size,
+ * which is what makes multipliers comparable between hotels.
+ *
+ * The MEASURABLE_MIN_POSTS gate reads the same list: fewer than 12 of these
+ * and the hotel has no honest baseline at any sample size.
+ *
+ * Pure + exported so the window and the gate are unit-testable without a render.
+ */
+export function selectBaselinePosts<T extends { likes_count: number | null; posted_at: string }>(
+  postsNewestFirst: T[],
+  now: number,
+): T[] {
+  const oldest = now - BASELINE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+  return postsNewestFirst.filter(
+    p => hasVisibleLikes(p) && new Date(p.posted_at).getTime() >= oldest,
+  );
+}
+
+/** The measurability gate: can this many visible-like posts support a baseline? */
+export function isMeasurable(visiblePostsInWindow: number): boolean {
+  return visiblePostsInWindow >= MEASURABLE_MIN_POSTS;
 }
 
 /**
@@ -392,7 +496,14 @@ export type HotelMetrics = {
   /** Share of the hotel's last RECENT_POSTS that have a visible like count (0–1).
    *  Below MIN_VISIBLE_LIKE_RATIO the hotel is gated out of breakouts + leaderboard. */
   visibleLikeRatio: number;
-  /** Leaderboard rate: total engagement over the last 30 / 90 days ÷ followers × 100 */
+  /** Visible-like posts within BASELINE_MAX_AGE_DAYS — what the baseline/ER
+   *  windows draw from, and what the measurability gate counts. */
+  visibleInWindow: number;
+  /** false = fewer than MEASURABLE_MIN_POSTS visible-like posts in the window:
+   *  no honest baseline exists, so the hotel is ABSENT from the leaderboard and
+   *  the breakout feed (not warned — absent). */
+  measurable: boolean;
+  /** Momentum: total engagement over the last 30 / 90 days ÷ followers × 100 */
   recentRate30: number | null;
   recentRate90: number | null;
 };
@@ -429,6 +540,17 @@ export function computeWhatsWorking(
 // ── What's Working — holistic analysis helpers ──────────────────────────────
 const DAY_MS_WW = 24 * 60 * 60 * 1000;
 
+/** Median per-post engagement rate (%) across posts with a known follower count. */
+function medianPostERPct(posts: RawPost[], latestFollowers: Record<string, number | null>): number | null {
+  const ers: number[] = [];
+  for (const p of posts) {
+    const f = latestFollowers[p.instagram_handle];
+    if (!f || f <= 0) continue;
+    ers.push(((p.likes_count + (p.comments_count ?? 0)) / f) * 100);
+  }
+  return median(ers);
+}
+
 function pluralFormat(label: string): string {
   const map: Record<string, string> = { Reel: 'Reels', Video: 'Videos', Carousel: 'Carousels', Photo: 'Photos', Other: 'other posts' };
   return map[label] ?? `${label}s`;
@@ -438,6 +560,75 @@ function pluralFormat(label: string): string {
 function singleFormat(label: string): string {
   const map: Record<string, string> = { Reel: 'a Reel', Video: 'a video', Carousel: 'a carousel', Photo: 'a photo', Other: 'another post type' };
   return map[label] ?? `a ${label.toLowerCase()}`;
+}
+
+/**
+ * How collaboration posts are performing against solo posts in a scope.
+ *
+ * Measured the same way the levers are — median per-post engagement rate — so
+ * the multiple is comparable to them. Also reports how far collabs over- (or
+ * under-) index in the breakout list, which is the thing that prompted this:
+ * collabs keep appearing near the top of the breakouts.
+ *
+ * Returns null below MIN_COLLAB_POSTS collabs, or when either median can't be
+ * computed. `breakouts` is the scope's breakout LIST (capped at
+ * STANDOUT_LIMIT), so the share is "of the breakouts shown", which is what the
+ * copy says.
+ */
+export function buildCollabNote(
+  scopePosts: RawPost[],
+  breakouts: OutlierPost[],
+  latestFollowers: Record<string, number | null>,
+  scope: WwScope,
+): WwCollabNote | null {
+  const isCollabRaw = (p: RawPost) => (p.coauthor_usernames?.length ?? 0) > 0;
+  const collab = scopePosts.filter(isCollabRaw);
+  const solo = scopePosts.filter(p => !isCollabRaw(p));
+  if (collab.length < MIN_COLLAB_POSTS || solo.length === 0) return null;
+
+  const erCollab = medianPostERPct(collab, latestFollowers);
+  const erSolo = medianPostERPct(solo, latestFollowers);
+  if (erCollab === null || erSolo === null || erSolo <= 0) return null;
+
+  const ratio = erCollab / erSolo;
+  const postShare = Math.round((collab.length / scopePosts.length) * 100);
+  const collabBreakouts = breakouts.filter(p => p.is_collab).length;
+  const periodWord = scope === 'month' ? 'this month' : 'on record';
+
+  // Copy adapts to direction — a note that only ever says "collabs win" would be
+  // marketing, not analysis.
+  const headline =
+    ratio >= 1.05
+      ? {
+          pre: 'Collaboration posts are pulling ',
+          highlight: `${ratio.toFixed(1)}× the engagement`,
+          post: ' of a solo post — worth considering who you partner with, not just what you post.',
+        }
+      : ratio <= 0.95
+        ? {
+            pre: 'Collaboration posts are pulling ',
+            highlight: `${ratio.toFixed(1)}× a solo post’s engagement`,
+            post: ' — they are not automatically the stronger play here.',
+          }
+        : {
+            pre: 'Collaboration posts are performing ',
+            highlight: 'about the same as solo posts',
+            post: ' — the partner brings reach, but not a reliable lift on this measure.',
+          };
+
+  const breakoutClause =
+    breakouts.length > 0
+      ? ` They are ${collabBreakouts} of the ${breakouts.length} breakouts shown ${periodWord}, from ${postShare}% of posts.`
+      : '';
+
+  return {
+    headline,
+    note:
+      `${fmtNumber(collab.length)} collaboration posts vs ${fmtNumber(solo.length)} solo, by median engagement rate per post.` +
+      `${breakoutClause}` +
+      ' A collab is a true Instagram co-author byline, appears on both partners’ grids, and borrows the partner’s audience —' +
+      ' so treat it as a partnership decision rather than a posting tweak.',
+  };
 }
 
 // ── Lever construction ──────────────────────────────────────────────────────
@@ -467,6 +658,9 @@ const THEME_BLURB: Record<string, string> = {
 /** Below this many AI-tagged breakouts the content lever is withheld rather than
  *  shown thin — a handful of tagged posts is not a portfolio pattern. */
 const MIN_TAGGED_THEMES = 5;
+/** Below this many collabs in scope the collaboration note is withheld — the
+ *  same discipline as MIN_TAGGED_THEMES: say nothing rather than say it thinly. */
+const MIN_COLLAB_POSTS = 30;
 /** At or above this many posts a lever reads as a settled signal, not a hint. */
 const STRONG_SIGNAL_POSTS = 500;
 
@@ -763,6 +957,7 @@ export function computeWhatsWorkingData(
   hotelMetrics: Record<string, HotelMetrics>,
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
+  hotelRegionByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
 ): WhatsWorkingData {
@@ -777,7 +972,10 @@ export function computeWhatsWorkingData(
   const prevCadence  = allPosts.filter(between(30, 60));
 
   const breakoutsIn = (posts: RawPost[]) =>
-    computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT);
+    computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, hotelRegionByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT);
+  // Only the current and all-time breakout passes are needed: the previous
+  // period reaches the screen through the levers' trend lines, which compare
+  // computeWhatsWorking SETS rather than breakout counts.
   const mRes = breakoutsIn(monthPosts);
   const aRes = breakoutsIn(allValid);
 
@@ -801,11 +999,13 @@ export function computeWhatsWorkingData(
       set: setMonth,
       levers: buildLevers(setMonth, setPrev, cadenceMonth, cadencePrev, mRes.posts, 'month'),
       lede: WW_LEDE.month,
+      collab: buildCollabNote(monthPosts, mRes.posts, latestFollowers, 'month'),
     },
     all: {
       set: setAll,
       levers: buildLevers(setAll, null, cadenceAll, null, aRes.posts, 'all'),
       lede: WW_LEDE.all,
+      collab: buildCollabNote(allValid, aRes.posts, latestFollowers, 'all'),
     },
   };
 }
@@ -826,26 +1026,43 @@ export function computeStandout(
   hotelMetrics: Record<string, HotelMetrics>,
   hotelNameByHandle: Record<string, string>,
   hotelCountryByHandle: Record<string, string | null>,
+  hotelRegionByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
   limit: number = MAX_STANDOUT_POSTS,
+  // Curated mode (the Featured shelf): every gate that exists to SELECT
+  // breakouts — the 2× threshold, the absolute floor, the baseline floor and
+  // the coverage gate — is skipped, because the editor already selected the
+  // post. The one hard requirement left is a computable baseline (median > 0),
+  // without which no multiplier exists.
+  opts: { curated?: boolean } = {},
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
   for (const p of recentValidPosts) {
     const m = hotelMetrics[p.instagram_handle];
     const postEngagement = p.likes_count + (p.comments_count ?? 0);
-    if (postEngagement < MIN_ENGAGEMENT) continue;
-    if (!m?.medianPostEngagement || m.medianPostEngagement < MIN_BASELINE_ENGAGEMENT) continue;
-    // Coverage gate: a hotel that hides likes on most recent posts has a median
-    // built from too thin a sample to trust — drop its breakouts silently.
-    if (m.visibleLikeRatio < MIN_VISIBLE_LIKE_RATIO) continue;
+    if (!m?.medianPostEngagement) continue;
+    if (!opts.curated) {
+      if (postEngagement < MIN_ENGAGEMENT) continue;
+      if (m.medianPostEngagement < MIN_BASELINE_ENGAGEMENT) continue;
+      // Coverage gate: a hotel that hides likes on most recent posts has a
+      // median built from too thin a sample to trust — drop its breakouts
+      // silently.
+      if (m.visibleLikeRatio < MIN_VISIBLE_LIKE_RATIO) continue;
+      // Measurability gate: no honest baseline exists (fewer than
+      // MEASURABLE_MIN_POSTS visible-like posts inside BASELINE_MAX_AGE_DAYS),
+      // so no multiplier from this hotel can be trusted either. Runs alongside
+      // the ratio gate — they catch different offenders.
+      if (!m.measurable) continue;
+    }
     const multiplier = postEngagement / m.medianPostEngagement;
-    if (multiplier < OUTLIER_THRESHOLD) continue;
+    if (!opts.curated && multiplier < OUTLIER_THRESHOLD) continue;
     const medL = m.medianLikes    ?? 1;
     const medC = m.medianComments ?? 1;
     standout.push({
       hotel_name:           hotelNameByHandle[p.instagram_handle] ?? p.instagram_handle,
       hotel_country:        hotelCountryByHandle[p.instagram_handle] ?? null,
+      hotel_region:         hotelRegionByHandle[p.instagram_handle] ?? null,
       hotel_followers:      m.followers,
       instagram_handle:     p.instagram_handle,
       post_id:              p.post_id,
@@ -914,6 +1131,27 @@ export function orderLandingFeatured(
 }
 
 /**
+ * The Featured shelf: every post in the pool carrying `editors_pick`, one row
+ * per post_id (the pool is multiplier-sorted, so a co-post's best grid wins),
+ * kept in the pool's best-first order.
+ *
+ * The caller builds the pool from the picked posts in curated mode
+ * ({ curated: true }), so a pick stays honoured even after its hotel's
+ * median drifts below the breakout gates.
+ * Pure + exported so the selection is unit-tested without a DB round-trip.
+ */
+export function selectFeaturedPosts(pool: OutlierPost[]): OutlierPost[] {
+  const seen = new Set<string>();
+  const out: OutlierPost[] = [];
+  for (const p of pool) {
+    if (!p.editors_pick || seen.has(p.post_id)) continue;
+    seen.add(p.post_id);
+    out.push(p);
+  }
+  return out;
+}
+
+/**
  * Hybrid marquee rotation for the landing taster (Neil, 2026-07-21).
  *
  * When posts are pinned, the taster's first open card ALWAYS shows a post from
@@ -957,20 +1195,50 @@ export function rotateLandingFeatured(
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export async function getPortfolioData(): Promise<DashboardData> {
+/**
+ * @param opts.adminView  Bypass the PUBLISH GATE so /admin sees the posts from
+ *   the latest scrape before they are released to members. It does NOT bypass
+ *   the hidden flags — hidden posts and hotels are excluded from the numbers
+ *   for everyone, so what the admin reviews is exactly what members will get.
+ */
+export async function getPortfolioData(
+  opts: { adminView?: boolean } = {},
+): Promise<DashboardData> {
   const supabase = getSupabase();
   const PAGE = 1000;
+  const adminView = opts.adminView === true;
+
+  // ── Publish gate ──────────────────────────────────────────────────────────
+  // Members only see posts dated at or before the cutoff, so a Sunday-night
+  // scrape lands invisibly and is released by hitting Publish in /admin on the
+  // Monday. A missing/unreadable settings row must never black out the
+  // dashboard, so the fallback is "everything is published".
+  const settingsRes = await supabase
+    .from('dashboard_settings')
+    .select('publish_cutoff, published_at')
+    .eq('id', true)
+    .maybeSingle();
+  if (settingsRes.error) console.error('dashboard_settings query failed:', settingsRes.error.message);
+  const publishCutoffIso = settingsRes.data?.publish_cutoff ?? null;
+  const publishCutoffMs = publishCutoffIso ? new Date(publishCutoffIso).getTime() : Number.POSITIVE_INFINITY;
 
   // Beta: only tracked hotels (the 200 most-followed — see
   // instagram-pipeline/setup-tracked.sql). Untracked hotels stay in the
-  // database but are invisible to the dashboard.
+  // database but are invisible to the dashboard. `hidden` is the separate,
+  // EDITORIAL flag set in /admin — deliberately not `tracked`, so hiding a
+  // hotel from the dashboard never stops the pipeline scraping it.
   const hotelsRes = await supabase
     .from('hotels')
-    .select('name, region, country, instagram_handle')
+    .select('name, region, country, instagram_handle, hidden')
     .eq('tracked', true)
     .order('name');
   if (hotelsRes.error) throw new Error(hotelsRes.error.message);
-  const trackedHandles = new Set((hotelsRes.data ?? []).map(h => h.instagram_handle));
+  const hiddenHotels = (hotelsRes.data ?? []).filter(h => h.hidden === true);
+  const hiddenHandles = new Set(hiddenHotels.map(h => h.instagram_handle));
+  // A hidden hotel is excluded from EVERY figure — it never reaches trackedHandles.
+  const trackedHandles = new Set(
+    (hotelsRes.data ?? []).filter(h => !hiddenHandles.has(h.instagram_handle)).map(h => h.instagram_handle),
+  );
 
   // NOTE: every paginated query orders by a UNIQUE key (or has a unique
   // tiebreaker). Offset pagination over non-unique columns (a scrape inserts
@@ -987,12 +1255,13 @@ export async function getPortfolioData(): Promise<DashboardData> {
     theme_tag: string | null;
     editors_pick: boolean | null;
     landing_pin: boolean | null;
+    hidden: boolean | null;
   };
   const standoutRows: StandoutRow[] = [];
   for (let page = 0; ; page++) {
     const { data, error } = await supabase
       .from('standout_posts')
-      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag, editors_pick, landing_pin')
+      .select('post_id, stored_image_url, post_insight, driver_tag, theme_tag, editors_pick, landing_pin, hidden')
       .order('post_id')
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (error) {
@@ -1022,8 +1291,16 @@ export async function getPortfolioData(): Promise<DashboardData> {
     if (data.length < PAGE) break;
   }
 
+  // Posts hidden by the admin. Keyed on post_id (standout_posts' primary key),
+  // so — exactly like the Editor's note — hiding a co-post hides it on every
+  // partner's grid.
+  const hiddenPostIds = new Set(standoutRows.filter(r => r.hidden === true).map(r => r.post_id));
+
   // Paginate posts
   const allPosts: RawPost[] = [];
+  // Posts newer than the cutoff, awaiting release. Counted even when they're
+  // filtered out, so /admin can say how many are pending.
+  let pendingPosts = 0;
   // A co-post appears on each partner's grid as a separate row (same post_id,
   // different instagram_handle) — de-dupe on the composite, not post_id alone.
   const seenPostKeys = new Set<string>();
@@ -1038,18 +1315,65 @@ export async function getPortfolioData(): Promise<DashboardData> {
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
     for (const p of data) {
-      // Untracked hotels' historical posts stay in the DB but out of the stats
+      // Untracked + admin-hidden hotels' posts stay in the DB but out of the
+      // stats. Hidden is FULL exclusion: the post never reaches a baseline, a
+      // median, a breakout count or the What's Working buckets, so no figure
+      // can disagree with what's on screen.
       if (!trackedHandles.has(p.instagram_handle)) continue;
+      if (hiddenPostIds.has(p.post_id)) continue;
       // Rows can shift between pages if the pipeline uploads mid-fetch
       const key = `${p.post_id}|${p.instagram_handle}`;
       if (seenPostKeys.has(key)) continue;
       seenPostKeys.add(key);
+      // The publish gate. Admin sees through it; members don't.
+      if (new Date(p.posted_at).getTime() > publishCutoffMs) {
+        pendingPosts++;
+        if (!adminView) continue;
+      }
       allPosts.push(p);
     }
     if (data.length < PAGE) break;
   }
 
-  const allHotels = hotelsRes.data ?? [];
+  const allHotels = (hotelsRes.data ?? []).filter(h => !hiddenHandles.has(h.instagram_handle));
+
+  // ── The hidden roster (admin only) ────────────────────────────────────────
+  // Hidden things are excluded from the data above, so /admin needs this
+  // separate list to show what's hidden and undo it. Skipped entirely for
+  // members — it costs a query and they can't act on it.
+  const nameByHandleAll: Record<string, string> = {};
+  for (const h of hotelsRes.data ?? []) {
+    if (!(h.instagram_handle in nameByHandleAll)) nameByHandleAll[h.instagram_handle] = h.name;
+  }
+  const hiddenRoster: DashboardData['hidden'] = {
+    posts: [],
+    hotels: hiddenHotels.map(h => ({ instagram_handle: h.instagram_handle, name: h.name })),
+  };
+  if (adminView && hiddenPostIds.size > 0) {
+    // storedImageUrl proper is built further down; the roster needs it now.
+    const storedImg = new Map(standoutRows.map(r => [r.post_id, r.stored_image_url]));
+    const { data, error } = await supabase
+      .from('posts')
+      .select('post_id, instagram_handle, image_url, posted_at')
+      .in('post_id', [...hiddenPostIds])
+      .order('posted_at', { ascending: false });
+    if (error) {
+      console.error('hidden posts query failed:', error.message);
+    } else {
+      const seen = new Set<string>();
+      for (const p of data ?? []) {
+        if (seen.has(p.post_id)) continue; // one row per post_id (co-posts)
+        seen.add(p.post_id);
+        hiddenRoster.posts.push({
+          post_id: p.post_id,
+          instagram_handle: p.instagram_handle,
+          hotel_name: nameByHandleAll[p.instagram_handle] ?? p.instagram_handle,
+          image_url: storedImg.get(p.post_id) ?? p.image_url ?? null,
+          posted_at: p.posted_at,
+        });
+      }
+    }
+  }
 
   // ── Stored image URLs + per-post insights ─────────────────────────────────
   const storedImageUrl: Record<string, string | null> = {};
@@ -1094,17 +1418,26 @@ export async function getPortfolioData(): Promise<DashboardData> {
       ? recentWindow.filter(hasVisibleLikes).length / recentWindow.length
       : 0;
 
-    // Overall ER — mean over the hotel's last 30 valid posts (RECENT_POSTS, the
-    // same recent window as the breakout baseline). Used for the leaderboard.
+    // The baseline/ER window: the last BASELINE_POSTS visible-like posts,
+    // reaching back at most BASELINE_MAX_AGE_DAYS (selectBaselinePosts). Same
+    // sample size for every measurable hotel; the measurability gate counts
+    // the same list. Runs ALONGSIDE the coverage ratio above — the gate
+    // catches "too little readable data", the ratio "hides likes on most
+    // recent posts". Both must pass.
+    const windowPosts = selectBaselinePosts(posts, now);
+    const measurable  = isMeasurable(windowPosts.length);
+
+    // Overall ER — MEDIAN per-post rate over the hotel's last 30 valid posts
+    // in the window. Median, not mean: one viral post shouldn't set a hotel's
+    // "typical post" number.
     const recentERs = followers && followers > 0
-      ? validPosts.slice(0, HOTEL_ER_POSTS).map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers)
+      ? windowPosts.slice(0, HOTEL_ER_POSTS).map(p => (p.likes_count! + (p.comments_count ?? 0)) / followers)
       : [];
-    const er = mean(recentERs);
+    const er = median(recentERs);
 
     // Breakout baseline: median engagement across the hotel's last 30 valid
-    // posts — matches what the pipeline scrapes per run, and stays recent as
-    // history accumulates.
-    const baselinePosts    = validPosts.slice(0, BASELINE_POSTS);
+    // posts in the window — recency-weighted, and never older than 12 months.
+    const baselinePosts    = windowPosts.slice(0, BASELINE_POSTS);
     const baseLikes        = baselinePosts.map(p => p.likes_count!);
     const baseComments     = baselinePosts.map(p => p.comments_count ?? 0);
     const baseEngagements  = baseLikes.map((l, i) => l + baseComments[i]);
@@ -1116,10 +1449,12 @@ export async function getPortfolioData(): Promise<DashboardData> {
     const recentCount = posts.filter(p => now - new Date(p.posted_at).getTime() < weekWindowMs).length;
     const ppw = recentCount / (POSTS_WEEK_WINDOW / 7);
 
-    // Leaderboard rate — TOTAL engagement (likes+comments) over the last N days
+    // Momentum — TOTAL engagement (likes+comments) over the last N days
     // ÷ followers × 100. A period "reach relative to size": rewards both post
-    // quality AND frequency. Null when the hotel has no valid posts in the window
-    // (dormant → sorts to the bottom) or no follower count.
+    // quality AND frequency, so it's a sort-only rank option (a single viral
+    // post or heavy posting cadence can push it far above any credible ER).
+    // Null when the hotel has no valid posts in the window (dormant → sorts
+    // to the bottom) or no follower count.
     const DAY = 24 * 60 * 60 * 1000;
     const rateOverDays = (days: number): number | null => {
       if (!followers || followers <= 0) return null;
@@ -1140,6 +1475,8 @@ export async function getPortfolioData(): Promise<DashboardData> {
       followers,
       validPostCount: validPosts.length,
       visibleLikeRatio,
+      visibleInWindow: windowPosts.length,
+      measurable,
       recentRate30:  rateOverDays(30),
       recentRate90:  rateOverDays(90),
     };
@@ -1150,6 +1487,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   const hotelRows: HotelRow[] = [];
   const hotelNameByHandle:    Record<string, string>      = {};
   const hotelCountryByHandle: Record<string, string | null> = {};
+  const hotelRegionByHandle:  Record<string, string | null> = {};
 
   for (const h of allHotels) {
     // First entry wins for duplicated handles — keeps cards and leaderboard
@@ -1157,6 +1495,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     if (!(h.instagram_handle in hotelNameByHandle)) {
       hotelNameByHandle[h.instagram_handle]    = h.name;
       hotelCountryByHandle[h.instagram_handle] = h.country ?? null;
+      hotelRegionByHandle[h.instagram_handle]  = h.region ?? null;
     }
     if (seenHandles.has(h.instagram_handle)) continue;
     if (!postsByHandle[h.instagram_handle])  continue;
@@ -1173,6 +1512,21 @@ export async function getPortfolioData(): Promise<DashboardData> {
     // and sorts to the bottom, exactly like a dormant hotel. Deliberately sets NO
     // er_flag_reason, so there's no ⚠ or caveat on the leaderboard (Neil's call).
     const mostlyHidesLikes = (m?.visibleLikeRatio ?? 0) < MIN_VISIBLE_LIKE_RATIO;
+    // Dormancy gate: the ER is a "last 30 posts" median, so it never ages out on
+    // its own — a hotel that stopped posting would keep its old number forever.
+    // Nulled silently (no ⚠), like mostlyHidesLikes.
+    const lastPostedMs = m?.lastPosted ? new Date(m.lastPosted).getTime() : null;
+    const dormant = lastPostedMs === null || now - lastPostedMs > DORMANT_DAYS * 24 * 60 * 60 * 1000;
+
+    // The measurability gate: fewer than MEASURABLE_MIN_POSTS visible-like
+    // posts within BASELINE_MAX_AGE_DAYS means no honest baseline exists at any
+    // sample size — the hotel is ABSENT from the leaderboard, not warned on it
+    // (brief 02, 2026-07-31). It stays tracked and scraped (hero counts below
+    // use trackedHotelCount, not this list), so it returns by itself once
+    // enough readable posts accumulate. The watchlist page has its own
+    // fallback row for hotels missing from this list, so a watchlisted
+    // unmeasurable hotel still renders there by name.
+    if (m && !m.measurable) continue;
 
     hotelRows.push({
       name:             h.name,
@@ -1183,7 +1537,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       // Only a hard flag nulls the ER (excluded from medians, sorts to the
       // bottom). A soft baseline warning keeps the valid ER counted. A
       // mostly-hidden-likes hotel is nulled silently (no flag reason).
-      engagement_rate:  hard || mostlyHidesLikes ? null : rawER,
+      engagement_rate:  hard || mostlyHidesLikes || dormant ? null : rawER,
       recent_rate:      mostlyHidesLikes
         ? { d30: null, d90: null }
         : { d30: m?.recentRate30 ?? null, d90: m?.recentRate90 ?? null },
@@ -1222,7 +1576,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
       validForAnalysis.filter(p => now - new Date(p.posted_at).getTime() <= days * DAY_MS);
     const res = computeStandout(
       windowPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-      storedImageUrl, storedInsight, STANDOUT_LIMIT,
+      hotelRegionByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT,
     );
     standout[key] = res.posts;
     if (key === '7d') {
@@ -1241,7 +1595,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
   );
   const autoFeatured = computeStandout(
     landingCandidates, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-    storedImageUrl, storedInsight,
+    hotelRegionByHandle, storedImageUrl, storedInsight,
   ).posts;
 
   // Admin override: any breakout flagged standout_posts.landing_pin is forced to
@@ -1259,7 +1613,7 @@ export async function getPortfolioData(): Promise<DashboardData> {
     // pinned ones to the front.
     const allBreakouts = computeStandout(
       validForAnalysis, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
-      storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
+      hotelRegionByHandle, storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
     ).posts;
     landing_featured = orderLandingFeatured(autoFeatured, allBreakouts, MAX_STANDOUT_POSTS);
     // Hybrid marquee rotation: first open card cycles the marquee hotels; the
@@ -1270,10 +1624,26 @@ export async function getPortfolioData(): Promise<DashboardData> {
     );
   }
 
+  // ── Featured — the curated inspiration shelf ──────────────────────────────
+  // Every post carrying standout_posts.editors_pick, best-first. Built in
+  // curated mode: the breakout SELECTION gates are all skipped (the editor
+  // already selected the post), so a pick stays honoured even after its
+  // hotel's median drifts — the multiplier shown is simply vs the CURRENT
+  // median. Only a pick with no computable baseline at all is skipped.
+  const pickedRaw = validForAnalysis.filter(p => storedInsight[p.post_id]?.editors_pick);
+  const featured = pickedRaw.length
+    ? selectFeaturedPosts(computeStandout(
+        pickedRaw, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
+        hotelRegionByHandle, storedImageUrl, storedInsight, Number.MAX_SAFE_INTEGER,
+        { curated: true },
+      ).posts)
+    : [];
+
   // ── What's Working — holistic analysis per scope (Last 30 days / All time) ─
   const whatsWorkingData = computeWhatsWorkingData(
     validForAnalysis, allPosts, now, latestFollowers, hotelMetrics,
-    hotelNameByHandle, hotelCountryByHandle, storedImageUrl, storedInsight,
+    hotelNameByHandle, hotelCountryByHandle, hotelRegionByHandle, storedImageUrl,
+    storedInsight,
   );
 
   // ── Week ending — from the data, not the render date ─────────────────────
@@ -1284,17 +1654,28 @@ export async function getPortfolioData(): Promise<DashboardData> {
     .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
     .toUpperCase();
 
+  // Hero figures count everything TRACKED AND SCRAPED — including hotels the
+  // measurability gate keeps off the leaderboard. "200 hotels tracked" is true
+  // (we scan them every week); the leaderboard lists only the ones we can
+  // honestly measure. Mirrors the old hotelRows rule (deduped, scraped-only).
+  const scrapedTracked = allHotels.filter(h => postsByHandle[h.instagram_handle]);
+  const trackedHotelCount = new Set(scrapedTracked.map(h => h.instagram_handle)).size;
+  const trackedCountryCount = new Set(scrapedTracked.map(h => h.country).filter(Boolean)).size;
+
   return {
+    publish: { cutoff: publishCutoffIso, pending: pendingPosts },
+    hidden:  hiddenRoster,
     hotels: hotelRows,
     snapshot:      computeSnapshot(hotelRows),
     whatsWorking,
     whatsWorkingData,
     standout,
     landing_featured,
+    featured,
     breakout_count,
     super_breakout_count,
-    hotel_count:          hotelRows.length,
-    countries_count:      new Set(hotelRows.map(h => h.country).filter(Boolean)).size,
+    hotel_count:          trackedHotelCount,
+    countries_count:      trackedCountryCount,
     total_posts_analysed: validForAnalysis.length,
     week_ending,
     week_ending_long,

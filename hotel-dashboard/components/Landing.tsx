@@ -16,6 +16,7 @@ import {
   VALUE_STACK_TOTAL_GBP,
   monthlyCost,
 } from '@/lib/pricing';
+import { belowCap, formatMultiplier, isCappedMultiplier } from '@/lib/format-multiplier';
 import { ImageWithFallback } from './ContentRadar';
 
 // ─── Offer ───────────────────────────────────────────────────────────────────
@@ -96,7 +97,7 @@ function FanCard({
 }) {
   const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
   const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
-  const mult = post.multiplier.toFixed(1);
+  const mult = formatMultiplier(post.multiplier);
 
   return (
     <div
@@ -121,7 +122,7 @@ function FanCard({
           position: 'absolute', top: front ? 14 : 12, right: front ? 14 : 12, fontFamily: 'var(--font-display)', fontWeight: 700,
           fontSize: front ? 18 : 15, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--ink-deep)',
           background: 'var(--surface)', padding: front ? '5px 12px' : '4px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        }}>{mult}×</span>
+        }}>{mult}</span>
       </div>
       {/* All three cards share one footer: just the hotel name (date + likes live
           on the detailed taster cards below). Keeps the fanned stack consistent —
@@ -140,7 +141,11 @@ function FanCard({
 function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
   const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
   const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
-  const mult = post.multiplier.toFixed(1);
+  const mult = formatMultiplier(post.multiplier);
+  // The count-up animates towards a number, so it can only run on a precise
+  // figure — a capped card would tick up to "50×" and lose the "+". Capped cards
+  // simply render the static label instead.
+  const counts = !isCappedMultiplier(post.multiplier);
 
   return (
     <div
@@ -158,13 +163,13 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
           background: 'rgba(29,27,23,0.32)', backdropFilter: 'blur(4px)', padding: '5px 10px', borderRadius: 20,
         }}>{chip}</span>
         <span
-          data-count={mult} data-dec="1" data-suffix="×"
+          data-count={counts ? post.multiplier.toFixed(1) : undefined} data-dec="1" data-suffix="×"
           style={{
             position: 'absolute', top: 14, right: 14, fontFamily: 'var(--font-display)', fontWeight: 800,
             fontSize: 18, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--ink-deep)',
             background: 'var(--surface)', padding: '5px 12px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           }}
-        >{mult}×</span>
+        >{mult}</span>
       </div>
       <div style={{ padding: 20 }}>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{post.hotel_name}</div>
@@ -191,8 +196,11 @@ export default function Landing({ data }: { data: DashboardData }) {
   // Six distinct previewed posts: the first three fan out in the hero stack, the
   // next three fill the taster grid. Dedupe by post_id first (a collab shares one
   // post_id across handles) so the same post never shows twice across the page.
+  // belowCap() first: this whole page is a shop window, so every card on it is a
+  // headline figure. A post whose multiplier is too large to be credible is left
+  // out entirely rather than shown as "50×+" to someone who hasn't bought yet.
   const seenPost = new Set<string>();
-  const featured = data.landing_featured.filter(p => {
+  const featured = belowCap(data.landing_featured).filter(p => {
     if (seenPost.has(p.post_id)) return false;
     seenPost.add(p.post_id);
     return true;
@@ -385,7 +393,10 @@ export default function Landing({ data }: { data: DashboardData }) {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: 26, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)', lineHeight: 1.6 }}>
-            Featuring hotels from <span style={{ color: 'var(--ink)' }}>Condé Nast Gold List</span> · <span style={{ color: 'var(--ink)' }}>Michelin Keys</span> · <span style={{ color: 'var(--ink)' }}>Forbes Travel Guide</span>
+            {/* Michelin Keys was dropped from this line on 2026-07-31 — we don't
+                crawl that list, and most of it isn't in the database. The
+                per-hotel Michelin pins on the leaderboard are verified and stay. */}
+            Featuring hotels from <span style={{ color: 'var(--ink)' }}>Condé Nast Gold List</span> · <span style={{ color: 'var(--ink)' }}>Forbes Travel Guide</span>
           </div>
         </div>
       </section>
