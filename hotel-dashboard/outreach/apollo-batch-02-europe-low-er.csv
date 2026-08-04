@@ -1,0 +1,51 @@
+hotel_id,instagram_handle,hotel_name,root_domain,website,followers_count,er_median,posts_last_90d,ownership,hotels_sharing_domain,accreditations,sources,country,region
+317,shangrilalondon,"Shangri-La The Shard, London",shangri-la.com,https://www.shangri-la.com/london/shangrila/,162757,0.057,27,group,4,Forbes Five-Star; Michelin One Key,Forbes,United Kingdom,Europe
+228,mo_hydepark,"Mandarin Oriental, Hyde Park, London",mandarinoriental.com,https://www.mandarinoriental.com/en/london/hyde-park,111571,0.067,28,group,27,Forbes Five-Star; Michelin Three Keys,Forbes,United Kingdom,Europe
+231,mo_milan,"Mandarin Oriental, Milan",mandarinoriental.com,https://www.mandarinoriental.com/en/milan/la-scala,101320,0.076,26,group,27,Forbes Five-Star,Forbes,Italy,Europe
+176,jkplacecapri,J.K. Place Capri,jkplaces.com,https://www.jkplaces.com/jkcapri/,87572,0.089,14,group,2,Forbes Five-Star,Forbes,Italy,Europe
+349,thedorchester,The Dorchester,dorchestercollection.com,https://www.dorchestercollection.com/london/the-dorchester,398795,0.093,28,group,9,Forbes Five-Star; Michelin Two Keys,Forbes,United Kingdom,Europe
+151,reschio,Hotel Castello di Reschio,reschio.com,https://www.reschio.com/hotel,1629952,0.102,39,group,1,Condé Nast Gold List,Gold List,Italy,Europe
+233,mo_paris,"Mandarin Oriental, Paris",mandarinoriental.com,https://www.mandarinoriental.com/en/paris/place-vendome,162834,0.104,34,group,27,Forbes Five-Star,Forbes,France,Europe
+203,limewoodhotel,Lime Wood,limewoodhotel.co.uk,https://www.limewoodhotel.co.uk/,104135,0.107,49,independent,1,Condé Nast Gold List; Michelin Two Keys,Gold List,United Kingdom,Europe
+375,thenewtinsomerset,The Newt in Somerset,thenewtinsomerset.com,https://thenewtinsomerset.com/,379991,0.115,41,independent,1,Michelin Three Keys,Manual add,United Kingdom,Europe
+199,leroyalmonceau,"Le Royal Monceau, Raffles Paris",raffles.com,https://www.raffles.com/paris/,185694,0.118,41,group,6,Condé Nast Gold List,Gold List,France,Europe
+106,fstowerbridge,Four Seasons Hotel London at Tower Bridge,fourseasons.com,https://www.fourseasons.com/towerbridge/,83493,0.131,44,group,44,Forbes Five-Star; Michelin One Key,Forbes,United Kingdom,Europe
+69,coworthpark,"Coworth Park, Dorchester Collection",dorchestercollection.com,https://www.dorchestercollection.com/ascot/coworth-park,101549,0.135,28,group,9,Condé Nast Gold List; Michelin Two Keys,Gold List,United Kingdom,Europe
+105,fslondon,Four Seasons Hotel London at Park Lane,fourseasons.com,https://www.fourseasons.com/london/,150603,0.136,35,group,44,Forbes Five-Star; Michelin Three Keys,Forbes,United Kingdom,Europe
+236,marbellaclubh,Marbella Club,marbellaclub.com,https://www.marbellaclub.com/,192577,0.145,38,independent,1,Condé Nast Gold List,Gold List,Spain,Europe
+198,lemeuriceparis,"Le Meurice, Dorchester Collection",dorchestercollection.com,https://www.dorchestercollection.com/paris/le-meurice,1008748,0.158,28,group,9,Forbes Five-Star,Forbes,France,Europe
+202,lilyofthevalleyhotel,Lily of the Valley,lilyofthevalley.com,https://www.lilyofthevalley.com/,166561,0.176,39,independent,1,Condé Nast Gold List,Gold List,France,Europe
+201,lesrochesrouges,Les Roches Rouges,beaumier.com,https://www.beaumier.com/en/properties/les-roches-rouges-hotel/,107575,0.181,17,group,1,Condé Nast Gold List,Gold List,France,Europe
+82,estellemanor,Estelle Manor,estellemanor.com,https://estellemanor.com/,297724,0.187,33,independent,1,World's 50 Best Hotels; Michelin One Key,World's 50 Best,United Kingdom,Europe
+414,thesavoylondon,The Savoy,thesavoylondon.com,https://www.thesavoylondon.com/,241655,0.189,29,independent,1,Forbes Five-Star; Michelin Three Keys,Forbes,United Kingdom,Europe
+52,casaangelinalifestyle,Casa Angelina,casangelina.com,https://www.casangelina.com/,221447,0.192,30,independent,1,Forbes Five-Star,Forbes,Italy,Europe
+335,the_berkeley,The Berkeley,maybourne.com,https://www.maybourne.com/en/hotels/the-berkeley,201761,0.195,30,group,4,Forbes Five-Star; Michelin Two Keys,Forbes,United Kingdom,Europe
+215,mo_ritzmadrid,"Mandarin Oriental Ritz, Madrid",mandarinoriental.com,https://www.mandarinoriental.com/en/madrid/hotel-ritz,89488,0.197,38,group,27,Forbes Five-Star,Forbes,Spain,Europe
+197,lebristolparis,Le Bristol Paris,oetkerhotels.com,https://www.oetkerhotels.com/hotels/le-bristol-paris/,354046,0.202,43,group,3,Forbes Five-Star; Condé Nast Gold List; World's 50 Best Hotels,"Forbes, Gold List, World's 50 Best",France,Europe
+320,sixsensesdourovalley,Six Senses Douro Valley,sixsenses.com,https://www.sixsenses.com/en/hotels-resorts/europe/portugal/douro-valley/,168380,0.204,32,group,2,Condé Nast Gold List,Gold List,Portugal,Europe
+195,lareserveparis,La Réserve Paris,lareserve-paris.com,https://www.lareserve-paris.com/en/,151831,0.205,36,group,1,Forbes Five-Star; Condé Nast Gold List,"Forbes, Gold List",France,Europe
+88,forestis.dolomites,Forestis,forestis.it,https://www.forestis.it/en,395672,0.210,14,group,1,Condé Nast Gold List,Gold List,Italy,Europe
+229,mo_lagodicomo,"Mandarin Oriental, Lago di Como",mandarinoriental.com,https://www.mandarinoriental.com/en/lake-como/blevio,194371,0.212,16,group,27,Forbes Five-Star,Forbes,Italy,Europe
+169,rosewoodhoteldecrillon,"Hôtel de Crillon, A Rosewood Hotel",rosewoodhotels.com,https://www.rosewoodhotels.com/en/hotel-de-crillon,241001,0.214,23,group,15,Forbes Five-Star; World's 50 Best Hotels,"Forbes, World's 50 Best",France,Europe
+2,theadaremanor,Adare Manor,adaremanor.com,https://www.adaremanor.com,188377,0.224,29,independent,1,Forbes Five-Star; Condé Nast Gold List; Michelin Three Keys,"Forbes, Gold List",Ireland,Europe
+24,beaverbrook,Beaverbrook,beaverbrook.co.uk,https://beaverbrook.co.uk,152493,0.230,41,independent,1,Condé Nast Gold List; Michelin Two Keys,Gold List,United Kingdom,Europe
+347,theconnaught,The Connaught,maybourne.com,https://www.maybourne.com/en/hotels/the-connaught,302046,0.230,32,group,4,Forbes Five-Star; Condé Nast Gold List; World's 50 Best Hotels; Michelin Three Keys,"Forbes, Gold List, World's 50 Best",United Kingdom,Europe
+65,claridgeshotel,Claridge's,maybourne.com,https://www.maybourne.com/en/hotels/claridges,532938,0.260,43,group,4,Forbes Five-Star; Condé Nast Gold List; World's 50 Best Hotels; Michelin Three Keys,"Forbes, Gold List, World's 50 Best",United Kingdom,Europe
+53,castelfalfi,Castelfalfi,castelfalfi.com,https://www.castelfalfi.com/,293521,0.269,24,independent,1,Forbes Five-Star; Condé Nast Gold List,"Forbes, Gold List",Italy,Europe
+311,hotel_santa_caterina,Santa Caterina,hotelsantacaterina.it,https://www.hotelsantacaterina.it/en/,213187,0.277,44,group,1,Condé Nast Gold List,Gold List,Italy,Europe
+284,raffleslondon.theowo,Raffles London at The OWO,raffles.com,https://www.raffles.com/london/,83131,0.300,27,group,6,Forbes Five-Star; World's 50 Best Hotels; Michelin Three Keys,"Forbes, World's 50 Best",United Kingdom,Europe
+108,fsmadrid,Four Seasons Hotel Madrid,fourseasons.com,https://www.fourseasons.com/madrid/,113442,0.313,30,group,44,Forbes Five-Star,Forbes,Spain,Europe
+28,borgosantopietro,Borgo Santo Pietro,borgosantopietro.com,https://borgosantopietro.com/,596946,0.317,34,independent,1,,Manual add,Italy,Europe
+200,lesirenuse,Le Sirenuse,sirenuse.it,https://sirenuse.it/en/,539192,0.319,24,group,1,Forbes Five-Star,Forbes,Italy,Europe
+51,belmondhotelcaruso,"Caruso, A Belmond Hotel, Amalfi Coast",belmond.com,https://www.belmond.com/hotels/europe/italy/amalfi-coast/belmond-hotel-caruso/,196813,0.321,27,group,9,Forbes Five-Star,Forbes,Italy,Europe
+275,passalacqualakecomo,Passalacqua,passalacqua.it,https://www.passalacqua.it/en/,293584,0.339,16,group,1,Condé Nast Gold List; World's 50 Best Hotels,"Gold List, World's 50 Best",Italy,Europe
+133,thegleneagleshotel,Gleneagles,gleneagles.com,https://gleneagles.com/,189311,0.344,32,independent,1,Michelin Three Keys,Manual add,United Kingdom,Europe
+59,chevalblancparis,Cheval Blanc Paris,chevalblanc.com,https://www.chevalblanc.com/en/maison/paris/,226055,0.348,30,group,3,Forbes Five-Star; World's 50 Best Hotels,"Forbes, World's 50 Best",France,Europe
+99,fsgeorgevparis,"Four Seasons Hotel George V, Paris",fourseasons.com,https://www.fourseasons.com/paris/,461244,0.353,38,group,44,Forbes Five-Star,Forbes,France,Europe
+289,ritzparis,Ritz Paris,ritzparis.com,https://www.ritzparis.com/,990462,0.386,31,independent,1,Forbes Five-Star,Forbes,France,Europe
+155,hotelducapedenroc,Hotel du Cap-Eden-Roc,oetkerhotels.com,https://www.oetkerhotels.com/hotels/hotel-du-cap-eden-roc/,381257,0.397,39,group,3,Forbes Five-Star,Forbes,France,Europe
+372,themaybourneriviera,The Maybourne Riviera,maybourneriviera.com,https://www.maybourneriviera.com/,166520,0.410,34,independent,1,Forbes Five-Star,Forbes,France,Europe
+353,thefifearms,The Fife Arms,thefifearms.com,https://thefifearms.com/,114459,0.418,29,independent,1,Condé Nast Gold List; Michelin Two Keys,Gold List,United Kingdom,Europe
+163,plaza_athenee,Hotel Plaza Athénée Paris,dorchestercollection.com,https://www.dorchestercollection.com/paris/hotel-plaza-athenee,1159822,0.423,20,group,9,Forbes Five-Star,Forbes,France,Europe
+17,ashfordcastle,Ashford Castle,ashfordcastle.com,https://ashfordcastle.com,147341,0.427,41,independent,1,Forbes Five-Star; Michelin Two Keys,Forbes,Ireland,Europe
+6,airellesgordes,"Airelles Gordes, La Bastide",airelles.com,https://airelles.com/en/destination/gordes-hotel,139165,0.430,24,group,2,Forbes Five-Star,Forbes,France,Europe
