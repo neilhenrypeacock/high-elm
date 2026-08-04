@@ -56,9 +56,14 @@ Post images are downloaded and uploaded to the **`standout-images`** Supabase St
 
 The **cover** is stored durably (it's shown on the dashboard). The **full media** for AI analysis is NOT stored permanently — scrape.js records the raw CDN URLs (`posts.child_image_urls`, `posts.video_url`), and generate-insight.js fetches them at insight time (run right after the scrape, while the URLs are fresh). If a URL has expired, the analysis falls back to the stored cover.
 
-### Keeping the bucket inside the free tier (added 2026-07-30)
-The bucket hit **3.2 GB against Supabase's 1 GB free-tier limit** and the org went into
-overage. Two causes, both now fixed — it is back to ~360 MB.
+### Keeping the bucket small (added 2026-07-30, plan updated 2026-08-04)
+The bucket hit **3.2 GB against Supabase's then 1 GB free-tier limit** and the org went
+into overage. Two causes, both now fixed — it is back to ~360 MB.
+
+> The project moved to **Pro (100 GB included) on 4 Aug 2026**, so the hard cap is no
+> longer anywhere near. Everything below still applies: it is what keeps the bucket at a
+> steady ~360 MB instead of growing ~800 MB/month into a bill. `check-storage.js` now
+> guards a deliberate 5 GB **cost** line rather than the old outage cliff.
 
 - **Covers are resized on upload.** `uploadImage` in scrape.js re-encodes to
   **WebP q80, max 1000px wide** (~85 kB) instead of storing Instagram's

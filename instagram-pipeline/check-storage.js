@@ -22,9 +22,17 @@
 //
 //   node check-storage.js
 //
-// Env: STORAGE_CAP_MB (default 1024, the free-tier limit), STORAGE_WARN_PCT
-// (default 70), STORAGE_FAIL_PCT (default 90). Raise the cap here if the
-// project ever moves to a paid plan.
+// Env: STORAGE_CAP_MB (default 5120), STORAGE_WARN_PCT (default 70),
+// STORAGE_FAIL_PCT (default 90).
+//
+// WHY 5 GB AND NOT THE REAL CAP (2026-08-04): the project moved to Pro the same
+// day, which includes 100 GB — so the outage this script was written for can no
+// longer happen at these volumes, and the failure mode changed from "the API
+// gets restricted" to "we quietly pay for overage". 5 GB is therefore a COST
+// guard, not a cliff: it is ~14x current usage (363 MB), so it stays silent
+// while the prune works and shouts long before any bill moves. If the alarm
+// fires, the question to ask is "has cleanup-images.js stopped running?" — not
+// "are we about to go down".
 
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
@@ -32,7 +40,7 @@ import { createClient } from '@supabase/supabase-js';
 const BUCKET = 'standout-images';
 const PAGE = 1000;
 
-const CAP_MB = Number(process.env.STORAGE_CAP_MB ?? 1024);
+const CAP_MB = Number(process.env.STORAGE_CAP_MB ?? 5120);
 const WARN_PCT = Number(process.env.STORAGE_WARN_PCT ?? 70);
 const FAIL_PCT = Number(process.env.STORAGE_FAIL_PCT ?? 90);
 const ALERT_EMAIL = process.env.ALERT_EMAIL ?? 'neil@highelmstudio.com';

@@ -461,12 +461,23 @@ median, ER, breakout count or What's Working bucket reads an image.
 --apply` is a step in `scrape-pipeline.yml`, so it runs after every weekly, monthly
 and full scrape — it is not something to remember. `check-storage.js` is the alarm
 beside it: it adds up the bucket and warns at 70% of the cap, fails at 90%, and runs
-daily from `freshness-check.yml` alongside the staleness check. ⚠ **Going over the
-cap does not just break images — Supabase restricts the WHOLE project API**, so
-every table read 402s and the dashboard, auth and pipeline stop together (this
-happened on 2 Aug 2026). Only a billing action clears the restriction; no script
-can. The public site keeps serving its last good ISR render throughout, so a 200
-from `www.hotelcontentradar.com` is not evidence the data layer is alive.
+daily from `freshness-check.yml` alongside the staleness check.
+
+**The plan moved to Pro on 4 Aug 2026, which changed what the alarm is for.** Pro
+includes **100 GB**, so at these volumes (363 MB) the outage below can no longer
+happen — the failure mode is now quietly paying for overage, not going down. The
+guard's `STORAGE_CAP_MB` is therefore set to **5120 (5 GB)**: a COST line at ~14×
+current usage, not a cliff. If it fires, the question is "has `cleanup-images.js`
+stopped running?", not "are we about to go down". Thresholds are env-overridable
+(`STORAGE_CAP_MB` / `STORAGE_WARN_PCT` / `STORAGE_FAIL_PCT`).
+
+⚠ **The free-tier history, kept because it explains the shape of all this:** on
+2 Aug 2026 the bucket passed the old 1 GB cap and Supabase restricted the **WHOLE
+project API** — every table read 402'd and the dashboard, auth and pipeline stopped
+together. Only a billing action cleared it; no script could. The public site kept
+serving its last good ISR render throughout, so **a 200 from
+`www.hotelcontentradar.com` is not evidence the data layer is alive** — that lesson
+outlives the plan change. Restored 4 Aug 2026 by upgrading to Pro.
 
 ⚠ **Known drift:** `cleanup-images.js` still uses the two-sentinel `hasVisibleLikes`
 (null and -1) and does not exclude the `3` sentinel that lib/data.ts added on
