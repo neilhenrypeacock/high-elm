@@ -457,6 +457,23 @@ the keep rules in `cleanup-images.js` FIRST or the new view will show gradients.
 Deleting a cover changes no figure: engagement lives in the `posts` columns and no
 median, ER, breakout count or What's Working bucket reads an image.
 
+**The prune is automatic, and there is an alarm (2026-08-04).** `cleanup-images.js
+--apply` is a step in `scrape-pipeline.yml`, so it runs after every weekly, monthly
+and full scrape — it is not something to remember. `check-storage.js` is the alarm
+beside it: it adds up the bucket and warns at 70% of the cap, fails at 90%, and runs
+daily from `freshness-check.yml` alongside the staleness check. ⚠ **Going over the
+cap does not just break images — Supabase restricts the WHOLE project API**, so
+every table read 402s and the dashboard, auth and pipeline stop together (this
+happened on 2 Aug 2026). Only a billing action clears the restriction; no script
+can. The public site keeps serving its last good ISR render throughout, so a 200
+from `www.hotelcontentradar.com` is not evidence the data layer is alive.
+
+⚠ **Known drift:** `cleanup-images.js` still uses the two-sentinel `hasVisibleLikes`
+(null and -1) and does not exclude the `3` sentinel that lib/data.ts added on
+2026-07-31. It errs toward keeping too much, not too little — counting 3s as real
+drags the median down, so more posts clear the 1.5× keep line. Worth aligning, but
+it is deletion logic, so change it deliberately.
+
 ## Hidden like counts
 Instagram hides likes on some posts/accounts — stored as `likes_count = null` (the bulk, heavily carousels) or `-1` (a few older rows). `hasVisibleLikes` in lib/data.ts excludes BOTH from every engagement calculation (ER, baseline, breakouts, What's Working). Consequence: a hotel that hides all its likes gets no ER/baseline and is invisible to breakouts.
 

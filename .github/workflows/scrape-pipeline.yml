@@ -57,3 +57,15 @@ jobs:
         run: node check-freshness.js
       - name: Generate "why it worked" analysis for the top 10 breakouts
         run: node generate-insight.js
+      # The scrape stores an image for every post it sees, but the dashboard only
+      # renders a fraction of them. Left alone that put the bucket past Supabase's
+      # 1 GB cap on 2 Aug 2026, and Supabase restricted the WHOLE project API in
+      # response — dashboard, auth and pipeline all down at once. Pruning here is
+      # what holds the steady state; leaving it to be remembered by hand is what
+      # failed last time. See instagram-pipeline/cleanup-images.js for the keep rules.
+      - name: Prune image covers no view can reach
+        run: node cleanup-images.js --apply
+      # Belt and braces: if the prune did not free enough, say so now rather than
+      # letting the next run discover it as an outage.
+      - name: Check the image bucket has room
+        run: node check-storage.js

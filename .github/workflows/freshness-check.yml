@@ -1,7 +1,10 @@
-# Daily staleness alarm for the Content Radar data. Read-only and free —
-# it never scrapes; it only checks the newest posted_at in Supabase and fails
-# loudly (GitHub failure email + optional Resend email to ALERT_EMAIL) when
-# the data is older than FRESHNESS_MAX_DAYS.
+# Daily health alarm for Content Radar. Read-only and free — it never scrapes and
+# never deletes. Two checks, both failing loudly (GitHub failure email + optional
+# Resend email to ALERT_EMAIL):
+#   · check-freshness.js — is the newest posted_at older than FRESHNESS_MAX_DAYS?
+#   · check-storage.js   — is the image bucket near Supabase's storage cap?
+# The second exists because going over that cap restricts the whole project API,
+# not just storage, and only a billing action can undo it.
 name: freshness-check
 
 on:
@@ -28,3 +31,8 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: node check-freshness.js
+      # Runs even when the freshness check fails, because the two alarms answer
+      # different questions and a stale-data failure is exactly when a storage
+      # problem is most likely to be the cause underneath it.
+      - if: always()
+        run: node check-storage.js
