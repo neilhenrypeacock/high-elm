@@ -41,8 +41,10 @@ app/
                           AppShell sidebar + WelcomeOverlay
   how-it-works/ about/  — public marketing pages (PublicChrome nav/footer)
   privacy/ terms/       — public legal pages (both render components/LegalDoc.tsx)
-  admin/page.tsx        — founder-only in-app editor (GATED via requireAdminUser);
-                          set per-post Editor's note + Editor's Pick (AdminEditor.tsx)
+  admin/page.tsx        — founder-only WEEKLY REVIEW (GATED via requireAdminUser);
+                          the Monday flow: read down the week, tick things out,
+                          hit Publish (AdminEditor.tsx). NO note-writing — see
+                          "The admin page is AI-only" below
   login/                — password + magic-link login + "forgot your password?" (LoginForm)
   subscribe/            — permanent redirect to /start-trial (kept for old links)
   auth/callback/        — landing for ALL auth emails (magiclink/signup/recovery);
@@ -155,20 +157,22 @@ components/
                           framing. `TagChip` now shows a per-format leading icon
                           (Video/Reel → play triangle, Carousel → stacked frames, Photo →
                           image glyph; Other/unknown → text only).
-  FeaturedPosts.tsx     — the "Featured" section (added 2026-07-29): the curated
-                          inspiration shelf. Lists data.featured — every post
-                          carrying standout_posts.editors_pick, best-first.
-                          Built in CURATED MODE (computeStandout opts
-                          {curated:true}): every breakout SELECTION gate (2×
-                          threshold, MIN_ENGAGEMENT, baseline floor, coverage)
-                          is skipped — the editor already selected the post —
-                          so a pick stays honoured after its hotel's numbers
-                          drift. The shown multiplier is vs the CURRENT median;
-                          only a pick with no computable baseline is skipped.
-                          Curated by ticking "Editor's Pick" in /admin
-                          (selectFeaturedPosts in lib/data.ts dedupes/orders).
-                          Reuses BreakoutCard (no rank badge); own sidebar entry
-                          in the RADAR group (#featured).
+  FeaturedPosts.tsx     — ⚠ DOUBLY DORMANT. The "Featured" shelf (added
+                          2026-07-29) was WITHDRAWN 2026-08-04 (see SECTION_IDS
+                          in Dashboard.tsx), and on 2026-08-05 the "Editor's
+                          Pick" tick that fed it was removed from /admin too —
+                          so nothing renders it AND nothing sets it any more.
+                          The code is all still here: it lists data.featured
+                          (every post carrying standout_posts.editors_pick,
+                          best-first) built in CURATED MODE (computeStandout
+                          opts {curated:true}), where every breakout SELECTION
+                          gate (2× threshold, MIN_ENGAGEMENT, baseline floor,
+                          coverage) is skipped and the shown multiplier is vs
+                          the CURRENT median. That skipping is exactly why it
+                          was withdrawn — a 65.7× pick was still on the "worth
+                          replicating" shelf at 0.4× after the hidden-likes
+                          re-baseline. Reviving it needs BOTH a floor and a way
+                          to set picks (see selectFeaturedPosts in lib/data.ts).
   WhatsWorking.tsx      — REBUILT 2026-07-23 to the Claude Design `whats-working.html`
                           screen: the page is now a stack of "LEVERS" — the things a hotel
                           can actually change — and nothing else. Header + lede → "The five
@@ -245,7 +249,8 @@ components/
   LegalDoc.tsx          — renders the long-form /privacy + /terms legal copy
   ThemeToggle.tsx       — light/dark toggle (Settings)
   ManageBillingButton.tsx — opens the Stripe billing portal (Settings)
-  AdminEditor.tsx / AdminPill.tsx — founder-only /admin editor UI + its entry pill
+  AdminEditor.tsx / AdminPill.tsx — founder-only /admin weekly-review UI (publish
+                          banner + hidden roster + three ticks per post) + its entry pill
   LoginForm / SignupForm / NewPasswordForm / SetPasswordForm / ProfileForm
                         — auth + account forms (password login + magic-link fallback,
                           email-confirm signup, recovery, set/change password, profile)
@@ -294,6 +299,39 @@ Removed in the 2026-07-12 cleanup: `StandoutPosts.tsx` + `TrendPanel.tsx` (unuse
 | `BASELINE_MIN_POSTS` | 12 | Fewer baseline posts → soft ⚠ warning (ER stays counted) |
 | `WHATS_WORKING_WINDOW_DAYS` | 30 | Static window for the What's Working median charts |
 | `TIME_WINDOWS` | 7d / 30d / all | Time-window options for the **Top posts** toggle (drives that list) |
+| `NEAR_MISS_FLOOR` | 1.25 | Empty-week top-up: minimum multiple for a "closest this week" post (7d only) |
+| `WEEK_MIN_POSTS` | 5 | Posts the 7-day view aims to offer in total, breakouts + top-ups |
+| `WEEK_MIN_SOLO` | 3 | How many of those should be non-collab (the case the top-up exists for) |
+
+## The empty-week top-up (added 2026-07-31)
+Some weeks produce no breakouts a hotel can act on **alone**. Measured on the week
+ending 27 Jul: 11 posts cleared 2× and **all eleven were collabs** (six of them one
+hotel's), while the best solo post of the week managed 1.66×.
+
+Dropping `OUTLIER_THRESHOLD` was the obvious fix and the wrong one — at 1.5× it
+would have added three solo posts, at 1.2× ten, while permanently rewriting what
+"breakout" means in the 30-day and all-time lists too. So **the threshold stays at
+2×** and the SEVEN-DAY view tops itself up instead:
+
+- `selectWeekTopUps` (lib/data.ts, exported + tested) takes the week's real breakouts
+  plus a pool built by a second `computeStandout` call at `{ minMultiplier:
+  NEAR_MISS_FLOOR }`, and returns the posts to append — the **solo** shortfall first,
+  then the overall count. Appended posts carry `OutlierPost.near_miss = true`.
+- **A near-miss is never a breakout.** `computeStandout` counts `breakout_count` /
+  `super_breakout_count` at `OUTLIER_THRESHOLD` regardless of any `minMultiplier`
+  override, so the hero numeral, the 30d/all-time lists, What's Working and the
+  landing taster are all untouched. `ContentRadar` derives `breakoutTotal` /
+  `windowBreakouts` by filtering `near_miss` out of every count it states.
+- In the UI they sit below the ranking under a **"Closest this week"** divider, take
+  no rank badge, and render the multiple in `--ink` with "below the 2× bar" rather
+  than the signal green. The divider's copy reads the UNFILTERED window, so filtering
+  to a region with no breakouts never claims the week had none.
+
+⚠ **`DEFAULT_FILTERS.collab` flipped `false` → `true` at the same time.** The feed
+used to hide collabs by default, which is what actually emptied the week for a
+member: the default 7-day feed said "no posts match these filters" while the hero
+above it read "11 posts significantly outperformed". Collabs count as breakouts
+everywhere else, so they now show by default; the Format toggle still removes them.
 
 ## Tracked hotels (beta scope)
 The dashboard shows ONLY hotels with `tracked = true` — currently the 200
@@ -360,8 +398,8 @@ members**, which releases the week in one click.
   MEDIAN it barely moves when one post is removed — but the leaderboard ER is a
   MEAN, so hiding a hotel's biggest post does visibly lower its rate.
 - **Two flags, both editorial.** `standout_posts.hidden` (per post, keyed on
-  post_id — so a co-post hides on every partner's grid, exactly like the Editor's
-  note) and `hotels.hidden` (whole hotel). ⚠ `hotels.hidden` is deliberately NOT
+  post_id — so a co-post hides on every partner's grid, exactly like the AI
+  insight) and `hotels.hidden` (whole hotel). ⚠ `hotels.hidden` is deliberately NOT
   `hotels.tracked`: `tracked` is the pipeline's scraping scope, so reusing it
   would silently stop collecting data and leave an unfillable hole in the
   hotel's history. Hidden hotels keep being scraped.
@@ -371,6 +409,36 @@ members**, which releases the week in one click.
   the top of `/admin`, each with an Un-hide button.
 - Caveat: the public landing page is ISR (`revalidate = 3600`), so a Publish can
   take up to an hour to show there. The gated dashboard is dynamic and immediate.
+
+## The admin page is AI-only (2026-08-05)
+Nothing on a card is hand-written any more. The "why it worked" copy members read
+is the AI insight generated by `instagram-pipeline/generate-insight.js`, which is
+already a step in `scrape-pipeline.yml` — so it lands with the scrape, unattended.
+`/admin` is a REVIEW surface, not an editor.
+
+- **What was removed:** the Editor's note textarea, the Editor's Pick tick, and
+  the per-row Save button (`components/AdminEditor.tsx`); the "Editor's Pick"
+  badge on member cards (`components/ContentRadar.tsx`); and the `insight` +
+  `editors_pick` branches of `POST /api/admin/insight`, which now accepts only
+  `{ post_id, landing_pin?, hidden? }`. `set-insight.js` survives as break-glass.
+- **What's left is one global button and three per-post ticks.** Publish to
+  members (the gate above) · Feature on homepage (`standout_posts.landing_pin`)
+  · Remove post (`standout_posts.hidden`) · Remove hotel (`hotels.hidden`).
+- **"Remove" IS "don't publish"** — Neil's framing, and it's accurate: publishing
+  is all-or-nothing per week, so the only per-post decision is whether a post is
+  in it. There is deliberately no per-post publish tick.
+- **Every tick saves on the tick.** No Save button anywhere. The homepage pin
+  moves optimistically and is put back if the write fails, so the checkbox never
+  claims a state the database doesn't hold.
+- **The removal ticks never render as checked.** A removed post is excluded from
+  the data itself, so it can't be redrawn with its box ticked — it leaves the
+  list and reappears in the "Hidden from members" chips, which is where it gets
+  undone. Removing a post doesn't confirm (reversible, one row); removing a
+  HOTEL still confirms, because it pulls every post it has out of the leaderboard
+  and every portfolio figure.
+- ⚠ The write APIs have NO dev bypass: `checkAdminApiAccess` needs a real admin
+  session, so under `DISABLE_DASHBOARD_AUTH=true` the page renders but every tick
+  returns 401 "Not signed in." That is expected locally, not a bug.
 
 ## Data notes
 - `week_ending` is derived from **max(posted_at)** in the data, never the render date.
@@ -405,7 +473,7 @@ members**, which releases the week in one click.
 - `hotels` — hotel list with handles, names, regions, countries
 - `profile_snapshots` — follower counts over time (one row per scrape)
 - `posts` — all scraped posts (upserted on the composite `(post_id, instagram_handle)` — see the co-posts section above). `coauthor_usernames text[]` = Instagram's native co-author handles, the primary `is_collab` signal (setup-coauthors.sql).
-- `standout_posts` — per-post insights + driver/theme tags + `editors_pick` (written by generate-insight.js, or manually via `instagram-pipeline/set-insight.js` for the weekly editorial flow). `post_insight` renders as the card's **"Editor's note"** callout; `editors_pick` (bool, `setup-editors-pick.sql`) shows a subtle **"Editor's Pick"** badge. Set per post: `node set-insight.js <post_id> --insight "…" --pick`. NB: `getPortfolioData` selects `editors_pick`, so the column must exist before deploying (ordering trap, like coauthor_usernames).
+- `standout_posts` — per-post insights + driver/theme tags + `editors_pick`. `post_insight` is written by **generate-insight.js only** and renders as the card's **"AI insight"** callout. `instagram-pipeline/set-insight.js` still exists as a break-glass CLI (`node set-insight.js <post_id> --insight "…"`) but is no longer part of any routine flow. `editors_pick` (bool, `setup-editors-pick.sql`) is now INERT — nothing sets it and nothing renders it (see FeaturedPosts.tsx above) — but `getPortfolioData` still selects the column, so it must still exist before deploying (ordering trap, like coauthor_usernames).
 - `insights` — legacy AI weekly prose; no longer read OR written (pipeline stopped generating it 2026-07-01; drop candidate)
 - `dashboard_settings` — ONE row (`id = true`) holding `publish_cutoff` (+ `published_at`): the Monday publish gate. RLS on, anon SELECT only, so only the service-role key can move the gate.
 - `subscriptions` — Stripe trial/payment state, email-keyed; RLS on with NO policies = service-role only
@@ -413,6 +481,47 @@ members**, which releases the week in one click.
 
 ## Image storage
 Post images are saved to the **`standout-images`** Supabase Storage bucket by the pipeline at scrape time; the permanent URL is written straight into `posts.image_url` (~95% of rows). `standout_posts.stored_image_url` takes priority when present. Remaining rows fall back to the live Instagram CDN URL (signed, expires — the branded fallback gradient shows when those die).
+
+**The bucket is pruned, and NOT every post has a cover (2026-07-30).** It reached
+3.2 GB against Supabase's 1 GB free-tier limit and put the org into overage, so the
+pipeline now (a) re-encodes covers to WebP q80 / max 1000px wide on upload and
+(b) runs `instagram-pipeline/cleanup-images.js` after every scrape, deleting covers
+no view can reach. Retained: posts on tracked, non-hidden hotels that are ≤35 days
+old or ≥1.5× their hotel's median, plus `editors_pick`/`landing_pin` and anything a
+member has saved. Everything else 404s and lands on `MEDIA_PLACEHOLDER` — which is
+fine today because nothing outside that set renders. ⚠ If you ever widen what the
+dashboard displays (a longer window, a lower breakout threshold, a new list), widen
+the keep rules in `cleanup-images.js` FIRST or the new view will show gradients.
+Deleting a cover changes no figure: engagement lives in the `posts` columns and no
+median, ER, breakout count or What's Working bucket reads an image.
+
+**The prune is automatic, and there is an alarm (2026-08-04).** `cleanup-images.js
+--apply` is a step in `scrape-pipeline.yml`, so it runs after every weekly, monthly
+and full scrape — it is not something to remember. `check-storage.js` is the alarm
+beside it: it adds up the bucket and warns at 70% of the cap, fails at 90%, and runs
+daily from `freshness-check.yml` alongside the staleness check.
+
+**The plan moved to Pro on 4 Aug 2026, which changed what the alarm is for.** Pro
+includes **100 GB**, so at these volumes (363 MB) the outage below can no longer
+happen — the failure mode is now quietly paying for overage, not going down. The
+guard's `STORAGE_CAP_MB` is therefore set to **5120 (5 GB)**: a COST line at ~14×
+current usage, not a cliff. If it fires, the question is "has `cleanup-images.js`
+stopped running?", not "are we about to go down". Thresholds are env-overridable
+(`STORAGE_CAP_MB` / `STORAGE_WARN_PCT` / `STORAGE_FAIL_PCT`).
+
+⚠ **The free-tier history, kept because it explains the shape of all this:** on
+2 Aug 2026 the bucket passed the old 1 GB cap and Supabase restricted the **WHOLE
+project API** — every table read 402'd and the dashboard, auth and pipeline stopped
+together. Only a billing action cleared it; no script could. The public site kept
+serving its last good ISR render throughout, so **a 200 from
+`www.hotelcontentradar.com` is not evidence the data layer is alive** — that lesson
+outlives the plan change. Restored 4 Aug 2026 by upgrading to Pro.
+
+⚠ **Known drift:** `cleanup-images.js` still uses the two-sentinel `hasVisibleLikes`
+(null and -1) and does not exclude the `3` sentinel that lib/data.ts added on
+2026-07-31. It errs toward keeping too much, not too little — counting 3s as real
+drags the median down, so more posts clear the 1.5× keep line. Worth aligning, but
+it is deletion logic, so change it deliberately.
 
 ## Hidden like counts
 Instagram hides likes on some posts/accounts — stored as `likes_count = null` (the bulk, heavily carousels) or `-1` (a few older rows). `hasVisibleLikes` in lib/data.ts excludes BOTH from every engagement calculation (ER, baseline, breakouts, What's Working). Consequence: a hotel that hides all its likes gets no ER/baseline and is invisible to breakouts.

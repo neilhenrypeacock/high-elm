@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { ApifyClient } from 'apify-client';
 import { createClient } from '@supabase/supabase-js';
+import sharp from 'sharp';
 import { normalizeLikesCount } from './likes.js';
 
 const supabase = createClient(
@@ -50,18 +51,52 @@ async function ensureBucket() {
   }
 }
 
-// Downloads imageUrl and uploads to Supabase Storage. Returns permanent public
-// URL on success, or null so the caller can fall back to the raw CDN URL.
+// Downloads imageUrl, re-encodes it small, and uploads to Supabase Storage.
+// Returns permanent public URL on success, or null so the caller can fall back
+// to the raw CDN URL.
+//
+// WHY THE RE-ENCODE (2026-07-30): we used to store Instagram's full-resolution
+// file byte-for-byte — ~329 kB each, which put the bucket 3.2× over the 1 GB
+// free-tier limit. The dashboard never renders an image wider than a ~400px box
+// (800px on a 2× display), so IMAGE_MAX_WIDTH at WebP q80 costs ~70-90 kB for
+// no visible loss. `rotate()` with no argument applies the EXIF orientation
+// before we strip metadata, otherwise some phone-shot uploads come out sideways.
+const IMAGE_MAX_WIDTH = 1000;
+const IMAGE_QUALITY   = 80;
+
 async function uploadImage(postId, imageUrl) {
   try {
     const res = await fetch(imageUrl, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return null;
-    const buffer = await res.arrayBuffer();
-    const ct     = res.headers.get('content-type') ?? 'image/jpeg';
-    const ext    = ct.includes('png') ? 'png' : 'jpg';
-    const path   = `${postId}.${ext}`;
-    const { error } = await supabase.storage.from(BUCKET).upload(path, buffer, { contentType: ct, upsert: true });
+    const original = Buffer.from(await res.arrayBuffer());
+
+    let buffer = original;
+    let contentType = 'image/webp';
+    let ext = 'webp';
+    try {
+      buffer = await sharp(original)
+        .rotate()
+        .resize({ width: IMAGE_MAX_WIDTH, withoutEnlargement: true })
+        .webp({ quality: IMAGE_QUALITY })
+        .toBuffer();
+    } catch (e) {
+      // Un-decodable image (rare). Store the original rather than lose the post's
+      // media entirely — the cleanup script will drop it if it never renders.
+      console.warn(`  resize failed for ${postId}, storing original: ${e.message}`);
+      contentType = res.headers.get('content-type') ?? 'image/jpeg';
+      ext = contentType.includes('png') ? 'png' : 'jpg';
+    }
+
+    const path = `${postId}.${ext}`;
+    const { error } = await supabase.storage.from(BUCKET).upload(path, buffer, { contentType, upsert: true });
     if (error) { console.warn(`  upload failed for ${postId}: ${error.message}`); return null; }
+
+    // Older runs wrote `<postId>.jpg`/`.png`. Now that this post lives at .webp,
+    // drop the superseded object so re-scrapes don't leave a full-size orphan.
+    if (ext === 'webp') {
+      await supabase.storage.from(BUCKET).remove([`${postId}.jpg`, `${postId}.png`]).catch(() => {});
+    }
+
     const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return publicUrl;
   } catch (e) {

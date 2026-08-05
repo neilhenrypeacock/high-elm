@@ -24,8 +24,8 @@ const STEPS = [
   },
   {
     kicker: 'Step 3 of 4',
-    title: 'Read the leaderboard',
-    body: 'The Hotel leaderboard ranks every tracked hotel by true engagement rate — the average across each hotel’s last 30 posts, not raw follower count. Search or sort by region to find peers worth watching.',
+    title: 'Read the hotel leaderboard',
+    body: 'The Hotel leaderboard ranks every tracked hotel by how well its typical post does, for its size — not by raw follower count, so a smaller hotel whose posts land can rank above a much bigger one. Search or sort by region to find peers worth watching, and hit Watchlist on any row to follow one.',
   },
   {
     kicker: 'Step 4 of 4',

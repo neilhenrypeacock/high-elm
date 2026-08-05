@@ -1,31 +1,43 @@
 name: Dashboard CI
 
+# ⚠ There is deliberately NO `paths:` filter. This workflow used to be scoped to
+# `dashboard/**`; that folder was renamed to `hotel-dashboard/` on 4 Jul 2026
+# (8687a17) and the filter was not updated, so the workflow simply stopped
+# matching and went quiet — no runs, no failures, nothing to notice. Between then
+# and 5 Aug 2026 every "must pass before shipping" gate was manual convention.
+#
+# A path filter cannot report that it has stopped matching: when it misses, the
+# workflow does not run, so no step inside it can raise the alarm. That is the
+# same shape as the other safeguards this project has had to fix — one that looks
+# real but has no path to failure. Running unconditionally costs ~40s per push
+# and removes the failure class outright. Do not re-add a path filter.
+
 on:
   push:
-    paths:
-      - 'dashboard/**'
-      - '.github/workflows/dashboard-ci.yml'
   pull_request:
-    paths:
-      - 'dashboard/**'
+  workflow_dispatch:
 
 jobs:
   check:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: dashboard
+        working-directory: hotel-dashboard
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: dashboard/package-lock.json
-      - run: npm ci
-      - run: npx tsc --noEmit
-      - run: npm run lint
-      - run: npm test
+          cache-dependency-path: hotel-dashboard/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Type-check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
       # `next build` is excluded: the page prerenders from Supabase at build
       # time, so it needs SUPABASE_URL/SUPABASE_ANON_KEY repo secrets. Add them
       # and a build step if build-level regressions become a concern.

@@ -2,15 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkAdminApiAccess } from '@/lib/require-access';
 
-// Editorial write path — sets the Editor's note (post_insight) and/or Editor's
-// Pick (editors_pick) on a breakout, the in-app replacement for the
-// instagram-pipeline/set-insight.js CLI. Admin-gated (checkAdminApiAccess); the
+// Per-post write path for the /admin weekly review: the homepage feature pin
+// (landing_pin) and removal (hidden). Admin-gated (checkAdminApiAccess); the
 // actual write uses the SERVICE-ROLE client, not the member client, because
 // standout_posts has no anon write policy. Upsert keyed on post_id (its primary
-// key), touching only the fields sent — mirroring set-insight.js exactly, so a
-// co-post's note applies to every grid it appears on.
-
-const MAX_INSIGHT = 3000; // matches the saved-post insight cap
+// key), touching only the fields sent, so a co-post's flag applies to every
+// grid it appears on.
+//
+// ⚠ This route no longer writes `post_insight` or `editors_pick` (removed
+// 2026-08-05). The card copy members read is written by the AI at scrape time
+// (instagram-pipeline/generate-insight.js) and is not editable by hand from the
+// app; `instagram-pipeline/set-insight.js` is still there as a break-glass CLI.
+// Restoring the withdrawn Featured shelf would mean putting an editors_pick
+// branch back here.
 
 // Service-role client. Never exposed to the browser — server route only.
 function getServiceClient() {
@@ -19,11 +23,9 @@ function getServiceClient() {
   });
 }
 
-// POST { post_id, insight?: string | null, editors_pick?: boolean, landing_pin?: boolean }
-//   - insight omitted        → note left unchanged
-//   - insight "" / whitespace → note cleared (stored null)
-//   - editors_pick omitted   → pick left unchanged
-//   - landing_pin omitted    → feature-on-homepage flag left unchanged
+// POST { post_id, landing_pin?: boolean, hidden?: boolean }
+//   - landing_pin omitted → feature-on-homepage flag left unchanged
+//   - hidden omitted      → removal state left unchanged
 export async function POST(request: NextRequest) {
   const access = await checkAdminApiAccess();
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status });
@@ -34,26 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing post_id.' }, { status: 400 });
   }
 
-  const row: { post_id: string; post_insight?: string | null; editors_pick?: boolean; landing_pin?: boolean; hidden?: boolean } = { post_id };
-
-  if ('insight' in (body ?? {})) {
-    const raw = body.insight;
-    if (raw === null) {
-      row.post_insight = null;
-    } else if (typeof raw === 'string') {
-      const trimmed = raw.trim().slice(0, MAX_INSIGHT);
-      row.post_insight = trimmed.length ? trimmed : null;
-    } else {
-      return NextResponse.json({ error: 'insight must be a string or null.' }, { status: 400 });
-    }
-  }
-
-  if ('editors_pick' in (body ?? {})) {
-    if (typeof body.editors_pick !== 'boolean') {
-      return NextResponse.json({ error: 'editors_pick must be a boolean.' }, { status: 400 });
-    }
-    row.editors_pick = body.editors_pick;
-  }
+  const row: { post_id: string; landing_pin?: boolean; hidden?: boolean } = { post_id };
 
   if ('landing_pin' in (body ?? {})) {
     if (typeof body.landing_pin !== 'boolean') {
@@ -84,8 +67,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     post_id,
-    post_insight: row.post_insight,
-    editors_pick: row.editors_pick,
     landing_pin: row.landing_pin,
     hidden: row.hidden,
   });
