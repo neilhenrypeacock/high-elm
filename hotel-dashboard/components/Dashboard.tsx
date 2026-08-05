@@ -1,13 +1,9 @@
 'use client';
 
 import { Fragment, useEffect, useState } from 'react';
-import type { DashboardData, HotelRow, OutlierPost } from '@/lib/data';
-import { parseInsight } from '@/lib/data';
+import type { DashboardData, HotelRow, OutlierPost, WwLever, WwLeverBar } from '@/lib/data';
 import { fmtFollowers } from '@/lib/format';
-import { belowCap, formatMultiplier } from '@/lib/format-multiplier';
-import { postKey } from '@/lib/post-key';
-import ContentRadar, { ImageWithFallback } from './ContentRadar';
-import SaveToggle from './SaveToggle';
+import ContentRadar from './ContentRadar';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
 import PageInfoButton from './PageInfoButton';
@@ -61,11 +57,84 @@ const INNER: React.CSSProperties = {
   paddingRight: 40,
 };
 
-// Auto-generated "This week in focus" bullets, derived live from the data: the
-// portfolio's current 30-day PATTERNS only. The two breakout-specific bullets
-// (biggest breakout / how many cleared 10×) were dropped in the 2026-07-23
-// redesign — the breakout row above now shows the top three posts outright, and
-// the 10× count moved into the hero lede, so repeating them here was noise.
+// The "in focus" bullets — the portfolio's 30-day patterns, each stated as a
+// COMPARISON rather than a bare figure.
+//
+// ⚠ These read `whatsWorkingData.month.levers`, the SAME data What's Working
+// renders, not the older `data.whatsWorking` bars. That matters for two reasons
+// the old version got wrong (fixed 2026-08-05):
+//
+//  1. It printed a raw median engagement rate — "Videos … 0.2% median
+//     engagement". A per-post ER is a fraction of a percent for almost every
+//     hotel, so the true figure reads like failure unless you already know the
+//     scale. Levers exist precisely to avoid this: every bar is expressed as a
+//     MULTIPLE of the weakest option, which needs no explaining.
+//  2. It sat under a heading that said "This week". It never was this week —
+//     `data.whatsWorking` is a 30-day window. The heading now says so.
+//
+// A lever with too little data is omitted upstream by buildLevers, so a missing
+// bullet here means "not enough posts to say", never "nothing happened".
+const FOCUS_STRONG = { color: '#F7F6F2', fontWeight: 600 } as const;
+
+/** The leader and the baseline of a lever's bars. `ratio` is the multiple of
+ *  the weakest bar and the weakest itself carries null, so the baseline is the
+ *  null and the leader is the largest ratio. Day bars stay in week order rather
+ *  than sorted, so neither can be taken positionally. */
+function leadAndBase(lever: WwLever): { lead: WwLeverBar; base: WwLeverBar; times: string } | null {
+  const base = lever.bars.find(b => b.ratio === null);
+  const rated = lever.bars.filter(b => b.ratio !== null);
+  if (!base || rated.length === 0) return null;
+  const lead = rated.reduce((a, b) => ((b.ratio ?? 0) > (a.ratio ?? 0) ? b : a));
+  const ratio = lead.ratio ?? 1;
+  // Below 1.05× the gap is rounding, not a pattern worth a sentence.
+  if (ratio < 1.05) return null;
+  return { lead, base, times: `${ratio.toFixed(1)}×` };
+}
+
+function portfolioInFocus(data: DashboardData): React.ReactNode[] {
+  const levers = data.whatsWorkingData?.month?.levers ?? [];
+  const bullets: React.ReactNode[] = [];
+  const by = (id: WwLever['id']) => levers.find(l => l.id === id);
+
+  const fmt = by('format');
+  const fmtParts = fmt ? leadAndBase(fmt) : null;
+  if (fmt && fmtParts) {
+    bullets.push(
+      <>
+        <span style={FOCUS_STRONG}>{pluralFormat(fmtParts.lead.label)}</span> earn{' '}
+        <span style={FOCUS_STRONG}>{fmtParts.times}</span> the engagement of{' '}
+        {pluralFormat(fmtParts.base.label).toLowerCase()}, post for post.
+      </>,
+    );
+  }
+
+  const cap = by('caption');
+  const capParts = cap ? leadAndBase(cap) : null;
+  if (cap && capParts) {
+    bullets.push(
+      <>
+        <span style={FOCUS_STRONG}>{captionPhrase(capParts.lead.label)}</span> pull{' '}
+        <span style={FOCUS_STRONG}>{capParts.times}</span> what{' '}
+        {captionPhrase(capParts.base.label).toLowerCase()} do.
+      </>,
+    );
+  }
+
+  const day = by('day');
+  const dayParts = day ? leadAndBase(day) : null;
+  if (day && dayParts) {
+    bullets.push(
+      <>
+        <span style={FOCUS_STRONG}>{WEEKDAY_LONG[dayParts.lead.label] ?? dayParts.lead.label}</span>{' '}
+        is the strongest day to post — <span style={FOCUS_STRONG}>{dayParts.times}</span> the
+        engagement of {WEEKDAY_LONG[dayParts.base.label] ?? dayParts.base.label}, the quietest.
+      </>,
+    );
+  }
+
+  return bullets.slice(0, 5);
+}
+
 function pluralFormat(label: string): string {
   const map: Record<string, string> = { Reel: 'Reels', Video: 'Videos', Carousel: 'Carousels', Photo: 'Photos' };
   return map[label] ?? `${label}s`;
@@ -78,9 +147,6 @@ function captionPhrase(label: string): string {
   };
   return map[label] ?? `${label} captions`;
 }
-function topBar(items: { label: string; value: number }[]) {
-  return items.length ? [...items].sort((a, b) => b.value - a.value)[0] : null;
-}
 // by_day labels are abbreviated for the What's Working bar charts ("Wed"); in a
 // prose bullet the full weekday reads better. Falls through unchanged if the
 // label is already long-form or unrecognised.
@@ -88,39 +154,6 @@ const WEEKDAY_LONG: Record<string, string> = {
   Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday',
   Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday',
 };
-
-function weekInFocus(data: DashboardData): React.ReactNode[] {
-  const bullets: React.ReactNode[] = [];
-  const strong = { color: '#F7F6F2', fontWeight: 600 } as const;
-
-  const fmt = topBar(data.whatsWorking.by_format);
-  if (fmt && fmt.value > 0) {
-    bullets.push(
-      <>
-        <span style={strong}>{pluralFormat(fmt.label)}</span>{' '}are the portfolio&rsquo;s strongest
-        format right now — {fmt.value.toFixed(1)}% median engagement.
-      </>,
-    );
-  }
-  const cap = topBar(data.whatsWorking.by_caption);
-  if (cap && cap.value > 0) {
-    bullets.push(
-      <>
-        <span style={strong}>{captionPhrase(cap.label)}</span>{' '}are pulling the most engagement.
-      </>,
-    );
-  }
-  const day = topBar(data.whatsWorking.by_day);
-  if (day && day.value > 0) {
-    bullets.push(
-      <>
-        <span style={strong}>{WEEKDAY_LONG[day.label] ?? day.label}</span>{' '}is the strongest day to
-        post across the portfolio.
-      </>,
-    );
-  }
-  return bullets.slice(0, 5);
-}
 
 // Shared panel chrome for the two lower overview cards (watchlist / sources).
 const PANEL: React.CSSProperties = {
@@ -304,8 +337,7 @@ function SourcesPanel() {
       <div style={{ padding: '22px 26px', borderBottom: '1px solid rgba(245,240,232,0.10)' }}>
         <div style={{ ...PANEL_LABEL, marginBottom: 8 }}>Sources crawled</div>
         <p style={{ fontSize: 13, lineHeight: 1.6, color: '#A49D92', margin: 0, maxWidth: 560 }}>
-          You don’t have to trust us — just the lists the industry already trusts. Every tracked hotel is
-          drawn from these.
+          Every tracked hotel is drawn from the lists the industry already trusts.
         </p>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, padding: '20px 26px 24px' }}>
@@ -341,133 +373,22 @@ function SourcesPanel() {
   );
 }
 
-// ─── This week · breakouts — the top three, up front ──────────────────────────
-// A compact dark sibling of ContentRadar's BreakoutCard: 4:5 media, multiplier
-// pill, and one line of "why". The full ranked list still lives in Top posts.
-const MEDIA_PLACEHOLDER = 'linear-gradient(135deg, #2b2824, #3c372e)';
-
-function permalink(p: OutlierPost): string {
-  return p.post_url ?? `https://www.instagram.com/p/${p.post_id}/`;
-}
-
-/** "posted Wednesday" — the weekday alone; the exact stamp lives on the full card. */
-function postedWeekday(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' });
-}
-
-function BreakoutMini({ post: p, saved }: { post: OutlierPost; saved: boolean }) {
-  const why = p.post_insight ? parseInsight(p.post_insight) : null;
-  const whyText = why?.whyItWorked ?? why?.freeform ?? null;
-
+/** The way through to the ranked week. This replaced the three-tile breakout row
+ *  (removed 2026-08-05): the tiles were the top three by multiplier, but shown
+ *  that large and that high they read as a curated pick, which the dashboard
+ *  doesn't make. A week with no breakouts at all shows nothing — the hero above
+ *  already says so, and "see all 0" is not a link worth offering. */
+function BreakoutsLink({ total }: { total: number }) {
+  if (total <= 0) return null;
   return (
-    <article
-      style={{
-        border: '1px solid rgba(245,240,232,0.13)',
-        borderRadius: 14,
-        background: 'var(--panel-dark)',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
+    <div>
       <a
-        href={permalink(p)}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`View ${p.hotel_name}'s post on Instagram`}
-        style={{ position: 'relative', aspectRatio: '4 / 5', display: 'block', background: MEDIA_PLACEHOLDER }}
+        href="#breakouts"
+        style={{ fontSize: 14, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}
       >
-        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={MEDIA_PLACEHOLDER} />
-        <span
-          style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            fontFamily: DISPLAY,
-            fontWeight: 700,
-            fontSize: 15,
-            letterSpacing: '-0.01em',
-            color: '#F7F6F2',
-            // A top-up isn't a breakout, so it doesn't wear the signal green.
-            background: p.near_miss ? 'rgba(20,18,15,0.72)' : 'var(--signal)',
-            borderRadius: 999,
-            padding: '5px 12px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-          }}
-        >
-          {formatMultiplier(p.multiplier)}{p.near_miss && ' · closest'}
-        </span>
-        <span style={{ position: 'absolute', top: 12, right: 12 }}>
-          <SaveToggle
-            initialSaved={saved}
-            endpoint="/api/saves"
-            saveBody={{ post: p }}
-            deleteBody={{ post_id: p.post_id, instagram_handle: p.instagram_handle }}
-            label="Save post"
-            savedLabel="Saved — remove"
-            variant="overlay"
-          />
-        </span>
+        See {total === 1 ? 'the one breakout' : `all ${total} breakouts`} →
       </a>
-
-      <div style={{ padding: '15px 17px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ fontSize: 15, fontWeight: 500, color: '#F7F6F2', lineHeight: 1.3 }}>{p.hotel_name}</div>
-        {whyText ? (
-          <div
-            style={{
-              fontSize: 12,
-              lineHeight: 1.55,
-              color: '#B4ADA0',
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            <span style={{ color: 'var(--signal-light)', fontWeight: 600 }}>Why it worked · </span>
-            {whyText}
-          </div>
-        ) : (
-          <div style={{ fontSize: 12, lineHeight: 1.55, color: '#8C867B' }}>
-            {[p.type, `posted ${postedWeekday(p.posted_at)}`].filter(Boolean).join(' · ')}
-          </div>
-        )}
-      </div>
-    </article>
-  );
-}
-
-function BreakoutsPanel({
-  posts,
-  total,
-  savedKeys,
-}: {
-  posts: OutlierPost[];
-  total: number;
-  savedKeys: Set<string>;
-}) {
-  if (posts.length === 0) return null;
-  // A week too quiet to fill this row gets topped up from the 7-day view (see
-  // NEAR_MISS_FLOOR in lib/data.ts). If NOTHING broke out, the row is entirely
-  // top-ups and must not be headed "breakouts".
-  const allTopUps = posts.every(p => p.near_miss);
-  return (
-    <section>
-      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>
-        {allTopUps ? 'This week · closest to breaking out' : 'This week · breakouts'}
-      </div>
-      <div className="cr-breakout-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
-        {posts.map(p => {
-          const key = postKey(p.post_id, p.instagram_handle);
-          return <BreakoutMini key={key} post={p} saved={savedKeys.has(key)} />;
-        })}
-      </div>
-      <div style={{ marginTop: 20 }}>
-        <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
-          {total > posts.length ? `See all ${total} breakouts →` : 'See the full week →'}
-        </a>
-      </div>
-    </section>
+    </div>
   );
 }
 
@@ -475,18 +396,11 @@ function BreakoutsPanel({
 function Hero({
   data,
   watchlistHandles,
-  savedPostKeys,
 }: {
   data: DashboardData;
   watchlistHandles: string[];
-  savedPostKeys: string[];
 }) {
-  const focus = weekInFocus(data);
-  const savedKeys = new Set(savedPostKeys);
-  // The three posts we show off this week. belowCap() keeps posts whose
-  // multiplier is too large to be credible out of this showcase — they stay in
-  // the ranked feed below, they just aren't the number we lead with.
-  const topThree = belowCap(data.standout['7d'] ?? []).slice(0, 3);
+  const focus = portfolioInFocus(data);
 
   // The band's supporting numbers — one quiet inline line rather than a stat
   // panel, so the breakout count stays the only figure with weight.
@@ -586,13 +500,19 @@ function Hero({
           </div>
         </div>
 
-        {/* ── This week · breakouts — the top three ── */}
-        <BreakoutsPanel posts={topThree} total={data.breakout_count} savedKeys={savedKeys} />
+        {/* ── Straight through to the ranked week ──
+            ⚠ The three big media tiles that used to sit here were removed
+            2026-08-05. They were simply the top three by multiplier, but at that
+            size, above everything else, they read as an editorial selection the
+            dashboard doesn't make — and they took the first impression. The
+            count is already in the numeral above and the full ranking is one
+            click away, so the link carries this on its own. */}
+        <BreakoutsLink total={data.breakout_count} />
 
-        {/* ── This week in focus — auto analysis, now full width ── */}
+        {/* ── In focus — the 30-day patterns, stated as comparisons ── */}
         <div style={PANEL}>
           <div style={{ ...PANEL_LABEL, padding: '22px 26px', borderBottom: '1px solid rgba(245,240,232,0.10)' }}>
-            This week · in focus
+            Last 30 days · in focus
           </div>
           {focus.length > 0 ? (
             <ul style={{ listStyle: 'none', margin: 0, padding: '10px 26px 22px', display: 'flex', flexDirection: 'column' }}>
@@ -617,9 +537,19 @@ function Hero({
             </ul>
           ) : (
             <div style={{ padding: '22px 26px', fontSize: 14, color: '#A49D92', lineHeight: 1.6 }}>
-              Not enough data this week to surface highlights yet — check back after the next scrape.
+              Not enough posts yet to state a pattern we&rsquo;d stand behind — check back after the
+              next scrape.
             </div>
           )}
+          {/* Straight through to the full working-out behind these three lines. */}
+          <div style={{ padding: '0 26px 22px' }}>
+            <a
+              href="#working"
+              style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}
+            >
+              More performance insight →
+            </a>
+          </div>
         </div>
 
         {/* ── Sources crawled ── */}
@@ -688,7 +618,7 @@ export default function Dashboard({
     <div className="cr-board">
       {/* ── This week (overview) ── */}
       {active === 'overview' && (
-        <Hero data={data} watchlistHandles={watchlistHandles} savedPostKeys={savedPostKeys} />
+        <Hero data={data} watchlistHandles={watchlistHandles} />
       )}
 
       {/* ── Top posts — filters then posts, no heading copy ── */}
