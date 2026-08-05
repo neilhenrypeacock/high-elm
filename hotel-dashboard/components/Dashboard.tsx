@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from 'react';
 import type { DashboardData, HotelRow, OutlierPost } from '@/lib/data';
 import { parseInsight } from '@/lib/data';
 import { fmtFollowers } from '@/lib/format';
+import { belowCap, formatMultiplier } from '@/lib/format-multiplier';
 import { postKey } from '@/lib/post-key';
 import ContentRadar, { ImageWithFallback } from './ContentRadar';
 import SaveToggle from './SaveToggle';
@@ -31,11 +32,17 @@ function SectionInfo({ infoKey }: { infoKey: InfoKey }) {
 
 // The lists every tracked hotel is drawn from — shown on the overview so members
 // can see the sourcing is the industry's own, not ours.
+//
+// Michelin Keys was removed on 2026-07-31: the panel claimed we crawl the list,
+// but only 20 of its 139 hotels are tracked and 107 aren't in the database at
+// all — The Ritz, The Peninsula, Cliveden and Chewton Glen among them, which any
+// UK hotelier would notice at a glance. The per-hotel Michelin pins on the
+// leaderboard STAY: those come from a verified CSV and are correct for the
+// hotels that carry them. Only put a list back here once it is actually crawled.
 const SOURCES: { name: string; sub: string }[] = [
   { name: 'Forbes Travel Guide', sub: 'Five-star list' },
   { name: 'Condé Nast Traveller', sub: 'Gold List' },
   { name: 'The World’s 50 Best Hotels', sub: 'Annual ranking' },
-  { name: 'Michelin Keys', sub: 'UK & Ireland' },
 ];
 
 function nameInitials(name: string): string {
@@ -149,7 +156,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
           borderBottom: '1px solid rgba(245,240,232,0.10)',
         }}
       >
-        <span style={PANEL_LABEL}>Your watchlist</span>
+        <span style={PANEL_LABEL}>Your hotel watchlist</span>
         <a
           href="#leaderboard"
           style={{
@@ -259,7 +266,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
           </span>
           <div style={{ maxWidth: 380 }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: '#F7F6F2', marginBottom: 6 }}>
-              Nothing on your watchlist yet
+              Nothing on your hotel watchlist yet
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.6, color: '#A49D92', margin: 0 }}>
               Follow the hotels you care about and their breakouts surface here first, every week.
@@ -282,7 +289,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
             Add hotels to your watchlist
           </a>
           <a href="#leaderboard" style={{ fontSize: 12, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
-            Browse the leaderboard →
+            Browse the hotel leaderboard →
           </a>
         </div>
       )}
@@ -381,13 +388,14 @@ function BreakoutMini({ post: p, saved }: { post: OutlierPost; saved: boolean })
             fontSize: 15,
             letterSpacing: '-0.01em',
             color: '#F7F6F2',
-            background: 'var(--signal)',
+            // A top-up isn't a breakout, so it doesn't wear the signal green.
+            background: p.near_miss ? 'rgba(20,18,15,0.72)' : 'var(--signal)',
             borderRadius: 999,
             padding: '5px 12px',
             boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
           }}
         >
-          {p.multiplier.toFixed(1)}×
+          {formatMultiplier(p.multiplier)}{p.near_miss && ' · closest'}
         </span>
         <span style={{ position: 'absolute', top: 12, right: 12 }}>
           <SaveToggle
@@ -439,22 +447,26 @@ function BreakoutsPanel({
   savedKeys: Set<string>;
 }) {
   if (posts.length === 0) return null;
+  // A week too quiet to fill this row gets topped up from the 7-day view (see
+  // NEAR_MISS_FLOOR in lib/data.ts). If NOTHING broke out, the row is entirely
+  // top-ups and must not be headed "breakouts".
+  const allTopUps = posts.every(p => p.near_miss);
   return (
     <section>
-      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>This week · breakouts</div>
+      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>
+        {allTopUps ? 'This week · closest to breaking out' : 'This week · breakouts'}
+      </div>
       <div className="cr-breakout-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
         {posts.map(p => {
           const key = postKey(p.post_id, p.instagram_handle);
           return <BreakoutMini key={key} post={p} saved={savedKeys.has(key)} />;
         })}
       </div>
-      {total > posts.length && (
-        <div style={{ marginTop: 20 }}>
-          <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
-            See all {total} breakouts →
-          </a>
-        </div>
-      )}
+      <div style={{ marginTop: 20 }}>
+        <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
+          {total > posts.length ? `See all ${total} breakouts →` : 'See the full week →'}
+        </a>
+      </div>
     </section>
   );
 }
@@ -471,7 +483,10 @@ function Hero({
 }) {
   const focus = weekInFocus(data);
   const savedKeys = new Set(savedPostKeys);
-  const topThree = (data.standout['7d'] ?? []).slice(0, 3);
+  // The three posts we show off this week. belowCap() keeps posts whose
+  // multiplier is too large to be credible out of this showcase — they stay in
+  // the ranked feed below, they just aren't the number we lead with.
+  const topThree = belowCap(data.standout['7d'] ?? []).slice(0, 3);
 
   // The band's supporting numbers — one quiet inline line rather than a stat
   // panel, so the breakout count stays the only figure with weight.
@@ -623,6 +638,15 @@ function Hero({
 // (#overview / #breakouts / #working / #leaderboard) select the view — there is
 // no top nav. Only the active section is mounted, so each scrolls on its own.
 // Per-section explanations now live behind the sidebar's "i" (About this view).
+// ⚠ 'featured' is WITHDRAWN (2026-08-04), not deleted. It was pulled after the
+// hidden-likes fix re-baselined the picks: an Editor's Pick is a permanent manual
+// flag and curated mode skips every gate, so an Ashford Castle post that read
+// 65.7x when picked was still sitting on the "worth replicating" shelf at 0.4x.
+// The shelf needs a floor before it comes back. components/FeaturedPosts.tsx,
+// lib/data.ts selectFeaturedPosts + data.featured, and their tests are all still
+// here — restoring is: re-add the FeaturedPosts import, put 'featured' back in
+// this list, in AppShell's RADAR_SECTIONS + INNER_SECTIONS (and its FeaturedIcon),
+// in PageInfo's resolveInfoKey, and re-mount the section below.
 const SECTION_IDS = ['overview', 'breakouts', 'working', 'leaderboard'] as const;
 type SectionId = (typeof SECTION_IDS)[number];
 
@@ -671,9 +695,11 @@ export default function Dashboard({
       {active === 'breakouts' && (
         <div className="cr-inner" style={sectionPad}>
           <SectionInfo infoKey="breakouts" />
-          <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} />
+          <ContentRadar postsByWindow={data.standout} savedPostKeys={savedPostKeys} regions={regions} />
         </div>
       )}
+
+      {/* ── Featured — WITHDRAWN 2026-08-04, see the note on SECTION_IDS ── */}
 
       {/* ── What's working ── */}
       {active === 'working' && (

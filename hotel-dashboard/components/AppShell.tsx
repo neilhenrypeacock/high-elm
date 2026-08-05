@@ -115,10 +115,12 @@ function FeatureIcon() {
 const RADAR_SECTIONS: { id: string; label: string; Icon: (p: IconProps) => React.ReactNode }[] = [
   { id: 'overview', label: 'This week', Icon: ThisWeekIcon },
   { id: 'breakouts', label: 'Top posts', Icon: TopPostsIcon },
+  // 'featured' WITHDRAWN 2026-08-04 — see the note on SECTION_IDS in Dashboard.tsx.
   { id: 'working', label: "What's working", Icon: WhatsWorkingIcon },
-  { id: 'leaderboard', label: 'Leaderboard', Icon: LeaderboardIcon },
+  { id: 'leaderboard', label: 'Hotel leaderboard', Icon: LeaderboardIcon },
 ];
-// A dashboard hash that isn't one of the three inner sections resolves to overview.
+// A dashboard hash that isn't one of the inner sections resolves to overview —
+// so a bookmarked /dashboard#featured now lands on This week rather than 404ing.
 const INNER_SECTIONS = ['breakouts', 'working', 'leaderboard'];
 
 const FEATURE_MAILTO =
@@ -303,9 +305,14 @@ export default function AppShell({ userName, userEmail, children, footerNote, is
         <div className="cr-rail-divider" aria-hidden="true" />
 
         <SectionLabel>Yours</SectionLabel>
-        {navItem('/hotel', 'Your hotel', YourHotelIcon)}
-        {navItem('/saved', 'Saved', SavedIcon)}
-        {navItem('/watchlist', 'Watchlist', WatchlistIcon)}
+        {/* "Your hotel" (/hotel) was removed from the nav on 2026-07-31. The
+            route is still live and still works if you type the URL — it's useful
+            for demos — but it renders a fictional property (The Lansmere) with
+            invented numbers, and it was the most tempting link on the page for
+            someone who had just paid. Put it back when hotel claiming lands and
+            the page shows the member's real hotel. */}
+        {navItem('/saved', 'Saved posts', SavedIcon)}
+        {navItem('/watchlist', 'Hotel watchlist', WatchlistIcon)}
 
         <div style={{ height: 1, background: 'var(--line-soft)', margin: '10px 6px' }} />
         {navItem('/settings', 'Settings', SettingsIcon)}

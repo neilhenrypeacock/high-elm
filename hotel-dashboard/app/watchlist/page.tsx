@@ -12,7 +12,7 @@ import { accreditationsFor } from '@/lib/accreditations';
 // stats; a watchlisted hotel no longer in the tracked set falls back to a lean
 // row built from the stored name. Branded empty state when genuinely empty.
 export const metadata = {
-  title: 'Content Radar — Watchlist',
+  title: 'Content Radar — Hotel watchlist',
 };
 
 export default async function WatchlistPage() {
@@ -47,7 +47,7 @@ export default async function WatchlistPage() {
     <AppShell userName={displayName(user)} userEmail={user?.email ?? null} isAdmin={isAdminView(user)}>
       <AccountFrame
         eyebrow="Your library"
-        title="Watchlist"
+        title="Hotel watchlist"
         sub="Follow the hotels you most want to learn from and keep their best content close."
       >
         {hotels.length === 0 ? (
@@ -58,10 +58,10 @@ export default async function WatchlistPage() {
                 <circle cx="12" cy="12" r="2.6" stroke="var(--signal-deep)" strokeWidth="1.7" />
               </svg>
             }
-            title="Your watchlist is empty"
-            body="Follow any hotel from the leaderboard and it lands here — track the accounts you most want to learn from in one place."
+            title="Your hotel watchlist is empty"
+            body="Hit Watchlist on any hotel in the hotel leaderboard and it lands here — track the accounts you most want to learn from in one place."
             ctaHref="/dashboard#leaderboard"
-            ctaLabel="Open the leaderboard"
+            ctaLabel="Open the hotel leaderboard"
           />
         ) : (
           <WatchlistTable initialHotels={hotels} />

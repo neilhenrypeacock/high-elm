@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { WhatsWorkingData, WwScope, WwLever, WwLeverBar, WwDeltaDir } from '@/lib/data';
+import type { WhatsWorkingData, WwScope, WwLever, WwLeverBar, WwDeltaDir, WwCollabNote } from '@/lib/data';
 import { WW_LEVERS_NOTE } from '@/lib/data';
 import PageInfoButton from './PageInfoButton';
 
@@ -216,6 +216,46 @@ const CARD: React.CSSProperties = {
   padding: '28px 30px',
 };
 
+// ─── Collaboration note ───────────────────────────────────────────────────────
+// Deliberately NOT a numbered lever: a collab needs a willing partner, so it
+// isn't a dial a hotel can turn on its own the way format or posting day is.
+// Styled as a quieter tinted sibling of the lever cards, sitting after the
+// stack, so the "five levers" count above stays true.
+function CollabNote({ collab }: { collab: WwCollabNote }) {
+  return (
+    <section
+      style={{
+        ...CARD,
+        background: 'var(--top3-tint)',
+        border: '1px solid var(--line-accent)',
+        boxShadow: 'none',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: LABEL,
+          fontSize: 10,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.16em',
+          color: 'var(--signal-deep)',
+          marginBottom: 10,
+        }}
+      >
+        Also worth considering · Collaborations
+      </div>
+      <p style={{ fontSize: 17, lineHeight: 1.5, color: 'var(--ink)', margin: 0, maxWidth: 720 }}>
+        {collab.headline.pre}
+        <strong style={{ color: 'var(--signal-deep)', fontWeight: 600 }}>{collab.headline.highlight}</strong>
+        {collab.headline.post}
+      </p>
+      <p style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--body-mid)', margin: '12px 0 0', maxWidth: 720 }}>
+        {collab.note}
+      </p>
+    </section>
+  );
+}
+
 function LeverCard({ index, lever }: { index: string; lever: WwLever }) {
   // A lever with a theme list runs full width; a lever with bars splits into
   // prose on the left and the chart on the right.
@@ -275,18 +315,21 @@ export default function WhatsWorkingPanel({ data }: { data: WhatsWorkingData }) 
         <div style={{ fontSize: 12, color: 'var(--faint)' }}>{WW_LEVERS_NOTE[scope]}</div>
       </div>
 
-      {d.levers.length > 0 ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {d.levers.map((lever, i) => (
+      {/* The lever stack, then the collaboration note — which stands outside the
+          numbering and shows even when the levers themselves are withheld. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {d.levers.length > 0 ? (
+          d.levers.map((lever, i) => (
             <LeverCard key={lever.id} index={String(i + 1).padStart(2, '0')} lever={lever} />
-          ))}
-        </div>
-      ) : (
-        <div style={{ ...CARD, fontSize: 14, color: 'var(--body-soft)', lineHeight: 1.7 }}>
-          Not enough posts in this period yet to call a pattern. The levers appear once
-          there are enough tracked posts to compare against.
-        </div>
-      )}
+          ))
+        ) : (
+          <div style={{ ...CARD, fontSize: 14, color: 'var(--body-soft)', lineHeight: 1.7 }}>
+            Not enough posts in this period yet to call a pattern. The levers appear once
+            there are enough tracked posts to compare against.
+          </div>
+        )}
+        {d.collab && <CollabNote collab={d.collab} />}
+      </div>
 
       {/* Close — back to the posts the patterns came from */}
       <div style={{ marginTop: 26, paddingTop: 24, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>

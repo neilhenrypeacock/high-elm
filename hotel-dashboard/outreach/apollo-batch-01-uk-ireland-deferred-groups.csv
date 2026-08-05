@@ -1,0 +1,12 @@
+hotel_id,hotel_name,website,root_domain,ownership,hotels_sharing_domain,country,region,instagram_handle,followers,posts_last_90d,posts_total,last_posted,accreditation_lists,gold_list_editions
+65,Claridge's,https://www.maybourne.com/en/hotels/claridges,maybourne.com,group,4,United Kingdom,Europe,claridgeshotel,532938,44,44,2026-07-24,"Forbes, Gold List, World's 50 Best","US 2026, UK 2026"
+106,Four Seasons Hotel London at Tower Bridge,https://www.fourseasons.com/towerbridge/,fourseasons.com,group,44,United Kingdom,Europe,fstowerbridge,83493,44,44,2026-07-24,Forbes,
+105,Four Seasons Hotel London at Park Lane,https://www.fourseasons.com/london/,fourseasons.com,group,44,United Kingdom,Europe,fslondon,150603,35,45,2026-07-23,Forbes,
+347,The Connaught,https://www.maybourne.com/en/hotels/the-connaught,maybourne.com,group,4,United Kingdom,Europe,theconnaught,302046,33,34,2026-07-24,"Forbes, Gold List, World's 50 Best","US 2025, UK 2025"
+335,The Berkeley,https://www.maybourne.com/en/hotels/the-berkeley,maybourne.com,group,4,United Kingdom,Europe,the_berkeley,201761,31,34,2026-07-25,Forbes,
+228,"Mandarin Oriental, Hyde Park, London",https://www.mandarinoriental.com/en/london/hyde-park,mandarinoriental.com,group,27,United Kingdom,Europe,mo_hydepark,111571,29,35,2026-07-25,Forbes,
+349,The Dorchester,https://www.dorchestercollection.com/london/the-dorchester,dorchestercollection.com,group,9,United Kingdom,Europe,thedorchester,398795,28,33,2026-07-25,Forbes,
+317,"Shangri-La The Shard, London",https://www.shangri-la.com/london/shangrila/,shangri-la.com,group,4,United Kingdom,Europe,shangrilalondon,162757,28,35,2026-07-26,Forbes,
+69,"Coworth Park, Dorchester Collection",https://www.dorchestercollection.com/ascot/coworth-park,dorchestercollection.com,group,9,United Kingdom,Europe,coworthpark,101549,28,38,2026-07-25,Gold List,"US 2026, UK 2026"
+284,Raffles London at The OWO,https://www.raffles.com/london/,raffles.com,group,6,United Kingdom,Europe,raffleslondon.theowo,83131,28,34,2026-07-19,"Forbes, World's 50 Best",
+297,Rosewood London,https://www.rosewoodhotels.com/en/london,rosewoodhotels.com,group,15,United Kingdom,Europe,rosewoodlondon,184990,26,35,2026-07-24,Forbes,

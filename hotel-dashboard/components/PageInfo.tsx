@@ -12,6 +12,7 @@ const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 export type InfoKey =
   | 'overview'
   | 'breakouts'
+  | 'featured'
   | 'working'
   | 'leaderboard'
   | 'hotel'
@@ -27,6 +28,7 @@ type InfoContent = { title: string; blocks: InfoBlock[] };
 export function resolveInfoKey(pathname: string, hash: string): InfoKey {
   if (pathname.startsWith('/dashboard')) {
     const h = hash.replace(/^#/, '');
+    // 'featured' withdrawn 2026-08-04 — falls through to overview.
     if (h === 'breakouts' || h === 'working' || h === 'leaderboard') return h;
     return 'overview';
   }
@@ -45,7 +47,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
   overview: {
     title: 'This week',
     blocks: [
-      { h: 'What this is', p: 'A weekly snapshot of every post across the 400+ tracked five-star hotels that beat its own hotel’s usual engagement this week — plus the hotels on your watchlist.' },
+      { h: 'What this is', p: 'A weekly snapshot of every post across the 400+ tracked five-star hotels that beat its own hotel’s usual engagement this week — plus the hotels on your hotel watchlist.' },
       { h: 'How it works', p: 'Every Monday we scrape the latest posts, compare each to its hotel’s median over the last 30 posts, and count the ones that cleared 2×. The headline number is that count; “in focus” summarises the patterns behind it.' },
       { h: 'Why it helps', p: 'You see the week’s biggest movers at a glance — the proof, ranked, in ten seconds — without scrolling a single feed.' },
     ],
@@ -55,7 +57,16 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     blocks: [
       { h: 'What this is', p: 'The ranked list of breakout posts — every post beating its hotel’s own median by 2× or more, best first, no exceptions.' },
       { h: 'How it works', p: 'Choose a time window (7 days, 30 days, or all time) and filter by format or collaborations. Posts rank by multiple, not raw likes, so a smaller hotel’s genuine hit isn’t buried under a bigger grid’s baseline.' },
+      { h: 'Quiet weeks', p: 'Some weeks produce very few breakouts, or only collaborations. Rather than show you an empty week — or quietly lower the bar — the 7-day view adds a short “Closest this week” group below the ranking: posts that beat their hotel’s own typical post, but by less than 2×. They’re never counted as breakouts and never appear in the 30-day or all-time lists.' },
       { h: 'Why it helps', p: 'A refreshed ideas library — see exactly which posts are working right now, and why, so you can adapt the format for your own hotel.' },
+    ],
+  },
+  featured: {
+    title: 'Featured',
+    blocks: [
+      { h: 'What this is', p: 'A hand-picked shelf of standout posts — the ones we’ve flagged as genuine inspiration, worth studying and adapting for your own hotel.' },
+      { h: 'How it works', p: 'We review the breakouts every week and feature the best of them; most carry an Editor’s note explaining why the post worked. Unlike Top posts there’s no time window — the shelf simply grows as new standouts earn a place.' },
+      { h: 'Why it helps', p: 'When you want proven references rather than the full ranked feed, start here — the shortlist is already made.' },
     ],
   },
   working: {
@@ -67,10 +78,11 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     ],
   },
   leaderboard: {
-    title: 'Leaderboard',
+    title: 'Hotel leaderboard',
     blocks: [
       { h: 'What this is', p: 'Every tracked hotel ranked by engagement rate, with followers, posting cadence, last-posted date and certification-list membership.' },
-      { h: 'How it works', p: 'Engagement rate = total (likes + comments) over the last 30 or 90 days — your choice via the toggle — ÷ followers × 100, so it rewards both strong posts and posting often. Sort any column, filter by region, search a hotel, or add one to your watchlist. Public Instagram data only — no reach or impressions.' },
+      { h: 'The two rankings', p: 'Eng. rate — how well a hotel’s typical post does, for its size. A small hotel whose posts land can rank above a much bigger one, and a single viral hit won’t carry it. Momentum — how much attention a hotel pulled in over the last 30 days, for its size; posting more often lifts it, so it rewards hotels that show up regularly.' },
+      { h: 'How it works', p: 'Engagement rate = the hotel’s median (likes + comments) per post over its last 30 posts ÷ followers × 100. Momentum = all engagement over the last 30 days ÷ followers. Sort any column, filter by region, search a hotel, or add one to your hotel watchlist. Public Instagram data only — no reach or impressions.' },
       { h: 'Why it helps', p: 'Benchmark yourself against the field and spot who’s punching above their follower count — the hotels worth studying.' },
     ],
   },
@@ -83,7 +95,7 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     ],
   },
   saved: {
-    title: 'Saved',
+    title: 'Saved posts',
     blocks: [
       { h: 'What this is', p: 'Every post you’ve saved from Top posts, gathered in one place.' },
       { h: 'How it works', p: 'Saving a post adds it here; removing it here or on the dashboard keeps the two in sync.' },
@@ -91,10 +103,10 @@ const CONTENT: Record<InfoKey, InfoContent> = {
     ],
   },
   watchlist: {
-    title: 'Watchlist',
+    title: 'Hotel watchlist',
     blocks: [
       { h: 'What this is', p: 'The hotels you’re keeping an eye on.' },
-      { h: 'How it works', p: 'Add hotels from the Leaderboard and they collect here.' },
+      { h: 'How it works', p: 'Hit Watchlist on any row of the hotel leaderboard and the hotel collects here.' },
       { h: 'Why it helps', p: 'Track a shortlist without scrolling the full portfolio every time — and their breakouts surface first on your dashboard.' },
     ],
   },

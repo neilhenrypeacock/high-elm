@@ -27,6 +27,7 @@ import { promisify } from 'node:util';
 import { mkdtemp, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { hasVisibleLikes } from './likes.js';
 
 const execFileP = promisify(execFile);
 
@@ -260,7 +261,9 @@ async function getData() {
   // Only tracked hotels appear on the dashboard, so only they can be breakouts.
   const trackedHandles  = new Set((hotels ?? []).filter(h => h.tracked).map(h => h.instagram_handle));
 
-  const valid = allPosts.filter(p => p.likes_count !== -1 && p.likes_count !== null);
+  // Shared hidden-likes rule (likes.js) — also drops the `3` sentinel rows the
+  // old inline null/-1 check counted as real (audit 2026-07-31).
+  const valid = allPosts.filter(hasVisibleLikes);
 
   // Per-hotel absolute engagement totals (for Content Radar baseline)
   const hotelPostEngagements = {};
