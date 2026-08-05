@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
-import { sendMagicLink } from '@/lib/magic-link';
 import {
   updateSubscriptionByStripeId,
   upsertSubscriptionByEmail,
@@ -57,14 +56,24 @@ export async function POST(request: NextRequest) {
         stripe_subscription_id: subscription.id,
       });
 
-      await sendMagicLink(email, new URL(request.url).origin).catch((err) => {
-        console.error('Failed to send magic link after checkout:', err);
-      });
+      // No magic link is sent here. Checkout is session-gated, so whoever
+      // completed it is already logged in — the email only ever read as a
+      // confusing "here's your login link" in the first minute of being a
+      // paying customer.
       break;
     }
 
     case 'customer.subscription.updated': {
-      const subscription = event.data.object as Stripe.Subscription;
+      const delivered = event.data.object as Stripe.Subscription;
+
+      // Deliberately NOT trusting the event payload. Stripe retries failed
+      // deliveries for days and guarantees no ordering, so a stale `updated`
+      // (status active) can arrive after a cancellation and resurrect a
+      // canceled member. Re-fetching asks Stripe what is true *now*, which
+      // makes a late or duplicated event harmless — it just re-applies the
+      // current state. (The checkout handler above already worked this way.)
+      const subscription = await getStripe().subscriptions.retrieve(delivered.id);
+
       await updateSubscriptionByStripeId(subscription.id, {
         status: toStatus(subscription.status, `customer.subscription.updated ${subscription.id}`),
         trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,

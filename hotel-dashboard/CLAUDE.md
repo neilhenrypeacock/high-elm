@@ -14,10 +14,12 @@ A Next.js 16 app (App Router, Turbopack) that renders the High Elm Studio "Conte
 **AUTH IS LIVE** (since 4 Jul 2026): `/dashboard`, `/hotel`, `/profile`, `/settings`, `/saved`, `/watchlist` all require a Supabase session + an active trial/subscription row, enforced identically via `lib/require-access.ts` (`requireActiveUser` for pages, `checkApiAccess` for API routes). The ONLY auth bypass is `DISABLE_DASHBOARD_AUTH=true`, hard-guarded to non-production. (The old `UNGATED_DEV_MODE` production flag was removed 2026-07-09 after an audit found it leaving production ungated — never reintroduce it.)
 
 **ACCOUNT-FIRST AUTH — PASSWORD + EMAIL CONFIRMATION + STRIPE TEST-MODE TRIAL** (since 15 Jul 2026; the 12 Jul `STRIPE_DISABLED` beta flag and `lib/auth-mode.ts` were RETIRED):
-- **The journey:** create account (email+password) → confirm-your-email link → log in → land on `/start-trial` (never `/` or `/dashboard`) → Stripe Checkout (test card `4242…`, 14-day trial, nothing charged) → `/dashboard`. Sessions persist for weeks (proxy.ts refresh); magic-link login still works as a fallback/recovery path.
+- **The journey:** create account (email+password) → confirm-your-email link → log in → land on `/start-trial` (never `/` or `/dashboard`) → Stripe Checkout (test card `4242…`, 14-day trial, nothing charged) → **`/welcome`** → `/dashboard`. Sessions persist for weeks (proxy.ts refresh); magic-link login still works as a fallback/recovery path.
 - **Routes:** `/api/auth/signup` (public `supabase.auth.signUp` → Supabase sends a confirmation email; NO trial, NO session until confirmed), `/api/auth/login` (password; distinct "email not confirmed yet" message), `/api/auth/reset` (`resetPasswordForEmail`), `/api/auth/password` (set/change, session-only gate — form on /profile, and reused by the recovery page). All rate-limited via `lib/rate-limit.ts`.
 - **`/auth/callback`** handles all three email types (magiclink / signup / recovery); recovery lands on **`/auth/new-password`** (`components/NewPasswordForm.tsx`) to set a new password. **`/start-trial`** is context-aware: logged-out → `SignupForm`; logged-in + no active sub → `CheckoutButton` (`/api/checkout`, session-email → Stripe → `/dashboard`); logged-in + active → `/dashboard`. **`/subscribe`** is now a permanent redirect to `/start-trial`. The gate (`requireActiveUser`) sends unpaid users to `/start-trial`.
-- `/api/checkout` is session-gated (uses `user.email` as `customer_email`), so the email-keyed webhook joins the `subscriptions` row to the account. `hasActiveAccess` still enforces `trial_end` for rows with no `stripe_subscription_id` (harmless for Stripe rows, which carry an id).
+- `/api/checkout` is session-gated (uses `user.email` as `customer_email`), so the email-keyed webhook joins the `subscriptions` row to the account. It also **refuses a second subscription**: an email that already has access, or any Stripe subscription id at all, gets a 409 pointing at Settings rather than a second live subscription and a fresh trial.
+- **`hasActiveAccess` enforces `trial_end` on every `trialing` row** (2026-08-05), not just beta ones. Stripe-managed rows get a `TRIAL_GRACE_DAYS` (3) window to absorb webhook lag; beta rows have no webhook to wait for and expire exactly. Before this, a webhook that never arrived meant a trial that never ended. `past_due` is still an immediate lockout — a deliberate strictness, see finding 10 in `docs/review-findings-2026-08-04.md`.
+- **The Stripe webhook re-fetches on `customer.subscription.updated`** rather than believing the delivered payload, because Stripe retries for days and guarantees no ordering — a stale `active` event arriving after a cancellation used to resurrect access. It sends **no magic link** after checkout (the member is already logged in; the email only confused).
 - **Manual Supabase steps (dashboard, no mgmt token in repo):** (1) Authentication → Email → turn ON "Confirm email"; (2) Redirect URLs allow-list must include `https://www.hotelcontentradar.com/auth/callback` and `/auth/new-password`; (3) point the "Confirm signup" + "Reset Password" email templates at `/auth/callback?token_hash={{ .TokenHash }}&type=signup|recovery`. **Env:** `STRIPE_DISABLED` must be removed from Vercel + `.env.local` (Stripe test keys stay).
 
 ## Companion folder
@@ -69,6 +71,13 @@ app/
                           until hotel claiming + the pipeline full-history scrape land
   start-trial/page.tsx  — the SINGLE trial-start path, context-aware (SignupForm when
                           logged out; CheckoutButton → Stripe when logged in + no sub)
+  welcome/page.tsx      — where Stripe returns a paid member (checkout's success_url).
+                          Session-gated but NOT access-gated, on purpose: the return
+                          redirect races the webhook, and sending them straight to
+                          /dashboard bounced a member who had just paid back to
+                          /start-trial. Redirects to /dashboard the moment the row
+                          exists; components/WelcomePoll.tsx refreshes it every 2s and
+                          gives up after 30s with a "email us" line
   api/                  — checkout (session-gated), auth/signup, auth/login, auth/reset,
                           auth/password, auth/magic-link, auth/logout, profile, saves,
                           watchlist, billing-portal, webhooks/stripe (signature-verified).
