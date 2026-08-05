@@ -14,6 +14,7 @@ import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import { ApifyClient } from 'apify-client';
 import { run } from './scrape.js';
+import { classifyScrape } from './scrape-outcome.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -106,8 +107,16 @@ for (let i = 0; i < batches.length; i++) {
 
 // ─── final report ─────────────────────────────────────────────────────────────
 
+// Classified BEFORE the banner is printed, so the banner can never say COMPLETE
+// over a run that is about to exit 1.
+const outcome = classifyScrape({
+  batchCount: batches.length,
+  failedCount: failedBatches.length,
+  totalPosts,
+});
+
 console.log(`\n════════════════════════════════════════════`);
-console.log(failedBatches.length === batches.length ? 'SCRAPE FAILED' : 'SCRAPE COMPLETE');
+console.log(outcome.ok ? 'SCRAPE COMPLETE' : 'SCRAPE FAILED');
 console.log(`════════════════════════════════════════════`);
 console.log(`Profiles loaded: ${totalProfiles} / ${allHandles.length}`);
 console.log(`Posts collected: ${totalPosts}`);
@@ -137,30 +146,40 @@ if (allSkipped.length) {
 // success afterwards is not. A run that collected nothing has failed, whatever
 // the reason, and must exit non-zero so the workflow fails and GitHub emails.
 //
-// Deliberately NOT failing on a partial run: some batches failing while others
-// return data is usually one flaky actor call, and the next scrape's overlapping
+// A SMALL partial run still exits 0: one or two batches failing while the rest
+// return data is usually a flaky actor call, and the next scrape's overlapping
 // window closes the hole (see APIFY-COST.md). That stays a loud warning.
+//
+// A LARGE one does not (added 2026-08-05, review finding 2). Half the batches
+// failing is ~100 hotels missing the week — well past what an overlapping window
+// is meant to absorb, and it usually means something systemic (billing, the
+// actor, Instagram) rather than one bad call. The rules live in
+// scrape-outcome.js so they can be tested; see the note at the top of that file.
 
 const uniqueErrors = [...new Set(failedBatches.map(b => b.message))];
 
-if (failedBatches.length === batches.length) {
-  console.error(`\n❌ Every batch failed — nothing was scraped.`);
-  uniqueErrors.forEach(m => console.error(`   ${m}`));
-  console.error(`   Check https://console.apify.com/billing first: an unpaid invoice or the`);
-  console.error(`   monthly usage cap stops every actor call and reads exactly like this.`);
-  process.exit(1);
-}
-
-if (totalPosts === 0) {
-  console.error(`\n❌ No posts were collected, so nothing in Supabase changed.`);
+if (!outcome.ok) {
+  console.error(`\n❌ ${outcome.reason}`);
   if (uniqueErrors.length) uniqueErrors.forEach(m => console.error(`   ${m}`));
-  else console.error(`   No batch threw, so the actor returned empty results for every handle.`);
+
+  if (outcome.code === 'all-failed') {
+    console.error(`   Check https://console.apify.com/billing first: an unpaid invoice or the`);
+    console.error(`   monthly usage cap stops every actor call and reads exactly like this.`);
+  }
+  if (outcome.code === 'no-posts' && !uniqueErrors.length) {
+    console.error(`   No batch threw, so the actor returned empty results for every handle.`);
+  }
+  if (outcome.code === 'mass-failure') {
+    console.error(`   ${totalPosts} posts did land, so the data is not empty — it is INCOMPLETE.`);
+    console.error(`   Re-run once the cause is fixed rather than waiting for the next schedule.`);
+  }
+
   process.exit(1);
 }
 
-if (failedBatches.length) {
-  console.warn(`\n⚠ Partial run: ${failedBatches.length} of ${batches.length} batches failed.`);
+if (outcome.code === 'partial') {
+  console.warn(`\n⚠ Partial run: ${outcome.reason}`);
   uniqueErrors.forEach(m => console.warn(`   ${m}`));
-  console.warn(`   ${totalPosts} posts were still collected, so this exits 0 — the next run's`);
-  console.warn(`   overlapping window should fill the gap. Investigate if it repeats.`);
+  console.warn(`   This exits 0 — the next run's overlapping window should fill the gap.`);
+  console.warn(`   Investigate if it repeats.`);
 }

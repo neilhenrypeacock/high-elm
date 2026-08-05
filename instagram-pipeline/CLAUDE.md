@@ -18,6 +18,28 @@ Windowing is cost control: the breakout baseline is computed by the dashboard fr
 
 **Re-runs are safe:** posts upsert on the composite key and profile snapshots dedupe per UTC day (added 2026-07-09), so retrying a failed batch the same day cannot create duplicates. `scrape-run.js` prints skipped handles at the end — re-run those by editing the list in `test-run.js`. (The old `remaining-handles.js` with its stale hardcoded list was removed 2026-07-09.)
 
+### When a scrape fails (rules in `scrape-outcome.js`, tested)
+The exit code is decided by `classifyScrape`, kept as a pure function precisely
+so each rule has a proven path to firing:
+
+| Outcome | Exit | Meaning |
+|---|---|---|
+| `all-failed` | **1** | Every batch threw — the 1 Aug unpaid-invoice case |
+| `no-posts` | **1** | Nothing was collected, so nothing in Supabase changed |
+| `mass-failure` | **1** | ≥`ESCALATION_RATIO` (50%) of batches failed — ~100 hotels missing is past what an overlapping window absorbs |
+| `partial` | 0 | A minority of batches failed; loud warning, next run's overlap heals it |
+| `ok` | 0 | — |
+
+The `SCRAPE COMPLETE` / `SCRAPE FAILED` banner is printed **from that same
+classification**, so it can never read COMPLETE over a run that then exits 1.
+
+⚠ **`assertSucceeded` (added 2026-08-05, review finding 2):** `scrape.js` now
+throws when an Apify actor run ends anything other than `SUCCEEDED`. A
+FAILED/ABORTED/**TIMED-OUT** run can leave a *partial* dataset, which upserts as
+cleanly as a whole one — that is how a batch dying after 30 of its 50 hotels
+passed for a complete week. The trade is deliberate: the partial results we paid
+for are discarded, and the next windowed run refetches them.
+
 ## Required env vars (in `.env` — do NOT commit)
 ```
 SUPABASE_URL=

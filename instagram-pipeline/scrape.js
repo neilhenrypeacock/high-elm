@@ -3,6 +3,7 @@ import { ApifyClient } from 'apify-client';
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
 import { normalizeLikesCount } from './likes.js';
+import { assertSucceeded } from './scrape-outcome.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -147,6 +148,7 @@ async function scrapeProfiles(handles) {
   console.log('\n[1/2] Running profile scraper...');
   const run = await apify.actor(ACTOR_PROFILES).call({ usernames: handles });
   console.log(`      Profile actor finished: ${run.status}`);
+  assertSucceeded(run, 'Profile');
 
   const { items } = await apify.dataset(run.defaultDatasetId).listItems();
   console.log(`      Profile items returned: ${items.length}`);
@@ -186,6 +188,7 @@ async function scrapePosts(handles, resultsLimit, postsNewerThan) {
   };
   const run = await apify.actor(ACTOR_POSTS).call(input);
   console.log(`      Post actor finished: ${run.status}`);
+  assertSucceeded(run, 'Post');
 
   const { items } = await apify.dataset(run.defaultDatasetId).listItems();
   console.log(`      Post items returned: ${items.length}`);
