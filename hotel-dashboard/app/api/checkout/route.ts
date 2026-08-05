@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { allowRequest, clientIp } from '@/lib/rate-limit';
+import { getSubscriptionByEmail, hasActiveAccess } from '@/lib/subscriptions';
 import { FOUNDING_OPEN, TRIAL_DAYS } from '@/lib/pricing';
 
 // Starts the free trial (length from lib/pricing.ts) for the LOGGED-IN member: creates a Stripe
@@ -24,6 +25,25 @@ export async function POST(request: NextRequest) {
 
   if (!user?.email) {
     return NextResponse.json({ error: 'Please log in to start your trial.' }, { status: 401 });
+  }
+
+  // Never start a second subscription for the same email. The button's
+  // visibility used to be the only guard, which a stale tab, a second device or
+  // an old Checkout session (Stripe keeps those completable for ~24h) could all
+  // walk straight past — leaving two live Stripe subscriptions billing the same
+  // person while the row pointed at only the newer one. Refuse when the member
+  // has access OR when a Stripe subscription id exists at all, so a lapsed
+  // member fixes the existing subscription in the portal rather than stacking a
+  // second one (and a fresh 14-day trial) on top of it.
+  const existing = await getSubscriptionByEmail(user.email);
+  if (existing && (hasActiveAccess(existing) || existing.stripe_subscription_id)) {
+    return NextResponse.json(
+      {
+        error: 'You already have a plan on this account. Open Settings to manage your billing.',
+        code: 'already_subscribed',
+      },
+      { status: 409 },
+    );
   }
 
   const origin = new URL(request.url).origin;
@@ -52,7 +72,10 @@ export async function POST(request: NextRequest) {
       trial_period_days: TRIAL_DAYS,
       trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
     },
-    success_url: `${origin}/dashboard`,
+    // Not straight to /dashboard: the return redirect races Stripe's webhook,
+    // and losing that race meant a member who had just paid was bounced back to
+    // /start-trial with no explanation. /welcome waits for the row instead.
+    success_url: `${origin}/welcome`,
     cancel_url: `${origin}/start-trial?status=cancelled`,
   });
 

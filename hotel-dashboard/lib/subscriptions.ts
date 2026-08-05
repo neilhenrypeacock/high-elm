@@ -32,22 +32,35 @@ export async function getSubscriptionByEmail(email: string): Promise<Subscriptio
   return data;
 }
 
-export function hasActiveAccess(subscription: Subscription | null): boolean {
+// How long a Stripe-managed `trialing` row stays valid after its trial_end
+// passes. The webhook is what normally ends a trial, and Stripe retries failed
+// deliveries for roughly three days — so this window absorbs ordinary lag
+// without ever *trusting* the webhook indefinitely. Before this existed, a
+// webhook that never arrived (outage, rotated signing secret, changed URL) meant
+// the row stayed `trialing` forever and the member kept access without paying.
+export const TRIAL_GRACE_DAYS = 3;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// `now` is injectable so the tests can pin a clock; production always uses the
+// real one.
+export function hasActiveAccess(subscription: Subscription | null, now: number = Date.now()): boolean {
   if (!subscription || !ACTIVE_STATUSES.includes(subscription.status)) return false;
 
-  // Stripe-managed rows get flipped to past_due/canceled by the webhook when
-  // a trial lapses. Beta rows (no Stripe subscription) have no webhook, so
-  // their trial_end is enforced here — otherwise a beta trial never expires.
-  if (
-    subscription.status === 'trialing' &&
-    !subscription.stripe_subscription_id &&
-    subscription.trial_end &&
-    new Date(subscription.trial_end).getTime() < Date.now()
-  ) {
-    return false;
-  }
+  // Only a trial can lapse on a date. An `active` row is ended by the webhook
+  // flipping its status, which is a different failure (and a visible one — the
+  // member stops being charged).
+  if (subscription.status !== 'trialing' || !subscription.trial_end) return true;
 
-  return true;
+  const trialEnd = new Date(subscription.trial_end).getTime();
+  // An unparseable date is a data fault, not a lapsed trial — fail open rather
+  // than lock out a member over a bad string.
+  if (Number.isNaN(trialEnd)) return true;
+
+  // Beta rows have no Stripe subscription, so there is no webhook that could
+  // ever end them — enforce trial_end exactly. Stripe rows get the grace window.
+  const grace = subscription.stripe_subscription_id ? TRIAL_GRACE_DAYS * DAY_MS : 0;
+  return now < trialEnd + grace;
 }
 
 // Upsert keyed on email — the row may not exist yet (first checkout) or may
