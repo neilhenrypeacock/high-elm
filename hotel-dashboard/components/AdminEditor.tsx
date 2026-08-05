@@ -7,12 +7,18 @@ import { fmtPostedAt, fmtDate } from '@/lib/format';
 import { formatMultiplier } from '@/lib/format-multiplier';
 import type { DashboardData, OutlierPost, TimeWindow } from '@/lib/data';
 
-// Admin-only editorial surface: the in-app replacement for
-// instagram-pipeline/set-insight.js. Lists the breakouts (per time window) and
-// lets an admin write each card's Editor's note + toggle its Editor's Pick,
-// saving straight to standout_posts via /api/admin/insight. Reuses the exact
-// thumbnail (ImageWithFallback) + tag chips the live cards use, so what you edit
-// here is what members see there.
+// Admin-only weekly review. Lists the breakouts (per time window) so the week
+// can be checked before it goes out, and offers exactly three per-post switches:
+// feature on the homepage, remove the post, remove the hotel. Publishing is the
+// one global button at the top.
+//
+// ⚠ There is deliberately NO note-writing here (removed 2026-08-05). The card
+// copy members read is the AI insight written by the pipeline
+// (instagram-pipeline/generate-insight.js, a step in scrape-pipeline.yml) —
+// nothing is hand-written per post any more, so the Editor's note textarea and
+// the Editor's Pick tick are both gone. Reuses the exact thumbnail
+// (ImageWithFallback) + tag chips the live cards use, so what you review here
+// is what members see there.
 
 const MEDIA_PLACEHOLDER = 'linear-gradient(135deg, #2b2824, #3c372e)';
 
@@ -22,13 +28,10 @@ const WINDOW_LABELS: Record<TimeWindow, string> = {
   all: 'All time',
 };
 
+// Only the homepage pin is an editable per-post value now, and it saves the
+// moment it's ticked — there is no Save button left to press.
 type RowState = {
-  note: string;
-  pick: boolean;
   feature: boolean;
-  savedNote: string;
-  savedPick: boolean;
-  savedFeature: boolean;
   status: 'idle' | 'saving' | 'saved' | 'error';
   message?: string;
 };
@@ -215,11 +218,57 @@ function HiddenRoster({ hidden }: { hidden: DashboardData['hidden'] }) {
   );
 }
 
+// One switch. The two removal ticks never render as checked: ticking one takes
+// the card out of the list entirely (a removed post is excluded from the data
+// itself, so it can't be drawn back with its box ticked) and it reappears in
+// the "Hidden from members" chips above, which is where it gets undone.
+function Tick({
+  label,
+  title,
+  checked,
+  disabled,
+  danger,
+  onChange,
+}: {
+  label: string;
+  title: string;
+  checked: boolean;
+  disabled: boolean;
+  danger?: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <label
+      title={title}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 7,
+        cursor: disabled ? 'default' : 'pointer',
+        fontSize: 13.5,
+        color: danger ? '#b4331f' : 'var(--ink)',
+        opacity: disabled ? 0.55 : 1,
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{
+          width: 16,
+          height: 16,
+          accentColor: danger ? '#b4331f' : 'var(--signal-deep)',
+          cursor: disabled ? 'default' : 'pointer',
+        }}
+      />
+      {label}
+    </label>
+  );
+}
+
 function initialRow(p: OutlierPost): RowState {
-  const note = p.post_insight ?? '';
-  const pick = p.editors_pick === true;
-  const feature = p.landing_pin === true;
-  return { note, pick, feature, savedNote: note, savedPick: pick, savedFeature: feature, status: 'idle' };
+  return { feature: p.landing_pin === true, status: 'idle' };
 }
 
 export default function AdminEditor({
@@ -238,8 +287,11 @@ export default function AdminEditor({
   // it reappears in the Hidden roster above, where it can be undone.
   const [hiding, setHiding] = useState<string | null>(null);
 
+  // Removing one post is a tick, not a decision to defend: it's reversible and
+  // the post reappears as a chip in "Hidden from members" directly above, so
+  // there's no confirm step. Removing a whole HOTEL still confirms — that one
+  // pulls every post it has out of the leaderboard and every portfolio figure.
   async function hidePost(p: OutlierPost) {
-    if (!confirm(`Hide this ${p.hotel_name} post from members?\n\nIt drops out of the breakouts and every figure. You can un-hide it from the "Hidden from members" list.`)) return;
     setHiding(p.post_id);
     try {
       const res = await fetch('/api/admin/insight', {
@@ -288,33 +340,26 @@ export default function AdminEditor({
   const update = (post_id: string, patch: Partial<RowState>, seed: RowState) =>
     setRows((prev) => ({ ...prev, [post_id]: { ...(prev[post_id] ?? seed), ...patch } }));
 
-  async function save(p: OutlierPost) {
+  // The homepage pin saves on the tick itself. The box moves immediately and is
+  // put back if the write fails, so the checkbox never claims a state the
+  // database doesn't hold.
+  async function toggleFeature(p: OutlierPost, next: boolean) {
     const row = rowFor(p);
-    update(p.post_id, { status: 'saving', message: undefined }, row);
+    update(p.post_id, { feature: next, status: 'saving', message: undefined }, row);
     try {
       const res = await fetch('/api/admin/insight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          post_id: p.post_id,
-          insight: row.note.trim() ? row.note : null,
-          editors_pick: row.pick,
-          landing_pin: row.feature,
-        }),
+        body: JSON.stringify({ post_id: p.post_id, landing_pin: next }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        update(p.post_id, { status: 'error', message: data.error ?? 'Save failed.' }, row);
+        update(p.post_id, { feature: !next, status: 'error', message: data.error ?? 'Save failed.' }, row);
         return;
       }
-      const savedNote = row.note.trim() ? row.note : '';
-      update(
-        p.post_id,
-        { status: 'saved', savedNote, savedPick: row.pick, savedFeature: row.feature, note: savedNote },
-        row,
-      );
+      update(p.post_id, { feature: next, status: 'saved' }, row);
     } catch {
-      update(p.post_id, { status: 'error', message: 'Network error.' }, row);
+      update(p.post_id, { feature: !next, status: 'error', message: 'Network error.' }, row);
     }
   }
 
@@ -331,7 +376,7 @@ export default function AdminEditor({
             color: 'var(--signal-deep)',
           }}
         >
-          Admin · Editorial
+          Admin · Weekly review
         </div>
         <h1
           style={{
@@ -343,15 +388,15 @@ export default function AdminEditor({
             margin: '4px 0 6px',
           }}
         >
-          Editor&rsquo;s notes &amp; picks
+          Review this week
         </h1>
         <p style={{ fontSize: 14, color: 'var(--body-mid)', lineHeight: 1.5, margin: 0 }}>
-          Write the note that shows under each breakout, flag the ones worth replicating (an
-          Editor&rsquo;s Pick builds the members&rsquo; Featured shelf), and
-          <strong style={{ color: 'var(--ink)', fontWeight: 600 }}> feature</strong> the ones you want
-          to lead the public homepage. Saves straight to the live site. Featured posts jump to the
-          front of the homepage taster (over the automatic pick); everything applies to the post
-          everywhere it appears.
+          Read down the week&rsquo;s breakouts, take out anything that shouldn&rsquo;t go out, and
+          feature the ones you want leading the public homepage. Then hit
+          <strong style={{ color: 'var(--ink)', fontWeight: 600 }}> Publish to members</strong>. Every
+          switch saves to the live site as you tick it, and applies to the post everywhere it
+          appears. The &ldquo;why it worked&rdquo; copy on each card is written by the AI at scrape
+          time &mdash; there&rsquo;s nothing to write here.
         </p>
       </header>
 
@@ -394,8 +439,7 @@ export default function AdminEditor({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {posts.map((p, i) => {
           const row = rowFor(p);
-          const seed = rows[p.post_id] ?? initialRow(p);
-          const dirty = row.note !== row.savedNote || row.pick !== row.savedPick || row.feature !== row.savedFeature;
+          const busy = hiding === p.post_id;
           return (
             <article
               key={p.post_id}
@@ -499,128 +543,45 @@ export default function AdminEditor({
                   </div>
                 )}
 
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    color: 'var(--muted)',
-                    marginBottom: 5,
-                  }}
-                >
-                  Editor&rsquo;s note
-                </label>
-                <textarea
-                  value={row.note}
-                  onChange={(e) => update(p.post_id, { note: e.target.value, status: 'idle' }, seed)}
-                  placeholder="What it is… Why it worked… Try this…"
-                  rows={3}
-                  style={{
-                    width: '100%',
-                    resize: 'vertical',
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    border: '1px solid var(--line)',
-                    background: 'var(--page)',
-                    fontFamily: 'var(--font-body), sans-serif',
-                    fontSize: 13.5,
-                    lineHeight: 1.5,
-                    color: 'var(--ink)',
-                  }}
-                />
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 13.5, color: 'var(--ink)' }}>
-                    <input
-                      type="checkbox"
-                      checked={row.pick}
-                      onChange={(e) => update(p.post_id, { pick: e.target.checked, status: 'idle' }, seed)}
-                      style={{ width: 16, height: 16, accentColor: 'var(--signal-deep)', cursor: 'pointer' }}
-                    />
-                    Editor&rsquo;s Pick
-                  </label>
-
-                  {/* Feature-on-homepage pin — forces this post to the front of the
-                      public landing taster (hero + open cards). */}
-                  <label
+                {/* The three switches. Each one IS the action — it saves the
+                    moment it's ticked, so there's no Save button. */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 12, flexWrap: 'wrap' }}>
+                  <Tick
+                    label="Feature on homepage"
                     title="Force this post to the front of the public homepage taster"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 13.5, color: 'var(--ink)' }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={row.feature}
-                      onChange={(e) => update(p.post_id, { feature: e.target.checked, status: 'idle' }, seed)}
-                      style={{ width: 16, height: 16, accentColor: 'var(--signal-deep)', cursor: 'pointer' }}
-                    />
-                    Feature on homepage
-                  </label>
-
-                  {/* Removal — destructive, so styled as quiet text buttons
-                      rather than checkboxes, and both confirm first. */}
-                  <button
-                    type="button"
-                    onClick={() => hidePost(p)}
-                    disabled={hiding === p.post_id}
-                    style={{
-                      border: 'none',
-                      background: 'transparent',
-                      padding: 0,
-                      fontFamily: 'inherit',
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      color: '#b4331f',
-                      cursor: hiding === p.post_id ? 'default' : 'pointer',
-                    }}
-                  >
-                    {hiding === p.post_id ? 'Hiding…' : 'Hide post'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => hideHotel(p)}
-                    disabled={hiding === p.post_id}
-                    title={`Hide every post from @${p.instagram_handle}`}
-                    style={{
-                      border: 'none',
-                      background: 'transparent',
-                      padding: 0,
-                      fontFamily: 'inherit',
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      color: '#b4331f',
-                      cursor: hiding === p.post_id ? 'default' : 'pointer',
-                    }}
-                  >
-                    Hide hotel
-                  </button>
+                    checked={row.feature}
+                    disabled={busy || row.status === 'saving'}
+                    onChange={(next) => toggleFeature(p, next)}
+                  />
+                  <Tick
+                    label="Remove post"
+                    title="Members never see it, and it leaves every figure. Un-hide it from the list at the top."
+                    checked={false}
+                    disabled={busy}
+                    danger
+                    onChange={() => hidePost(p)}
+                  />
+                  <Tick
+                    label="Remove hotel"
+                    title={`Take every post from @${p.instagram_handle} out of the dashboard`}
+                    checked={false}
+                    disabled={busy}
+                    danger
+                    onChange={() => hideHotel(p)}
+                  />
 
                   <div style={{ flex: 1 }} />
 
-                  {row.status === 'saved' && !dirty && (
+                  {busy && <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--muted)' }}>Removing…</span>}
+                  {!busy && row.status === 'saving' && (
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--muted)' }}>Saving…</span>
+                  )}
+                  {!busy && row.status === 'saved' && (
                     <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--signal-deep)' }}>Saved ✓</span>
                   )}
-                  {row.status === 'error' && (
+                  {!busy && row.status === 'error' && (
                     <span style={{ fontSize: 12.5, fontWeight: 600, color: '#b4331f' }}>{row.message}</span>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => save(p)}
-                    disabled={!dirty || row.status === 'saving'}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: 9,
-                      border: 'none',
-                      background: !dirty || row.status === 'saving' ? 'var(--line)' : 'var(--signal-deep)',
-                      color: !dirty || row.status === 'saving' ? 'var(--muted)' : 'var(--surface)',
-                      fontFamily: 'var(--font-body), sans-serif',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: !dirty || row.status === 'saving' ? 'default' : 'pointer',
-                    }}
-                  >
-                    {row.status === 'saving' ? 'Saving…' : 'Save'}
-                  </button>
                 </div>
               </div>
             </article>

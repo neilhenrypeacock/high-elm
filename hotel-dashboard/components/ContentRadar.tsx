@@ -411,32 +411,11 @@ export function BreakoutCard({
 
         {/* Content */}
         <div className="cr-card-body" style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
-          {/* Editor's Pick — a curated "worth replicating" flag (standout_posts.editors_pick) */}
-          {p.editors_pick && (
-            <span
-              style={{
-                alignSelf: 'flex-start',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                fontFamily: LABEL,
-                fontSize: 10,
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.14em',
-                color: 'var(--signal-deep)',
-                background: 'var(--top3-tint)',
-                border: '1px solid #BFD8CC',
-                borderRadius: 999,
-                padding: '4px 11px',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: 'block' }}>
-                <path d="M12 2.6l2.7 5.9 6.4.7-4.8 4.3 1.3 6.3L12 16.9 6.4 20.1l1.3-6.3L2.9 9.5l6.4-.7z" />
-              </svg>
-              Editor&rsquo;s Pick
-            </span>
-          )}
+          {/* ⚠ The "Editor's Pick" badge was removed 2026-08-05 along with the
+              /admin tick that set it — the editorial layer is AI-only now.
+              `editors_pick` is still read into OutlierPost and still drives the
+              withdrawn Featured shelf (see SECTION_IDS in Dashboard.tsx); it
+              simply has nothing setting it and nothing rendering it. */}
           {/* Multiplier. A top-up isn't a breakout, so it doesn't get the
               signal green — the figure stays in ink and says what it is. */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
