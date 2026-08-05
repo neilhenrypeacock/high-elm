@@ -676,12 +676,25 @@ const CAPTION_SUBS: Record<string, string> = {
   Long:   `${CAPTION_MEDIUM_MAX}+ characters`,
 };
 /** Plain-English gloss for each AI theme tag written by the pipeline. */
+// One line explaining each theme the pipeline can tag. KEEP THIS IN STEP WITH
+// generate-insight.js — a tag with no entry here still renders, but as a bare
+// count with nothing explaining it, which reads as an oversight rather than a
+// pattern. Food & Drink / Wellness were added 2026-08-05 when the insight
+// backfill widened the tagged set from ~10 posts to 103 and surfaced them.
 const THEME_BLURB: Record<string, string> = {
   'Place & Experience': 'The setting and what it feels like to be there — the landscape, the light, the view from the room.',
   'The Property':       'The building itself — architecture, interiors, the design details people come for.',
   'People':             'Someone in the frame — a guest, a chef, a host — giving the scene scale and a story.',
   'Events':             'A moment with a date on it — a party, a launch, a seasonal opening.',
+  'Food & Drink':       'What comes to the table — the kitchen, the bar, the dish people screenshot.',
+  'Wellness':           'The spa, the pool, the slow morning — the part of a stay that sells rest.',
 };
+
+/** Tags that are a filing decision, not a subject. "Other / Brand" is what the
+ *  model reaches for when a post doesn't sit anywhere else, so naming it as a
+ *  recurring theme would dress a shrug up as a finding. Counted in the sample,
+ *  never shown as a pattern. */
+const THEME_NOT_A_PATTERN = new Set(['Other / Brand', 'Other']);
 /** Below this many AI-tagged breakouts the content lever is withheld rather than
  *  shown thin — a handful of tagged posts is not a portfolio pattern. */
 const MIN_TAGGED_THEMES = 5;
@@ -802,11 +815,15 @@ function buildThemes(breakouts: OutlierPost[]): { themes: WwTheme[]; tagged: num
   const counts: Record<string, number> = {};
   for (const p of tagged) counts[p.theme_tag!] = (counts[p.theme_tag!] ?? 0) + 1;
   const themes = Object.entries(counts)
+    .filter(([tag]) => !THEME_NOT_A_PATTERN.has(tag))
     .sort((a, b) => b[1] - a[1])
     .map(([tag, n]) => ({
       title: tag,
       text: `${n} of the ${tagged.length} tagged breakouts. ${THEME_BLURB[tag] ?? ''}`.trim(),
     }));
+  // `tagged` stays the FULL count, including the filed-under-other posts: it is
+  // the sample size behind the lever, and the denominator each theme is stated
+  // against. Only the shown list is filtered.
   return { themes, tagged: tagged.length };
 }
 
