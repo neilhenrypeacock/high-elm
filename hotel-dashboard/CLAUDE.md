@@ -462,12 +462,17 @@ already a step in `scrape-pipeline.yml` — so it lands with the scrape, unatten
   are expressed as a multiple of the WEAKEST option, not as raw ER — the only framing that
   reads without explaining engagement rate first. Trend lines compare the leader against the
   previous 30 days (all-time has no previous period, so it states the standing pattern).
-  ⚠ **The content lever needs AI tags to exist.** It is withheld below `MIN_TAGGED_THEMES`
-  (5) tagged breakouts in scope, and today only ~34 `standout_posts` rows exist with ~10
-  carrying a `theme_tag` — so it renders on the 30-day scope and drops out of all-time.
-  Backfilling tags (`instagram-pipeline/generate-insight.js` across the breakout set) is what
-  makes this lever solid; the vocabulary is currently just 4 values (Events / Place &
-  Experience / The Property / People), each with a fixed gloss in `THEME_BLURB`.
+  ⚠ **The content lever needs AI tags to exist**, and is withheld below
+  `MIN_TAGGED_THEMES` (5) tagged breakouts in scope. **Backfilled 2026-08-05**
+  (`generate-insight.js --backfill --window=30`): `standout_posts` went from ~34 rows with
+  ~10 `theme_tag`s to **114 insights / 103 theme tags**, so the 30-day scope now runs on
+  **43 tagged breakouts** — Place & Experience 17, Events 10, The Property 6, People 5,
+  Food & Drink 4, Wellness 1. The vocabulary grew 4 → 7 values with it; `THEME_BLURB` now
+  glosses six of them, and `THEME_NOT_A_PATTERN` filters `Other / Brand` out of the shown
+  list (it's the model's shrug, not a subject) while still counting it in the sample.
+  **All-time is still thin at ~12 tagged** — its pool is the top 100 by multiplier, mostly
+  older posts the 30-day backfill didn't reach. Widening it is
+  `--backfill --window=all` (566 posts, est. £20–25, deliberately not run).
 - **Collaboration note (2026-07-30).** `buildCollabNote` (exported, tested) compares the
   median per-post ER of true collabs (`coauthor_usernames` non-empty) against solo posts in
   the scope, and reports how far collabs over-index in that scope's breakout list. Measured
