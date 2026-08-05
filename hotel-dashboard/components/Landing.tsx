@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { DashboardData, OutlierPost } from '@/lib/data';
-import { hasVisibleLikesCount } from '@/lib/data';
+import { hasVisibleLikesCount, parseInsight } from '@/lib/data';
 import {
   FOUNDING_PRICE_DISPLAY,
   FOUNDING_PRICE_MONTHLY,
@@ -190,6 +190,16 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
   );
 }
 
+/** The AI's "why it worked" line for a post, or null if it hasn't got one.
+ *  post_insight is a structured blob ("What it is… Why it worked… Consider
+ *  this…"); the band leads on the why, and accepts a short free-form note as
+ *  the fallback. Anything else is treated as no insight at all. */
+function whyItWorkedOf(post: OutlierPost): string | null {
+  if (!post.post_insight) return null;
+  const parsed = parseInsight(post.post_insight);
+  return parsed?.whyItWorked ?? parsed?.freeform ?? null;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 export default function Landing({ data }: { data: DashboardData }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -209,6 +219,31 @@ export default function Landing({ data }: { data: DashboardData }) {
   // Prefer three fresh posts for the taster; only fall back to reusing the hero
   // set if there aren't six distinct posts to show (keeps the grid populated).
   const taster = featured.length >= 4 ? featured.slice(3, 6) : featured.slice(0, 3);
+
+  // The one post the "inside a breakout" band opens up. The taster shows WHAT
+  // won behind a gate; this shows one in full, with the AI's read of WHY —
+  // which is the thing the product actually sells.
+  //
+  // ⚠ The pool is deliberately WIDER than landing_featured. Only 2 of the 9
+  // homepage-pinned posts currently carry an insight, and the pinned set
+  // ring-rotates hourly, so drawing solely from it would make this band blink
+  // in and out of the homepage from one hour to the next. So: the curated posts
+  // get first refusal, then the best of the last 30 days. Both are already
+  // belowCap'd — this page is a shop window, and a multiplier too large to be
+  // credible is left off it entirely rather than shown to someone who hasn't
+  // bought yet.
+  //
+  // Requirements: a parseable "why it worked", and not a post already on the
+  // page (the same image twice reads as a bug, not as emphasis). Still nothing
+  // → the band is omitted rather than shown half-empty.
+  const alreadyShown = new Set([...hero, ...taster].map(p => p.post_id));
+  const seenCandidate = new Set<string>();
+  const insideBreakout =
+    [...featured, ...belowCap(data.standout['30d'] ?? [])].find(p => {
+      if (alreadyShown.has(p.post_id) || seenCandidate.has(p.post_id)) return false;
+      seenCandidate.add(p.post_id);
+      return whyItWorkedOf(p) !== null;
+    }) ?? null;
 
   // Reveal-on-scroll and count-ups — all scoped to this
   // subtree. Base markup is the visible end-state, so nothing is ever stranded.
@@ -451,6 +486,105 @@ export default function Landing({ data }: { data: DashboardData }) {
         )}
       </section>
 
+
+      {/* ===== INSIDE A BREAKOUT (deep-green band) =====
+          Rebuilt 2026-08-05 from the idea in the closed PR #68. It sits here,
+          straight after the gated taster, because the taster shows WHAT won and
+          hides the rest — this answers the question that creates, with one post
+          opened all the way up. The original also carried an accolade strip
+          re-adding Michelin Keys; that was NOT carried over (see the note on
+          the credibility line above — we don't crawl that list).
+
+          --signal-deep is deliberately the same green as "What you get" further
+          down: they bookend the middle of the page. Two notes of green, which
+          is the design system's limit, so don't add a third. */}
+      {insideBreakout && (
+        <section style={{ background: 'var(--signal-deep)', padding: '100px 40px' }}>
+          <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+            <div data-reveal style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 56px' }}>
+              <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 22 }}>Inside a breakout</div>
+              <h2 style={{ ...sectionTitle, color: 'var(--surface)' }}>
+                Not just what won — why it won.
+              </h2>
+              <p style={{ fontSize: 'clamp(15px,1.6vw,17px)', lineHeight: 1.6, color: 'rgba(247,246,242,0.72)', marginTop: 20, textWrap: 'balance' }}>
+                Every breakout is read and explained, so you get the thinking you can reuse — not
+                just a post that did well.
+              </p>
+            </div>
+
+            <div
+              data-reveal data-reveal-delay={120}
+              className="cr-inside-breakout"
+              style={{ display: 'grid', gridTemplateColumns: 'minmax(0,340px) minmax(0,1fr)', gap: 48, alignItems: 'center' }}
+            >
+              {/* The post — a light tile on the green, same idiom as the taster
+                  cards so it reads as the same object, opened up. */}
+              <div style={{ background: 'var(--surface)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 18px 44px rgba(0,0,0,0.24)' }}>
+                <div style={{ aspectRatio: '4 / 5', background: 'var(--surface)', position: 'relative', overflow: 'hidden' }}>
+                  <ImageWithFallback
+                    src={insideBreakout.image_url}
+                    alt={insideBreakout.hotel_name}
+                    fallback={TASTER_GRADIENTS[0]}
+                    backdrop={false}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute', top: 14, right: 14, fontFamily: 'var(--font-display)', fontWeight: 800,
+                      fontSize: 20, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--signal-deep)',
+                      background: 'var(--surface)', padding: '6px 14px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    {formatMultiplier(insideBreakout.multiplier)}
+                  </span>
+                </div>
+                <div style={{ padding: '18px 20px 20px' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>
+                    {insideBreakout.hotel_name}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--body-mid)', marginTop: 3 }}>
+                    {[insideBreakout.hotel_country, fmtDayMonth(insideBreakout.posted_at)].filter(Boolean).join(' · ')}
+                  </div>
+                </div>
+              </div>
+
+              {/* The read. */}
+              <div>
+                <div style={{ ...eyebrow('var(--signal-light)'), fontSize: 11, marginBottom: 14 }}>Why it worked</div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'clamp(18px,2.2vw,24px)', lineHeight: 1.5, letterSpacing: '-0.01em', color: 'var(--surface)', textWrap: 'balance' }}>
+                  {whyItWorkedOf(insideBreakout)}
+                </p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 26 }}>
+                  {[typeLabel(insideBreakout.type), insideBreakout.theme_tag, insideBreakout.driver_tag]
+                    .filter(Boolean)
+                    .map(tag => (
+                      <span
+                        key={tag as string}
+                        style={{
+                          fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.06em',
+                          textTransform: 'uppercase', color: 'var(--signal-light)',
+                          border: '1px solid rgba(127,193,162,0.4)', borderRadius: 20, padding: '6px 13px',
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                </div>
+
+                <div style={{ marginTop: 34 }}>
+                  <Link
+                    href={TRIAL_HREF}
+                    className="cr-cta-primary"
+                    style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--signal-deep)', background: 'var(--surface)', padding: '16px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}
+                  >
+                    start your free trial <CtaArrow />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ===== HOW IT WORKS ===== */}
       <section id="how-it-works" style={{ ...INNER, padding: '100px 40px 68px' }}>

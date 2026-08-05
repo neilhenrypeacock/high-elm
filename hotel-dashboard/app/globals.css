@@ -198,6 +198,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 900px) {
   .cr-landing-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
   .cr-hero-cardstack { min-height: 380px !important; }
+  /* "Inside a breakout": the post tile stacks above its read, and is capped so
+     a 4:5 image doesn't fill a phone screen on its own. */
+  .cr-inside-breakout { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .cr-inside-breakout > :first-child { max-width: 320px; margin: 0 auto; }
 }
 @media (max-width: 560px) {
   .cr-hero-cardstack [data-hero-back] { display: none; }
