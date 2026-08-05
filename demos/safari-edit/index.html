@@ -3,6 +3,138 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Consent Mode v2 — deny every storage type until the visitor chooses.
+     MUST run before Google Tag Manager loads. security_storage stays granted
+     (it is essential/anti-fraud, not tracking). -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    functionality_storage: 'denied',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
+    wait_for_update: 500
+  });
+</script>
+
+<!-- Google Tag Manager. Loads on every page view, but Consent Mode above holds
+     GA4 (and any tag you gate on consent, e.g. the Meta Pixel) until granted.
+     GA4 / Meta Pixel IDs are configured INSIDE this container, not on the page. -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MKT3D9G5');</script>
+<!-- End Google Tag Manager -->
+
+<!-- Hero picker. Runs in <head>, BEFORE the body is parsed, and preloads the
+     chosen image so the download starts as early as a plain src attribute would
+     have started it. Doing this down at the <img> instead would hand the
+     browser's look-ahead scanner nothing to find, and the hero is almost
+     certainly the largest thing on the page — the one asset where a late start
+     is visible to the visitor. -->
+<script>
+(function () {
+  var HEROES = [
+    { src: 'uploads/hero-mara-firepit.jpg', alt: 'A fire pit and deck above the Mara plains at sunset' },
+    { src: 'uploads/hero-kilimanjaro.jpg',  alt: 'A safari deck in the treetops with Kilimanjaro beyond' },
+    { src: 'uploads/hero-elephants.jpg',    alt: 'A herd of elephants crossing golden grass at dusk' },
+    { src: 'uploads/hero-lion.jpg',         alt: 'A lion at rest in golden grass at first light' }
+  ];
+  // Chosen once per visit and remembered for the rest of it. Re-rolling on every
+  // page load would change the hero when someone comes back from the thank-you
+  // page or hits back, which reads as a glitch rather than as variety.
+  var pick;
+  try {
+    var saved = sessionStorage.getItem('tse_hero');
+    if (saved !== null && HEROES[saved]) {
+      pick = saved;
+    } else {
+      pick = String(Math.floor(Math.random() * HEROES.length));
+      sessionStorage.setItem('tse_hero', pick);
+    }
+  } catch (e) {
+    pick = String(Math.floor(Math.random() * HEROES.length)); // private mode: rotates, just isn't remembered
+  }
+  var hero = HEROES[pick] || HEROES[0];
+  window.__tseHero = hero;
+
+  var link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = hero.src;
+  link.setAttribute('fetchpriority', 'high');
+  document.head.appendChild(link);
+
+  // --- The three-image band ---
+  // Grouped, and one tile is drawn from EACH group. Picking three at random from
+  // a flat pool looked fine on paper and wasn't: it showed no wildlife at all on
+  // 17% of visits and two-or-more coast shots on 18%, which on a safari page
+  // reads as a different company's website. One of each also happens to tell the
+  // right story — the bush, where you sleep, and the beach most safari
+  // honeymoons end on.
+  var BAND = {
+    wildlife: [
+      { src: 'uploads/band-leopards.jpg',         alt: 'A leopard cub reaching up to its mother in golden grass' },
+      { src: 'uploads/band-zebras.jpg',           alt: 'Two zebras backlit in tall golden grass' },
+      { src: 'uploads/band-elephant-water.jpg',   alt: "An elephant at the water's edge, reflected",             avoidWith: 'uploads/hero-elephants.jpg' },
+      { src: 'uploads/band-wildebeest.jpg',       alt: 'Wildebeest running through a cloud of dust' }
+    ],
+    camp: [
+      { src: 'uploads/band-mara-firepit.jpg',     alt: 'A fire pit and lantern-lit deck above the Mara at dusk', avoidWith: 'uploads/hero-mara-firepit.jpg' },
+      { src: 'uploads/band-tented-camp.jpg',      alt: 'A lantern-lit tented suite among the trees at dusk' },
+      { src: 'uploads/band-kilimanjaro-pool.jpg', alt: 'A guest in the pool with Kilimanjaro beyond',            avoidWith: 'uploads/hero-kilimanjaro.jpg' }
+    ],
+    coast: [
+      { src: 'uploads/band-island-lodge.jpg',     alt: 'A thatched suite above turquoise water on the coast' },
+      { src: 'uploads/band-beach-dinner.jpg',     alt: 'A private dinner set with lanterns on an empty beach' },
+      { src: 'uploads/band-island-aerial.jpg',    alt: 'An aerial view of a beach lodge and pool on white sand' }
+    ]
+  };
+  var GROUPS = ['wildlife', 'camp', 'coast'];
+
+  var bandPick;
+  try { bandPick = JSON.parse(sessionStorage.getItem('tse_band') || 'null'); } catch (e) { bandPick = null; }
+  // Each entry carries its own group name, because the shuffle below means
+  // position no longer tells you which group a tile came from.
+  var valid = Array.isArray(bandPick) && bandPick.length === 3 &&
+    bandPick.every(function (p) { return p && BAND[p.g] && BAND[p.g][p.i]; });
+
+  if (!valid) {
+    bandPick = GROUPS.map(function (g) {
+      // Some tiles share a subject with a hero (the Mara fire pit, Kilimanjaro,
+      // elephants). Showing both in one visit reads as the page repeating itself,
+      // so drop the clashing tile for this visit. Every group keeps at least two
+      // options, so this can never empty one.
+      var opts = [];
+      for (var k = 0; k < BAND[g].length; k++) {
+        if (BAND[g][k].avoidWith !== hero.src) { opts.push(k); }
+      }
+      return { g: g, i: opts[Math.floor(Math.random() * opts.length)] };
+    });
+    // Shuffle which group lands in which tile, so the running order varies too.
+    for (var s = bandPick.length - 1; s > 0; s--) {
+      var r = Math.floor(Math.random() * (s + 1));
+      var t = bandPick[s]; bandPick[s] = bandPick[r]; bandPick[r] = t;
+    }
+    try { sessionStorage.setItem('tse_band', JSON.stringify(bandPick)); } catch (e) {}
+  }
+  window.__tseBand = bandPick.map(function (p) { return BAND[p.g][p.i]; });
+})();
+</script>
+
+<!-- Kept OUT of search results. Added 3 Aug so the shareable preview could not be
+     indexed while the team reviews it. It is arguably right permanently too — a
+     paid-traffic landing page has no SEO job and would only compete with the
+     main site — but that is a decision to make deliberately at launch, not to
+     inherit by forgetting this line is here. -->
+<meta name="robots" content="noindex, nofollow">
+
 <title>The Safari Edit — The honeymoon your love deserves</title>
 <meta name="description" content="Bespoke African honeymoon safaris, designed around you by The Safari Edit. Book a free, no-obligation consultation with Alex, our Head of Travel.">
 <meta name="theme-color" content="#000000">
@@ -327,6 +459,16 @@
   .form-err { font-size:var(--text-small); color:var(--tse-orange); margin:2px 0 0; }
   .form .btn { margin-top:8px; }
   .form-fine { font-size:var(--text-caption); line-height:1.5; color:var(--text-on-dark-mut); margin:8px 0 0; }
+  .form-fine a { color:var(--tse-orange); text-decoration:underline; text-underline-offset:2px; }
+  .form-fine a:hover { color:var(--accent-hover); }
+  /* Marketing consent — row layout, native checkbox tinted brand orange */
+  .field-check { flex-direction:row; align-items:flex-start; gap:12px; margin-top:2px; cursor:pointer; }
+  .field-check input { flex:none; width:20px; height:20px; margin:1px 0 0; padding:0;
+    background:none; border:none; border-radius:4px; accent-color:var(--accent); box-shadow:none; cursor:pointer; }
+  .field-check span { font-size:var(--text-small); line-height:1.5; color:var(--text-on-dark-mut);
+    font-family:var(--font-sans); text-transform:none; letter-spacing:0; }
+  /* Honeypot — off-screen, hidden from people and assistive tech */
+  .hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
   .form-done .done-ring { width:80px; height:80px; border-radius:50%; border:1.5px solid var(--accent);
     display:flex; align-items:center; justify-content:center; margin:0 0 26px; }
   .form-done h3 { font-size:clamp(1.7rem,2.4vw,1.9rem); line-height:1.15; color:var(--tse-cream); margin:0 0 14px; }
@@ -361,13 +503,62 @@
     .footer-links { gap:28px; }
     .footer-copy { margin-top:36px; }
   }
+
+  /* ============================================================
+     Cookie consent banner
+     ============================================================ */
+  .cc-banner { position:fixed; left:0; right:0; bottom:0; z-index:80;
+    background:var(--tse-cream); border-top:1px solid var(--border-sand);
+    box-shadow:0 -10px 34px rgba(26,23,20,.16); padding:18px clamp(16px,4vw,28px); }
+  .cc-banner[hidden] { display:none; }
+  .cc-inner { max-width:1040px; margin-inline:auto; display:flex; flex-direction:column; gap:16px; }
+  .cc-copy { display:flex; flex-direction:column; gap:6px; }
+  .cc-heading { font-family:var(--font-display); font-weight:400; font-size:1.15rem; line-height:1.2;
+    color:var(--tse-ink-900); margin:0; }
+  .cc-text { font-size:var(--text-small); line-height:1.55; color:var(--text-body); margin:0; }
+  .cc-text a { color:var(--accent-press); text-decoration:underline; text-underline-offset:2px; }
+  .cc-actions { display:flex; gap:12px; }
+  /* Accept and Reject are the SAME size and prominence — not a dark pattern. */
+  .cc-btn { flex:1; font-family:var(--font-label); text-transform:uppercase;
+    letter-spacing:var(--tracking-label-sm); font-size:12px; padding:14px 20px;
+    border-radius:var(--radius-pill); border:1.5px solid var(--tse-black); cursor:pointer;
+    transition:background .14s var(--ease-out), border-color .14s var(--ease-out), color .14s var(--ease-out); }
+  .cc-accept { background:var(--accent); border-color:var(--accent); color:var(--tse-black); }
+  .cc-accept:hover { background:var(--accent-hover); border-color:var(--accent-hover); }
+  .cc-reject { background:transparent; color:var(--tse-black); }
+  .cc-reject:hover { background:rgba(26,23,20,.07); }
+  @media (min-width:720px){
+    .cc-inner { flex-direction:row; align-items:center; justify-content:space-between; gap:28px; }
+    .cc-actions { flex:none; }
+    .cc-btn { flex:none; min-width:132px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MKT3D9G5"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
 <!-- ============================ Hero ============================ -->
 <section class="hero">
-  <div class="hero-media"><img src="uploads/hero-dawn.jpg" alt="Golden dawn light across the African savannah"></div>
+  <!-- Hero rotates per visit. It ships without a src because the choice is made
+       in <head> (see the hero-picker script there), which also preloads the
+       chosen file — so the download starts before the parser ever reaches this
+       point. The <noscript> covers the no-JS case. -->
+  <div class="hero-media">
+    <img id="heroImg" alt="" fetchpriority="high">
+    <noscript><img src="uploads/hero-lion.jpg" alt="A lion at rest in golden grass at first light"></noscript>
+  </div>
+  <script>
+  (function () {
+    var hero = (window.__tseHero) || { src: 'uploads/hero-lion.jpg', alt: 'A lion at rest in golden grass at first light' };
+    var el = document.getElementById('heroImg');
+    el.src = hero.src;
+    el.alt = hero.alt;
+  })();
+  </script>
   <div class="hero-overlay" aria-hidden="true"></div>
   <header class="hero-bar">
     <img class="hero-logo" src="assets/logo-white.png" alt="The Safari Edit">
@@ -462,11 +653,28 @@
 
 <!-- ========================= Image band ======================== -->
 <section class="band">
+  <!-- Three tiles drawn from a pool of ten, three DISTINCT ones per visit.
+       loading="lazy" because the band sits well below the fold: without it these
+       would compete with the hero for bandwidth at the moment that matters. -->
   <div class="band-grid">
-    <div class="band-item"><img src="uploads/wildlife.jpg" alt="Wildlife on the African plains"></div>
-    <div class="band-item"><img src="uploads/landscape.jpg" alt="Sweeping African landscape"></div>
-    <div class="band-item band-item--3"><img src="uploads/hero-dawn.jpg" alt="Safari camp at dawn"></div>
+    <div class="band-item"><img id="bandImg0" alt="" loading="lazy"></div>
+    <div class="band-item"><img id="bandImg1" alt="" loading="lazy"></div>
+    <div class="band-item band-item--3"><img id="bandImg2" alt="" loading="lazy"></div>
+    <noscript>
+      <div class="band-item"><img src="uploads/band-leopards.jpg" alt="A leopard cub reaching up to its mother in golden grass"></div>
+      <div class="band-item"><img src="uploads/band-beach-dinner.jpg" alt="A private dinner set with lanterns on an empty beach"></div>
+      <div class="band-item band-item--3"><img src="uploads/band-tented-camp.jpg" alt="A lantern-lit tented suite among the trees at dusk"></div>
+    </noscript>
   </div>
+  <script>
+  (function () {
+    var picks = window.__tseBand || [];
+    for (var i = 0; i < 3; i++) {
+      var el = document.getElementById('bandImg' + i);
+      if (el && picks[i]) { el.src = picks[i].src; el.alt = picks[i].alt; }
+    }
+  })();
+  </script>
 </section>
 
 <!-- ========================= Value stack ======================= -->
@@ -481,7 +689,7 @@
       <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="var(--tse-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><p>A bespoke itinerary, shaped around you</p></li>
       <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="var(--tse-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><p>The exact timing to catch the moment</p></li>
       <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="var(--tse-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><p>Quiet access to camps that never advertise</p></li>
-      <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="var(--tse-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><p>Every logistic handled, and a 24/7 concierge</p></li>
+      <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="var(--tse-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><p>Every logistic handled, and someone on hand while you travel</p></li>
     </ul>
     <div class="vs-close">
       <p class="muted">The planning, the expertise, the itinerary.</p>
@@ -549,14 +757,14 @@
       <p>We design it first, you decide later.</p>
       <p>A best-price promise.</p>
       <p>Free changes right up to deposit.</p>
-      <p>24/7 concierge on the ground.</p>
+      <p>Someone on hand while you travel.</p>
     </div>
   </div>
 </section>
 
 <!-- ========================= Who we are ======================== -->
 <section class="who">
-  <div class="who-media"><img src="uploads/wildlife.jpg" alt="A quiet moment on the African plains"></div>
+  <div class="who-media"><img src="uploads/who-lion.jpg" alt="A male lion at rest, close up" loading="lazy"></div>
   <div class="who-overlay" aria-hidden="true"></div>
   <div class="who-body">
     <img class="who-logo" src="assets/logo-white.png" alt="The Safari Edit">
@@ -589,16 +797,31 @@
           <span class="field-label">Your fiancé&rsquo;s email <span class="opt">(optional)</span></span>
           <input type="text" name="partner" placeholder="sam@example.com">
         </label>
+
+        <!-- Honeypot: hidden from people, tempting to bots. If it's filled, the
+             submission is silently discarded (JS below + the Step 3 handler). -->
+        <div class="hp" aria-hidden="true">
+          <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
+        </div>
+
+        <!-- Attribution: filled from the URL query string on page load.
+             Absent parameters stay empty — never the string "undefined". -->
+        <input type="hidden" name="utm_source">
+        <input type="hidden" name="utm_medium">
+        <input type="hidden" name="utm_campaign">
+        <input type="hidden" name="utm_content">
+        <input type="hidden" name="fbclid">
+
+        <label class="field field-check">
+          <input type="checkbox" name="marketing_consent" value="yes">
+          <span>Send me the occasional email &mdash; where to go, when to go, and what we&rsquo;ve been up to.</span>
+        </label>
+
         <p class="form-err" id="formErr" role="alert" hidden></p>
         <button type="submit" class="btn btn--block">Start your free consultation today</button>
+        <p class="form-fine">We&rsquo;ll only use your details to answer your enquiry. Here&rsquo;s our <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">privacy policy</a>.</p>
         <p class="form-fine">Alex replies personally, usually within a day.</p>
       </form>
-      <div class="form-done" id="formDone" hidden>
-        <div class="done-ring"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="var(--tse-orange)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <h3 id="formConfirm">Thank you — it&rsquo;s with us.</h3>
-        <p>Alex will be in touch personally to set up your free consultation.</p>
-        <button class="restart" id="formRestart">Send another</button>
-      </div>
     </div>
   </div>
 </section>
@@ -611,13 +834,29 @@
       <div class="footer-tag">Bespoke African Experiences</div>
     </div>
     <div class="footer-links">
-      <a href="#">Privacy Policy</a>
+      <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>
       <a href="#">Terms &amp; Conditions</a>
+      <a href="#" id="cookieSettings">Cookie settings</a>
       <a href="mailto:hello@thesafariedit.com">hello@thesafariedit.com</a>
     </div>
   </div>
   <p class="footer-copy">© 2026 The Safari Edit. All rights reserved. ATOL-protected trips arranged through our trusted partners.</p>
 </footer>
+
+<!-- ===================== Cookie consent ======================= -->
+<!-- Copy below is not from copy.md (it has no cookie wording) — Neil to confirm. -->
+<div class="cc-banner" id="cookieBanner" role="dialog" aria-live="polite" aria-labelledby="cookieHeading" hidden>
+  <div class="cc-inner">
+    <div class="cc-copy">
+      <h2 class="cc-heading" id="cookieHeading">Cookies</h2>
+      <p class="cc-text">We use cookies to understand how people find and use this page, and to measure our advertising. Nothing is set until you choose. <a href="https://thesafariedit.com/privacy-policy/" target="_blank" rel="noopener">Privacy policy</a></p>
+    </div>
+    <div class="cc-actions">
+      <button type="button" class="cc-btn cc-reject" id="cookieReject">Reject</button>
+      <button type="button" class="cc-btn cc-accept" id="cookieAccept">Accept</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // Reviews carousel (mobile) — scroll by ~one card width
@@ -640,37 +879,134 @@
     });
   })();
 
-  // Consultation form — client-side validation + mock confirmation
+  // Consultation form — attribution capture, validation, submit to /api/enquiry.
   (function () {
     var form = document.getElementById('consultForm');
-    var done = document.getElementById('formDone');
     var err = document.getElementById('formErr');
-    var confirm = document.getElementById('formConfirm');
-    var restart = document.getElementById('formRestart');
     if (!form) return;
+
+    // copy.md section 5 — shown only if the enquiry can't reach Alex.
+    var SUBMIT_ERROR = 'Something’s gone wrong at our end. Please email Alex directly at alex@thesafariedit.com and he’ll pick it up from there.';
+
+    // Fill the hidden attribution fields from the URL. An absent parameter
+    // leaves the field empty — never the literal string "undefined".
+    var params = new URLSearchParams(window.location.search);
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'fbclid'].forEach(function (key) {
+      var field = form.elements[key];
+      if (field) field.value = params.get(key) || '';
+    });
 
     function showErr(msg) { err.textContent = msg; err.hidden = false; }
 
+    // Mark that THIS visit submitted the form. The thank-you page reads the flag
+    // and pushes `enquiry_submitted` (the Lead trigger in GTM), then clears it —
+    // so refreshing or revisiting /thank-you never counts a second conversion.
+    // The event fires there, not here, because the redirect below can abort an
+    // in-flight tag on this page.
+    function goThankYou() {
+      try { sessionStorage.setItem('tse_enquiry', '1'); } catch (e) {}
+      window.location.href = '/thank-you';
+    }
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = (form.name.value || '').trim();
-      var email = (form.email.value || '').trim();
+
+      // Honeypot: a real person never fills this. If filled, treat it as spam —
+      // show the normal success response and send nothing.
+      // Redirect WITHOUT the flag: a bot sees the same page, but never counts
+      // as a Lead conversion.
+      if ((form.elements['company'].value || '').trim() !== '') {
+        window.location.href = '/thank-you';
+        return;
+      }
+
+      var name = (form.elements['name'].value || '').trim();
+      var email = (form.elements['email'].value || '').trim();
       if (!name || !/.+@.+\..+/.test(email)) {
         showErr('Please add your name and a valid email so Alex can reply.');
         return;
       }
-      var first = name.split(/\s+/)[0];
-      confirm.textContent = first ? ('Thank you, ' + first + ' — it’s with us.') : 'Thank you — it’s with us.';
-      form.hidden = true;
-      done.hidden = false;
-    });
-
-    restart.addEventListener('click', function () {
-      form.reset();
       err.hidden = true;
-      done.hidden = true;
-      form.hidden = false;
+
+      var btn = form.querySelector('button[type="submit"]');
+      var label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      var payload = {
+        name: name,
+        email: email,
+        partner: (form.elements['partner'].value || '').trim(),
+        marketing_consent: form.elements['marketing_consent'].checked,
+        utm_source: form.elements['utm_source'].value,
+        utm_medium: form.elements['utm_medium'].value,
+        utm_campaign: form.elements['utm_campaign'].value,
+        utm_content: form.elements['utm_content'].value,
+        fbclid: form.elements['fbclid'].value,
+        company: form.elements['company'].value
+      };
+
+      fetch('/api/enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (r) {
+        if (r.ok) { goThankYou(); return; }
+        throw new Error('bad status');
+      }).catch(function () {
+        showErr(SUBMIT_ERROR);
+        btn.disabled = false;
+        btn.textContent = label;
+      });
     });
+  })();
+
+  // Cookie consent — drives Google Consent Mode and remembers the choice.
+  // Swappable: if the main site's CMP is adopted later, remove this block and
+  // let the CMP call gtag('consent','update',...) instead. GTM stays as-is.
+  (function () {
+    var COOKIE = 'tse_consent';
+    var banner = document.getElementById('cookieBanner');
+    var accept = document.getElementById('cookieAccept');
+    var reject = document.getElementById('cookieReject');
+    var settings = document.getElementById('cookieSettings');
+    if (!banner) return;
+
+    function readChoice() {
+      var m = document.cookie.match(/(?:^|;\s*)tse_consent=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : null;
+    }
+    function saveChoice(value) {
+      // Cross-subdomain: scope to .thesafariedit.com when we're on it, so a
+      // choice on go.thesafariedit.com is remembered on thesafariedit.com too.
+      var host = location.hostname;
+      var domain = /(^|\.)thesafariedit\.com$/.test(host) ? '; Domain=.thesafariedit.com' : '';
+      var secure = location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = COOKIE + '=' + value + '; Max-Age=' + (60 * 60 * 24 * 180) +
+        '; Path=/; SameSite=Lax' + domain + secure;
+    }
+    function applyConsent(granted) {
+      gtag('consent', 'update', {
+        ad_storage: granted ? 'granted' : 'denied',
+        ad_user_data: granted ? 'granted' : 'denied',
+        ad_personalization: granted ? 'granted' : 'denied',
+        analytics_storage: granted ? 'granted' : 'denied',
+        functionality_storage: granted ? 'granted' : 'denied',
+        personalization_storage: granted ? 'granted' : 'denied'
+      });
+      // Signal for non-Google tags (e.g. the Meta Pixel): fire it in GTM on this
+      // event, so the Pixel only loads once analytics/ads consent is granted.
+      dataLayer.push({ event: granted ? 'consent_granted' : 'consent_denied' });
+    }
+
+    var prior = readChoice();
+    if (prior === 'granted') { applyConsent(true); }
+    else if (prior === 'denied') { applyConsent(false); }
+    else { banner.hidden = false; } // no choice yet — Consent Mode already denies
+
+    accept.addEventListener('click', function () { saveChoice('granted'); applyConsent(true); banner.hidden = true; });
+    reject.addEventListener('click', function () { saveChoice('denied'); applyConsent(false); banner.hidden = true; });
+    if (settings) settings.addEventListener('click', function (e) { e.preventDefault(); banner.hidden = false; });
   })();
 </script>
 </body>

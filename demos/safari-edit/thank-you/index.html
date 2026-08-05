@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Consent Mode v2 — identical defaults to the landing page. MUST run before
+     Google Tag Manager loads. The visitor's earlier choice is restored further
+     down, from the shared .thesafariedit.com cookie. -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    functionality_storage: 'denied',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
+    wait_for_update: 500
+  });
+
+  // Restore the choice made on the landing page, before GTM loads, so a
+  // consenting visitor's Lead event is not held back by the default deny.
+  (function () {
+    var m = document.cookie.match(/(?:^|;\s*)tse_consent=([^;]+)/);
+    var prior = m ? decodeURIComponent(m[1]) : null;
+    if (prior !== 'granted' && prior !== 'denied') return;
+    var granted = prior === 'granted';
+    gtag('consent', 'update', {
+      ad_storage: granted ? 'granted' : 'denied',
+      ad_user_data: granted ? 'granted' : 'denied',
+      ad_personalization: granted ? 'granted' : 'denied',
+      analytics_storage: granted ? 'granted' : 'denied',
+      functionality_storage: granted ? 'granted' : 'denied',
+      personalization_storage: granted ? 'granted' : 'denied'
+    });
+    dataLayer.push({ event: granted ? 'consent_granted' : 'consent_denied' });
+  })();
+
+  // The conversion. Only fires when THIS visit submitted the form — the flag is
+  // set by the landing page and cleared here, so a refresh or a revisit never
+  // counts a second Lead. Build the GTM Lead trigger on this event.
+  (function () {
+    var submitted;
+    try { submitted = sessionStorage.getItem('tse_enquiry') === '1'; } catch (e) { submitted = false; }
+    if (!submitted) return;
+    try { sessionStorage.removeItem('tse_enquiry'); } catch (e) {}
+    dataLayer.push({ event: 'enquiry_submitted' });
+  })();
+</script>
+
+<!-- Google Tag Manager — same container as the landing page. -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MKT3D9G5');</script>
+<!-- End Google Tag Manager -->
+
+<title>Your enquiry — The Safari Edit</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FCA520'/%3E%3C/svg%3E">
+<style>
+  @font-face {
+    font-family: "Klod"; font-style: normal; font-weight: 400; font-display: swap;
+    src: url("/assets/fonts/Klod-Regular.woff2") format("woff2"),
+         url("/assets/fonts/Klod-Regular.woff") format("woff"),
+         url("/assets/fonts/Klod-Regular.ttf") format("truetype");
+  }
+  @font-face {
+    font-family: "Rational TW Text"; font-style: normal; font-weight: 400; font-display: swap;
+    src: url("/assets/fonts/RationalTWText-Book.otf") format("opentype");
+  }
+  :root {
+    --tse-orange:#FCA520; --tse-black:#000000; --tse-cream:#FFF7EC; --tse-ink-900:#1A1714;
+    --font-display:"Klod","Cormorant Garamond",Georgia,"Times New Roman",serif;
+    --font-sans:"Rational TW Text","Inter","Helvetica Neue",Arial,sans-serif;
+    --tracking-label:.22em;
+  }
+  *,*::before,*::after { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh; background:var(--tse-black); color:var(--tse-cream);
+    font-family:var(--font-sans); line-height:1.6; -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:64px clamp(24px,6vw,80px); text-align:left;
+  }
+  .wrap { width:100%; max-width:620px; }
+  .logo { width:190px; height:auto; display:block; margin:0 0 40px; }
+  .rule { width:44px; height:2px; background:var(--tse-orange); margin:0 0 28px; }
+  h1 {
+    margin:0 0 28px; font-family:var(--font-display); font-weight:400;
+    font-size:clamp(2.2rem,5vw,3rem); line-height:1.08; letter-spacing:-.014em;
+    color:var(--tse-cream); text-wrap:balance;
+  }
+  p { margin:0 0 20px; font-size:clamp(1.0625rem,1.6vw,1.15rem); line-height:1.7;
+    color:rgba(255,247,236,.82); text-wrap:pretty; }
+  p:last-of-type { margin-bottom:0; }
+  .foot { margin-top:56px; font-family:var(--font-sans); text-transform:uppercase;
+    letter-spacing:var(--tracking-label); font-size:10px; color:rgba(255,247,236,.4); }
+</style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MKT3D9G5"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+  <main class="wrap">
+    <img class="logo" src="/assets/logo-white.png" alt="The Safari Edit">
+    <div class="rule"></div>
+    <h1>Thank you &mdash; your enquiry has reached us.</h1>
+    <p>There&rsquo;s a confirmation on its way to your inbox now. If it hasn&rsquo;t arrived in a few minutes, have a look in your junk folder.</p>
+    <p>Alex, our Head of Travel, will then be in touch personally within one working day.</p>
+    <div class="foot">The Safari Edit · Bespoke African Experiences</div>
+  </main>
+</body>
+</html>
