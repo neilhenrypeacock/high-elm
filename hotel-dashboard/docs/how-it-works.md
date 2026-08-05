@@ -312,5 +312,5 @@ digest (Phase 2) was designed:
      Stripe Checkout ──(signed webhook)──► subscriptions table
 ```
 
-*Companion document: `review-findings-2026-08-04.md` — the current findings,
-launch checklist, and reconciliation of the two prior audits.*
+*Companion document: `/docs/review-findings-2026-08-04.md` (repo root) — the
+current findings, launch checklist, and reconciliation of the two prior audits.*
