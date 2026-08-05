@@ -117,8 +117,28 @@ already take.
 Both scripts are **dry-run by default**; pass `--apply` to write.
 `npm run cleanup:dry` / `npm run compress:dry` to preview.
 
+### Records that aren't posts (fixed 2026-08-05)
+`post_id` was derived as `p.id || p.shortCode || p.url`. When a profile had
+nothing inside the scrape window the actor could return a **profile-level**
+record with no id, no shortCode and no timestamp — so the `p.url` fallback wrote
+a row whose `post_id` was `https://www.instagram.com/<handle>` and whose every
+metric was null. Twelve reached production between 21 Jul and 4 Aug 2026.
+
+A real post always carries a timestamp, so that is now the test: no timestamp →
+not a post → skipped and **counted in the per-handle log line**, so an actor that
+starts returning nothing but profile records is visible rather than silent. The
+twelve existing rows were deleted on 5 Aug (they held no data beyond the handle
+and a capture time, and nothing in `standout_posts` or `saved_posts` referenced
+them).
+
 ## Hidden like counts
-Instagram hides likes on some posts/accounts, and the Apify actor's sentinel for it has DRIFTED over time: `null`/missing (the documented case), `-1` (its behaviour as of late Jul 2026), and — through Jun/Jul 2026 — a literal **`3`** (the 3-avatar "liked by A, B and others" preview count leaking through as data; 813 rows reached the DB looking like genuine 3-like posts before the 2026-07-31 audit caught it). Since then `likes.js → normalizeLikesCount` maps every sentinel to `null` at scrape time — `null` is the ONE stored convention — and the historical `3` rows were backfilled to `null` (`backfill-likes-sentinel.sql`). The dashboard's `hasVisibleLikes` excludes hidden-like rows from every engagement calculation. If engagement figures ever look collapsed again (a hotel whose "typical post" is single-digit likes), suspect a NEW sentinel value first: check the raw dataset of the latest run before trusting the numbers.
+Instagram hides likes on some posts/accounts, and the Apify actor's sentinel for it has DRIFTED over time: `null`/missing (the documented case), `-1` (its behaviour as of late Jul 2026), and — through Jun/Jul 2026 — a literal **`3`** (the 3-avatar "liked by A, B and others" preview count leaking through as data; 813 rows reached the DB looking like genuine 3-like posts before the 2026-07-31 audit caught it). Since then `likes.js → normalizeLikesCount` maps every sentinel to `null` at scrape time — `null` is the ONE stored convention — and the historical `3` rows were backfilled to `null` (`backfill-likes-sentinel.sql`).
+**As of 5 Aug 2026 the convention is actually true in the data**: the last 96 `-1`
+rows (49 hotels, 10 Jun – 26 Jul) were normalised to `null`, and a live count of
+both `likes_count = -1` and `likes_count = 3` now returns zero. `comments_count`
+never carried a sentinel. No dashboard figure moved — `hasVisibleLikes` already
+excluded both values — but "null is the one stored convention" is no longer a
+statement with exceptions. The dashboard's `hasVisibleLikes` excludes hidden-like rows from every engagement calculation. If engagement figures ever look collapsed again (a hotel whose "typical post" is single-digit likes), suspect a NEW sentinel value first: check the raw dataset of the latest run before trusting the numbers.
 
 ## Supabase tables written
 - `profile_snapshots` — one new row per scrape per hotel (INSERT; deduped per UTC day on re-runs, 2026-07-09)
