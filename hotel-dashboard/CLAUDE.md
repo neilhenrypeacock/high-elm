@@ -21,7 +21,18 @@ A Next.js 16 app (App Router, Turbopack) that renders the High Elm Studio "Conte
 - **Manual Supabase steps (dashboard, no mgmt token in repo):** (1) Authentication → Email → turn ON "Confirm email"; (2) Redirect URLs allow-list must include `https://www.hotelcontentradar.com/auth/callback` and `/auth/new-password`; (3) point the "Confirm signup" + "Reset Password" email templates at `/auth/callback?token_hash={{ .TokenHash }}&type=signup|recovery`. **Env:** `STRIPE_DISABLED` must be removed from Vercel + `.env.local` (Stripe test keys stay).
 
 ## Companion folder
-The data pipeline lives at `../instagram-pipeline/` in the SAME monorepo (one git repo at `high-elm/`). It is not part of this Next.js project's build. You run it manually to scrape and upload data; the dashboard only reads from Supabase.
+The data pipeline lives at `../instagram-pipeline/` in the SAME repo (one git repo at
+`hotel-content-radar/`). It is not part of this Next.js project's build. You run it
+manually to scrape and upload data; the dashboard only reads from Supabase.
+
+> **Renamed 5 Aug 2026.** This repo was `high-elm` and was a monorepo holding several
+> unrelated projects. It is now `hotel-content-radar` and holds only the radar:
+> `hotel-dashboard/`, `instagram-pipeline/` and `keys/`. The other two projects became
+> their own repos — **`the-safari-edit-landing-page`** (was `demos/safari-edit`) and
+> **`high-elm-studio`** (was `website/`, which had been a redundant copy; that repo
+> already existed and now also serves highelmstudio.com via GitHub Pages). GitHub
+> redirects the old `high-elm` URLs, and all five Actions secrets stayed put, so the
+> weekly scrape was never touched.
 
 ## Design system (do not deviate)
 > Rebranded 2026-07-04 from teal/Baloo-2 to **Aston-green / Space Grotesk**, matching the
