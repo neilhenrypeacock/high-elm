@@ -213,11 +213,6 @@ export type Snapshot = {
 // ── What's Working — holistic portfolio analysis, scoped Last-30-days / All-time.
 export type WwScope = 'month' | 'all';
 export type WwDeltaDir = 'up' | 'down' | 'flat';
-/** One cell of the month-in-review stat bar: a figure, its caption, and a delta
- *  line (period-over-period for 'month', a baseline label for 'all'). */
-export type WwStat = { figure: string; caption: string; delta: string; dir: WwDeltaDir };
-/** An observation card: a headline stat, a title, and an explanatory paragraph. */
-export type WwObservation = { stat: string; title: string; text: string };
 // ── The five levers ─────────────────────────────────────────────────────────
 // The What's Working screen is built as a stack of "levers" — the things a hotel
 // can actually change. Each lever is one card: a plain-English headline, a
@@ -273,13 +268,6 @@ export type WhatsWorkingScope = {
   set: WhatsWorkingSet;
   /** The five levers, in display order. Levers with no data are omitted. */
   levers: WwLever[];
-  /** The four-cell month-in-review stat bar. */
-  stats: WwStat[];
-  /** Up to three data-derived observation cards. */
-  observations: WwObservation[];
-  /** Top 5 breakouts of the scope. */
-  bestPosts: OutlierPost[];
-  bestPostsTitle: string;
   /** Editorial lede shown under the section title. */
   lede: string;
   /** How collaboration posts are performing vs solo posts. Null when there are
@@ -326,7 +314,6 @@ export type DashboardData = {
   /** Posts qualifying ≥10× this week */
   super_breakout_count: number;
   /** Global: top-10 vs rest, by overall ER */
-  frequency: { top10_ppw: number; rest_ppw: number };
   hotel_count: number;
   /** Distinct countries among hotels with post data */
   countries_count: number;
@@ -591,15 +578,6 @@ function medianPostERPct(posts: RawPost[], latestFollowers: Record<string, numbe
   return median(ers);
 }
 
-/** Median posts/week across hotels that posted in the window (cadence, all posts). */
-function medianPPWInWindow(posts: RawPost[], windowDays: number): number | null {
-  const byHandle: Record<string, number> = {};
-  for (const p of posts) byHandle[p.instagram_handle] = (byHandle[p.instagram_handle] ?? 0) + 1;
-  const weeks = windowDays / 7;
-  const vals = Object.values(byHandle).map(c => c / weeks);
-  return median(vals);
-}
-
 function pluralFormat(label: string): string {
   const map: Record<string, string> = { Reel: 'Reels', Video: 'Videos', Carousel: 'Carousels', Photo: 'Photos', Other: 'other posts' };
   return map[label] ?? `${label}s`;
@@ -609,16 +587,6 @@ function pluralFormat(label: string): string {
 function singleFormat(label: string): string {
   const map: Record<string, string> = { Reel: 'a Reel', Video: 'a video', Carousel: 'a carousel', Photo: 'a photo', Other: 'another post type' };
   return map[label] ?? `a ${label.toLowerCase()}`;
-}
-
-const MINUS = '−';
-/** Format a period-over-period delta with sign, magnitude and dir. Differences
- *  smaller than half the smallest representable unit read as flat. */
-function fmtDelta(diff: number, decimals: number, unit: string, period: string): { delta: string; dir: WwDeltaDir } {
-  const eps = Math.pow(10, -decimals) / 2;
-  if (Math.abs(diff) < eps) return { delta: `No change ${period}`, dir: 'flat' };
-  const sign = diff > 0 ? '+' : MINUS;
-  return { delta: `${sign}${Math.abs(diff).toFixed(decimals)}${unit} ${period}`, dir: diff > 0 ? 'up' : 'down' };
 }
 
 /**
@@ -688,50 +656,6 @@ export function buildCollabNote(
       ' A collab is a true Instagram co-author byline, appears on both partners’ grids, and borrows the partner’s audience —' +
       ' so treat it as a partnership decision rather than a posting tweak.',
   };
-}
-
-/** Up to three data-derived observation cards for a scope. */
-function buildObservations(set: WhatsWorkingSet, breakouts: OutlierPost[], onRecord: boolean): WwObservation[] {
-  const obs: WwObservation[] = [];
-  const scopeWord = onRecord ? 'all-time' : 'this period';
-
-  // 1) Which format is carrying the breakouts.
-  const fmt = [...set.by_format].sort((a, b) => b.value - a.value);
-  if (fmt.length >= 2 && breakouts.length) {
-    const top = fmt[0];
-    const low = fmt[fmt.length - 1];
-    const share = Math.round((breakouts.filter(p => p.type === top.label).length / breakouts.length) * 100);
-    if (share > 0) {
-      obs.push({
-        stat: `${share}%`,
-        title: `${pluralFormat(top.label)} are carrying the portfolio`,
-        text: `${share}% of ${scopeWord} breakouts were ${pluralFormat(top.label).toLowerCase()} — ${top.value.toFixed(2)}% median engagement against ${low.value.toFixed(2)}% for ${pluralFormat(low.label).toLowerCase()}.`,
-      });
-    }
-  }
-
-  // 2) The single biggest breakout (breakouts are sorted by multiplier desc).
-  const best = breakouts[0];
-  if (best) {
-    obs.push({
-      stat: `${best.multiplier.toFixed(1)}×`,
-      title: 'The biggest breakout',
-      text: `${best.hotel_name} beat its own median by ${best.multiplier.toFixed(1)}× — the strongest single result ${onRecord ? 'on record' : 'this period'}.`,
-    });
-  }
-
-  // 3) Mid-size accounts punching above their weight.
-  const top10 = breakouts.slice(0, 10).filter(p => p.hotel_followers != null);
-  if (top10.length) {
-    const smallest = top10.reduce((a, b) => (b.hotel_followers! < a.hotel_followers! ? b : a));
-    obs.push({
-      stat: fmtFollowers(smallest.hotel_followers),
-      title: 'Mid-size accounts punch up',
-      text: `Some of the biggest multiples come from smaller followings like ${smallest.hotel_name} (${fmtFollowers(smallest.hotel_followers)}) — a leaner baseline means a genuine hit reads as a breakout.`,
-    });
-  }
-
-  return obs;
 }
 
 // ── Lever construction ──────────────────────────────────────────────────────
@@ -1063,7 +987,6 @@ export function computeWhatsWorkingData(
   hotelRegionByHandle: Record<string, string | null>,
   storedImageUrl: Record<string, string | null>,
   storedInsight: Record<string, { insight: string | null; tag: string | null; theme_tag: string | null; editors_pick: boolean; landing_pin: boolean }>,
-  standout: Record<TimeWindow, OutlierPost[]>,
 ): WhatsWorkingData {
   const age = (p: RawPost) => now - new Date(p.posted_at).getTime();
   const inLast = (days: number) => (p: RawPost) => age(p) <= days * DAY_MS_WW;
@@ -1077,36 +1000,11 @@ export function computeWhatsWorkingData(
 
   const breakoutsIn = (posts: RawPost[]) =>
     computeStandout(posts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle, hotelRegionByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT);
+  // Only the current and all-time breakout passes are needed: the previous
+  // period reaches the screen through the levers' trend lines, which compare
+  // computeWhatsWorking SETS rather than breakout counts.
   const mRes = breakoutsIn(monthPosts);
-  const pRes = breakoutsIn(prevPosts);
   const aRes = breakoutsIn(allValid);
-
-  const erM = medianPostERPct(monthPosts, latestFollowers);
-  const erP = medianPostERPct(prevPosts, latestFollowers);
-  const erA = medianPostERPct(allValid, latestFollowers);
-  const ppwM = medianPPWInWindow(monthCadence, 30);
-  const ppwP = medianPPWInWindow(prevCadence, 30);
-
-  const period = 'vs prev. 30d';
-  const dER    = fmtDelta((erM ?? 0) - (erP ?? 0), 2, ' pts', period);
-  const dBreak = fmtDelta(mRes.breakout_count - pRes.breakout_count, 0, '', period);
-  const dSuper = fmtDelta(mRes.super_breakout_count - pRes.super_breakout_count, 0, '', period);
-  const dPpw   = fmtDelta((ppwM ?? 0) - (ppwP ?? 0), 1, '', period);
-
-  const monthStats: WwStat[] = [
-    { figure: erM != null ? `${erM.toFixed(2)}%` : '—', caption: 'Median engagement rate', delta: dER.delta, dir: dER.dir },
-    { figure: `${mRes.breakout_count}`, caption: 'Breakouts ≥2× this month', delta: dBreak.delta, dir: dBreak.dir },
-    { figure: `${mRes.super_breakout_count}`, caption: 'Cleared 10× this month', delta: dSuper.delta, dir: dSuper.dir },
-    { figure: ppwM != null ? ppwM.toFixed(1) : '—', caption: 'Median posts / week', delta: dPpw.delta, dir: dPpw.dir },
-  ];
-
-  const bestAll = standout.all[0];
-  const allStats: WwStat[] = [
-    { figure: erA != null ? `${erA.toFixed(2)}%` : '—', caption: 'Median engagement rate', delta: 'All-time baseline', dir: 'flat' },
-    { figure: `${aRes.breakout_count}`, caption: 'Breakouts ≥2× on record', delta: 'since tracking began', dir: 'flat' },
-    { figure: `${aRes.super_breakout_count}`, caption: 'Cleared 10× (super-breakouts)', delta: 'all time', dir: 'flat' },
-    { figure: bestAll ? `${bestAll.multiplier.toFixed(1)}×` : '—', caption: 'Best multiple on record', delta: bestAll ? bestAll.hotel_name : '—', dir: 'flat' },
-  ];
 
   const setMonth = computeWhatsWorking(monthPosts, latestFollowers);
   const setPrev  = computeWhatsWorking(prevPosts, latestFollowers);
@@ -1127,20 +1025,12 @@ export function computeWhatsWorkingData(
     month: {
       set: setMonth,
       levers: buildLevers(setMonth, setPrev, cadenceMonth, cadencePrev, mRes.posts, 'month'),
-      stats: monthStats,
-      observations: buildObservations(setMonth, mRes.posts, false),
-      bestPosts: standout['30d'].slice(0, 5),
-      bestPostsTitle: 'Best posts this month',
       lede: WW_LEDE.month,
       collab: buildCollabNote(monthPosts, mRes.posts, latestFollowers, 'month'),
     },
     all: {
       set: setAll,
       levers: buildLevers(setAll, null, cadenceAll, null, aRes.posts, 'all'),
-      stats: allStats,
-      observations: buildObservations(setAll, aRes.posts, true),
-      bestPosts: standout.all.slice(0, 5),
-      bestPostsTitle: 'Best posts on record',
       lede: WW_LEDE.all,
       collab: buildCollabNote(allValid, aRes.posts, latestFollowers, 'all'),
     },
@@ -1850,17 +1740,8 @@ export async function getPortfolioData(
   const whatsWorkingData = computeWhatsWorkingData(
     validForAnalysis, allPosts, now, latestFollowers, hotelMetrics,
     hotelNameByHandle, hotelCountryByHandle, hotelRegionByHandle, storedImageUrl,
-    storedInsight, standout,
+    storedInsight,
   );
-
-  // ── Global frequency (top 10 vs rest by overall ER) ──────────────────────
-  const rankedByOverall = [...hotelRows]
-    .filter(h => h.engagement_rate !== null && h.posts_per_week !== null)
-    .sort((a, b) => (b.engagement_rate ?? 0) - (a.engagement_rate ?? 0));
-  const frequency = {
-    top10_ppw: mean(rankedByOverall.slice(0, 10).map(h => h.posts_per_week!)) ?? 0,
-    rest_ppw:  mean(rankedByOverall.slice(10).map(h => h.posts_per_week!))    ?? 0,
-  };
 
   // ── Week ending — from the data, not the render date ─────────────────────
   // allPosts is ordered newest-first, so the first post carries the latest date.
@@ -1890,7 +1771,6 @@ export async function getPortfolioData(
     featured,
     breakout_count,
     super_breakout_count,
-    frequency,
     hotel_count:          trackedHotelCount,
     countries_count:      trackedCountryCount,
     total_posts_analysed: validForAnalysis.length,

@@ -12,13 +12,13 @@
  * This file must never import from lib/data.ts, and lib/data.ts must never
  * import from it. The maths lives there; the manners live here.
  *
- * ⚠ lib/data.ts PRE-FORMATS two multiplier strings that cannot pass through this
- * helper: whatsWorkingData[scope].stats "Best multiple on record" and
- * observations[] "The biggest breakout". Neither reaches a screen today —
- * WhatsWorking.tsx stopped rendering stats/observations/bestPosts in the
- * 2026-07-23 lever rebuild. If either is ever put back on screen, it will carry
- * a raw 1226.9× straight past this cap; recompute it through formatMultiplier
- * at the render site.
+ * lib/data.ts used to PRE-FORMAT two multiplier strings that could not pass
+ * through this helper — whatsWorkingData[scope].stats "Best multiple on record"
+ * and observations[] "The biggest breakout" — either of which would have carried
+ * a raw 1226.9× straight past the cap if ever put back on screen. Both were
+ * deleted along with the rest of the data the 2026-07-23 lever rebuild orphaned,
+ * so the hazard is gone rather than merely dormant. Keep it that way: format
+ * multipliers at the render site, through formatMultiplier.
  */
 
 /** At or above this, a multiplier stops being credible and shows as "50×+". */

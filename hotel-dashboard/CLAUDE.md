@@ -195,8 +195,11 @@ components/
                           RANK (not order), so the day lever keeps Mon–Sun order and still
                           reads. Levers with too little data are OMITTED and the rest
                           renumber — all-time currently shows three, not five.
-                          NB data.whatsWorkingData still carries `stats`/`observations`/
-                          `bestPosts`; nothing renders them since the rebuild.
+                          The `stats`/`observations`/`bestPosts` the rebuild left
+                          computed-but-unrendered were DELETED 2026-08-04, along
+                          with buildObservations/fmtDelta/medianPPWInWindow and
+                          DashboardData.frequency. WhatsWorkingScope is now
+                          set + levers + lede + collab.
                           COLLABORATION NOTE (added 2026-07-30): a tinted
                           "Also worth considering · Collaborations" card sits
                           AFTER the lever stack — deliberately NOT a sixth
@@ -463,7 +466,7 @@ already a step in `scrape-pipeline.yml` — so it lands with the scrape, unatten
   Caveat carried in the note itself: a collab borrows the partner's audience, and a null
   `coauthor_usernames` can't distinguish "no co-author" from "not yet re-scraped", so the
   solo bucket may hide a few collabs (which would understate, not overstate, the effect).
-- What's Working also has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`): per-scope format/caption/day/hour bars, a 4-cell stat bar (month = period-over-period deltas vs the previous 30 days; all-time = baselines + best multiple on record), up to 3 data-derived observation cards, and the top-5 best posts (reusing the precomputed `standout` windows). `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. Median engagement rate here is the median *per-post* ER within the window (not the hotel-level leaderboard ER), so it can be windowed for the delta. Observation copy is derived from the data, not editorial sample text.
+- What's Working also has a **scope toggle** (Last 30 days / All time) — `computeWhatsWorkingData` in lib/data.ts precomputes both scopes into `data.whatsWorkingData` (`Record<'month'|'all', WhatsWorkingScope>`): the per-scope format/caption/day/hour bars (`set`), the `levers`, the `lede` and the `collab` note — and nothing else, since 2026-08-04. It no longer takes the `standout` windows, and no longer runs a previous-period breakout pass; `prevPosts` is still needed, but only for the levers' trend lines. `data.whatsWorking` (single `WhatsWorkingSet`, last `WHATS_WORKING_WINDOW_DAYS`=30) is retained for the overview's "in focus" bullets. Median engagement rate here is the median *per-post* ER within the window (not the hotel-level leaderboard ER).
 - ContentRadar tiers: top 10 = large cards; everything below is a ranked list of compact rows, revealed 20 at a time via "Show more" (button disappears when the list runs out).
 
 ## Supabase tables
