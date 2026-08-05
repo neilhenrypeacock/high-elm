@@ -226,6 +226,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 820px) {
   .cr-lb-row { grid-template-columns: 32px 2fr 0.9fr 1.3fr !important; gap: 12px !important; }
   .cr-lb-region, .cr-lb-ppw, .cr-lb-last { display: none !important; }
+  /* The hotel cell can't hold the name AND the labelled Watchlist control side
+     by side at this width, so the control drops onto its own line. !important
+     because the cell's flex row is set inline (same pattern as .cr-lb-row). */
+  .cr-lb-hotel-cell {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .cr-lb-hotel-main { width: 100%; }
 }
 
 /* Floating nav: hide section links on small screens, keep the feature pill */

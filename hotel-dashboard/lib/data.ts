@@ -46,6 +46,26 @@ const MIN_ENGAGEMENT          = 500;
 // from breakout detection: "94× a median of 3" is technically true but reads
 // as noise on a sales asset. Tunable.
 const MIN_BASELINE_ENGAGEMENT = 25;
+// ── The empty-week top-up (Neil, 2026-07-31) ─────────────────────────────────
+// Some weeks produce no breakouts a hotel can act on alone. Measured on the
+// week ending 27 Jul: 11 posts cleared 2×, and ALL ELEVEN were collabs (six of
+// them one hotel's) — the best solo post of the week managed 1.66×. Dropping
+// OUTLIER_THRESHOLD was the obvious fix and the wrong one: at 1.5× it would
+// have added three solo posts, at 1.2× ten, while permanently rewriting what
+// "breakout" means in the 30-day and all-time lists too.
+//
+// So the threshold stays at 2× and the SEVEN-DAY VIEW ONLY tops itself up with
+// the week's next-best posts, carried as near_miss and labelled as such. They
+// never touch breakout_count, the hero numeral, the other windows, What's
+// Working or the landing taster. Tunable:
+//   FLOOR   — a top-up must still have beaten its hotel's own median by this
+//             much; below it the post is simply ordinary and not worth showing.
+//   MIN     — how many posts the week should offer in total.
+//   MIN_SOLO— how many of those should be non-collab, since a collab needs a
+//             willing partner and so isn't something a hotel can act on alone.
+const NEAR_MISS_FLOOR = 1.25;
+const WEEK_MIN_POSTS  = 5;
+const WEEK_MIN_SOLO   = 3;
 // Live client-side time window for the Top posts (breakout) list. Each window's
 // list is precomputed server-side (below) so toggling needs no new query. Same
 // breakout selection for all three; "All time" is the top 100 best-performing
@@ -166,6 +186,13 @@ export type OutlierPost = {
    *  breakouts are forced to the front of the landing taster (hero + open
    *  cards), overriding the default "best non-collab, last 30 days" rule. */
   landing_pin: boolean;
+  /** NOT a breakout — a top-up on the 7-day view only, added when the week
+   *  didn't produce enough breakouts (or enough non-collab ones) to be worth
+   *  looking at. Beat its hotel's own median, but by less than
+   *  OUTLIER_THRESHOLD. Never counted in breakout_count, never in the 30d or
+   *  all-time lists, and labelled as "closest this week" in the UI — the 2×
+   *  claim has to keep meaning 2×. */
+  near_miss: boolean;
 };
 
 export type BarItem = { label: string; value: number; count: number };
@@ -1145,7 +1172,12 @@ export function computeStandout(
   // the coverage gate — is skipped, because the editor already selected the
   // post. The one hard requirement left is a computable baseline (median > 0),
   // without which no multiplier exists.
-  opts: { curated?: boolean } = {},
+  //
+  // minMultiplier drops the 2× bar for THIS CALL ONLY, so the 7-day view can
+  // build its near-miss pool (see NEAR_MISS_FLOOR). Every other gate still
+  // applies, and the returned breakout_count is still the ≥2× count — a
+  // near-miss is not a breakout and must never be counted as one.
+  opts: { curated?: boolean; minMultiplier?: number } = {},
 ): { posts: OutlierPost[]; breakout_count: number; super_breakout_count: number } {
   const standout: OutlierPost[] = [];
   for (const p of recentValidPosts) {
@@ -1166,7 +1198,7 @@ export function computeStandout(
       if (!m.measurable) continue;
     }
     const multiplier = postEngagement / m.medianPostEngagement;
-    if (!opts.curated && multiplier < OUTLIER_THRESHOLD) continue;
+    if (!opts.curated && multiplier < (opts.minMultiplier ?? OUTLIER_THRESHOLD)) continue;
     const medL = m.medianLikes    ?? 1;
     const medC = m.medianComments ?? 1;
     standout.push({
@@ -1202,13 +1234,68 @@ export function computeStandout(
       // not the grid). Null coauthor_usernames (rows not yet re-scraped) = not a
       // collab until backfilled.
       is_collab:            (p.coauthor_usernames?.length ?? 0) > 0,
+      // Set by selectWeekTopUps on the 7-day view; everything selected here
+      // cleared whatever bar this call was given, so nothing is a near-miss yet.
+      near_miss:            false,
     });
   }
-  // Count ALL qualifying posts before slicing for the hero panel
-  const breakout_count       = standout.length;
-  const super_breakout_count = standout.filter(p => p.multiplier >= 10).length;
+  // Count ALL qualifying posts before slicing for the hero panel. Counted at
+  // OUTLIER_THRESHOLD regardless of any minMultiplier override — a relaxed call
+  // is building a near-miss pool, and near-misses are not breakouts.
+  const breakouts            = standout.filter(p => p.multiplier >= OUTLIER_THRESHOLD);
+  const breakout_count       = breakouts.length;
+  const super_breakout_count = breakouts.filter(p => p.multiplier >= 10).length;
   standout.sort((a, b) => b.multiplier - a.multiplier);
   return { posts: standout.slice(0, limit), breakout_count, super_breakout_count };
+}
+
+/**
+ * The empty-week top-up for the SEVEN-DAY view.
+ *
+ * Given the week's true breakouts and a pool of everything that beat its
+ * hotel's median by at least NEAR_MISS_FLOOR, return the posts to append so the
+ * week offers WEEK_MIN_POSTS in total and WEEK_MIN_SOLO of them non-collab.
+ * The solo shortfall is filled first — a week of nothing but collabs is the
+ * case this exists for, and a collab isn't a lever a hotel can pull on its own.
+ *
+ * Returns a NEW array of posts flagged near_miss, best-first; never mutates its
+ * inputs, and returns [] when the week stands up on its own. Exported for
+ * tests.
+ */
+export function selectWeekTopUps(
+  breakouts: OutlierPost[],
+  pool: OutlierPost[],
+): OutlierPost[] {
+  const key = (p: OutlierPost) => `${p.post_id}|${p.instagram_handle}`;
+  const taken = new Set(breakouts.map(key));
+
+  // Anything in the pool that isn't already a breakout, best first.
+  const candidates = pool
+    .filter(p => !taken.has(key(p)) && p.multiplier < OUTLIER_THRESHOLD)
+    .sort((a, b) => b.multiplier - a.multiplier);
+
+  const chosen: OutlierPost[] = [];
+  const take = (p: OutlierPost) => {
+    taken.add(key(p));
+    chosen.push({ ...p, near_miss: true });
+  };
+
+  // 1. Enough non-collab posts that the week says something a hotel can act on.
+  const soloShort = WEEK_MIN_SOLO - breakouts.filter(p => !p.is_collab).length;
+  if (soloShort > 0) {
+    for (const p of candidates) {
+      if (chosen.length >= soloShort) break;
+      if (!p.is_collab) take(p);
+    }
+  }
+
+  // 2. Then enough posts overall, best available regardless of collab status.
+  for (const p of candidates) {
+    if (breakouts.length + chosen.length >= WEEK_MIN_POSTS) break;
+    if (!taken.has(key(p))) take(p);
+  }
+
+  return chosen.sort((a, b) => b.multiplier - a.multiplier);
 }
 
 /**
@@ -1692,6 +1779,16 @@ export async function getPortfolioData(
     if (key === '7d') {
       breakout_count = res.breakout_count;
       super_breakout_count = res.super_breakout_count;
+      // Top the week up when it didn't produce enough to look at — see the
+      // NEAR_MISS_FLOOR note by the constants. The appended posts are flagged
+      // near_miss and sit BELOW every real breakout, so the ranking stays
+      // honest and the counts above are already fixed.
+      const pool = computeStandout(
+        windowPosts, hotelMetrics, hotelNameByHandle, hotelCountryByHandle,
+        hotelRegionByHandle, storedImageUrl, storedInsight, STANDOUT_LIMIT,
+        { minMultiplier: NEAR_MISS_FLOOR },
+      ).posts;
+      standout[key] = [...res.posts, ...selectWeekTopUps(res.posts, pool)];
     }
   }
 

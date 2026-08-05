@@ -5,8 +5,10 @@ import { DORMANT_DAYS, type HotelRow } from '@/lib/data';
 import { fmtFollowers, fmtDate, fmtNumber } from '@/lib/format';
 import SaveToggle from './SaveToggle';
 
-// Watchlist control for a hotel — same SaveToggle as the post cards, so the two
-// affordances read identically (a bookmark that fills when saved).
+// Watchlist control for a hotel — the same SaveToggle as the post cards, but
+// LABELLED here. On a leaderboard row a bare bookmark reads as "save this
+// thing" without saying what it saves or where it goes, so the word
+// "Watchlist" is carried on the control itself.
 function HotelWatchToggle({ handle, name, saved }: { handle: string; name: string; saved: boolean }) {
   return (
     <SaveToggle
@@ -14,9 +16,10 @@ function HotelWatchToggle({ handle, name, saved }: { handle: string; name: strin
       endpoint="/api/watchlist"
       saveBody={{ instagram_handle: handle, hotel_name: name }}
       deleteBody={{ instagram_handle: handle }}
-      label={`Add ${name} to watchlist`}
-      savedLabel={`On your watchlist — remove ${name}`}
+      label={`Add ${name} to your hotel watchlist`}
+      savedLabel={`On your hotel watchlist — remove ${name}`}
       variant="inline"
+      text="Watchlist"
     />
   );
 }
@@ -29,7 +32,9 @@ type SortDir = 'asc' | 'desc';
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const GRID: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '42px 2.4fr 1.1fr 0.8fr 1.4fr 0.8fr 1fr',
+  // Hotel column carries the name, handle, accreditation pins AND the labelled
+  // Watchlist control, so it takes the extra width the region column can spare.
+  gridTemplateColumns: '42px 3fr 0.9fr 0.8fr 1.4fr 0.8fr 1fr',
   gap: 24,
   padding: '16px 24px',
   alignItems: 'center',
@@ -247,6 +252,29 @@ export default function HotelTable({
         </span>
       </div>
 
+      {/* One plain-English line for whichever ranking is showing. The tooltips on
+          the pills above are invisible on touch and jargon-y besides, so the
+          explanation is stated on the page. Sorting by another column header
+          leaves this on the eng. rate line — that column is always displayed. */}
+      <p
+        aria-live="polite"
+        style={{ margin: '-4px 0 18px', fontSize: 12.5, color: 'var(--body-mid)', lineHeight: 1.6 }}
+      >
+        {sortKey === 'momentum' ? (
+          <>
+            <strong style={{ fontWeight: 600, color: 'var(--signal-deep)' }}>Momentum</strong>
+            {' — how much attention a hotel pulled in over the last 30 days, for its size. Posting more often lifts it, so it rewards hotels that show up regularly.'}
+          </>
+        ) : (
+          <>
+            <strong style={{ fontWeight: 600, color: 'var(--signal-deep)' }}>Eng. rate</strong>
+            {' — how well a hotel’s '}
+            <em>typical</em>
+            {' post does, for its size. A small hotel whose posts land can rank above a much bigger one, and a single viral hit won’t carry it.'}
+          </>
+        )}
+      </p>
+
       {/* Table card */}
       <div
         style={{
@@ -337,12 +365,12 @@ export default function HotelTable({
                 {i + 1}
               </div>
 
-              <div role="cell" style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ minWidth: 0, flex: 1 }}>
+              <div role="cell" className="cr-lb-hotel-cell" style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="cr-lb-hotel-main" style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {h.name}
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 2 }}>@{h.instagram_handle}</div>
+                  <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{h.instagram_handle}</div>
                   <AccreditationPins labels={h.accreditations} />
                 </div>
                 <HotelWatchToggle handle={h.instagram_handle} name={h.name} saved={watchSet.has(h.instagram_handle)} />

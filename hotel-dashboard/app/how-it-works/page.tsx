@@ -210,7 +210,7 @@ export default function HowItWorksPage() {
       <section style={{ ...INNER, padding: '0 40px 8px' }}>
         <TrialCta
           heading="See this week’s breakouts for yourself."
-          sub="Start a 14-day free trial and get the full dashboard — the breakout feed, the patterns, and the leaderboard."
+          sub="Start a 14-day free trial and get the full dashboard — the breakout feed, the patterns, and the hotel leaderboard."
         />
       </section>
 

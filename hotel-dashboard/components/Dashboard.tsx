@@ -7,7 +7,6 @@ import { fmtFollowers } from '@/lib/format';
 import { belowCap, formatMultiplier } from '@/lib/format-multiplier';
 import { postKey } from '@/lib/post-key';
 import ContentRadar, { ImageWithFallback } from './ContentRadar';
-import FeaturedPosts from './FeaturedPosts';
 import SaveToggle from './SaveToggle';
 import WhatsWorkingPanel from './WhatsWorking';
 import HotelTable from './HotelTable';
@@ -157,7 +156,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
           borderBottom: '1px solid rgba(245,240,232,0.10)',
         }}
       >
-        <span style={PANEL_LABEL}>Your watchlist</span>
+        <span style={PANEL_LABEL}>Your hotel watchlist</span>
         <a
           href="#leaderboard"
           style={{
@@ -267,7 +266,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
           </span>
           <div style={{ maxWidth: 380 }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: '#F7F6F2', marginBottom: 6 }}>
-              Nothing on your watchlist yet
+              Nothing on your hotel watchlist yet
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.6, color: '#A49D92', margin: 0 }}>
               Follow the hotels you care about and their breakouts surface here first, every week.
@@ -290,7 +289,7 @@ function WatchlistPanel({ hotels, handles }: { hotels: HotelRow[]; handles: stri
             Add hotels to your watchlist
           </a>
           <a href="#leaderboard" style={{ fontSize: 12, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
-            Browse the leaderboard →
+            Browse the hotel leaderboard →
           </a>
         </div>
       )}
@@ -389,13 +388,14 @@ function BreakoutMini({ post: p, saved }: { post: OutlierPost; saved: boolean })
             fontSize: 15,
             letterSpacing: '-0.01em',
             color: '#F7F6F2',
-            background: 'var(--signal)',
+            // A top-up isn't a breakout, so it doesn't wear the signal green.
+            background: p.near_miss ? 'rgba(20,18,15,0.72)' : 'var(--signal)',
             borderRadius: 999,
             padding: '5px 12px',
             boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
           }}
         >
-          {formatMultiplier(p.multiplier)}
+          {formatMultiplier(p.multiplier)}{p.near_miss && ' · closest'}
         </span>
         <span style={{ position: 'absolute', top: 12, right: 12 }}>
           <SaveToggle
@@ -447,22 +447,26 @@ function BreakoutsPanel({
   savedKeys: Set<string>;
 }) {
   if (posts.length === 0) return null;
+  // A week too quiet to fill this row gets topped up from the 7-day view (see
+  // NEAR_MISS_FLOOR in lib/data.ts). If NOTHING broke out, the row is entirely
+  // top-ups and must not be headed "breakouts".
+  const allTopUps = posts.every(p => p.near_miss);
   return (
     <section>
-      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>This week · breakouts</div>
+      <div style={{ ...PANEL_LABEL, letterSpacing: '0.2em', marginBottom: 18 }}>
+        {allTopUps ? 'This week · closest to breaking out' : 'This week · breakouts'}
+      </div>
       <div className="cr-breakout-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
         {posts.map(p => {
           const key = postKey(p.post_id, p.instagram_handle);
           return <BreakoutMini key={key} post={p} saved={savedKeys.has(key)} />;
         })}
       </div>
-      {total > posts.length && (
-        <div style={{ marginTop: 20 }}>
-          <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
-            See all {total} breakouts →
-          </a>
-        </div>
-      )}
+      <div style={{ marginTop: 20 }}>
+        <a href="#breakouts" style={{ fontSize: 13, fontWeight: 600, color: 'var(--signal-light)', textDecoration: 'none' }}>
+          {total > posts.length ? `See all ${total} breakouts →` : 'See the full week →'}
+        </a>
+      </div>
     </section>
   );
 }
@@ -634,7 +638,16 @@ function Hero({
 // (#overview / #breakouts / #working / #leaderboard) select the view — there is
 // no top nav. Only the active section is mounted, so each scrolls on its own.
 // Per-section explanations now live behind the sidebar's "i" (About this view).
-const SECTION_IDS = ['overview', 'breakouts', 'featured', 'working', 'leaderboard'] as const;
+// ⚠ 'featured' is WITHDRAWN (2026-08-04), not deleted. It was pulled after the
+// hidden-likes fix re-baselined the picks: an Editor's Pick is a permanent manual
+// flag and curated mode skips every gate, so an Ashford Castle post that read
+// 65.7x when picked was still sitting on the "worth replicating" shelf at 0.4x.
+// The shelf needs a floor before it comes back. components/FeaturedPosts.tsx,
+// lib/data.ts selectFeaturedPosts + data.featured, and their tests are all still
+// here — restoring is: re-add the FeaturedPosts import, put 'featured' back in
+// this list, in AppShell's RADAR_SECTIONS + INNER_SECTIONS (and its FeaturedIcon),
+// in PageInfo's resolveInfoKey, and re-mount the section below.
+const SECTION_IDS = ['overview', 'breakouts', 'working', 'leaderboard'] as const;
 type SectionId = (typeof SECTION_IDS)[number];
 
 function readHash(): SectionId {
@@ -686,13 +699,7 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* ── Featured — the hand-picked inspiration shelf ── */}
-      {active === 'featured' && (
-        <div className="cr-inner" style={sectionPad}>
-          <SectionInfo infoKey="featured" />
-          <FeaturedPosts posts={data.featured} savedPostKeys={savedPostKeys} />
-        </div>
-      )}
+      {/* ── Featured — WITHDRAWN 2026-08-04, see the note on SECTION_IDS ── */}
 
       {/* ── What's working ── */}
       {active === 'working' && (
