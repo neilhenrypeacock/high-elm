@@ -1,9 +1,10 @@
 import type { User } from '@supabase/supabase-js';
 
-// Admin (founder) allowlist. The editorial write path — Editor's note + Editor's
-// Pick on breakout cards — is restricted to these accounts. Membership is by
-// EMAIL, checked against the live session, so a normal member can never reach
-// the admin page or its write API even with an active subscription.
+// Admin (founder) allowlist. The weekly-review write paths — publish, feature
+// on homepage, remove post, remove hotel — are restricted to these accounts.
+// Membership is by EMAIL, checked against the live session, so a normal member
+// can never reach the admin page or its write APIs even with an active
+// subscription.
 //
 // Source of truth: the ADMIN_EMAILS env var (comma-separated) if set, otherwise
 // the two founder accounts below. Matched case-insensitively. Keep this in sync
