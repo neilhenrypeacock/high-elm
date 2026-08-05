@@ -59,6 +59,52 @@ const MIN_ENGAGEMENT          = 500;  // absolute floor; below this is noise (ke
 const MIN_BASELINE_ENGAGEMENT = 25;   // hotels with a median below this are excluded
 const OUTLIER_WINDOW_DAYS     = 7;    // the "this week" window for breakouts
 
+// ── Backfill mode (added 2026-08-05) ─────────────────────────────────────────
+// The weekly run annotates this week's top 10 and nothing else, so the archive
+// of older breakouts has almost no insights — which starves the dashboard's
+// content lever, the landing "inside a breakout" band, and the "why it worked"
+// line on every older card. Backfill widens the same breakout rule to a longer
+// window and works through whatever is still missing.
+//
+//   node generate-insight.js                          # unchanged weekly run
+//   node generate-insight.js --backfill --dry-run     # count the work, no spend
+//   node generate-insight.js --backfill --window=90 --limit=50
+//   node generate-insight.js --backfill --force       # also redo posts that HAVE one
+//
+// Default behaviour is untouched: no flags = exactly what scrape-pipeline.yml
+// has always run. Backfill SKIPS posts that already carry an insight unless
+// --force, so it is safe to re-run, resumable, and never silently rewrites a
+// note Neil set by hand.
+const argv        = process.argv.slice(2);
+const hasFlag     = name => argv.includes(`--${name}`);
+const flagValue   = name => {
+  const hit = argv.find(a => a.startsWith(`--${name}=`));
+  return hit ? hit.slice(name.length + 3) : null;
+};
+const BACKFILL    = hasFlag('backfill');
+const DRY_RUN     = hasFlag('dry-run');
+const FORCE       = hasFlag('force');
+const BACKFILL_WINDOW_DAYS = (() => {
+  const raw = flagValue('window');
+  if (!raw || raw === 'all') return Infinity;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) {
+    console.error(`--window must be a positive number of days or "all" (got "${raw}")`);
+    process.exit(1);
+  }
+  return n;
+})();
+const BACKFILL_LIMIT = (() => {
+  const raw = flagValue('limit');
+  if (!raw) return Infinity;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0) {
+    console.error(`--limit must be a positive whole number (got "${raw}")`);
+    process.exit(1);
+  }
+  return n;
+})();
+
 // ── Prose-stats guards (logging only — not part of the breakout rule) ─────────
 const MIN_VALID_POSTS      = 3;    // need ≥3 posts with visible likes for a reliable hotel ER
 const ER_ANOMALY_THRESHOLD = 0.10; // ER above 10% is flagged and excluded from prose stats
@@ -315,7 +361,10 @@ async function getData() {
   // valid is already ordered newest-first (posts query is posted_at desc), so
   // hotelPostEngagements[handle].slice(0, BASELINE_POSTS) is the last 30 posts.
   const now    = Date.now();
-  const windowMs = OUTLIER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  // Backfill widens the window; every other rule below is identical, so a
+  // backfilled post is a breakout by exactly the same definition as a weekly one.
+  const windowDays = BACKFILL ? BACKFILL_WINDOW_DAYS : OUTLIER_WINDOW_DAYS;
+  const windowMs = windowDays * 24 * 60 * 60 * 1000;
   const standout = [];
 
   for (const p of valid) {
@@ -352,6 +401,7 @@ async function getData() {
 
   return {
     top10: standout.slice(0, MAX_STANDOUT),
+    allBreakouts: standout,
     categoryER:    (categoryER ? categoryER * 100 : 0).toFixed(2),
     topHotelName:  nameByHandle[topHotel?.handle] ?? topHotel?.handle,
     topHotelER:    topHotel?.medianER ? (topHotel.medianER * 100).toFixed(2) : null,
@@ -485,12 +535,60 @@ async function main() {
   await ensureBucket();
 
   console.log('\nPulling data from Supabase…');
-  const { top10, ...numbers } = await getData();
-  console.log(`Top non-collab breakouts this week: ${top10.length}`);
-  console.log('Numbers:', JSON.stringify(numbers, null, 2));
+  const { top10, allBreakouts, ...numbers } = await getData();
+
+  // Which posts this run will analyse. Weekly = this week's top 10, unchanged.
+  let targets = top10;
+  if (BACKFILL) {
+    const windowLabel = BACKFILL_WINDOW_DAYS === Infinity ? 'all time' : `last ${BACKFILL_WINDOW_DAYS} days`;
+    console.log(`Backfill · ${windowLabel} · ${allBreakouts.length} breakouts match the rule`);
+
+    let pool = allBreakouts;
+    if (!FORCE) {
+      // Skip anything that already has a note — this is what makes the backfill
+      // resumable, cheap to re-run, and incapable of overwriting Neil's own
+      // wording. --force is the deliberate opt-out.
+      const done = new Set();
+      const PAGE = 1000;
+      for (let page = 0; ; page++) {
+        const { data, error } = await sb
+          .from('standout_posts')
+          .select('post_id')
+          .not('post_insight', 'is', null)
+          .range(page * PAGE, page * PAGE + PAGE - 1);
+        if (error) throw error;
+        if (!data?.length) break;
+        data.forEach(r => done.add(r.post_id));
+        if (data.length < PAGE) break;
+      }
+      pool = allBreakouts.filter(p => !done.has(p.post_id));
+      console.log(`  ${done.size} posts already have an insight → ${pool.length} still missing one`);
+    }
+
+    targets = pool.slice(0, BACKFILL_LIMIT);
+    if (targets.length < pool.length) {
+      console.log(`  --limit=${BACKFILL_LIMIT} → analysing ${targets.length}, leaving ${pool.length - targets.length} for a later run`);
+    }
+  } else {
+    console.log(`Top non-collab breakouts this week: ${top10.length}`);
+    console.log('Numbers:', JSON.stringify(numbers, null, 2));
+  }
+
+  if (DRY_RUN) {
+    console.log(`\nDRY RUN — would analyse ${targets.length} post(s). No API calls, no writes.`);
+    targets.slice(0, 10).forEach((p, i) =>
+      console.log(`  ${String(i + 1).padStart(3)}. ${p.multiplier.toFixed(1)}× ${p.hotel_name} · ${p.type} · ${p.posted_at.slice(0, 10)}`));
+    if (targets.length > 10) console.log(`  … and ${targets.length - 10} more`);
+    return;
+  }
+
+  if (targets.length === 0) {
+    console.log('\nNothing to do — every breakout in scope already has an insight.');
+    return;
+  }
 
   console.log('\nUploading standout images to storage…');
-  const enriched = await Promise.all(top10.map(async p => {
+  const enriched = await Promise.all(targets.map(async p => {
     if (!p.image_url) { console.log(`  ${p.post_id}: no image`); return { ...p, stored_image_url: null }; }
     process.stdout.write(`  ${p.post_id}: `);
     const url = await uploadImage(p.post_id, p.image_url);
@@ -502,22 +600,49 @@ async function main() {
   const insights = await generatePostInsights(enriched);
 
   console.log('\nUpserting standout_posts table…');
+  let written = 0;
+  let skipped = 0;
   for (let i = 0; i < enriched.length; i++) {
     const p   = enriched[i];
     const ins = insights[i] ?? {};
-    const { error } = await sb.from('standout_posts').upsert({
-      post_id:          p.post_id,
-      stored_image_url: p.stored_image_url,
-      post_insight:     ins.insight ?? null,
-      driver_tag:       ins.tag ?? null,
-      theme_tag:        ins.theme ?? null,
-      updated_at:       new Date().toISOString(),
-    });
-    if (error) console.warn(`  ${p.post_id}: upsert failed — ${error.message}`);
-    else console.log(`  ${p.post_id}: "${ins.insight}" [${ins.tag}] [${ins.theme}]`);
+
+    // ⚠ NEVER write a null insight over an existing one (fixed 2026-08-05,
+    // finding 3 of the 4 Aug review). This used to be an unconditional
+    //     post_insight: ins.insight ?? null
+    // so any post whose AI call failed — outage, quota, a video we couldn't
+    // sample — had its stored note ERASED by a routine Monday run, including
+    // notes set by hand. The columns the model didn't produce are now simply
+    // left out of the upsert, so the old value survives. A failed call must
+    // cost us nothing but the call.
+    const row = { post_id: p.post_id, updated_at: new Date().toISOString() };
+    if (p.stored_image_url) row.stored_image_url = p.stored_image_url;
+    if (ins.insight) row.post_insight = ins.insight;
+    if (ins.tag)     row.driver_tag   = ins.tag;
+    if (ins.theme)   row.theme_tag    = ins.theme;
+
+    if (!ins.insight && !ins.tag && !ins.theme && !p.stored_image_url) {
+      skipped++;
+      console.warn(`  ${p.post_id}: nothing produced — row left untouched`);
+      continue;
+    }
+
+    const { error } = await sb.from('standout_posts').upsert(row);
+    if (error) {
+      console.warn(`  ${p.post_id}: upsert failed — ${error.message}`);
+      skipped++;
+    } else if (ins.insight) {
+      written++;
+      console.log(`  ${p.post_id}: "${ins.insight}" [${ins.tag}] [${ins.theme}]`);
+    } else {
+      // The AI produced nothing but the image upload did. Say so plainly rather
+      // than printing "null" and counting it as enriched — a log that overstates
+      // what it wrote is how a silent failure stays silent.
+      skipped++;
+      console.warn(`  ${p.post_id}: no insight returned — stored image only, existing note kept`);
+    }
   }
 
-  console.log(`\nDone — ${enriched.length} standout posts enriched.`);
+  console.log(`\nDone — ${written} insight(s) written, ${skipped} left without one.`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
