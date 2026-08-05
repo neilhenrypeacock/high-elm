@@ -13,7 +13,9 @@ export const metadata = {
 
 export default async function AdminPage() {
   const { user } = await requireAdminUser();
-  const data = await getPortfolioData();
+  // adminView: see through the publish gate, so the Monday review covers the
+  // posts members can't see yet. Hidden posts/hotels stay excluded either way.
+  const data = await getPortfolioData({ adminView: true });
 
   return (
     <AppShell
@@ -22,7 +24,7 @@ export default async function AdminPage() {
       isAdmin={isAdminView(user)}
       footerNote={`Updated weekly · ${data.week_ending_long}`}
     >
-      <AdminEditor windows={data.standout} />
+      <AdminEditor windows={data.standout} publish={data.publish} hidden={data.hidden} />
     </AppShell>
   );
 }

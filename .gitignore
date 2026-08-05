@@ -5,3 +5,6 @@
 keys/.env.*
 node_modules/
 .DS_Store
+
+# Client comparison exports — local only, never deploy
+client-reports/

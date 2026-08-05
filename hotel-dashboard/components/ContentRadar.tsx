@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import type { OutlierPost, TimeWindow } from '@/lib/data';
-import { TIME_WINDOWS } from '@/lib/data';
+import { TIME_WINDOWS, parseInsight } from '@/lib/data';
 import { postKey } from '@/lib/post-key';
 import { fmtFollowers, fmtPostedAt } from '@/lib/format';
+import { formatMultiplier } from '@/lib/format-multiplier';
 import { accreditationsFor } from '@/lib/accreditations';
 import { AccreditationPins } from './HotelTable';
 import SaveToggle from './SaveToggle';
@@ -39,7 +40,35 @@ function PostSaveToggle({
 const LABEL = "var(--font-label), 'Hanken Grotesk', sans-serif";
 const DISPLAY = "var(--font-display), 'Space Grotesk', sans-serif";
 const MEDIA_PLACEHOLDER = 'linear-gradient(135deg, #2b2824, #3c372e)';
-const THUMB_PLACEHOLDER = 'linear-gradient(135deg, #2f2b26, #3d382f)';
+
+// Divider above the 7-day view's top-up posts. These beat their hotel's own
+// median but not by the 2× a breakout requires, so the heading says exactly
+// that rather than letting them pass as breakouts further down a ranked list.
+function TopUpHeading({ anyBreakouts }: { anyBreakouts: boolean }) {
+  return (
+    <div style={{ borderTop: '1px solid var(--line)', paddingTop: 22, marginTop: 8 }}>
+      <div
+        style={{
+          fontFamily: LABEL,
+          fontSize: 10,
+          textTransform: 'uppercase',
+          letterSpacing: '0.16em',
+          color: 'var(--muted)',
+          marginBottom: 8,
+        }}
+      >
+        Closest this week
+      </div>
+      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.65, color: 'var(--body-mid)', maxWidth: 620 }}>
+        {anyBreakouts
+          ? 'A quiet week for breakouts, so here are the posts that came closest. '
+          : 'Nothing cleared the 2× bar this week, so here are the posts that came closest. '}
+        Each one beat its own hotel&rsquo;s typical post — just not by enough to count as a
+        breakout. Worth a look, but read them as a thinner signal.
+      </p>
+    </div>
+  );
+}
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -210,6 +239,100 @@ export function TagChip({ type }: { type: string | null }) {
   );
 }
 
+// ─── AI insight — the parsed "what it is / why it worked / consider this" note ─
+// Reads the stored post_insight blob (parseInsight splits it). Leads with the
+// punchy "why it worked" line and tucks the rest behind an inline "Read more"
+// so the card stops sprawling. Short free-form notes render as a single line.
+const INSIGHT_CARD: React.CSSProperties = {
+  background: 'var(--surface-alt)', border: '1px solid var(--line)', borderRadius: 10, padding: '13px 15px',
+};
+const INSIGHT_BODY: React.CSSProperties = {
+  fontSize: 13, color: 'var(--body-strong)', lineHeight: 1.55, margin: 0,
+};
+const INSIGHT_CLAMP2: React.CSSProperties = {
+  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+};
+
+function InsightLabel() {
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      fontFamily: LABEL, fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase',
+      letterSpacing: '0.14em', color: 'var(--signal-deep)', marginBottom: 7,
+    }}>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" />
+      </svg>
+      AI insight
+    </div>
+  );
+}
+function InsightHead({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      fontFamily: LABEL, fontSize: 8.5, fontWeight: 600, textTransform: 'uppercase',
+      letterSpacing: '0.1em', color: 'var(--faint)', marginBottom: 2,
+    }}>{children}</div>
+  );
+}
+
+function AiInsight({ insight }: { insight: string }) {
+  const [open, setOpen] = useState(false);
+  const parsed = parseInsight(insight);
+  if (!parsed) return null;
+  const { whatItIs, whyItWorked, considerThis, freeform } = parsed;
+
+  // Short, unstructured note → a single clean line, no read-more.
+  if (freeform) {
+    return <div style={INSIGHT_CARD}><InsightLabel /><p style={INSIGHT_BODY}>{freeform}</p></div>;
+  }
+
+  // Canonical order: what it is (context) · why it worked (hero) · consider this (action).
+  const sections = [
+    { key: 'what', head: 'What it is',    text: whatItIs },
+    { key: 'why',  head: 'Why it worked', text: whyItWorked },
+    { key: 'do',   head: 'Consider this', text: considerThis },
+  ].filter((s): s is { key: string; head: string; text: string } => !!s.text);
+  if (sections.length === 0) return null;
+
+  const lead = sections.find(s => s.key === 'why') ?? sections[0];
+  const canExpand = sections.length > 1;
+
+  return (
+    <div style={INSIGHT_CARD}>
+      <InsightLabel />
+      {open ? (
+        sections.map((s, i) => (
+          <div key={s.key} style={{ marginTop: i === 0 ? 0 : 9 }}>
+            <InsightHead>{s.head}</InsightHead>
+            <p style={INSIGHT_BODY}>{s.text}</p>
+          </div>
+        ))
+      ) : (
+        <>
+          <InsightHead>{lead.head}</InsightHead>
+          <p style={{ ...INSIGHT_BODY, ...INSIGHT_CLAMP2 }}>{lead.text}</p>
+        </>
+      )}
+      {canExpand && (
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          style={{
+            marginTop: 9, padding: 0, background: 'none', border: 'none', cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontFamily: LABEL, fontSize: 11, fontWeight: 600, color: 'var(--signal-deep)',
+          }}
+        >
+          {open ? 'Show less' : 'Read more'}
+          <span aria-hidden="true" style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Top-5 breakout card ──────────────────────────────────────────────────────
 // Exported for reuse by the public landing page taster (components/Landing.tsx)
 export function BreakoutCard({
@@ -288,33 +411,13 @@ export function BreakoutCard({
 
         {/* Content */}
         <div className="cr-card-body" style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
-          {/* Editor's Pick — a curated "worth replicating" flag (standout_posts.editors_pick) */}
-          {p.editors_pick && (
-            <span
-              style={{
-                alignSelf: 'flex-start',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                fontFamily: LABEL,
-                fontSize: 10,
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.14em',
-                color: 'var(--signal-deep)',
-                background: 'var(--top3-tint)',
-                border: '1px solid #BFD8CC',
-                borderRadius: 999,
-                padding: '4px 11px',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ display: 'block' }}>
-                <path d="M12 2.6l2.7 5.9 6.4.7-4.8 4.3 1.3 6.3L12 16.9 6.4 20.1l1.3-6.3L2.9 9.5l6.4-.7z" />
-              </svg>
-              Editor&rsquo;s Pick
-            </span>
-          )}
-          {/* Multiplier */}
+          {/* ⚠ The "Editor's Pick" badge was removed 2026-08-05 along with the
+              /admin tick that set it — the editorial layer is AI-only now.
+              `editors_pick` is still read into OutlierPost and still drives the
+              withdrawn Featured shelf (see SECTION_IDS in Dashboard.tsx); it
+              simply has nothing setting it and nothing rendering it. */}
+          {/* Multiplier. A top-up isn't a breakout, so it doesn't get the
+              signal green — the figure stays in ink and says what it is. */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
             <span
               style={{
@@ -323,10 +426,10 @@ export function BreakoutCard({
                 fontSize: 60,
                 lineHeight: 1,
                 letterSpacing: '-0.03em',
-                color: 'var(--signal-deep)',
+                color: p.near_miss ? 'var(--ink)' : 'var(--signal-deep)',
               }}
             >
-              {p.multiplier.toFixed(1)}×
+              {formatMultiplier(p.multiplier)}
             </span>
             <span
               style={{
@@ -339,7 +442,7 @@ export function BreakoutCard({
                 paddingBottom: 6,
               }}
             >
-              vs hotel<br />median
+              {p.near_miss ? <>below the<br />2× bar</> : <>vs last 30<br />posts</>}
             </span>
           </div>
 
@@ -352,34 +455,9 @@ export function BreakoutCard({
             <AccreditationPins labels={accreditationsFor(p.instagram_handle)} />
           </div>
 
-          {/* Editor's note — the manual "what it is / why it worked / try this" write-up */}
-          {p.post_insight && (
-            <div
-              style={{
-                background: 'var(--surface-alt)',
-                border: '1px solid var(--line)',
-                borderRadius: 10,
-                padding: '13px 15px',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: LABEL,
-                  fontSize: 9.5,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.14em',
-                  color: 'var(--signal-deep)',
-                  marginBottom: 6,
-                }}
-              >
-                Editor&rsquo;s note
-              </div>
-              <p style={{ fontSize: 13, color: 'var(--body-strong)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-line' }}>
-                {p.post_insight}
-              </p>
-            </div>
-          )}
+          {/* AI insight — parsed "what it is / why it worked / consider this",
+              leading with why-it-worked, the rest behind an inline read-more */}
+          {p.post_insight && <AiInsight insight={p.post_insight} />}
 
           {/* Likes / Comments pair */}
           <div
@@ -414,13 +492,13 @@ export function BreakoutCard({
                   </span>
                   {cell.mult > 0 && (
                     <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--signal-deep)' }}>
-                      ↑{cell.mult.toFixed(1)}×
+                      ↑{formatMultiplier(cell.mult)}
                     </span>
                   )}
                 </div>
                 {cell.typical !== null && (
                   <div style={{ fontSize: 10, color: 'var(--faint)', marginTop: 5 }}>
-                    vs median {Math.round(cell.typical).toLocaleString('en-GB')}
+                    vs last 30 posts {Math.round(cell.typical).toLocaleString('en-GB')}
                   </div>
                 )}
               </div>
@@ -438,94 +516,6 @@ export function BreakoutCard({
           </a>
         </div>
       </div>
-    </div>
-  );
-}
-
-// ─── Ranks 6+ compact table row ───────────────────────────────────────────────
-function PostRow({
-  post: p,
-  rank,
-  saved,
-  onSavedChange,
-}: {
-  post: OutlierPost;
-  rank: number;
-  saved?: boolean;
-  onSavedChange?: (s: boolean) => void;
-}) {
-  const followersStr = fmtFollowers(p.hotel_followers);
-  const sub = [p.hotel_country, followersStr !== '—' ? `${followersStr} followers` : null]
-    .filter(Boolean)
-    .join(' · ');
-
-  const hasSave = saved !== undefined;
-
-  return (
-    <div style={{ position: 'relative' }}>
-    <a
-      href={permalink(p)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="cr-post-row"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 20,
-        padding: '16px 24px',
-        paddingRight: hasSave ? 62 : 24,
-        borderBottom: '1px solid var(--line-soft)',
-        textDecoration: 'none',
-        color: 'inherit',
-      }}
-    >
-      <span
-        style={{
-          fontFamily: DISPLAY,
-          fontWeight: 800,
-          fontSize: 18,
-          color: 'var(--faint)',
-          width: 26,
-          flexShrink: 0,
-        }}
-      >
-        {String(rank).padStart(2, '0')}
-      </span>
-
-      <span style={{ position: 'relative', width: 64, height: 48, borderRadius: 6, overflow: 'hidden', flexShrink: 0, background: THUMB_PLACEHOLDER }}>
-        <ImageWithFallback src={p.image_url} alt={p.hotel_name} fallback={THUMB_PLACEHOLDER} blur={10} elevated={false} />
-      </span>
-
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {p.hotel_name}
-        </span>
-        {sub && <span style={{ display: 'block', fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{sub}</span>}
-      </span>
-
-      <span className="cr-row-engage" style={{ fontSize: 12, color: 'var(--body-mid)', width: 170, textAlign: 'right', flexShrink: 0 }}>
-        {p.likes_multiple > 0 ? `↑${p.likes_multiple.toFixed(1)}× likes` : '— likes'} ·{' '}
-        {p.comments_multiple > 0 ? `↑${p.comments_multiple.toFixed(1)}× comments` : '— comments'}
-      </span>
-
-      <span style={{ width: 64, textAlign: 'right', flexShrink: 0 }}>
-        <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: 'var(--signal-deep)' }}>
-          {p.multiplier.toFixed(1)}×
-        </span>
-        <span style={{ display: 'block', fontFamily: LABEL, fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--faint)' }}>
-          vs median
-        </span>
-      </span>
-
-      <span className="cr-row-date" style={{ fontSize: 12, color: 'var(--faint)', width: 120, textAlign: 'right', flexShrink: 0 }}>
-        {fmtPostedAt(p.posted_at)}
-      </span>
-    </a>
-    {hasSave && (
-      <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
-        <PostSaveToggle post={p} saved={saved!} onSavedChange={onSavedChange} variant="inline" />
-      </div>
-    )}
     </div>
   );
 }
@@ -582,21 +572,37 @@ function WindowToggle({ value, onChange }: { value: TimeWindow; onChange: (w: Ti
 }
 
 // ─── Feed filters (display-only, client-side) ─────────────────────────────────
-// Each chip is an independent on/off include-toggle. A post is hidden only when
-// its category's chip is off — turning "Videos" off hides Video/Reel posts,
-// turning "Collaboration posts" off hides collabs. "Show all" turns them back on.
+// Each format is an independent on/off include-toggle. A post is hidden only when
+// its category is off — turning "Videos" off hides Video/Reel posts, turning
+// "Collaboration posts" off hides collabs. "Reset filters" restores the defaults.
 // This filters the DISPLAYED list only; it never changes breakout selection or
 // the hero's "X posts outperformed" count (those come straight from the data).
 type FeedFilters = { collab: boolean; images: boolean; videos: boolean };
-const ALL_ON: FeedFilters = { collab: true, images: true, videos: true };
-// The feed opens on non-collab posts: collabs are hidden by default (the toggle
-// still turns them back on, and "Show all" restores every category).
-const DEFAULT_FILTERS: FeedFilters = { collab: false, images: true, videos: true };
+// The feed opens showing everything. Not persisted — every session starts here
+// (the product leads with this week's signal, not an archive), so a reload
+// always returns to these defaults.
+//
+// Collabs used to be hidden by default, on the reasoning that a co-post borrows
+// the partner's audience and so clears the 2× bar too easily. In practice that
+// silently emptied whole weeks: on the week ending 27 Jul all eleven breakouts
+// were collabs, so the default feed showed "no posts match these filters" while
+// the hero above it read "11 posts significantly outperformed" — the dashboard
+// contradicting itself. Collabs are counted as breakouts everywhere else, so
+// they now show by default too, and the toggle is there for anyone who wants
+// them out.
+const DEFAULT_FILTERS: FeedFilters = { collab: true, images: true, videos: true };
 
-// Feed shape: the top BIG_CARDS breakouts render as big cards; everything below
-// is a ranked list of compact rows, revealed SMALL_STEP at a time via "Show more".
-const BIG_CARDS = 10;
-const SMALL_STEP = 20;
+// The collaboration caveat — an honesty note about a real data limitation. Shown
+// verbatim behind the ⓘ next to "Collaboration posts" in the Format dropdown.
+const COLLAB_CAVEAT =
+  'Collaboration posts are true Instagram Collabs — posts co-authored by two accounts (the “X and Y” byline), including partners outside our tracked hotels. Posts that only mention or tag a partner in the caption aren’t counted.';
+
+// Feed shape: EVERY breakout renders as a full card — there is no compact-row
+// tier — with CARD_STEP more revealed per "Show more" click. The step is half
+// the old row tier's 20 because each card carries ~400px of media rather than a
+// 48px thumbnail, so 20 at a time would add an unreadable amount of scroll.
+const INITIAL_CARDS = 10;
+const CARD_STEP = 10;
 
 const isImage = (t: string | null) => t === 'Photo' || t === 'Carousel';
 const isVideo = (t: string | null) => t === 'Video' || t === 'Reel';
@@ -608,117 +614,198 @@ function passesFilters(p: OutlierPost, f: FeedFilters): boolean {
   return true;
 }
 
-function FilterChip({
-  label,
-  active,
-  onClick,
-  title,
+// ─── Destination filter ───────────────────────────────────────────────────────
+// Filters by the hotel's broad REGION, not its country — there are 46 countries,
+// which is a list, not a filter. The options are whatever regions the tracked
+// hotels actually carry (currently seven: Europe, North America, Asia-Pacific,
+// Middle East, Central America & Caribbean, Africa, South America) — nothing
+// here is hardcoded, so a region rename in the hotels table just shows up.
+// Same <select> idiom as the leaderboard's region filter so the two read as the
+// same control. ALL_DESTINATIONS is the off position.
+const ALL_DESTINATIONS = 'All';
+
+function DestinationSelect({
+  value,
+  regions,
+  onChange,
 }: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  title?: string;
+  value: string;
+  regions: string[];
+  onChange: (r: string) => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      title={title}
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      aria-label="Filter by destination"
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 7,
-        border: `1px solid ${active ? 'var(--signal-deep)' : 'var(--line)'}`,
-        background: active ? 'var(--top3-tint)' : 'var(--surface)',
-        color: active ? 'var(--signal-deep)' : 'var(--muted)',
-        borderRadius: 999,
-        padding: '7px 14px',
+        border: '1px solid var(--line)',
+        background: 'var(--surface)',
+        color: value === ALL_DESTINATIONS ? 'var(--muted)' : 'var(--signal-deep)',
+        fontWeight: value === ALL_DESTINATIONS ? 500 : 600,
+        borderRadius: 10,
+        padding: '8px 13px',
         fontSize: 12.5,
-        fontWeight: 500,
         fontFamily: 'inherit',
         cursor: 'pointer',
-        whiteSpace: 'nowrap',
-        transition: 'background 0.12s, color 0.12s, border-color 0.12s',
       }}
     >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
-        {active ? (
-          <path d="M20 6.5 9.4 17 4 11.7" stroke="var(--signal-deep)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        ) : (
-          <circle cx="12" cy="12" r="8.2" stroke="var(--faint)" strokeWidth="1.7" />
-        )}
-      </svg>
-      {label}
-    </button>
+      <option value={ALL_DESTINATIONS}>All destinations</option>
+      {regions.map(r => (
+        <option key={r} value={r}>{r}</option>
+      ))}
+    </select>
   );
 }
 
-function FeedFilterBar({
+// ─── ⓘ tooltip — hover on desktop, tap on touch. The simplest possible one, no
+// dependency: a button that reveals an absolutely-positioned note. ────────────
+function InfoTip({ text, label }: { text: string; label: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        // Inside a <label>: preventDefault stops the click toggling the checkbox;
+        // stopPropagation keeps the dropdown's outside-click handler from firing.
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(o => !o); }}
+        onBlur={() => setOpen(false)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 16, height: 16, flex: 'none', padding: 0, borderRadius: '50%',
+          border: '1px solid var(--line-accent)', background: 'transparent',
+          color: 'var(--muted)', cursor: 'pointer',
+        }}
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="7.4" r="1.3" fill="currentColor" />
+          <path d="M12 11v6.5" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" />
+        </svg>
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          style={{
+            position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 40,
+            width: 262, padding: '10px 12px', borderRadius: 10,
+            background: 'var(--surface)', border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-nav)', color: 'var(--body-strong)',
+            fontSize: 11.5, lineHeight: 1.5, fontWeight: 400,
+            textTransform: 'none', letterSpacing: 'normal', whiteSpace: 'normal',
+          }}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
+const FORMAT_OPTIONS: { key: keyof FeedFilters; label: string; caveat?: string }[] = [
+  { key: 'images', label: 'Images & carousels' },
+  { key: 'videos', label: 'Videos' },
+  { key: 'collab', label: 'Collaboration posts', caveat: COLLAB_CAVEAT },
+];
+
+// Format refinement — a quieter dropdown (lighter border + muted text) to the
+// right of the time window, which stays the dominant control. Shows "· N of 3"
+// whenever the selection is away from default, so active filtering is visible
+// without opening it.
+function FormatDropdown({
   filters,
   onToggle,
-  onShowAll,
-  allOn,
-  shown,
-  total,
 }: {
   filters: FeedFilters;
   onToggle: (k: keyof FeedFilters) => void;
-  onShowAll: () => void;
-  allOn: boolean;
-  shown: number;
-  total: number;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const onCount = (filters.images ? 1 : 0) + (filters.videos ? 1 : 0) + (filters.collab ? 1 : 0);
+  const atDefault =
+    filters.images === DEFAULT_FILTERS.images &&
+    filters.videos === DEFAULT_FILTERS.videos &&
+    filters.collab === DEFAULT_FILTERS.collab;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span
-          style={{
-            fontFamily: LABEL,
-            fontSize: 10,
-            textTransform: 'uppercase',
-            letterSpacing: '0.14em',
-            color: 'var(--muted)',
-            marginRight: 2,
-          }}
-        >
-          Filter
-        </span>
-        <FilterChip
-          label="Collaboration posts"
-          active={filters.collab}
-          onClick={() => onToggle('collab')}
-          title="Flagged only for true Instagram Collabs: posts co-authored by two accounts (the 'X and Y' byline). Caption 'collaboration with' posts aren't counted."
-        />
-        <FilterChip label="Images & carousels" active={filters.images} onClick={() => onToggle('images')} />
-        <FilterChip label="Videos" active={filters.videos} onClick={() => onToggle('videos')} />
-        <button
-          type="button"
-          onClick={onShowAll}
-          disabled={allOn}
-          className="cr-link"
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            fontFamily: 'inherit',
-            color: allOn ? 'var(--faint)' : 'var(--signal-deep)',
-            background: 'transparent',
-            border: 'none',
-            cursor: allOn ? 'default' : 'pointer',
-            padding: '4px 6px',
-          }}
-        >
-          Show all
-        </button>
-        {!allOn && (
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-            Showing {shown} of {total}
-          </span>
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="true"
+        aria-expanded={open}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          border: '1px solid var(--line)', background: 'var(--surface)',
+          color: 'var(--muted)', borderRadius: 10, padding: '8px 13px',
+          fontSize: 12.5, fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <span>Format</span>
+        {!atDefault && (
+          <span style={{ color: 'var(--signal-deep)', fontWeight: 600 }}>· {onCount} of 3</span>
         )}
-      </div>
-      <span style={{ fontSize: 11, color: 'var(--faint)', lineHeight: 1.5 }}>
-        Collaboration posts are true Instagram Collabs — posts co-authored by two accounts (the “X and Y” byline), including partners outside our tracked hotels. Posts that only mention or tag a partner in the caption aren’t counted.
-      </span>
+        <svg
+          width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
+        >
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          role="group"
+          aria-label="Filter by format"
+          style={{
+            position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 30,
+            width: 236, padding: 6, borderRadius: 12,
+            background: 'var(--surface)', border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-nav)',
+          }}
+        >
+          {FORMAT_OPTIONS.map(o => (
+            <label
+              key={o.key}
+              className="cr-shell-navitem"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '9px 10px', borderRadius: 8, cursor: 'pointer',
+                fontSize: 13, color: 'var(--body-strong)',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={filters[o.key]}
+                onChange={() => onToggle(o.key)}
+                style={{ width: 15, height: 15, accentColor: 'var(--signal-deep)', cursor: 'pointer', flex: 'none' }}
+              />
+              <span style={{ flex: 1 }}>{o.label}</span>
+              {o.caveat && <InfoTip text={o.caveat} label="About collaboration posts" />}
+            </label>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -727,34 +814,60 @@ function FeedFilterBar({
 export default function ContentRadar({
   postsByWindow,
   savedPostKeys = [],
+  regions = [],
 }: {
   postsByWindow: Record<TimeWindow, OutlierPost[]>;
   savedPostKeys?: string[];
+  /** Destination options, in display order (from the tracked hotels' regions). */
+  regions?: string[];
 }) {
-  // How many compact rows are revealed below the big cards. Starts at 0 (the feed
-  // opens on the big cards alone); each "Show more" click appends SMALL_STEP more.
-  const [smallShown, setSmallShown] = useState(0);
+  // How many cards are revealed. Opens on INITIAL_CARDS; each "Show more" click
+  // appends CARD_STEP more. Reset whenever the window or filters change.
+  const [shown, setShown] = useState(INITIAL_CARDS);
   const [win, setWin] = useState<TimeWindow>('7d');
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
-  const allOn = filters.collab && filters.images && filters.videos;
+  const [destination, setDestination] = useState<string>(ALL_DESTINATIONS);
+  const allFormatsOn = filters.collab && filters.images && filters.videos;
+  const atDefaultFilters =
+    filters.images === DEFAULT_FILTERS.images &&
+    filters.videos === DEFAULT_FILTERS.videos &&
+    filters.collab === DEFAULT_FILTERS.collab &&
+    destination === ALL_DESTINATIONS;
   const savedSet = useMemo(() => new Set(savedPostKeys), [savedPostKeys]);
 
   const windowPosts = postsByWindow[win];
-  const posts = allOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
+  const posts = useMemo(() => {
+    let list = allFormatsOn ? windowPosts : windowPosts.filter(p => passesFilters(p, filters));
+    if (destination !== ALL_DESTINATIONS) list = list.filter(p => p.hotel_region === destination);
+    return list;
+  }, [windowPosts, allFormatsOn, filters, destination]);
 
-  const bigPosts = posts.slice(0, BIG_CARDS);
-  const rest = posts.slice(BIG_CARDS);
-  const visibleRest = rest.slice(0, smallShown);
-  const remaining = rest.length - visibleRest.length;
+  const visible = posts.slice(0, shown);
+  const remaining = posts.length - visible.length;
+
+  // Near-misses are the 7-day view's top-up (lib/data.ts, NEAR_MISS_FLOOR) and
+  // are always appended after the real breakouts, so every count the UI states
+  // as a "breakout" count has to exclude them — otherwise the page claims more
+  // breakouts than the hero numeral does.
+  const breakoutTotal   = posts.filter(p => !p.near_miss).length;
+  const breakoutShown   = visible.filter(p => !p.near_miss).length;
+  const windowBreakouts = windowPosts.filter(p => !p.near_miss).length;
 
   const toggle = (k: keyof FeedFilters) => {
     setFilters(f => ({ ...f, [k]: !f[k] }));
-    setSmallShown(0);
+    setShown(INITIAL_CARDS);
   };
-  const showAll = () => {
-    setFilters(ALL_ON);
-    setSmallShown(0);
+  const changeDestination = (r: string) => {
+    setDestination(r);
+    setShown(INITIAL_CARDS);
   };
+  const resetFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    setDestination(ALL_DESTINATIONS);
+    setShown(INITIAL_CARDS);
+  };
+
+  const windowPhrase = (TIME_WINDOWS.find(w => w.key === win)?.label ?? '').toLowerCase();
 
   const emptyMsg = win === '7d'
     ? 'No posts broke meaningfully past their hotel’s own median this week.'
@@ -762,24 +875,47 @@ export default function ContentRadar({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      {/* Controls: time-window toggle + feed filters */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Controls — one row: dominant time window (left) + quieter Format (right),
+          with a single quiet status line beneath. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <WindowToggle value={win} onChange={w => { setWin(w); setShown(INITIAL_CARDS); }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {regions.length > 0 && (
+              <DestinationSelect value={destination} regions={regions} onChange={changeDestination} />
+            )}
+            <FormatDropdown filters={filters} onToggle={toggle} />
+          </div>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <WindowToggle value={win} onChange={w => { setWin(w); setSmallShown(0); }} />
-          {win === 'all' && (
+          {windowPosts.length > 0 && (
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>
-              Top {windowPosts.length} best-performing posts on record
+              {windowBreakouts > 0
+                ? `Showing ${breakoutTotal} of ${windowBreakouts} breakout posts`
+                : 'No breakouts'} · {windowPhrase}
+              {destination !== ALL_DESTINATIONS && ` · ${destination}`}
             </span>
           )}
+          {!atDefaultFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="cr-link"
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                color: 'var(--signal-deep)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              Reset filters
+            </button>
+          )}
         </div>
-        <FeedFilterBar
-          filters={filters}
-          onToggle={toggle}
-          onShowAll={showAll}
-          allOn={allOn}
-          shown={posts.length}
-          total={windowPosts.length}
-        />
       </div>
 
       {windowPosts.length === 0 ? (
@@ -811,79 +947,63 @@ export default function ContentRadar({
           No posts match these filters.{' '}
           <button
             type="button"
-            onClick={showAll}
+            onClick={resetFilters}
             className="cr-link"
             style={{ fontSize: 14, fontWeight: 500, fontFamily: 'inherit', color: 'var(--signal-deep)', background: 'transparent', border: 'none', cursor: 'pointer' }}
           >
-            Show all
+            Reset filters
           </button>
         </div>
       ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-      {/* Top 10 — big cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Eyebrow>Top {bigPosts.length}</Eyebrow>
+        {/* One tier: every breakout as a full card, ranked, revealed in steps.
+            On the 7-day view the week's top-ups follow, under their own
+            heading and without a rank — they aren't in the ranking. */}
+        {breakoutTotal > 0 && (
+          <Eyebrow>
+            {breakoutShown < breakoutTotal
+              ? `Ranked 1 – ${breakoutShown} of ${breakoutTotal}`
+              : `All ${breakoutTotal}`}
+          </Eyebrow>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {bigPosts.map((p, i) => (
-            <BreakoutCard
-              key={`${p.post_id}-${p.instagram_handle}`}
-              post={p}
-              rank={i + 1}
-              saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
-            />
-          ))}
+          {visible.map((p, i) => {
+            const firstTopUp = p.near_miss && (i === 0 || !visible[i - 1].near_miss);
+            return (
+              <Fragment key={`${p.post_id}-${p.instagram_handle}`}>
+                {/* anyBreakouts reads the UNFILTERED window: filtering to a
+                    region with no breakouts must not claim the week had none. */}
+                {firstTopUp && <TopUpHeading anyBreakouts={windowBreakouts > 0} />}
+                <BreakoutCard
+                  post={p}
+                  rank={p.near_miss ? undefined : i + 1}
+                  saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
+                />
+              </Fragment>
+            );
+          })}
         </div>
-      </div>
-
-      {/* Ranked below the top 10 — compact rows, revealed SMALL_STEP at a time */}
-      {rest.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {visibleRest.length > 0 && (
-            <>
-              <Eyebrow>Ranked {BIG_CARDS + 1} – {BIG_CARDS + visibleRest.length}</Eyebrow>
-              <div
-                style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--line)',
-                  borderRadius: 14,
-                  overflow: 'hidden',
-                  boxShadow: 'var(--shadow-card)',
-                }}
-              >
-                {visibleRest.map((p, i) => (
-                  <PostRow
-                    key={`${p.post_id}-${p.instagram_handle}`}
-                    post={p}
-                    rank={i + BIG_CARDS + 1}
-                    saved={savedSet.has(postKey(p.post_id, p.instagram_handle))}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-          {remaining > 0 && (
-            <div style={{ textAlign: 'center', marginTop: visibleRest.length > 0 ? 4 : 0 }}>
-              <button
-                onClick={() => setSmallShown(n => n + SMALL_STEP)}
-                className="cr-expander"
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  fontFamily: 'inherit',
-                  color: 'var(--signal-deep)',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--line-accent)',
-                  borderRadius: 10,
-                  padding: '11px 24px',
-                  cursor: 'pointer',
-                }}
-              >
-                Show {Math.min(SMALL_STEP, remaining)} more ↓
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        {remaining > 0 && (
+          <div style={{ textAlign: 'center', marginTop: 4 }}>
+            <button
+              onClick={() => setShown(n => n + CARD_STEP)}
+              className="cr-expander"
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                color: 'var(--signal-deep)',
+                background: 'var(--surface)',
+                border: '1px solid var(--line-accent)',
+                borderRadius: 10,
+                padding: '11px 24px',
+                cursor: 'pointer',
+              }}
+            >
+              Show {Math.min(CARD_STEP, remaining)} more ↓
+            </button>
+          </div>
+        )}
       </div>
       )}
     </div>

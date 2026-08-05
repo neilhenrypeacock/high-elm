@@ -1,0 +1,17 @@
+# Monthly deep-sweep scrape — 35-day window. Re-refreshes a month of engagement
+# so posts that go viral weeks after publishing still surface in Content Radar's
+# 30-day / all-time views. Thin caller: the real steps live in scrape-pipeline.yml.
+# Manual trigger available via the Actions tab.
+name: monthly-scrape
+
+on:
+  schedule:
+    - cron: '0 5 1 * *' # 1st of the month, 05:00 UTC
+  workflow_dispatch:
+
+jobs:
+  call:
+    uses: ./.github/workflows/scrape-pipeline.yml
+    with:
+      window_days: '35'
+    secrets: inherit

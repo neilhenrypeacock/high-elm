@@ -4,42 +4,29 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import type { DashboardData, OutlierPost } from '@/lib/data';
 import { hasVisibleLikesCount } from '@/lib/data';
+import {
+  FOUNDING_PRICE_DISPLAY,
+  FOUNDING_PRICE_MONTHLY,
+  STANDARD_PRICE_DISPLAY,
+  STANDARD_PRICE_MONTHLY,
+  PLACES_LEFT_LINE,
+  TRIAL_DAYS,
+  TRIAL_FINE_PRINT,
+  VALUE_STACK,
+  VALUE_STACK_TOTAL_GBP,
+  monthlyCost,
+} from '@/lib/pricing';
+import { belowCap, formatMultiplier, isCappedMultiplier } from '@/lib/format-multiplier';
 import { ImageWithFallback } from './ContentRadar';
 
-// ─── Offer (single source of truth for every CTA + the pricing card) ─────────
-// All trial CTAs point at the placeholder route until Stripe Checkout exists.
-// Swap TRIAL_HREF when the real checkout URL is ready.
+// ─── Offer ───────────────────────────────────────────────────────────────────
+// Every price and seat number on this page comes from lib/pricing.ts. Do not
+// write one by hand here.
 const TRIAL_HREF = '/start-trial';
 const LOGIN_HREF = '/login';
 
-const FOUNDING_PRICE = 39;   // £/month, founding rate
-const TRIAL_DAYS = 14;       // free-trial length
-const FOUNDING_CLAIMED = 11; // of FOUNDING_CAP
-const FOUNDING_CAP = 50;
-
-const spotsLeft = FOUNDING_CAP - FOUNDING_CLAIMED;
-const claimedPct = `${Math.round((FOUNDING_CLAIMED / FOUNDING_CAP) * 100)}%`;
-const CTA_SUB = `£${FOUNDING_PRICE}/month after ${TRIAL_DAYS} days · cancel anytime`;
-
-// Per-list "last scan" figures. Not broken out in getPortfolioData yet, so these
-// stay as design-system sample values until the pipeline surfaces them per list.
-const CERTS = [
-  {
-    name: 'Condé Nast', tag: 'Gold List',
-    blurb: "Condé Nast Traveller's annual list of the finest hotels on Earth, voted by its readers.",
-    hotels: 118, posts: '3,540',
-  },
-  {
-    name: 'Forbes', tag: 'Five-Star',
-    blurb: "Forbes Travel Guide's highest independent hospitality rating, awarded after anonymous inspection.",
-    hotels: 264, posts: '7,920',
-  },
-  {
-    name: 'Michelin', tag: 'Keys — UK & Ireland',
-    blurb: "The Michelin Guide's hotel distinction — One, Two & Three Keys — for the UK & Ireland's most exceptional stays.",
-    hotels: 96, posts: '2,880',
-  },
-];
+const HERO_FOUNDING_LINE =
+  `Founding membership — ${FOUNDING_PRICE_MONTHLY} locked for life. ${PLACES_LEFT_LINE}.`;
 
 const INNER: React.CSSProperties = { maxWidth: 1200, margin: '0 auto', padding: '0 40px' };
 
@@ -73,11 +60,6 @@ function fmtLikes(n: number): string {
 }
 
 // ─── Small inline SVGs (from the handoff; no external assets) ─────────────────
-const StarIcon = ({ delay }: { delay: number }) => (
-  <svg data-star viewBox="0 0 24 24" width="26" height="26" fill="currentColor" style={{ animationDelay: `${delay}ms` }}>
-    <path d="M12 2.6l2.85 6.02 6.55.86-4.78 4.5 1.2 6.52L12 18.9l-5.82 2.6 1.2-6.52-4.78-4.5 6.55-.86z" />
-  </svg>
-);
 const HeartIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
     <path d="M12 20s-7-4.3-9.4-8.4C1.1 8.7 2.6 5.2 6 5.2c2 0 3.2 1.2 4 2.4 0.8-1.2 2-2.4 4-2.4 3.4 0 4.9 3.5 3.4 6.4C19 15.7 12 20 12 20z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
@@ -115,7 +97,7 @@ function FanCard({
 }) {
   const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
   const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
-  const mult = post.multiplier.toFixed(1);
+  const mult = formatMultiplier(post.multiplier);
 
   return (
     <div
@@ -140,27 +122,17 @@ function FanCard({
           position: 'absolute', top: front ? 14 : 12, right: front ? 14 : 12, fontFamily: 'var(--font-display)', fontWeight: 700,
           fontSize: front ? 18 : 15, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--ink-deep)',
           background: 'var(--surface)', padding: front ? '5px 12px' : '4px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        }}>{mult}×</span>
+        }}>{mult}</span>
       </div>
-      {/* Only the front card carries a text footer — the two peek cards behind it
-          stay image-only so they read as clean photos, not half-cut cards. */}
-      {front && (
-        <div style={{ padding: 20 }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{post.hotel_name}</div>
-          <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--body-mid)', margin: '3px 0 12px' }}>
-            {[post.hotel_country, fmtDayMonth(post.posted_at)].filter(Boolean).join(' · ')}
-          </div>
-          {post.post_insight && (
-            <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--body-soft)', marginBottom: 14 }}>{post.post_insight}</p>
-          )}
-          <div style={{ display: 'flex', gap: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, color: 'var(--body-mid)' }}>
-            {hasVisibleLikesCount(post.likes_count) && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeartIcon /> {fmtLikes(post.likes_count)}</span>
-            )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CommentIcon /> {post.comments_count.toLocaleString('en-GB')}</span>
-          </div>
-        </div>
-      )}
+      {/* All three cards share one footer: just the hotel name (date + likes live
+          on the detailed taster cards below). Keeps the fanned stack consistent —
+          image, multiplier badge, hotel name — front card only larger. */}
+      <div style={{ padding: front ? '16px 18px' : '11px 14px' }}>
+        <div style={{
+          fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: front ? 16 : 12.5,
+          color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>{post.hotel_name}</div>
+      </div>
     </div>
   );
 }
@@ -169,7 +141,11 @@ function FanCard({
 function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
   const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
   const chip = post.theme_tag ? `${typeLabel(post.type)} · ${post.theme_tag}` : typeLabel(post.type);
-  const mult = post.multiplier.toFixed(1);
+  const mult = formatMultiplier(post.multiplier);
+  // The count-up animates towards a number, so it can only run on a precise
+  // figure — a capped card would tick up to "50×" and lose the "+". Capped cards
+  // simply render the static label instead.
+  const counts = !isCappedMultiplier(post.multiplier);
 
   return (
     <div
@@ -187,13 +163,13 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
           background: 'rgba(29,27,23,0.32)', backdropFilter: 'blur(4px)', padding: '5px 10px', borderRadius: 20,
         }}>{chip}</span>
         <span
-          data-count={mult} data-dec="1" data-suffix="×"
+          data-count={counts ? post.multiplier.toFixed(1) : undefined} data-dec="1" data-suffix="×"
           style={{
             position: 'absolute', top: 14, right: 14, fontFamily: 'var(--font-display)', fontWeight: 800,
             fontSize: 18, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--ink-deep)',
             background: 'var(--surface)', padding: '5px 12px', borderRadius: 20, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           }}
-        >{mult}×</span>
+        >{mult}</span>
       </div>
       <div style={{ padding: 20 }}>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>{post.hotel_name}</div>
@@ -214,31 +190,27 @@ function OpenCard({ post, index }: { post: OutlierPost; index: number }) {
   );
 }
 
-// ─── Taster: locked card (blurred behind the paywall overlay) ────────────────
-function LockedCard({ post, index }: { post: OutlierPost; index: number }) {
-  const gradient = TASTER_GRADIENTS[index % TASTER_GRADIENTS.length];
-  const bg = post.image_url ? `url("${post.image_url}") center/cover no-repeat, ${gradient}` : gradient;
-  return (
-    <div style={{ background: 'var(--surface)', borderRadius: 14, overflow: 'hidden', display: 'grid', gridTemplateColumns: '130px 1fr' }}>
-      <div style={{ background: bg }} />
-      <div style={{ padding: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: 17 }}>{post.hotel_name}</div>
-        <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, color: 'var(--body-mid)', margin: '4px 0 12px' }}>
-          {[post.hotel_country, `${post.multiplier.toFixed(1)}×`].filter(Boolean).join(' · ')}
-        </div>
-        {post.post_insight && <p style={{ fontSize: 14, color: 'var(--body-soft)' }}>{post.post_insight}</p>}
-      </div>
-    </div>
-  );
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 export default function Landing({ data }: { data: DashboardData }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const open = data.landing_featured.slice(0, 3);
-  const locked = data.landing_featured.slice(3, 5);
+  // Six distinct previewed posts: the first three fan out in the hero stack, the
+  // next three fill the taster grid. Dedupe by post_id first (a collab shares one
+  // post_id across handles) so the same post never shows twice across the page.
+  // belowCap() first: this whole page is a shop window, so every card on it is a
+  // headline figure. A post whose multiplier is too large to be credible is left
+  // out entirely rather than shown as "50×+" to someone who hasn't bought yet.
+  const seenPost = new Set<string>();
+  const featured = belowCap(data.landing_featured).filter(p => {
+    if (seenPost.has(p.post_id)) return false;
+    seenPost.add(p.post_id);
+    return true;
+  });
+  const hero = featured.slice(0, 3);
+  // Prefer three fresh posts for the taster; only fall back to reusing the hero
+  // set if there aren't six distinct posts to show (keeps the grid populated).
+  const taster = featured.length >= 4 ? featured.slice(3, 6) : featured.slice(0, 3);
 
-  // Reveal-on-scroll, count-ups, and the founding-spots bar — all scoped to this
+  // Reveal-on-scroll and count-ups — all scoped to this
   // subtree. Base markup is the visible end-state, so nothing is ever stranded.
   useEffect(() => {
     const root = rootRef.current;
@@ -311,51 +283,13 @@ export default function Landing({ data }: { data: DashboardData }) {
       }, { threshold: 0.5 });
       root.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => cio.observe(el));
       observers.push(cio);
-
-      // Founding-spots bar grows into view
-      const bar = root.querySelector<HTMLElement>('[data-progress]');
-      if (bar) {
-        bar.style.transition = 'width 1.1s cubic-bezier(.2,.7,.2,1)';
-        const target = bar.style.width || claimedPct;
-        if (!reduce) bar.style.width = '0%';
-        const bio = new IntersectionObserver((es, obs) => {
-          es.forEach((e) => { if (e.isIntersecting) { bar.style.width = target; obs.unobserve(e.target); } });
-        }, { threshold: 0.6 });
-        bio.observe(bar);
-        observers.push(bio);
-      }
-    }
-
-    // Hero stat count-up (static value is the fallback)
-    const statEl = root.querySelector<HTMLElement>('[data-stat]');
-    if (statEl) {
-      const target = data.breakout_count;
-      if (reduce) {
-        statEl.textContent = String(target);
-      } else if ('IntersectionObserver' in window) {
-        const sio = new IntersectionObserver((es, obs) => {
-          es.forEach((e) => {
-            if (!e.isIntersecting) return;
-            const dur = 1200, start = performance.now();
-            const tick = (now: number) => {
-              const t = Math.min(1, (now - start) / dur);
-              statEl.textContent = String(Math.round((1 - Math.pow(1 - t, 3)) * target));
-              if (t < 1) requestAnimationFrame(tick);
-            };
-            requestAnimationFrame(tick);
-            obs.unobserve(e.target);
-          });
-        }, { threshold: 0.5 });
-        sio.observe(statEl);
-        observers.push(sio);
-      }
     }
 
     return () => {
       observers.forEach((o) => o.disconnect());
       if (failsafe) clearTimeout(failsafe);
     };
-  }, [data.breakout_count]);
+  }, []);
 
   return (
     <div ref={rootRef} className="cr-landing" style={{ background: 'var(--page)', color: 'var(--ink)', overflowX: 'hidden' }}>
@@ -387,12 +321,12 @@ export default function Landing({ data }: { data: DashboardData }) {
       <header style={{ ...INNER, padding: '80px 40px 48px' }}>
         <div
           className="cr-landing-hero-grid"
-          style={{ display: 'grid', gridTemplateColumns: open.length > 0 ? 'minmax(0,1fr) minmax(340px,460px)' : '1fr', gap: 64, alignItems: 'center' }}
+          style={{ display: 'grid', gridTemplateColumns: hero.length > 0 ? 'minmax(0,1fr) minmax(340px,460px)' : '1fr', gap: 64, alignItems: 'center' }}
         >
           <div style={{ minWidth: 0 }}>
             <div data-reveal style={{ ...eyebrow(), marginBottom: 26 }}>Powered by High Elm Studio</div>
             <h1 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(38px,4.6vw,60px)', lineHeight: 1.04, letterSpacing: '-0.03em', color: 'var(--ink)', textWrap: 'balance', marginBottom: 18 }}>
-              Every week, see exactly what content is going viral for luxury hotels.
+              Every week, see the content that is going viral for luxury hotels.
             </h1>
             <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(19px,2.6vw,26px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 22 }}>No more guessing.</div>
             <p data-reveal data-reveal-delay={120} style={{ fontSize: 'clamp(16px,1.8vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 480, margin: '0 0 34px', textWrap: 'pretty' }}>
@@ -401,31 +335,34 @@ export default function Landing({ data }: { data: DashboardData }) {
 
             <div data-reveal data-reveal-delay={180} style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
               <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '16px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--body-mid)' }}>{CTA_SUB}</span>
+              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--body-mid)' }}>{TRIAL_FINE_PRINT}</span>
             </div>
 
-            <div data-reveal data-reveal-delay={220} style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 40, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--signal-deep)' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--signal)', animation: 'cr-ping 2.4s ease-out infinite', flex: 'none' }} />
-              This week&rsquo;s breakouts — live right now
+            {/* The ONE founding-membership touchpoint in the hero. Sentence case,
+                not the uppercase eyebrow treatment — the scarcity is real, so it
+                reads as a quiet statement of fact rather than a shout. */}
+            <div data-reveal data-reveal-delay={240} style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 13.5, letterSpacing: '0.01em', color: 'var(--signal-deep)' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', flex: 'none' }} />
+              {HERO_FOUNDING_LINE}
             </div>
           </div>
 
-          {open.length > 0 && (
+          {hero.length > 0 && (
             <div data-reveal data-reveal-delay={140} className="cr-hero-cardstack" style={{ position: 'relative', minHeight: 420, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {open.length >= 3 && (
+              {hero.length >= 3 && (
                 <FanCard
-                  post={open[1]} index={1} front={false} rotateDeg={-5} animationDuration={7} animationDelay={0}
+                  post={hero[1]} index={1} front={false} rotateDeg={-5} animationDuration={7} animationDelay={0}
                   position={{ position: 'absolute', width: 'min(200px,62vw)', right: '58%', top: '10%', opacity: 0.92, zIndex: 1 }}
                 />
               )}
-              {open.length >= 2 && (
+              {hero.length >= 2 && (
                 <FanCard
-                  post={open.length >= 3 ? open[2] : open[1]} index={2} front={false} rotateDeg={5} animationDuration={8} animationDelay={1.2}
+                  post={hero.length >= 3 ? hero[2] : hero[1]} index={2} front={false} rotateDeg={5} animationDuration={8} animationDelay={1.2}
                   position={{ position: 'absolute', width: 'min(200px,62vw)', left: '58%', bottom: '8%', opacity: 0.95, zIndex: 1 }}
                 />
               )}
               <FanCard
-                post={open[0]} index={0} front rotateDeg={0} animationDuration={6} animationDelay={0.5}
+                post={hero[0]} index={0} front rotateDeg={0} animationDuration={6} animationDelay={0.5}
                 position={{ position: 'relative', zIndex: 2, width: 'min(256px,80vw)' }}
               />
             </div>
@@ -433,33 +370,33 @@ export default function Landing({ data }: { data: DashboardData }) {
         </div>
       </header>
 
-      {/* ===== PROOF (5-star credibility + live breakout count) ===== */}
-      <section style={{ ...INNER, padding: '0 40px 48px' }}>
-        <div style={{ maxWidth: 840 }}>
-          <div data-reveal style={{ display: 'flex', alignItems: 'center', gap: 15, margin: '0 0 30px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: 5, color: 'var(--signal)' }}>
-              {[0, 70, 140, 210, 280].map((d) => <StarIcon key={d} delay={d} />)}
-            </div>
-            <span style={{ ...eyebrow() }}>Only the world&rsquo;s genuine 5-star hotels</span>
+      {/* ===== THIS WEEK ON CONTENT RADAR (live stat band) ===== */}
+      <section style={{ maxWidth: 1120, margin: '0 auto', padding: '4px 40px 72px' }}>
+        <div data-reveal style={{ background: 'var(--top3-tint)', border: '1px solid var(--line-accent)', borderRadius: 20, padding: '44px 48px 40px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 30 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9, ...eyebrow() }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--signal)', animation: 'cr-ping 2.4s ease-out infinite' }} />
+              This week on Content Radar
+            </span>
           </div>
-
-          {/* Hero stat panel — live breakout count */}
-          <div data-reveal data-reveal-delay={60} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '34px 40px', maxWidth: 560, boxShadow: '0 24px 48px -32px rgba(34,32,27,0.35)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-              <span data-stat style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(56px,8vw,84px)', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--signal)' }}>{data.breakout_count}</span>
-              <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 19, color: 'var(--ink)', lineHeight: 1.2 }}>posts beat their hotel&rsquo;s<br />own average this week</div>
-                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--body-mid)', marginTop: 8 }}>week ending {data.week_ending}</div>
+          <div style={{ borderTop: '1px solid var(--line-accent)', borderBottom: '1px solid var(--line-accent)', padding: '36px 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))' }}>
+            {[
+              { v: String(data.breakout_count), l: 'breakouts this week', accent: true, border: false },
+              { v: `${data.hotel_count}+`, l: 'hotels tracked', border: true },
+              { v: String(data.countries_count), l: 'countries', border: true },
+              { v: data.total_posts_analysed.toLocaleString('en-GB'), l: 'posts analysed', border: true },
+            ].map((s) => (
+              <div key={s.l} style={{ textAlign: 'center', padding: '4px 16px', borderLeft: s.border ? '1px solid var(--line-accent)' : undefined }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(38px,4.4vw,56px)', lineHeight: 1, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: s.accent ? 'var(--signal)' : 'var(--ink)' }}>{s.v}</div>
+                <div style={{ marginTop: 11, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.04em', color: 'var(--body-soft)' }}>{s.l}</div>
               </div>
-            </div>
-            <div style={{ height: 1, background: 'var(--line-rule)', margin: '26px 0 20px' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 26, flexWrap: 'wrap', fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--body-soft)' }}>
-              <span><b style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--ink)' }}>{data.hotel_count}+</b> hotels</span>
-              <span style={{ color: 'rgba(34,32,27,0.25)' }}>·</span>
-              <span><b style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--ink)' }}>{data.countries_count}</b> countries</span>
-              <span style={{ color: 'rgba(34,32,27,0.25)' }}>·</span>
-              <span><b style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--ink)' }}>{data.total_posts_analysed.toLocaleString('en-GB')}</b> posts analysed</span>
-            </div>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 26, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)', lineHeight: 1.6 }}>
+            {/* Michelin Keys was dropped from this line on 2026-07-31 — we don't
+                crawl that list, and most of it isn't in the database. The
+                per-hotel Michelin pins on the leaderboard are verified and stay. */}
+            Featuring hotels from <span style={{ color: 'var(--ink)' }}>Condé Nast Gold List</span> · <span style={{ color: 'var(--ink)' }}>Forbes Travel Guide</span>
           </div>
         </div>
       </section>
@@ -472,43 +409,43 @@ export default function Landing({ data }: { data: DashboardData }) {
         </div>
 
         {/* ===== LIVE TASTER (moved here) ===== */}
-        {open.length > 0 && (
+        {taster.length > 0 && (
           <div>
             <div data-reveal style={{ textAlign: 'center', marginBottom: 44 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, ...eyebrow() }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--signal)', animation: 'cr-ping 2.4s ease-out infinite' }} />
-                This week&rsquo;s breakouts — real posts, live right now
+                Latest viral posts — live with Content Radar
               </div>
             </div>
 
             <div style={{ position: 'relative' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
-                {open.map((p, i) => <OpenCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
+                {taster.map((p, i) => <OpenCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
               </div>
 
-              {locked.length > 0 && (
-                <div style={{ position: 'relative', marginTop: 16 }}>
-                  <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, filter: 'blur(9px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.85 }}>
-                    {locked.map((p, i) => <LockedCard key={`${p.post_id}-${p.instagram_handle}`} post={p} index={i} />)}
-                  </div>
-
-                  {/* Single lock overlay — the conversion gate */}
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: 'linear-gradient(to bottom, rgba(231,227,217,0.15), rgba(231,227,217,0.55))', padding: 24 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--ink-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M6 10V8a6 6 0 0 1 12 0v2" stroke="#E7E3D9" strokeWidth="2" strokeLinecap="round" />
-                        <rect x="4.5" y="10" width="15" height="11" rx="2.5" fill="#2E7357" />
-                        <circle cx="12" cy="15" r="1.6" fill="#1D1B17" />
-                        <path d="M12 16.4v2.2" stroke="#1D1B17" strokeWidth="1.6" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                    <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'clamp(16px,2vw,19px)', color: 'var(--ink)', maxWidth: 440, lineHeight: 1.45, marginBottom: 22, textWrap: 'balance' }}>
-                      See every breakout this week — plus the last 30 days and the all-time leaderboard.
-                    </p>
-                    <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '15px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-                  </div>
-                </div>
-              )}
+              {/* Bottom fade-gate — the conversion gate. Fades the lower portion of the
+                  live cards into the page; only the CTA takes pointer events. */}
+              <div
+                data-reveal data-reveal-delay={240}
+                style={{
+                  position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'flex-end', textAlign: 'center', paddingBottom: 6,
+                  background: 'linear-gradient(to bottom, rgba(231,227,217,0) 40%, rgba(231,227,217,0.92) 64%, var(--page) 80%)',
+                  backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, transparent 38%, #000 60%)',
+                  maskImage: 'linear-gradient(to bottom, transparent 38%, #000 60%)',
+                  pointerEvents: 'none',
+                }}
+              >
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 16 }}>
+                  <rect x="5" y="10.5" width="14" height="9.5" rx="2.2" stroke="var(--ink)" strokeWidth="1.6" />
+                  <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="var(--ink)" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+                <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'clamp(16px,2vw,19px)', color: 'var(--ink)', maxWidth: 460, lineHeight: 1.45, marginBottom: 22, textWrap: 'balance' }}>
+                  Your free trial opens the full dashboard — this week&rsquo;s breakouts plus every post from the last 30 days.
+                </p>
+                <Link href={TRIAL_HREF} className="cr-cta-primary" style={{ pointerEvents: 'auto', display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--surface)', background: 'var(--ink-deep)', padding: '16px 34px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
+              </div>
             </div>
           </div>
         )}
@@ -520,7 +457,7 @@ export default function Landing({ data }: { data: DashboardData }) {
         <div data-reveal style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 56px' }}>
           <div style={{ ...eyebrow(), marginBottom: 22 }}>How it works</div>
           <h2 style={{ ...sectionTitle, marginBottom: 20 }}>From the world&rsquo;s best hotels to your dashboard, every Monday.</h2>
-          <p style={{ fontSize: 'clamp(16px,2vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', textWrap: 'pretty' }}>No spreadsheets. No scraping. No guesswork. Three steps, every single week. New hotels being added, new features coming.</p>
+          <p style={{ fontSize: 'clamp(16px,2vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', textWrap: 'pretty' }}>Your entire week of content research, done in ten minutes every Monday. No spreadsheets. No scraping. No guesswork.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
           {[
@@ -528,26 +465,14 @@ export default function Landing({ data }: { data: DashboardData }) {
             { n: '2', label: 'We share', title: 'Every post that’s worth looking at', body: 'Every breakout post — the ones that have gone viral, are going viral now, or simply struck a chord with the audience — surfaced for you to review.' },
             { n: '3', label: 'You create', title: 'New inspiration every week', body: 'Enjoy an exhaustive and continuously updating library of the industry’s best-performing content — ready to inspire your own hotel’s social media.' },
           ].map((s, i) => (
-            <div key={s.n} data-reveal data-reveal-delay={i * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '36px 32px', transition: 'transform .16s, box-shadow .16s' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, color: 'var(--ink)', width: 44, height: 44, borderRadius: '50%', border: '1.5px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.n}</span>
-                <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--body-mid)', whiteSpace: 'nowrap' }}>{s.label}</span>
+            <div key={s.n} data-reveal data-reveal-delay={i * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '38px 32px 34px', position: 'relative', overflow: 'hidden', transition: 'transform .16s, box-shadow .16s' }}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 13, marginBottom: 22 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 19, color: 'var(--surface)', width: 46, height: 46, borderRadius: '50%', background: 'var(--signal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxShadow: '0 8px 18px -7px rgba(46,115,87,0.65)' }}>{s.n}</span>
+                <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-deep)', whiteSpace: 'nowrap' }}>{s.label}</span>
               </div>
-              <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 20, color: 'var(--ink)', marginBottom: 10 }}>{s.title}</h3>
-              <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--body-soft)' }}>{s.body}</p>
+              <h3 style={{ position: 'relative', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 20, color: 'var(--ink)', marginBottom: 10 }}>{s.title}</h3>
+              <p style={{ position: 'relative', fontSize: 15, lineHeight: 1.55, color: 'var(--body-soft)' }}>{s.body}</p>
             </div>
-          ))}
-        </div>
-        <div data-reveal data-reveal-delay={120} style={{ marginTop: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--body-mid)', marginRight: 4, whiteSpace: 'nowrap' }}>Browse three ways</span>
-          {[
-            { b: 'Last 7 days', t: 'this week’s breakouts' },
-            { b: 'Last 30 days', t: 'the month' },
-            { b: 'All time', t: 'the leaderboard' },
-          ].map((p) => (
-            <span key={p.b} style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--body-soft)', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '8px 16px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <b style={{ color: 'var(--ink)' }}>{p.b}</b> · {p.t}
-            </span>
           ))}
         </div>
       </section>
@@ -559,18 +484,32 @@ export default function Landing({ data }: { data: DashboardData }) {
           <div data-reveal style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 64, alignItems: 'start' }}>
             <div>
               <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 26 }}>Why believe it</div>
-              <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(28px,4vw,44px)', lineHeight: 1.15, letterSpacing: '-0.02em', color: 'var(--surface)', textWrap: 'balance' }}>
-                Certified among the best, compared against their own baseline.
+              <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(28px,4vw,44px)', lineHeight: 1.1, letterSpacing: '-0.02em', color: 'var(--surface)', textWrap: 'balance' }}>
+                The best hotels, the best ideas, the best results.
               </h2>
+              <div style={{ marginTop: 36 }}>
+                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--on-dark-soft)', marginBottom: 12 }}>More lists adding soon</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
+                  {['Small Luxury Hotels of the World', 'Design Hotels', 'Leading Hotels of the World', 'Relais & Châteaux'].map((t) => (
+                    <span key={t} style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--page)', background: 'rgba(247,246,242,0.06)', border: '1px solid var(--line-dark)', borderRadius: 20, padding: '6px 13px', whiteSpace: 'nowrap' }}>{t}</span>
+                  ))}
+                </div>
+              </div>
             </div>
             <div style={{ maxWidth: 520 }}>
-              <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', marginBottom: 22 }}>
-                This isn&rsquo;t a random Instagram scrape. Content Radar only tracks hotels already certified as the best in the world — the <b style={{ color: 'var(--page)', fontWeight: 600 }}>Condé Nast Gold List</b> and <b style={{ color: 'var(--page)', fontWeight: 600 }}>Forbes Five-Star</b>, with more of the industry&rsquo;s most respected lists added every week.
-              </p>
-              <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', marginBottom: 18 }}>
-                And every breakout is measured against <em style={{ fontStyle: 'normal', color: 'var(--signal-light)', fontWeight: 600 }}>that hotel&rsquo;s own</em> engagement baseline — so a boutique property&rsquo;s win surfaces right next to a global flagship&rsquo;s. It&rsquo;s not about who&rsquo;s biggest. It&rsquo;s about the best ideas. It&rsquo;s about what&rsquo;s working.
-              </p>
-              <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--on-dark-soft)', fontStyle: 'italic' }}>
+              <div style={{ marginBottom: 36 }}>
+                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginBottom: 14 }}>Only the world&rsquo;s best</div>
+                <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', margin: 0 }}>
+                  This isn&rsquo;t a random Instagram scrape. Content Radar only tracks hotels already certified as the best in the world — the <b style={{ color: 'var(--page)', fontWeight: 600 }}>Condé Nast Gold List</b> and <b style={{ color: 'var(--page)', fontWeight: 600 }}>Forbes Five-Star</b>.
+                </p>
+              </div>
+              <div style={{ borderTop: '1px solid var(--line-dark)', paddingTop: 32, marginBottom: 30 }}>
+                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginBottom: 14 }}>Measured fairly</div>
+                <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', margin: 0 }}>
+                  And every breakout is measured against <em style={{ fontStyle: 'normal', color: 'var(--signal-light)', fontWeight: 600 }}>that hotel&rsquo;s own</em> engagement baseline — so a boutique property&rsquo;s win surfaces right next to a global flagship&rsquo;s. It&rsquo;s not about who&rsquo;s biggest — it&rsquo;s about the best ideas.
+                </p>
+              </div>
+              <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--body-mid)', fontStyle: 'italic' }}>
                 Content Radar is independent and is not affiliated with, endorsed by, or sponsored by these publications. All figures are drawn from public Instagram data.
               </p>
             </div>
@@ -578,57 +517,91 @@ export default function Landing({ data }: { data: DashboardData }) {
         </div>
       </section>
 
-      {/* ===== WHAT YOU GET ===== */}
-      <section style={{ ...INNER, padding: '100px 40px' }}>
-        <div data-reveal style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 56px' }}>
-          <div style={{ ...eyebrow(), marginBottom: 22 }}>What you get</div>
-          <h2 style={sectionTitle}>Four ways to never face a blank calendar again.</h2>
-        </div>
-        <div className="cr-whatyouget-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 16 }}>
-          {[
-            { idx: '01 · this week', title: 'This Week’s Breakouts', body: 'Never face a blank content calendar again. The posts proven to work this week, ranked best-first.' },
-            { idx: '02 · the library', title: 'The 30-Day & All-Time Leaderboard', body: 'The best posts we’ve ever found, not just this week’s. A permanent library to draw from.' },
-            { idx: '03 · the strategy', title: 'The Posting Playbook', body: 'See when and how often the best hotels have been posting, and how it moves their engagement. The strategy thinking, done for you.' },
-            { idx: '04 · coming soon', title: 'TikTok & YouTube — September 2026', body: 'More channels are coming. Founding members — the first 50 — lock in this Instagram rate for good.' },
-          ].map((c, i) => (
-            <div key={c.idx} data-reveal data-reveal-delay={(i % 2) * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: 38, transition: 'transform .16s, box-shadow .16s' }}>
-              <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--signal)', marginBottom: 16 }}>{c.idx}</div>
-              <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', marginBottom: 12 }}>{c.title}</h3>
-              <p style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--body-soft)' }}>{c.body}</p>
-            </div>
-          ))}
+      {/* ===== WHAT YOU GET (dark green band) ===== */}
+      <section style={{ background: 'var(--signal-deep)', padding: '100px 40px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div data-reveal style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 56px' }}>
+            <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 22 }}>What you get</div>
+            <h2 style={{ ...sectionTitle, color: 'var(--surface)' }}>Everything you need to never face a blank calendar again.</h2>
+          </div>
+          <div className="cr-whatyouget-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 16 }}>
+            {[
+              { n: '1', label: 'This week', title: 'This Week’s Top Posts', body: 'Never face a blank content calendar again. The posts proven to work this week, ranked best-first.' },
+              { n: '2', label: 'The library', title: 'The 30-Day & All-Time Leaderboard', body: 'The best posts we’ve ever found, not just this week’s. A permanent library to draw from.' },
+              { n: '3', label: 'The strategy', title: 'When & How Often to Post', body: 'See when and how often the best hotels have been posting, and how it moves their engagement. The strategy thinking, done for you.' },
+              { n: '4', label: 'Coming soon', title: 'TikTok & YouTube — September 2026', body: 'TikTok and YouTube tracking arrive next — every breakout, measured the same way, on more channels.' },
+              { n: '5', label: 'The edge', title: 'Spot Trends Before Competitors', body: 'See what’s working across the industry before the hotel down the road does. Move first, not last.' },
+              { n: '6', label: 'Peace of mind', title: 'Every Idea Already Proven', body: 'Every idea is already proven to perform — so you stop guessing, stop second-guessing, and stop spending budget on posts that flop.' },
+            ].map((c, i) => (
+              <div key={c.n} data-reveal data-reveal-delay={(i % 2) * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: 38, transition: 'transform .16s, box-shadow .16s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 18 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 19, color: 'var(--surface)', width: 46, height: 46, borderRadius: '50%', background: 'var(--signal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxShadow: '0 8px 18px -7px rgba(46,115,87,0.65)' }}>{c.n}</span>
+                  <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-deep)', whiteSpace: 'nowrap' }}>{c.label}</span>
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', marginBottom: 12 }}>{c.title}</h3>
+                <p style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--body-soft)' }}>{c.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ===== PRICING ===== */}
-      <section id="pricing" style={{ ...INNER, padding: '100px 40px 56px' }}>
-        <div data-reveal style={{ maxWidth: 520, margin: '0 auto', background: 'var(--ink-deep)', borderRadius: 20, padding: '48px 44px', textAlign: 'center', boxShadow: '0 40px 80px -50px rgba(34,32,27,0.7)' }}>
-          <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 24 }}>Founding Member</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 72, lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--surface)' }}>£{FOUNDING_PRICE}</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 18, color: 'var(--on-dark-soft)' }}>/month</span>
-          </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 16, color: 'var(--signal-light)', marginBottom: 28 }}>Instagram channel</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left', maxWidth: 300, margin: '0 auto 32px' }}>
-            {[
-              'Fixed forever — first 50 members only',
-              `${TRIAL_DAYS}-day free trial to start`,
-              'Cancel anytime',
-            ].map((t) => (
-              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 16, color: 'var(--page)' }}><span style={{ color: 'var(--signal)' }}>✓</span> {t}</div>
-            ))}
-          </div>
-          <div style={{ marginBottom: 22, textAlign: 'left', maxWidth: 320, marginLeft: 'auto', marginRight: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--signal-light)' }}><b style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--surface)', fontSize: 14 }}>{FOUNDING_CLAIMED}</b> of {FOUNDING_CAP} founding spots claimed</span>
-              <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, color: 'var(--body-mid)' }}>{spotsLeft} left</span>
+      {/* ===== PRICING =====
+          One block, one product. The section sits on --surface so it reads as a
+          distinct band between the dark-green "what you get" band above and the
+          page-coloured FAQ below — no new colours, just existing tokens. */}
+      <section id="pricing" style={{ background: 'var(--surface)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ ...INNER, padding: '100px 40px 88px' }}>
+          {/* Value stack — what the founding price replaces. Sits on --page so it
+              still reads as a card against the --surface band. */}
+          <div data-reveal style={{ maxWidth: 560, margin: '0 auto 18px', background: 'var(--page)', border: '1px solid var(--line)', borderRadius: 20, padding: '32px 36px' }}>
+            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-deep)', marginBottom: 18 }}>What your {FOUNDING_PRICE_DISPLAY} replaces</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+              {VALUE_STACK.map((r) => (
+                <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, fontSize: 15, color: 'var(--body-strong)' }}>
+                  <span>{r.label}</span>
+                  <span style={{ color: 'var(--muted)', textDecoration: 'line-through', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{monthlyCost(r.monthlyGbp)}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ height: 6, borderRadius: 6, background: 'rgba(247,246,242,0.14)', overflow: 'hidden' }}>
-              <div data-progress style={{ height: '100%', width: claimedPct, background: 'var(--signal)', borderRadius: 6 }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 18, paddingTop: 15, borderTop: '1px solid var(--line-rule)', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>
+              <span>Total value</span>
+              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{monthlyCost(VALUE_STACK_TOTAL_GBP)}</span>
             </div>
           </div>
-          <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--ink-deep)', background: 'var(--surface)', padding: 17, borderRadius: 12, textDecoration: 'none', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-          <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--body-mid)', marginTop: 22 }}>More channels are coming. Founding members lock in this rate on Instagram for good.</p>
+
+          <div data-reveal data-reveal-delay={40} style={{ textAlign: 'center', marginBottom: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)' }}>All of it, for</div>
+
+          <div data-reveal data-reveal-delay={80} style={{ maxWidth: 560, margin: '0 auto', background: 'var(--ink-deep)', borderRadius: 20, padding: '44px 48px 48px', textAlign: 'center', boxShadow: '0 40px 80px -50px rgba(34,32,27,0.7)' }}>
+            <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 22 }}>Founding membership</div>
+
+            {/* Standard price, de-emphasised, above the one that matters. */}
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 20, color: 'var(--on-dark-soft)', textDecoration: 'line-through', marginBottom: 6 }}>{STANDARD_PRICE_MONTHLY}</div>
+
+            {/* The founding price — the largest single piece of type in the section. */}
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 84, lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em', color: 'var(--surface)' }}>{FOUNDING_PRICE_DISPLAY}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 20, color: 'var(--on-dark-soft)' }}>/month</span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 18, color: 'var(--surface)', marginTop: 4 }}>locked for life</div>
+
+            {/* Live information, not decoration — hence the signal colour. */}
+            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginTop: 18 }}>{PLACES_LEFT_LINE}</div>
+
+            <p style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--page)', textAlign: 'left', margin: '30px 0 0' }}>
+              Every week, Content Radar shows you the posts that broke out across the world&rsquo;s best hotels — and why they worked. Founding members pay {FOUNDING_PRICE_MONTHLY.replace('/month', ' a month')} for as long as they stay a member, even after the price goes to {STANDARD_PRICE_DISPLAY}.
+            </p>
+
+            <div style={{ textAlign: 'left', margin: '24px 0 30px', padding: '20px 22px', borderRadius: 14, background: 'rgba(127,193,162,0.10)', border: '1px solid var(--line-dark)' }}>
+              <p style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--page)', margin: 0 }}>
+                <b style={{ color: 'var(--signal-light)' }}>What I want in return:</b>{' '}
+                your feedback. What&rsquo;s missing, what you&rsquo;d change, what you&rsquo;d pay for next. You&rsquo;ll have my email and a direct say in what gets built.
+              </p>
+            </div>
+
+            <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--ink-deep)', background: 'var(--surface)', padding: 17, borderRadius: 12, textDecoration: 'none', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
+            <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--body-mid)', marginTop: 18 }}>{TRIAL_FINE_PRINT}</p>
+          </div>
         </div>
       </section>
 
@@ -657,10 +630,10 @@ export default function Landing({ data }: { data: DashboardData }) {
       {/* ===== CLOSING CTA (dark band) ===== */}
       <section style={{ background: 'var(--ink-deep)', borderTop: '1px solid var(--line-dark)' }}>
         <div style={{ ...INNER, padding: '100px 40px', textAlign: 'center' }}>
-          <h2 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(30px,5vw,54px)', lineHeight: 1.08, letterSpacing: '-0.03em', color: 'var(--surface)', marginBottom: 36, textWrap: 'balance' }}>See this week&rsquo;s winners<br />before you pay.</h2>
+          <h2 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(30px,5vw,54px)', lineHeight: 1.08, letterSpacing: '-0.03em', color: 'var(--surface)', marginBottom: 36, textWrap: 'balance' }}>See the 10 best-performing<br />posts before you pay a penny.</h2>
           <div data-reveal data-reveal-delay={120}>
             <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--ink-deep)', background: 'var(--surface)', padding: '18px 44px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em', color: 'var(--on-dark-soft)', marginTop: 14 }}>{CTA_SUB}</div>
+            <div style={{ maxWidth: 440, margin: '16px auto 0', fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 15, lineHeight: 1.5, color: 'var(--on-dark-soft)' }}>Create your free account and see the month&rsquo;s ten best-performing posts straight away. If it doesn&rsquo;t fill your calendar, cancel in two clicks — no payment, no awkward emails.</div>
           </div>
         </div>
       </section>

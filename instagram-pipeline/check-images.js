@@ -60,17 +60,18 @@ async function main() {
   console.log(`   Affected handles:      ${affectedHandles.length}`);
 
   // ── 3. Apify cost estimate ────────────────────────────────────────────────
-  // Apify Instagram post scraper costs roughly $0.50 per 1,000 posts scraped
-  // (on the Scale plan). Re-scraping 30 posts per handle to get fresh images:
+  // apify/instagram-post-scraper is pay-per-result: $2.30 per 1,000 results on
+  // the Starter tier (~$2.70 on Free). See APIFY-COST.md. Re-scraping 30 posts
+  // per handle to get fresh images:
   const postsPerHandle   = 30;
-  const pricePerPost     = 0.0005; // $0.50 / 1000
+  const pricePerPost     = 0.0023; // $2.30 / 1000 (Starter tier)
   const estimatedCost    = affectedHandles.length * postsPerHandle * pricePerPost;
   const handlesToReScrape = affectedHandles.length;
 
   console.log('\n── Apify re-scrape estimate ──────────────────────');
   console.log(`   Handles needing re-scrape:  ${handlesToReScrape}`);
   console.log(`   Posts per handle (assumed): ${postsPerHandle}`);
-  console.log(`   Apify cost @ $0.50/1k:      $${estimatedCost.toFixed(2)}`);
+  console.log(`   Apify cost @ $2.30/1k:      $${estimatedCost.toFixed(2)}`);
   console.log(`   Note: actual cost depends on your plan & actor compute units.`);
   console.log(`   Apify dashboard → https://console.apify.com/billing for exact usage.`);
 

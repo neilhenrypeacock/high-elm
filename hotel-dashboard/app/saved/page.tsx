@@ -9,7 +9,7 @@ import { getSavedPosts } from '@/lib/saves';
 // from saved_posts (RLS-scoped to the user). The branded empty state shows only
 // when the list is genuinely empty.
 export const metadata = {
-  title: 'Content Radar — Saved',
+  title: 'Content Radar — Saved posts',
 };
 
 export default async function SavedPage() {
@@ -20,7 +20,7 @@ export default async function SavedPage() {
     <AppShell userName={displayName(user)} userEmail={user?.email ?? null} isAdmin={isAdminView(user)}>
       <AccountFrame
         eyebrow="Your library"
-        title="Saved"
+        title="Saved posts"
         sub="Keep the breakout posts worth coming back to — your own swipe file of proven ideas."
       >
         {posts.length === 0 ? (

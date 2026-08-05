@@ -1,0 +1,51 @@
+# Daily health digest — ONE morning email, green or red, every day.
+#
+# Inspects the whole pipeline for silent failures and data anomalies
+# (17 checks: freshness, scrape outcome, coverage, sentinel spikes, auth
+# gate, publish gate, …) and emails neil@highelmstudio.com. A missing email
+# means the checker itself is broken — that is deliberate: absence is an
+# alarm. Report-only: zero writes, zero Apify calls, zero AI calls.
+#
+# This ABSORBED freshness-check.yml (retired in the same PR): the old
+# freshness alarm is now check 2 of the digest, and the daily storage check
+# runs here instead. If Resend fails, the job exits non-zero so GitHub's own
+# workflow-failure email is the backstop.
+name: daily-health-digest
+
+on:
+  schedule:
+    - cron: '30 6 * * *' # daily 06:30 UTC (GitHub drift lands it ~07:30-08:30 UK)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read # the digest reads recent workflow-run outcomes via the API
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: instagram-pipeline
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      ALERT_EMAIL: neil@highelmstudio.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Run the health digest (computes + emails)
+        run: node health-check/run-digest.js
+      # The storage cost-line check moved here from the retired
+      # freshness-check.yml — daily, independent of scrape runs.
+      - name: Check the image bucket against the 5 GB cost line
+        if: always()
+        run: node check-storage.js

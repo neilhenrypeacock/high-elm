@@ -1,6 +1,6 @@
 # High Elm — Instagram Pipeline
 
-Collects public Instagram data for the luxury hotels tracked by Hotel Content Radar and stores it in Supabase. Runs **weekly via GitHub Actions** (`.github/workflows/weekly-scrape.yml`, Mondays 05:00 UTC; manual trigger in the Actions tab) — each run costs real Apify money. A daily `freshness-check` workflow alarms when data goes stale (>8 days). Manual runs still work exactly as below.
+Collects public Instagram data for the luxury hotels tracked by Hotel Content Radar and stores it in Supabase. Runs on a **two-tier GitHub Actions schedule** — a cheap **weekly** incremental (`weekly-scrape.yml`, Mondays 05:00 UTC, last 10 days) plus a **monthly** deep-sweep (`monthly-scrape.yml`, 1st of the month, last 35 days) — with a manual-only **full** baseline rebuild (`full-scrape.yml`). All three are thin callers of the reusable `scrape-pipeline.yml`; each run costs real Apify money. A daily `freshness-check` workflow alarms when data goes stale (>8 days). Manual runs still work exactly as below.
 
 ## What it does
 
@@ -27,11 +27,13 @@ Collects public Instagram data for the luxury hotels tracked by Hotel Content Ra
 npm run test5
 ```
 
-**Full run (all TRACKED hotels — currently the ~205 most-followed, set by `setup-tracked.sql`):**
+**Scheduled scrapes (all TRACKED hotels — currently the ~205 most-followed, set by `setup-tracked.sql`):**
 ```bash
-npm run full
+npm run weekly    # last 10 days  (SCRAPE_WINDOW_DAYS=10) — routine, runs Mondays
+npm run monthly   # last 35 days  (SCRAPE_WINDOW_DAYS=35) — deep sweep, runs the 1st
+npm run full      # 30 posts/hotel, no window (SCRAPE_FULL=1) — baseline rebuild, manual only
 ```
-Runs in batches of 50. Fetches each hotel's **last 30 posts** (`POSTS_PER_HOTEL` in `full-run.js` — count-based, not a time window; those 30 posts are the dashboard's breakout baseline). Costs real money on Apify. A batch that fails is skipped and reported at the end; re-running the same day is safe (posts upsert, snapshots dedupe).
+All run through `scrape-run.js` in batches of 50; the mode is chosen by env (see the top of that file). Windowed modes pull only posts newer than N days — history already accumulates in `posts` (upsert), so each run needs only the new deltas, which keeps cost inside the Apify prepaid (see `APIFY-COST.md`). `full` re-fetches each hotel's last 30 posts and costs ~$14–16, so it's manual-only. Costs real money on Apify. A batch that fails is skipped and reported at the end; re-running the same day is safe (posts upsert, snapshots dedupe).
 
 The database holds 465 hotels; only those with `tracked = true` are scraped and shown on the dashboard. To widen coverage, flip more hotels to tracked (`setup-tracked.sql`) and re-run.
 
@@ -40,10 +42,10 @@ The database holds 465 hotels; only those with `tracked = true` are scraped and 
 | File | Purpose |
 |---|---|
 | `scrape.js` | Core pipeline — calls Apify, normalises data, uploads images, writes to Supabase |
-| `full-run.js` | All tracked hotels in batches of 50 (`npm run full`) |
+| `scrape-run.js` | All tracked hotels in batches of 50; three modes (`npm run weekly` / `monthly` / `full`) |
 | `test-run.js` | 5-hotel smoke test (`npm run test5`) |
 | `generate-insight.js` | Per-post AI insights + driver/theme tags → `standout_posts` (run manually; not part of the scrape run) |
-| `check-freshness.js` | Read-only staleness alarm used by both workflows (`FRESHNESS_MAX_DAYS`, default 8) |
+| `check-freshness.js` | Read-only staleness alarm — runs after every scrape and in the daily `freshness-check` workflow (`FRESHNESS_MAX_DAYS`, default 8) |
 | `check-images.js` | Read-only diagnostic — image URL coverage |
 | `audit-post-counts.js` | Read-only diagnostic — valid posts per hotel |
 | `backfill-themes.js` | Ad-hoc AI theme-tag backfill for `standout_posts` |

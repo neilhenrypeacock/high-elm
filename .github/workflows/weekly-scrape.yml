@@ -1,8 +1,7 @@
-# Weekly Instagram scrape — the pipeline that feeds the Content Radar dashboard.
-# Costs real Apify money per run, so the schedule is deliberately once a week.
-# Manual trigger available via the Actions tab (workflow_dispatch).
-# On failure GitHub emails the repo owner; check-freshness.js additionally
-# emails ALERT_EMAIL via Resend once RESEND_API_KEY is configured.
+# Weekly incremental scrape — routine 10-day delta refresh for Content Radar.
+# Cheap enough to run every week inside the Apify Starter prepaid (see
+# instagram-pipeline/APIFY-COST.md). Thin caller: the real steps live in
+# scrape-pipeline.yml. Manual trigger available via the Actions tab.
 name: weekly-scrape
 
 on:
@@ -10,37 +9,9 @@ on:
     - cron: '0 5 * * 1' # Mondays 05:00 UTC
   workflow_dispatch:
 
-concurrency:
-  group: instagram-pipeline
-  cancel-in-progress: false
-
 jobs:
-  scrape:
-    runs-on: ubuntu-latest
-    timeout-minutes: 180 # a full 205-hotel run takes ~90 min
-    defaults:
-      run:
-        working-directory: instagram-pipeline
-    env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-      ALERT_EMAIL: neil@highelmstudio.com
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      # ffmpeg lets generate-insight.js sample frames across the whole video/reel;
-      # without it, videos fall back to the cover frame. Ubuntu runners: apt.
-      - name: Install ffmpeg (for video-frame analysis)
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: npm ci
-      - name: Full scrape (all tracked hotels)
-        run: node full-run.js
-      - name: Verify data is fresh after the run
-        run: node check-freshness.js
-      - name: Generate "why it worked" analysis for the top 10 breakouts
-        run: node generate-insight.js
+  call:
+    uses: ./.github/workflows/scrape-pipeline.yml
+    with:
+      window_days: '10'
+    secrets: inherit

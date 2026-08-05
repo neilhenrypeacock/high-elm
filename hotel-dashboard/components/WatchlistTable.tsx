@@ -27,7 +27,7 @@ export default function WatchlistTable({ initialHotels }: { initialHotels: Hotel
       >
         You’ve cleared your watchlist.{' '}
         <Link href="/dashboard#leaderboard" className="cr-link" style={{ color: 'var(--signal-deep)', fontWeight: 500 }}>
-          Open the leaderboard ↗
+          Open the hotel leaderboard ↗
         </Link>
       </div>
     );

@@ -27,6 +27,7 @@ import { promisify } from 'node:util';
 import { mkdtemp, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { hasVisibleLikes } from './likes.js';
 
 const execFileP = promisify(execFile);
 
@@ -54,7 +55,7 @@ const VIDEO_FRAMES   = 8;                    // frames sampled across a video/re
 const MAX_STANDOUT            = 10;   // top 10 non-collab breakouts get analysis each run
 const OUTLIER_THRESHOLD       = 2;    // post must beat its hotel's median by ≥2×
 const BASELINE_POSTS          = 30;   // baseline = median of the hotel's last 30 valid posts
-const MIN_ENGAGEMENT          = 100;  // absolute floor; posts below this are noise
+const MIN_ENGAGEMENT          = 500;  // absolute floor; below this is noise (kept in sync with hotel-dashboard/lib/data.ts)
 const MIN_BASELINE_ENGAGEMENT = 25;   // hotels with a median below this are excluded
 const OUTLIER_WINDOW_DAYS     = 7;    // the "this week" window for breakouts
 
@@ -260,7 +261,9 @@ async function getData() {
   // Only tracked hotels appear on the dashboard, so only they can be breakouts.
   const trackedHandles  = new Set((hotels ?? []).filter(h => h.tracked).map(h => h.instagram_handle));
 
-  const valid = allPosts.filter(p => p.likes_count !== -1 && p.likes_count !== null);
+  // Shared hidden-likes rule (likes.js) — also drops the `3` sentinel rows the
+  // old inline null/-1 check counted as real (audit 2026-07-31).
+  const valid = allPosts.filter(hasVisibleLikes);
 
   // Per-hotel absolute engagement totals (for Content Radar baseline)
   const hotelPostEngagements = {};
@@ -444,7 +447,9 @@ Return:
     const note = [
       `What it is: ${r.what_it_is}`,
       `Why it worked: ${r.why_it_worked}`,
-      `Try this: ${r.try_this}`,
+      // Dashboard renders this as "Consider this" (the AI insight card); keep the
+      // label in sync so freshly-generated notes need no re-parsing rename.
+      `Consider this: ${r.try_this}`,
     ].join('\n');
     return { insight: note, tag: r.tag ?? null, theme: r.theme ?? null };
   } catch (e) {

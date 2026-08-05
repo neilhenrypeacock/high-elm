@@ -1,0 +1,43 @@
+-- Fold the legacy 'Asia' and 'Oceania' regions into 'Asia-Pacific'.
+--
+-- STATUS: APPLIED to production (project dndefddhocxqczinfpfg) on 2026-07-30.
+--
+-- WHY: both values are leftovers from an earlier import and duplicate a bucket
+-- that already exists. All 36 rows were tracked = false, so nothing was visible
+-- on the dashboard today — but the destination filter and the leaderboard region
+-- filter build their options from whatever regions the TRACKED hotels carry, so
+-- the moment any one of these hotels is tracked the filter would offer 'Asia'
+-- AND 'Asia-Pacific' as separate destinations. Fixed before expanding coverage,
+-- as flagged in the closing note of setup-split-americas.sql.
+--
+-- WHY 'Oceania' folds in too rather than becoming its own destination: the one
+-- row is the Adelphi Hotel, Melbourne — Australia. 'Asia-Pacific' already holds
+-- 6 Australian hotels (1 tracked) plus New Zealand, Fiji and French Polynesia,
+-- so a separate 'Oceania' would split Australia across two buckets. Worse than
+-- the problem being fixed. If Australasia ever deserves its own destination it
+-- should be carved out deliberately, by country, the way the Americas were.
+--
+-- Rows moved (all previously tracked = false):
+--   Asia      35   Japan 12, Thailand 8, Indonesia 5, Malaysia 4, Singapore 2,
+--                  India 1, Maldives 1, South Korea 1, Vietnam 1
+--   Oceania    1   Australia 1
+-- Every one of those countries was already represented in 'Asia-Pacific'.
+--
+-- Result (hotels table):
+--   Asia-Pacific   127 -> 163 rows, 35 tracked (unchanged — no row was tracked)
+--
+-- NOTE: nothing in the app hardcodes region names — both the Top-posts
+-- destination filter and the leaderboard region filter derive their options from
+-- whatever the tracked hotels carry. So this SQL alone changes the UI. The
+-- tracked region list is unchanged by this fold: still the same seven.
+
+update public.hotels set region = 'Asia-Pacific'
+ where region in ('Asia', 'Oceania');
+
+-- Verify: expect ZERO rows.
+--   select region, count(*) from public.hotels
+--    where region in ('Asia', 'Oceania') group by region;
+--
+-- And the full picture — expect seven regions, none of them 'Asia' or 'Oceania':
+--   select region, count(*) rows, count(*) filter (where tracked) tracked
+--     from public.hotels group by region order by tracked desc;
