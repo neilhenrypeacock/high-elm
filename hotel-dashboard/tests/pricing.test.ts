@@ -5,14 +5,12 @@ import {
   STANDARD_PRICE_GBP,
   STANDARD_PRICE_PENCE,
   FOUNDING_PLACES_TOTAL,
-  FOUNDING_PLACES_TAKEN,
-  FOUNDING_PLACES_LEFT,
-  FOUNDING_OPEN,
   FOUNDING_PRICE_DISPLAY,
   STANDARD_PRICE_DISPLAY,
   FOUNDING_PRICE_MONTHLY,
   STANDARD_PRICE_MONTHLY,
-  PLACES_LEFT_LINE,
+  placesLeftLine,
+  foundingHeroLine,
   TRIAL_DAYS,
   TRIAL_FINE_PRINT,
   VALUE_STACK,
@@ -35,23 +33,23 @@ describe('pricing — the single source of truth', () => {
     expect(FOUNDING_PRICE_GBP).toBeLessThan(STANDARD_PRICE_GBP);
   });
 
-  it('derives places-left and the open flag from the seat counts', () => {
-    expect(FOUNDING_PLACES_LEFT).toBe(FOUNDING_PLACES_TOTAL - FOUNDING_PLACES_TAKEN);
-    expect(FOUNDING_OPEN).toBe(FOUNDING_PLACES_LEFT > 0);
-  });
-
-  it('never claims more places taken than exist', () => {
-    expect(FOUNDING_PLACES_TAKEN).toBeGreaterThanOrEqual(0);
-    expect(FOUNDING_PLACES_TAKEN).toBeLessThanOrEqual(FOUNDING_PLACES_TOTAL);
-  });
-
   it('builds display strings from the numbers, not by hand', () => {
     expect(FOUNDING_PRICE_DISPLAY).toBe(`£${FOUNDING_PRICE_GBP}`);
     expect(STANDARD_PRICE_DISPLAY).toBe(`£${STANDARD_PRICE_GBP}`);
     expect(FOUNDING_PRICE_MONTHLY).toBe(`£${FOUNDING_PRICE_GBP}/month`);
     expect(STANDARD_PRICE_MONTHLY).toBe(`£${STANDARD_PRICE_GBP}/month`);
-    expect(PLACES_LEFT_LINE).toBe(`${FOUNDING_PLACES_LEFT} of ${FOUNDING_PLACES_TOTAL} places left`);
     expect(TRIAL_FINE_PRINT).toContain(String(TRIAL_DAYS));
+  });
+
+  it('formats the scarcity line from a live seat count', () => {
+    expect(placesLeftLine(20)).toBe(`20 of ${FOUNDING_PLACES_TOTAL} places left`);
+    expect(placesLeftLine(0)).toBe(`0 of ${FOUNDING_PLACES_TOTAL} places left`);
+  });
+
+  it('puts the price and the seat count in the hero sentence', () => {
+    const line = foundingHeroLine(17);
+    expect(line).toContain(FOUNDING_PRICE_MONTHLY);
+    expect(line).toContain(`17 of ${FOUNDING_PLACES_TOTAL} places left`);
   });
 
   it('derives the value-stack total from its rows', () => {

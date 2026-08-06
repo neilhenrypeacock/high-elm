@@ -9,7 +9,8 @@ import {
   FOUNDING_PRICE_MONTHLY,
   STANDARD_PRICE_DISPLAY,
   STANDARD_PRICE_MONTHLY,
-  PLACES_LEFT_LINE,
+  placesLeftLine,
+  foundingHeroLine,
   TRIAL_DAYS,
   TRIAL_FINE_PRINT,
   VALUE_STACK,
@@ -25,8 +26,12 @@ import { ImageWithFallback } from './ContentRadar';
 const TRIAL_HREF = '/start-trial';
 const LOGIN_HREF = '/login';
 
-const HERO_FOUNDING_LINE =
-  `Founding membership — ${FOUNDING_PRICE_MONTHLY} locked for life. ${PLACES_LEFT_LINE}.`;
+// The founding sentence and the scarcity line both need a live seat count, so
+// they are built per render from the `placesLeft` prop rather than at module
+// scope. When the count is unavailable the hero falls back to the half of the
+// sentence that is always true, and the scarcity line is dropped entirely — a
+// missing claim beats a guessed one.
+const HERO_FOUNDING_LINE_NO_COUNT = `Founding membership — ${FOUNDING_PRICE_MONTHLY} locked for life.`;
 
 const INNER: React.CSSProperties = { maxWidth: 1200, margin: '0 auto', padding: '0 40px' };
 
@@ -201,7 +206,16 @@ function whyItWorkedOf(post: OutlierPost): string | null {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-export default function Landing({ data }: { data: DashboardData }) {
+export default function Landing({
+  data,
+  placesLeft,
+}: {
+  data: DashboardData;
+  /** Live founding-seat count, or null when it could not be read. */
+  placesLeft: number | null;
+}) {
+  const heroFoundingLine =
+    placesLeft === null ? HERO_FOUNDING_LINE_NO_COUNT : foundingHeroLine(placesLeft);
   const rootRef = useRef<HTMLDivElement>(null);
   // Six distinct previewed posts: the first three fan out in the hero stack, the
   // next three fill the taster grid. Dedupe by post_id first (a collab shares one
@@ -378,7 +392,7 @@ export default function Landing({ data }: { data: DashboardData }) {
                 reads as a quiet statement of fact rather than a shout. */}
             <div data-reveal data-reveal-delay={240} style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 13.5, letterSpacing: '0.01em', color: 'var(--signal-deep)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--signal)', flex: 'none' }} />
-              {HERO_FOUNDING_LINE}
+              {heroFoundingLine}
             </div>
           </div>
 
@@ -719,8 +733,11 @@ export default function Landing({ data }: { data: DashboardData }) {
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 18, color: 'var(--surface)', marginTop: 4 }}>locked for life</div>
 
-            {/* Live information, not decoration — hence the signal colour. */}
-            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginTop: 18 }}>{PLACES_LEFT_LINE}</div>
+            {/* Live information, not decoration — hence the signal colour. Omitted
+                entirely rather than guessed when the seat count can't be read. */}
+            {placesLeft !== null && (
+              <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginTop: 18 }}>{placesLeftLine(placesLeft)}</div>
+            )}
 
             <p style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--page)', textAlign: 'left', margin: '30px 0 0' }}>
               Every week, Content Radar shows you the posts that broke out across the world&rsquo;s best hotels — and why they worked. Founding members pay {FOUNDING_PRICE_MONTHLY.replace('/month', ' a month')} for as long as they stay a member, even after the price goes to {STANDARD_PRICE_DISPLAY}.

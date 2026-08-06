@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
+import { FOUNDING_CACHE_TAG } from '@/lib/founding';
 import {
   updateSubscriptionByStripeId,
   upsertSubscriptionByEmail,
@@ -18,6 +20,26 @@ function toStatus(raw: string, context: string): SubscriptionStatus {
     console.error(`stripe webhook: unexpected subscription status "${raw}" (${context}) — stored raw; gate treats it as inactive`);
   }
   return raw as SubscriptionStatus;
+}
+
+// Drops the cached founding-places count and the ISR'd landing page so the
+// public "N of 20 places left" reflects a sale straight away.
+//
+// Only checkout.session.completed calls this. A place is taken once and never
+// released (lib/founding.ts), so a cancellation cannot change the count and
+// there is nothing to refresh on `updated` or `deleted`.
+//
+// Failure here is logged and swallowed on purpose: the webhook must still
+// return 200 or Stripe retries it, and the subscription row — the thing that
+// actually grants access — has already been written by this point. A stale
+// counter self-corrects within FOUNDING_CACHE_SECONDS.
+function refreshFoundingCount() {
+  try {
+    revalidateTag(FOUNDING_CACHE_TAG, { expire: 0 });
+    revalidatePath('/');
+  } catch (err) {
+    console.error('stripe webhook: could not refresh the founding-places count:', err);
+  }
 }
 
 // Stripe requires the exact raw request body for signature verification —
@@ -55,6 +77,13 @@ export async function POST(request: NextRequest) {
         stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null,
         stripe_subscription_id: subscription.id,
       });
+
+      // A new member has just taken a founding place, so the public counter is
+      // now stale. Both the cached count and the ISR'd landing page have to be
+      // invalidated — the page is revalidated hourly, and "20 of 20 places
+      // left" sitting there for an hour after the first sale is exactly the
+      // drift this replaced the hand-edited constant to avoid.
+      refreshFoundingCount();
 
       // No magic link is sent here. Checkout is session-gated, so whoever
       // completed it is already logged in — the email only ever read as a

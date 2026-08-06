@@ -42,21 +42,32 @@ export const TRIAL_DAYS: number = 14;
 /** How many founding places exist in total. */
 export const FOUNDING_PLACES_TOTAL: number = 20;
 
-/**
- * How many founding places have been taken.
- *
- * EDIT THIS BY HAND as members join. It is deliberately NOT counted from Stripe
- * or the database: at twenty seats a number you edit in one file is the simplest
- * thing that works, and it can never silently display a wrong figure because an
- * API call failed. Keep it honest — it is shown to the public.
- */
-export const FOUNDING_PLACES_TAKEN: number = 0;
+// ── How many are taken is COUNTED, not written here ────────────────────────
+//
+// This used to be a hand-edited `FOUNDING_PLACES_TAKEN = 0`. The reasoning was
+// sound as far as it went — a number in one file can never be wrong because an
+// API call failed — but it had to be edited, committed and deployed for every
+// single sale, and until that happened the public site said "20 of 20 places
+// left" while people were paying. A figure that is only correct if someone
+// remembers to change it is not a figure members can stand behind.
+//
+// It is now counted from the subscriptions table by lib/founding.ts. See that
+// file for the counting rule and, importantly, for what happens when the count
+// cannot be read — the old comment's concern is answered there rather than
+// dismissed.
+//
+// Nothing here reads the database, so this file stays a pure constants module
+// that anything (including the client bundle) can import safely.
 
-/** Places still available. */
-export const FOUNDING_PLACES_LEFT: number = FOUNDING_PLACES_TOTAL - FOUNDING_PLACES_TAKEN;
+/** "20 of 20 places left" — the scarcity line, given a live count. */
+export function placesLeftLine(placesLeft: number): string {
+  return `${placesLeft} of ${FOUNDING_PLACES_TOTAL} places left`;
+}
 
-/** Is founding membership still open? Drives which Stripe price checkout uses. */
-export const FOUNDING_OPEN: boolean = FOUNDING_PLACES_LEFT > 0;
+/** The hero's founding sentence, given a live count. */
+export function foundingHeroLine(placesLeft: number): string {
+  return `Founding membership — ${FOUNDING_PRICE_MONTHLY} locked for life. ${placesLeftLine(placesLeft)}.`;
+}
 
 // ── Display strings ────────────────────────────────────────────────────────
 // Pre-formatted here so no component ever formats currency itself.
@@ -66,9 +77,6 @@ export const STANDARD_PRICE_DISPLAY = `£${STANDARD_PRICE_GBP}`;
 
 export const FOUNDING_PRICE_MONTHLY = `£${FOUNDING_PRICE_GBP}/month`;
 export const STANDARD_PRICE_MONTHLY = `£${STANDARD_PRICE_GBP}/month`;
-
-/** "20 of 20 places left" — the scarcity line. */
-export const PLACES_LEFT_LINE = `${FOUNDING_PLACES_LEFT} of ${FOUNDING_PLACES_TOTAL} places left`;
 
 /** Fine print under the trial CTA. */
 export const TRIAL_FINE_PRINT = `${TRIAL_DAYS} days free · card required · cancel any time`;

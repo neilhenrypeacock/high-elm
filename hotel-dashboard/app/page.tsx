@@ -1,4 +1,5 @@
 import { getPortfolioData } from '@/lib/data';
+import { getFoundingState } from '@/lib/founding';
 import Landing from '@/components/Landing';
 
 // Same live data as the dashboard — the taster must show identical numbers.
@@ -13,9 +14,19 @@ export const metadata = {
 export default async function Page() {
   const data = await getPortfolioData();
 
+  // A missing count means the scarcity line is left off the page entirely
+  // rather than guessed at — see lib/founding.ts. The rest of the landing page
+  // is unaffected, so a counting failure costs a line, not the page.
+  let placesLeft: number | null = null;
+  try {
+    placesLeft = (await getFoundingState()).left;
+  } catch (err) {
+    console.error('Landing page could not count founding places — omitting the places-left line:', err);
+  }
+
   return (
     <main style={{ minHeight: '100vh' }}>
-      <Landing data={data} />
+      <Landing data={data} placesLeft={placesLeft} />
     </main>
   );
 }

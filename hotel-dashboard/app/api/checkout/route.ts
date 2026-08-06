@@ -3,7 +3,8 @@ import { getStripe } from '@/lib/stripe';
 import { createServerSupabaseClient } from '@/lib/supabase-server';
 import { allowRequest, clientIp } from '@/lib/rate-limit';
 import { getSubscriptionByEmail, hasActiveAccess } from '@/lib/subscriptions';
-import { FOUNDING_OPEN, TRIAL_DAYS } from '@/lib/pricing';
+import { TRIAL_DAYS } from '@/lib/pricing';
+import { getFoundingStateFresh } from '@/lib/founding';
 
 // Starts the free trial (length from lib/pricing.ts) for the LOGGED-IN member: creates a Stripe
 // Checkout Session (card required upfront, nothing charged during the trial)
@@ -48,17 +49,31 @@ export async function POST(request: NextRequest) {
 
   const origin = new URL(request.url).origin;
 
-  // Which price this member gets is decided by lib/pricing.ts: the founding
-  // price while founding places remain, the standard price once they're gone.
-  // Whichever they start on, they keep — Stripe prices are immutable, so a
-  // founding member carries on paying the founding amount for life.
-  const priceId = FOUNDING_OPEN
+  // Which price this member gets is decided by a live count of founding places
+  // (lib/founding.ts): the founding price while places remain, the standard
+  // price once they're gone. Whichever they start on, they keep — Stripe prices
+  // are immutable, so a founding member carries on paying the founding amount
+  // for life.
+  //
+  // Counted fresh, never from cache, and we refuse rather than guess if the
+  // count can't be read. A wrong answer here is not a wrong number on a page —
+  // it charges this person the wrong amount for as long as they stay a member.
+  // A failed checkout they can retry is the cheaper failure by a wide margin.
+  let foundingOpen: boolean;
+  try {
+    foundingOpen = (await getFoundingStateFresh()).open;
+  } catch (err) {
+    console.error('Checkout could not count founding places — refusing rather than guessing a price:', err);
+    return NextResponse.json({ error: 'Could not start checkout. Please try again.' }, { status: 503 });
+  }
+
+  const priceId = foundingOpen
     ? process.env.STRIPE_FOUNDING_PRICE_ID
     : process.env.STRIPE_STANDARD_PRICE_ID;
 
   if (!priceId) {
     console.error(
-      `Checkout price id missing: ${FOUNDING_OPEN ? 'STRIPE_FOUNDING_PRICE_ID' : 'STRIPE_STANDARD_PRICE_ID'} is not set.`,
+      `Checkout price id missing: ${foundingOpen ? 'STRIPE_FOUNDING_PRICE_ID' : 'STRIPE_STANDARD_PRICE_ID'} is not set.`,
     );
     return NextResponse.json({ error: 'Could not start checkout.' }, { status: 500 });
   }
