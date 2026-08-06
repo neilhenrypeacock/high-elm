@@ -86,8 +86,53 @@ const sectionTitle: React.CSSProperties = {
   lineHeight: 1.1, letterSpacing: '-0.02em', color: 'var(--ink)', textWrap: 'balance',
 };
 
+// Fine print on the dark bands. Deliberately one step brighter than
+// --on-dark-soft (#A49D92), which is tuned for body copy and drops below a
+// comfortable read at 12–13px — especially on the --signal-deep green.
+const ON_DARK_FINEPRINT = '#CFCAC2';
+
+// Accreditation chips. One shape, three tints — on --page/--surface, on
+// --ink-deep, and on --signal-deep.
+const listChip = (tone: 'light' | 'ink' | 'green'): React.CSSProperties => ({
+  display: 'inline-flex', alignItems: 'center',
+  fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11.5, letterSpacing: '0.02em',
+  borderRadius: 8, padding: '6px 12px', whiteSpace: 'nowrap',
+  color: tone === 'light' ? 'var(--body-soft)' : 'var(--page)',
+  background: tone === 'light' ? 'var(--surface)'
+    : tone === 'ink' ? 'rgba(247,246,242,0.06)'
+    : 'rgba(247,246,242,0.07)',
+  border: `1px solid ${
+    tone === 'light' ? 'var(--line-accent)'
+      : tone === 'ink' ? 'var(--line-dark)'
+      : 'rgba(247,246,242,0.16)'
+  }`,
+});
+
 function CtaArrow() {
   return <span className="cr-cta-arrow">→</span>;
+}
+
+/** The "What this means" disclosure on each What-you-get card. Native <details>
+ *  so it works without JS and is keyboard-operable for free; the marker is
+ *  suppressed in globals.css (.cr-wyg-details) and replaced by the chevron. */
+function WhatThisMeans({ children }: { children: React.ReactNode }) {
+  return (
+    <details className="cr-wyg-details" style={{ marginTop: 14 }}>
+      <summary style={{
+        display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', listStyle: 'none',
+        fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11.5, letterSpacing: '0.02em',
+        color: 'var(--signal-deep)',
+      }}>
+        <span className="cr-wyg-summary-label">What this means</span>
+        <svg className="cr-wyg-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', transition: 'transform .18s' }}>
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </summary>
+      <p style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--body-soft)', margin: '12px 0 0', maxWidth: 'none', textWrap: 'pretty' }}>
+        {children}
+      </p>
+    </details>
+  );
 }
 
 // ─── Hero: fanned breakout-card stack (real data, top 1-3 by multiplier) ─────
@@ -373,13 +418,13 @@ export default function Landing({
           style={{ display: 'grid', gridTemplateColumns: hero.length > 0 ? 'minmax(0,1fr) minmax(340px,460px)' : '1fr', gap: 64, alignItems: 'center' }}
         >
           <div style={{ minWidth: 0 }}>
-            <div data-reveal style={{ ...eyebrow(), marginBottom: 26 }}>Powered by High Elm Studio</div>
+            <div data-reveal style={{ ...eyebrow(), marginBottom: 26 }}>Designed for social media teams at luxury hotels</div>
             <h1 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(38px,4.6vw,60px)', lineHeight: 1.04, letterSpacing: '-0.03em', color: 'var(--ink)', textWrap: 'balance', marginBottom: 18 }}>
-              Every week, see the content that is going viral for luxury hotels.
+              Every week, see the content that&rsquo;s going viral for luxury hotels.
             </h1>
-            <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(19px,2.6vw,26px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 22 }}>No more guessing.</div>
+            <div data-reveal data-reveal-delay={60} style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(19px,2.6vw,26px)', letterSpacing: '-0.02em', color: 'var(--signal-deep)', marginBottom: 22 }}>No more quiet content weeks.</div>
             <p data-reveal data-reveal-delay={120} style={{ fontSize: 'clamp(16px,1.8vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', maxWidth: 480, margin: '0 0 34px', textWrap: 'pretty' }}>
-              400+ of the world&rsquo;s best luxury hotels every week. Not theory. Not guesswork. Not strategy. Just the content that has performed best in your industry.
+              We watch every post from 400+ of the world&rsquo;s best hotels. We then share and explain the best-performing content, all in one place. Not theory. Not trend decks. Just the best hotel content, ready to adapt — so your content calendar never sits empty again.
             </p>
 
             <div data-reveal data-reveal-delay={180} style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -441,11 +486,24 @@ export default function Landing({
               </div>
             ))}
           </div>
-          <div style={{ textAlign: 'center', marginTop: 26, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)', lineHeight: 1.6 }}>
-            {/* Michelin Keys was dropped from this line on 2026-07-31 — we don't
-                crawl that list, and most of it isn't in the database. The
-                per-hotel Michelin pins on the leaderboard are verified and stay. */}
-            Featuring hotels from <span style={{ color: 'var(--ink)' }}>Condé Nast Gold List</span> · <span style={{ color: 'var(--ink)' }}>Forbes Travel Guide</span>
+          {/* ⚠ SOURCING CLAIM — every name here must be one we can stand behind.
+              Each is verified per-hotel in lib/accreditations.generated.ts:
+              Forbes Five-Star 319, Condé Nast Gold List 139, Michelin Keys 139
+              (82 One / 43 Two / 14 Three), World's 50 Best 50.
+              Relais & Châteaux was in the 2026-08-06 design and was dropped
+              (Neil, same day): it appears on NO hotel in that map, and listing
+              it here while "More lists adding soon" below also names it made
+              the page contradict itself. Don't add a list to this row until it
+              has hotels in the map. */}
+          <div style={{ marginTop: 30, textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--body-mid)' }}>
+              Tracked from the lists that matter
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 14 }}>
+              {['Forbes Five-Star', 'Condé Nast Gold List', "World's 50 Best Hotels", 'Michelin Keys'].map((t) => (
+                <span key={t} style={listChip('light')}>{t}</span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -478,7 +536,7 @@ export default function Landing({
                 data-reveal data-reveal-delay={240}
                 style={{
                   position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'flex-end', textAlign: 'center', paddingBottom: 6,
+                  alignItems: 'center', justifyContent: 'flex-end', textAlign: 'center', paddingBottom: 86,
                   background: 'linear-gradient(to bottom, rgba(231,227,217,0) 40%, rgba(231,227,217,0.92) 64%, var(--page) 80%)',
                   backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
                   WebkitMaskImage: 'linear-gradient(to bottom, transparent 38%, #000 60%)',
@@ -632,32 +690,27 @@ export default function Landing({
           <div data-reveal style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 64, alignItems: 'start' }}>
             <div>
               <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 26 }}>Why believe it</div>
-              <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(28px,4vw,44px)', lineHeight: 1.1, letterSpacing: '-0.02em', color: 'var(--surface)', textWrap: 'balance' }}>
+              <h2 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(28px,4vw,44px)', lineHeight: 1.1, letterSpacing: '-0.02em', color: 'var(--surface)', textWrap: 'balance', margin: 0 }}>
                 The best hotels, the best ideas, the best results.
               </h2>
-              <div style={{ marginTop: 36 }}>
-                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--on-dark-soft)', marginBottom: 12 }}>More lists adding soon</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9 }}>
+            </div>
+            <div style={{ maxWidth: 520 }}>
+              <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--on-dark-soft)', marginBottom: 14 }}>Only the world&rsquo;s best</div>
+              <p style={{ fontSize: 17, lineHeight: 1.65, color: 'var(--on-dark-soft)', margin: 0 }}>
+                This isn&rsquo;t a random Instagram scrape. Content Radar only tracks hotels already certified as the best in the world — the <b style={{ color: 'var(--page)', fontWeight: 600 }}>Condé Nast Gold List</b> and <b style={{ color: 'var(--page)', fontWeight: 600 }}>Forbes Five-Star</b>.
+              </p>
+              {/* "Measured fairly" used to sit here. It moved into the "Real
+                  winners, measured fairly" card below, where the disclosure has
+                  room to explain the baseline properly. */}
+              <div style={{ borderTop: '1px solid var(--line-dark)', marginTop: 32, paddingTop: 32 }}>
+                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--on-dark-soft)', marginBottom: 14 }}>More lists adding soon</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {['Small Luxury Hotels of the World', 'Design Hotels', 'Leading Hotels of the World', 'Relais & Châteaux'].map((t) => (
-                    <span key={t} style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em', color: 'var(--page)', background: 'rgba(247,246,242,0.06)', border: '1px solid var(--line-dark)', borderRadius: 20, padding: '6px 13px', whiteSpace: 'nowrap' }}>{t}</span>
+                    <span key={t} style={listChip('ink')}>{t}</span>
                   ))}
                 </div>
               </div>
-            </div>
-            <div style={{ maxWidth: 520 }}>
-              <div style={{ marginBottom: 36 }}>
-                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginBottom: 14 }}>Only the world&rsquo;s best</div>
-                <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', margin: 0 }}>
-                  This isn&rsquo;t a random Instagram scrape. Content Radar only tracks hotels already certified as the best in the world — the <b style={{ color: 'var(--page)', fontWeight: 600 }}>Condé Nast Gold List</b> and <b style={{ color: 'var(--page)', fontWeight: 600 }}>Forbes Five-Star</b>.
-                </p>
-              </div>
-              <div style={{ borderTop: '1px solid var(--line-dark)', paddingTop: 32, marginBottom: 30 }}>
-                <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-light)', marginBottom: 14 }}>Measured fairly</div>
-                <p style={{ fontSize: 18, lineHeight: 1.7, color: 'var(--on-dark-soft)', margin: 0 }}>
-                  And every breakout is measured against <em style={{ fontStyle: 'normal', color: 'var(--signal-light)', fontWeight: 600 }}>that hotel&rsquo;s own</em> engagement baseline — so a boutique property&rsquo;s win surfaces right next to a global flagship&rsquo;s. It&rsquo;s not about who&rsquo;s biggest — it&rsquo;s about the best ideas.
-                </p>
-              </div>
-              <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--body-mid)', fontStyle: 'italic' }}>
+              <p style={{ fontSize: 13, lineHeight: 1.6, color: ON_DARK_FINEPRINT, margin: '32px 0 0' }}>
                 Content Radar is independent and is not affiliated with, endorsed by, or sponsored by these publications. All figures are drawn from public Instagram data.
               </p>
             </div>
@@ -670,26 +723,56 @@ export default function Landing({
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div data-reveal style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 56px' }}>
             <div style={{ ...eyebrow('var(--signal-light)'), marginBottom: 22 }}>What you get</div>
-            <h2 style={{ ...sectionTitle, color: 'var(--surface)' }}>Everything you need to never face a blank calendar again.</h2>
+            <h2 style={{ ...sectionTitle, color: 'var(--surface)', margin: 0 }}>Everything you need to never face a blank calendar again.</h2>
           </div>
+          {/* Each card leads on the outcome and hides the mechanism behind a
+              "What this means" disclosure — the detail is what convinces, but
+              six paragraphs of it up front is a wall. */}
           <div className="cr-whatyouget-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 16 }}>
             {[
-              { n: '1', label: 'This week', title: 'This Week’s Top Posts', body: 'Never face a blank content calendar again. The posts proven to work this week, ranked best-first.' },
-              { n: '2', label: 'The library', title: 'The 30-Day & All-Time Leaderboard', body: 'The best posts we’ve ever found, not just this week’s. A permanent library to draw from.' },
-              { n: '3', label: 'The strategy', title: 'When & How Often to Post', body: 'See when and how often the best hotels have been posting, and how it moves their engagement. The strategy thinking, done for you.' },
-              { n: '4', label: 'Coming soon', title: 'TikTok & YouTube — September 2026', body: 'TikTok and YouTube tracking arrive next — every breakout, measured the same way, on more channels.' },
-              { n: '5', label: 'The edge', title: 'Spot Trends Before Competitors', body: 'See what’s working across the industry before the hotel down the road does. Move first, not last.' },
-              { n: '6', label: 'Peace of mind', title: 'Every Idea Already Proven', body: 'Every idea is already proven to perform — so you stop guessing, stop second-guessing, and stop spending budget on posts that flop.' },
+              { n: '1', label: 'This week', title: 'You never start from a blank page', body: 'Every Monday, a fresh feed of five-star hotel posts that genuinely broke out — proven ideas waiting before you’ve even opened Instagram. No staring at an empty calendar wondering what to make. And because it refreshes every week, it never runs dry: this is a living feed, not a library you read once.' },
+              { n: '2', label: 'The mechanic', title: 'Real winners, measured fairly', body: 'A post with lots of likes isn’t automatically a good post — a big account gets lots of likes on everything. So we don’t rank by raw numbers. We work out what’s normal for each individual hotel, then surface only the posts that beat their own normal by at least two times. That means a 30-room boutique’s brilliant post can outrank a global brand’s ordinary one.' },
+              { n: '3', label: 'Time back', title: 'We do the scrolling, you do the creating', body: 'Checking what everyone else is posting is real work, and it eats your week. We watch a curated universe of 400+ five-star hotels so you don’t have to — then hand you only the posts that actually performed. The signal, without the two-hour scroll.' },
+              { n: '4', label: 'The benchmark', title: 'Know exactly where you stand', body: 'It’s hard to judge your own work in isolation. Our leaderboards rank the top posts and hotels over the last 30 days and over all time, so you can see who’s consistently winning — and exactly where you sit against the wider five-star field. Two honest measures sit underneath: engagement rate (how hard a post punched for its audience size) and breakout (whether it was unusual for that hotel).' },
+              { n: '5', label: 'The edge', title: 'See the trend before your rivals', body: 'When the same kind of post starts breaking out across lots of hotels at once, that’s a trend forming — and we surface it early. We also read the patterns underneath: which days and times tend to land, how often the top performers post, and the principle behind a winning post so you can adapt it for your own property.' },
+              { n: '6', label: 'Peace of mind', title: 'Post with proof — and prove it upstairs', body: 'Post from proof, not a hunch — everything we show you has already worked for a comparable hotel, so you spend less time worrying about a flop and more time creating. And when your GM asks why you posted it, you have an answer backed by data across 400+ five-star hotels, not just a gut feeling.' },
             ].map((c, i) => (
-              <div key={c.n} data-reveal data-reveal-delay={(i % 2) * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: 38, transition: 'transform .16s, box-shadow .16s' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 18 }}>
+              <div key={c.n} data-reveal data-reveal-delay={(i % 2) * 90} data-card style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, padding: '30px 32px', transition: 'transform .16s, box-shadow .16s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 16 }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 19, color: 'var(--surface)', width: 46, height: 46, borderRadius: '50%', background: 'var(--signal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', boxShadow: '0 8px 18px -7px rgba(46,115,87,0.65)' }}>{c.n}</span>
                   <span style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--signal-deep)', whiteSpace: 'nowrap' }}>{c.label}</span>
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 22, color: 'var(--ink)', marginBottom: 12 }}>{c.title}</h3>
-                <p style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--body-soft)' }}>{c.body}</p>
+                <h3 style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 20, lineHeight: 1.25, color: 'var(--ink)', margin: 0, textWrap: 'balance' }}>{c.title}</h3>
+                <WhatThisMeans>{c.body}</WhatThisMeans>
               </div>
             ))}
+          </div>
+
+          {/* TikTok/YouTube used to be card 4. It's a promise, not a thing you
+              get today, so it now sits under the grid as a one-line note. */}
+          <div data-reveal style={{ textAlign: 'center', marginTop: 34, fontSize: 13.5, color: ON_DARK_FINEPRINT }}>
+            Coming next — TikTok and YouTube tracking, September 2026.
+          </div>
+
+          {/* ⚠ Same rule as the credibility strip: verified lists only. Design
+              Hotels was in the 2026-08-06 design and was dropped (Neil, same
+              day) — it appears on no hotel in lib/accreditations.generated.ts
+              and "More lists adding soon" already names it as not yet in. */}
+          <div data-reveal style={{ marginTop: 56, paddingTop: 40, borderTop: '1px solid rgba(247,246,242,0.14)', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: ON_DARK_FINEPRINT }}>
+              A curated universe of the names that carry weight
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 16 }}>
+              {['Forbes Five-Star', 'Condé Nast Gold List', 'Michelin Keys'].map((t) => (
+                <span key={t} style={listChip('green')}>{t}</span>
+              ))}
+            </div>
+            <p style={{ maxWidth: 620, margin: '22px auto 0', fontSize: 12.5, lineHeight: 1.6, color: ON_DARK_FINEPRINT, textWrap: 'pretty' }}>
+              Hotel Content Radar is independent and is not affiliated with, endorsed by, or connected to Forbes, Condé Nast, Michelin, Instagram, or any listed rating body or collection.
+            </p>
+            <p style={{ maxWidth: 620, margin: '14px auto 0', fontSize: 12.5, lineHeight: 1.6, color: ON_DARK_FINEPRINT, textWrap: 'pretty' }}>
+              Public data only — likes and comments, never reach, impressions, saves or shares. We&rsquo;d rather be straight about the edges than pretend we see everything.
+            </p>
           </div>
         </div>
       </section>
@@ -743,12 +826,11 @@ export default function Landing({
               Every week, Content Radar shows you the posts that broke out across the world&rsquo;s best hotels — and why they worked. Founding members pay {FOUNDING_PRICE_MONTHLY.replace('/month', ' a month')} for as long as they stay a member, even after the price goes to {STANDARD_PRICE_DISPLAY}.
             </p>
 
-            <div style={{ textAlign: 'left', margin: '24px 0 30px', padding: '20px 22px', borderRadius: 14, background: 'rgba(127,193,162,0.10)', border: '1px solid var(--line-dark)' }}>
-              <p style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--page)', margin: 0 }}>
-                <b style={{ color: 'var(--signal-light)' }}>What I want in return:</b>{' '}
-                your feedback. What&rsquo;s missing, what you&rsquo;d change, what you&rsquo;d pay for next. You&rsquo;ll have my email and a direct say in what gets built.
-              </p>
-            </div>
+            {/* The "what I want in return: your feedback" panel was dropped in
+                the 2026-08-06 design — it asked for something at the exact
+                moment the page should only be offering. Spacer keeps the
+                rhythm between the paragraph and the CTA. */}
+            <div style={{ height: 30 }} />
 
             <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--ink-deep)', background: 'var(--surface)', padding: 17, borderRadius: 12, textDecoration: 'none', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
             <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--body-mid)', marginTop: 18 }}>{TRIAL_FINE_PRINT}</p>
