@@ -136,6 +136,16 @@ body {
   .cr-landing [data-reveal] { opacity: 1 !important; }
 }
 
+/* "What this means" disclosures on the landing "What you get" cards. Native
+   <details>, so it opens without JS and is keyboard-operable for free — these
+   rules only suppress the default marker and rotate the chevron we draw
+   instead. */
+.cr-wyg-details > summary::-webkit-details-marker { display: none; }
+.cr-wyg-details > summary::marker { content: ""; }
+.cr-wyg-details > summary:hover .cr-wyg-summary-label { text-decoration: underline; }
+.cr-wyg-details[open] > summary .cr-wyg-chevron { transform: rotate(180deg); }
+.cr-wyg-details[open] > summary .cr-wyg-summary-label::after { content: ""; }
+
 /* Scroll anchors clear the sticky top bar */
 section[id], div[id] { scroll-margin-top: 86px; }
 
