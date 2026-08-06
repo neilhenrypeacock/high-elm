@@ -11,7 +11,9 @@ import type { User } from '@supabase/supabase-js';
 // with the founder rows in the subscriptions table.
 const DEFAULT_ADMIN_EMAILS = ['neil@highelmstudio.com', 'nhpeacock@gmail.com'];
 
-function adminEmails(): string[] {
+// Exported because lib/founding.ts subtracts these from the founding-places
+// count — a founder's own row is not a customer holding one of the 20 seats.
+export function adminEmails(): string[] {
   const raw = process.env.ADMIN_EMAILS;
   const list = raw
     ? raw.split(',').map((s) => s.trim()).filter(Boolean)
