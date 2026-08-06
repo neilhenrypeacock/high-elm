@@ -1,4 +1,4 @@
-import { getPortfolioData } from '@/lib/data';
+import { getMemberPortfolioData } from '@/lib/data';
 import Dashboard from '@/components/Dashboard';
 import AppShell from '@/components/AppShell';
 import WelcomeOverlay from '@/components/WelcomeOverlay';
@@ -6,7 +6,9 @@ import { requireActiveUser, displayName, isAdminView } from '@/lib/require-acces
 import { getSavedPostKeys, getWatchlistHandles } from '@/lib/saves';
 
 // Gated: no session → /login; logged in but no active trial/subscription →
-// /start-trial. The gate + data fetching (getPortfolioData) are UNCHANGED — this
+// /start-trial. Reads the CACHED member view (getMemberPortfolioData) — the
+// same object for every member, refreshed by the admin's Publish/hide/pin
+// actions rather than recomputed per page load. The gate is unchanged, and this
 // only wraps the existing <Dashboard> in the account shell (left sidebar) and
 // adds the one-time welcome overlay. Nothing inside Dashboard.tsx is touched, so
 // the dashboard renders identically inside the shell's content column.
@@ -17,7 +19,7 @@ export const metadata = {
 export default async function DashboardPage() {
   const { user } = await requireActiveUser();
 
-  const data = await getPortfolioData();
+  const data = await getMemberPortfolioData();
   const regions = [...new Set(data.hotels.map(h => h.region).filter(Boolean) as string[])].sort();
 
   // Per-user Save/Watchlist state to seed the toggles. Skipped under the dev

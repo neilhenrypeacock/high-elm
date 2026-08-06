@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { getSupabase } from './supabase';
 import { accreditationsFor } from './accreditations';
 import { fmtFollowers, fmtNumber } from './format';
@@ -1794,4 +1795,40 @@ export async function getPortfolioData(
     week_ending,
     week_ending_long,
   };
+}
+
+// ─── The member view, cached ──────────────────────────────────────────────────
+//
+// getPortfolioData is 17 sequential Supabase requests and ~8.6 MB of transfer,
+// re-run in full on every gated page view. Ten members opening the dashboard on
+// a Monday morning was ten identical recomputes — and the cost grows by roughly
+// one extra request every fortnight as posts accumulate.
+//
+// It is cacheable because the member view is the SAME OBJECT for everyone: there
+// is no per-user data in it (saves and watchlist rows are read separately, per
+// request, by lib/saves.ts). The computed result measures ~0.35 MB serialised,
+// comfortably inside Vercel's 2 MB cache-entry ceiling — worth re-checking if
+// the tracked set grows a lot, because an oversized entry makes unstable_cache
+// silently no-op rather than fail.
+//
+// Ten minutes is a ceiling on staleness, not the refresh mechanism: the things
+// that actually change what members see — hitting Publish, hiding a post or a
+// hotel, pinning one to the homepage — all call revalidateTag(PORTFOLIO_CACHE_TAG),
+// so Monday stays instant.
+//
+// The ADMIN view is deliberately never cached. It sees through the publish gate,
+// and the whole point of the Monday review is that a tick is reflected the moment
+// it is made.
+export const PORTFOLIO_CACHE_TAG = 'portfolio-data';
+export const PORTFOLIO_CACHE_SECONDS = 600;
+
+const cachedMemberView = unstable_cache(
+  async () => getPortfolioData(),
+  ['portfolio-member-view'],
+  { revalidate: PORTFOLIO_CACHE_SECONDS, tags: [PORTFOLIO_CACHE_TAG] },
+);
+
+/** The member-facing portfolio view. Cached; use for every gated member page. */
+export function getMemberPortfolioData(): Promise<DashboardData> {
+  return cachedMemberView();
 }

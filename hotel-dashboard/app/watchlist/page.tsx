@@ -4,7 +4,7 @@ import EmptyState from '@/components/EmptyState';
 import WatchlistTable from '@/components/WatchlistTable';
 import { requireActiveUser, displayName, isAdminView } from '@/lib/require-access';
 import { getWatchlistEntries } from '@/lib/saves';
-import { getPortfolioData, type HotelRow } from '@/lib/data';
+import { getMemberPortfolioData, type HotelRow } from '@/lib/data';
 import { accreditationsFor } from '@/lib/accreditations';
 
 // Real, gated route: the hotels the member follows. Rows come from
@@ -21,7 +21,7 @@ export default async function WatchlistPage() {
 
   let hotels: HotelRow[] = [];
   if (entries.length > 0) {
-    const data = await getPortfolioData();
+    const data = await getMemberPortfolioData();
     const byHandle = new Map(data.hotels.map(h => [h.instagram_handle, h]));
     hotels = entries.map(e => {
       const live = byHandle.get(e.instagram_handle);

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { revalidateTag } from 'next/cache';
 import { checkAdminApiAccess } from '@/lib/require-access';
+import { PORTFOLIO_CACHE_TAG } from '@/lib/data';
 
 // Per-post write path for the /admin weekly review: the homepage feature pin
 // (landing_pin) and removal (hidden). Admin-gated (checkAdminApiAccess); the
@@ -63,6 +65,13 @@ export async function POST(request: NextRequest) {
     .upsert(row, { onConflict: 'post_id' });
 
   if (error) return NextResponse.json({ error: 'Could not save.' }, { status: 502 });
+
+  // Both flags change what members see, so the cached member view has to go.
+  // Without this a removed post would sit on the dashboard for up to ten
+  // minutes after the tick — which is the whole reason the review flow exists.
+  // Next 16 requires a cache-life profile; { expire: 0 } means the stale entry
+  // may not be served again at all, which is the only correct answer here.
+  revalidateTag(PORTFOLIO_CACHE_TAG, { expire: 0 });
 
   return NextResponse.json({
     ok: true,

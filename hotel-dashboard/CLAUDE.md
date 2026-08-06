@@ -278,7 +278,12 @@ components/
   DevMenu.tsx           — floating in-app page navigator for every route + the customer
                           flow (dev/preview aid; PR #27)
 lib/
-  data.ts               — ALL data fetching and computation (single function: getPortfolioData)
+  data.ts               — ALL data fetching and computation (getPortfolioData), plus
+                          getMemberPortfolioData — the SAME view wrapped in
+                          unstable_cache (10 min, tag PORTFOLIO_CACHE_TAG). Every
+                          gated MEMBER page reads the cached one; /admin reads
+                          getPortfolioData({adminView:true}) UNCACHED, because a
+                          review tick must show immediately. See "Caching" below
   supabase.ts           — data-read client: SUPABASE_ANON_KEY first (read-only via RLS,
                           supabase/rls.sql), service-role fallback; persistSession:false
   supabase-server.ts    — cookie-backed auth client (@supabase/ssr) for session reads
@@ -503,6 +508,38 @@ already a step in `scrape-pipeline.yml` — so it lands with the scrape, unatten
 - `dashboard_settings` — ONE row (`id = true`) holding `publish_cutoff` (+ `published_at`): the Monday publish gate. RLS on, anon SELECT only, so only the service-role key can move the gate.
 - `subscriptions` — Stripe trial/payment state, email-keyed; RLS on with NO policies = service-role only
 - `saved_posts` / `watchlist_hotels` — per-user Save/Watchlist; RLS keyed to auth.uid() (added 9 Jul 2026)
+
+## Caching the member view (added 2026-08-05)
+`getPortfolioData` is 17 sequential Supabase requests and ~8.6 MB of transfer,
+and it used to run in full on **every gated page view** — ten members opening the
+dashboard on a Monday was ten identical recomputes. Measured cost: **~2.45s per
+load**, growing by roughly one extra request a fortnight as posts accumulate.
+
+`getMemberPortfolioData()` wraps it in `unstable_cache` (`revalidate` 600s, tag
+`PORTFOLIO_CACHE_TAG`). Measured after: **~0.02s**. `/dashboard` and `/watchlist`
+use it.
+
+- **It is cacheable because the member view is the same object for everyone.**
+  There is no per-user data in it — saves and watchlist rows are read separately
+  per request by `lib/saves.ts`. If per-member data ever moves *into*
+  `getPortfolioData`, this cache becomes a data leak: split it first.
+- **The 10 minutes is a staleness ceiling, not the refresh mechanism.** Every
+  admin write that changes what members see — `/api/admin/publish`,
+  `/api/admin/insight` (pin/remove post), `/api/admin/hotel` (remove hotel) —
+  calls `revalidateTag(PORTFOLIO_CACHE_TAG, { expire: 0 })`, so Monday's Publish
+  is visible on the next page load. **Add that call to any new admin write path.**
+  (Next 16 requires the second cache-life argument; the type-checker enforces it.)
+- **`/admin` is deliberately NEVER cached** — it reads
+  `getPortfolioData({ adminView: true })` directly, because the whole point of
+  the review is that a tick is reflected the moment it is made.
+- **The public landing page is unchanged** — still uncached `getPortfolioData`
+  under its own `revalidate = 3600` ISR, which also preserves the hourly
+  `rotateLandingFeatured` pin rotation exactly as it was.
+- ⚠ **Size matters.** The computed object measures **~0.35 MB serialised**
+  (`standout` 238 kB, `hotels` 66 kB, `landing_featured` 36 kB) against Vercel's
+  **2 MB cache-entry ceiling**. Over that limit `unstable_cache` **silently
+  no-ops** rather than erroring — the classic safeguard with no path to failure.
+  Re-measure if the tracked set grows a lot.
 
 ## Image storage
 Post images are saved to the **`standout-images`** Supabase Storage bucket by the pipeline at scrape time; the permanent URL is written straight into `posts.image_url` (~95% of rows). `standout_posts.stored_image_url` takes priority when present. Remaining rows fall back to the live Instagram CDN URL (signed, expires — the branded fallback gradient shows when those die).

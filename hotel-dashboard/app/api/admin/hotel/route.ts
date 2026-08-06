@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { revalidateTag } from 'next/cache';
 import { checkAdminApiAccess } from '@/lib/require-access';
+import { PORTFOLIO_CACHE_TAG } from '@/lib/data';
 
 // Hide / un-hide a whole hotel from the dashboard. Admin-gated, service-role
 // write (hotels has no anon write policy).
@@ -45,6 +47,12 @@ export async function POST(request: NextRequest) {
   if (!data || data.length === 0) {
     return NextResponse.json({ error: 'No hotel with that handle.' }, { status: 404 });
   }
+
+  // Hiding a hotel pulls it and every post it has out of every figure — the
+  // cached member view must be rebuilt before anyone reads it again.
+  // Next 16 requires a cache-life profile; { expire: 0 } means the stale entry
+  // may not be served again at all, which is the only correct answer here.
+  revalidateTag(PORTFOLIO_CACHE_TAG, { expire: 0 });
 
   return NextResponse.json({ ok: true, instagram_handle: handle, hidden: body.hidden, rows: data.length });
 }
