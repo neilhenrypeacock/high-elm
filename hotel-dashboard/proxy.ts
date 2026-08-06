@@ -32,5 +32,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|brand/).*)'],
+  // signature-mark.png is excluded because it is fetched by email clients (Gmail's
+  // image proxy, Outlook) on behalf of readers who have no session to refresh. Running
+  // the Supabase getUser() round-trip in front of it adds latency for nothing, and
+  // would take the logo down with the data layer — see the Aug 2026 storage incident,
+  // where a restricted project 402'd every Supabase call.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|brand/|signature-mark.png).*)'],
 };
