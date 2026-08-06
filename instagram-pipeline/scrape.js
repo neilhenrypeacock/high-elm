@@ -3,6 +3,7 @@ import { ApifyClient } from 'apify-client';
 import { createClient } from '@supabase/supabase-js';
 import sharp from 'sharp';
 import { normalizeLikesCount } from './likes.js';
+import { assertSucceeded } from './scrape-outcome.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -147,6 +148,7 @@ async function scrapeProfiles(handles) {
   console.log('\n[1/2] Running profile scraper...');
   const run = await apify.actor(ACTOR_PROFILES).call({ usernames: handles });
   console.log(`      Profile actor finished: ${run.status}`);
+  assertSucceeded(run, 'Profile');
 
   const { items } = await apify.dataset(run.defaultDatasetId).listItems();
   console.log(`      Profile items returned: ${items.length}`);
@@ -186,6 +188,7 @@ async function scrapePosts(handles, resultsLimit, postsNewerThan) {
   };
   const run = await apify.actor(ACTOR_POSTS).call(input);
   console.log(`      Post actor finished: ${run.status}`);
+  assertSucceeded(run, 'Post');
 
   const { items } = await apify.dataset(run.defaultDatasetId).listItems();
   console.log(`      Post items returned: ${items.length}`);
@@ -245,12 +248,30 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
     // it surfaces as a breakout for the hotel it appeared on.
     // Images are uploaded to Supabase Storage in parallel to get permanent URLs.
     const seen = new Set();
+    const nonPosts = [];
     const candidates = postItems;
 
     const posts = await Promise.all(
       candidates.map(async p => {
         const post_id = p.id || p.shortCode || p.url;
         if (!post_id || seen.has(post_id)) return null;
+
+        // Not every record the actor returns is a post. When a profile has
+        // nothing inside the window it can come back as a profile-level record
+        // with no id, no shortCode and no timestamp — and the `|| p.url`
+        // fallback above then used the PROFILE url as the post_id, storing a
+        // row whose post_id is "https://www.instagram.com/<handle>" and whose
+        // every metric is null. Twelve of those reached production between 21
+        // Jul and 4 Aug 2026 before the review noticed.
+        //
+        // A real post always carries a timestamp, so that is the test. These
+        // are counted and printed rather than dropped in silence — an actor
+        // that suddenly returns nothing but profile records should be visible.
+        if (!p.timestamp) {
+          nonPosts.push(post_id);
+          return null;
+        }
+
         seen.add(post_id);
 
         const caption      = p.caption || '';
@@ -308,7 +329,8 @@ export async function run(handles, { resultsLimit = 30, postsNewerThan = null } 
       if (summary.samplePosts.length < 3 && posts[0]) summary.samplePosts.push(posts[0]);
 
       const followerStr = profile?.followers_count?.toLocaleString() ?? 'no follower data';
-      console.log(`  ✅  @${h}: ${followerStr} followers, ${posts.length} posts`);
+      const skipNote = nonPosts.length ? `, ${nonPosts.length} non-post record(s) skipped` : '';
+      console.log(`  ✅  @${h}: ${followerStr} followers, ${posts.length} posts${skipNote}`);
     } catch (err) {
       console.error(`  ❌  @${h}: ${err.message}`);
       summary.skipped.push(h);

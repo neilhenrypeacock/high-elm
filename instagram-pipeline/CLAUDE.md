@@ -18,6 +18,28 @@ Windowing is cost control: the breakout baseline is computed by the dashboard fr
 
 **Re-runs are safe:** posts upsert on the composite key and profile snapshots dedupe per UTC day (added 2026-07-09), so retrying a failed batch the same day cannot create duplicates. `scrape-run.js` prints skipped handles at the end — re-run those by editing the list in `test-run.js`. (The old `remaining-handles.js` with its stale hardcoded list was removed 2026-07-09.)
 
+### When a scrape fails (rules in `scrape-outcome.js`, tested)
+The exit code is decided by `classifyScrape`, kept as a pure function precisely
+so each rule has a proven path to firing:
+
+| Outcome | Exit | Meaning |
+|---|---|---|
+| `all-failed` | **1** | Every batch threw — the 1 Aug unpaid-invoice case |
+| `no-posts` | **1** | Nothing was collected, so nothing in Supabase changed |
+| `mass-failure` | **1** | ≥`ESCALATION_RATIO` (50%) of batches failed — ~100 hotels missing is past what an overlapping window absorbs |
+| `partial` | 0 | A minority of batches failed; loud warning, next run's overlap heals it |
+| `ok` | 0 | — |
+
+The `SCRAPE COMPLETE` / `SCRAPE FAILED` banner is printed **from that same
+classification**, so it can never read COMPLETE over a run that then exits 1.
+
+⚠ **`assertSucceeded` (added 2026-08-05, review finding 2):** `scrape.js` now
+throws when an Apify actor run ends anything other than `SUCCEEDED`. A
+FAILED/ABORTED/**TIMED-OUT** run can leave a *partial* dataset, which upserts as
+cleanly as a whole one — that is how a batch dying after 30 of its 50 hotels
+passed for a complete week. The trade is deliberate: the partial results we paid
+for are discarded, and the next windowed run refetches them.
+
 ## Required env vars (in `.env` — do NOT commit)
 ```
 SUPABASE_URL=
@@ -95,8 +117,28 @@ already take.
 Both scripts are **dry-run by default**; pass `--apply` to write.
 `npm run cleanup:dry` / `npm run compress:dry` to preview.
 
+### Records that aren't posts (fixed 2026-08-05)
+`post_id` was derived as `p.id || p.shortCode || p.url`. When a profile had
+nothing inside the scrape window the actor could return a **profile-level**
+record with no id, no shortCode and no timestamp — so the `p.url` fallback wrote
+a row whose `post_id` was `https://www.instagram.com/<handle>` and whose every
+metric was null. Twelve reached production between 21 Jul and 4 Aug 2026.
+
+A real post always carries a timestamp, so that is now the test: no timestamp →
+not a post → skipped and **counted in the per-handle log line**, so an actor that
+starts returning nothing but profile records is visible rather than silent. The
+twelve existing rows were deleted on 5 Aug (they held no data beyond the handle
+and a capture time, and nothing in `standout_posts` or `saved_posts` referenced
+them).
+
 ## Hidden like counts
-Instagram hides likes on some posts/accounts, and the Apify actor's sentinel for it has DRIFTED over time: `null`/missing (the documented case), `-1` (its behaviour as of late Jul 2026), and — through Jun/Jul 2026 — a literal **`3`** (the 3-avatar "liked by A, B and others" preview count leaking through as data; 813 rows reached the DB looking like genuine 3-like posts before the 2026-07-31 audit caught it). Since then `likes.js → normalizeLikesCount` maps every sentinel to `null` at scrape time — `null` is the ONE stored convention — and the historical `3` rows were backfilled to `null` (`backfill-likes-sentinel.sql`). The dashboard's `hasVisibleLikes` excludes hidden-like rows from every engagement calculation. If engagement figures ever look collapsed again (a hotel whose "typical post" is single-digit likes), suspect a NEW sentinel value first: check the raw dataset of the latest run before trusting the numbers.
+Instagram hides likes on some posts/accounts, and the Apify actor's sentinel for it has DRIFTED over time: `null`/missing (the documented case), `-1` (its behaviour as of late Jul 2026), and — through Jun/Jul 2026 — a literal **`3`** (the 3-avatar "liked by A, B and others" preview count leaking through as data; 813 rows reached the DB looking like genuine 3-like posts before the 2026-07-31 audit caught it). Since then `likes.js → normalizeLikesCount` maps every sentinel to `null` at scrape time — `null` is the ONE stored convention — and the historical `3` rows were backfilled to `null` (`backfill-likes-sentinel.sql`).
+**As of 5 Aug 2026 the convention is actually true in the data**: the last 96 `-1`
+rows (49 hotels, 10 Jun – 26 Jul) were normalised to `null`, and a live count of
+both `likes_count = -1` and `likes_count = 3` now returns zero. `comments_count`
+never carried a sentinel. No dashboard figure moved — `hasVisibleLikes` already
+excluded both values — but "null is the one stored convention" is no longer a
+statement with exceptions. The dashboard's `hasVisibleLikes` excludes hidden-like rows from every engagement calculation. If engagement figures ever look collapsed again (a hotel whose "typical post" is single-digit likes), suspect a NEW sentinel value first: check the raw dataset of the latest run before trusting the numbers.
 
 ## Supabase tables written
 - `profile_snapshots` — one new row per scrape per hotel (INSERT; deduped per UTC day on re-runs, 2026-07-09)
