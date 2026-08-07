@@ -54,30 +54,28 @@ ten useful items a week than to a library, and a member who feels finished cance
 
 Ruthlessly short. Worst first. Everything else is in section 6.
 
-1. **Find out why Reel like counts are wrong, and fix or exclude them.**
+1. **Reject Reels whose stored like count exceeds the live post.** ⟵ *open*
    This is the whole audit in one line. 20% of the displayed all-time top 20 is
-   wrong in the one direction that costs trust — stored *higher* than real. It is
-   confined to `type = Video`, and 72% of the all-time list is video. Until the
-   cause is known, no outreach email should point a hotelier at the all-time view.
-   The mechanism is not yet proven; section 3 sets out exactly what is known and
-   what to test first.
+   wrong in the one direction that costs trust — stored *higher* than real — and
+   72% of that list is video. The cause is now known (see section 3): the Apify
+   actor returns a wrong and unstable `likesCount` for collab Reels, so neither a
+   mapping fix nor a re-scrape resolves it. The fix has to be a check on our side.
+   Until it exists, no outreach email should point a hotelier at the all-time view.
 
-2. **Remove "Michelin Keys" from the two landing-page chip rows.**
-   Third audit running to raise this, and it is still there. The dashboard's own
-   Sources panel correctly omits it, with a code comment explaining why. The
-   landing page claims it under the heading "Tracked from the lists that matter"
-   at 13% coverage. A UK hotelier — the exact person being emailed — disproves it
-   in ten seconds.
+2. **Remove "Michelin Keys" from the two landing-page chip rows.** ✅ *done —
+   PR #99.* Both rows now name Forbes, the Gold List and World's 50 Best, and the
+   second row no longer disagrees with the first. Per-hotel Michelin pins on the
+   leaderboard untouched. Comments added at both sites so a fourth redesign cannot
+   quietly reinstate it.
 
-3. **Make one unattended scrape prove itself before anyone is charged.**
-   Not "check the workflow is correct" — it reads correctly. Break it deliberately
-   on a branch and watch the job go red. The one guard that would catch a silent
-   Apify failure (`classifyScrape`) has never fired for real, and the freshness
-   check that backs it up has a proven one-cycle blind spot: it missed the 13 July
-   empty run entirely and only caught the repeat a week later.
+3. **Make the scrape guard prove it can fail.** ✅ *done — see section 4.*
+   `scrape-run.js` was run against a deliberately broken configuration: all five
+   batches failed, the banner read SCRAPE FAILED, and it exited 1. No Apify credit
+   was spent and nothing was written. The remaining gap is the **freshness check's
+   one-cycle blind spot** — it cannot catch the first failure in a sequence, only
+   the second — which is a real weakness but not a launch blocker on its own.
 
-Items 1 and 3 are the ones I would not launch without. Item 2 is unfinished
-business from two previous audits and costs an afternoon.
+**Item 1 is now the only thing I would not launch without.**
 
 ---
 
@@ -153,12 +151,48 @@ collab sample, thirteen of fourteen posts had an `og:title` account different fr
 the handle the row is filed under, yet only five were overstated — so a co-post by
 itself is not sufficient either.
 
-**What this establishes and what it does not.** The association with `type = Video`
-is total in this sample and is the thing to act on. The *mechanism* is not proven —
-the most likely candidates are the Apify actor returning a play or view count in the
-likes field for certain Reels, or misattributing a multi-account collab's engagement.
-The next step is a targeted look at what the actor actually returns for one of the
-Rosewood posts, not more sampling.
+### The mechanism — resolved
+
+The stored Apify datasets from the 21 July, 27 July and 4 August runs were read
+(GET only; no actor was started, and monthly usage was confirmed unmoved at $2.65
+afterwards). They settle it.
+
+**Our code is not at fault.** `scrape.js:303` stores `normalizeLikesCount(p.likesCount)`
+— the actor's own field, verbatim. For the la Mamounia Reel the 4 August dataset
+contains `likesCount: 4603`, and the database contains 4,603. Instagram shows 746.
+The scraper stored exactly what it was given, and what it was given was wrong.
+
+**It is not a view or play count either**, which was the leading theory. The same
+dataset row carries `videoViewCount: 48063` and `videoPlayCount: 337412` alongside
+the bad `likesCount: 4603`. All three fields are present and distinct, so nothing is
+being substituted for anything else.
+
+**The actor's figure is unstable across runs of the same post.** Tracking one Rosewood
+co-post (`DbBNC9bIzGU`) through three scrapes:
+
+| Run | `likesCount` | `commentsCount` | `videoPlayCount` |
+|---|---|---|---|
+| 21 Jul | **333–334** | 10 | 13,3xx |
+| 27 Jul | **2,665** | 24 | 162,0xx |
+| Live today | **513** | — | — |
+
+Likes rose eightfold in six days, then fell fivefold. Real engagement does not do
+that. Two runs three minutes apart agree with each other precisely, so this is not
+sampling noise within a run — it is the actor returning a different, wrong answer on
+a different day.
+
+**So: an upstream defect in `apify/instagram-post-scraper` for collab Reels.** Every
+affected post carries `ownerUsername: rosewoodhotels` — a parent brand co-posting with
+its properties — except the la Mamounia one, which is solo, so the co-post shape is
+strongly associated but not the whole story.
+
+The practical consequence is the useful part: **this cannot be fixed by correcting our
+mapping, and re-scraping will not reliably fix it either**, since the actor returned a
+wrong figure on two separate occasions. Any fix has to be a check on our side. The
+cheapest credible one is the method this audit used — re-read `og:description` for the
+handful of posts about to be displayed as top breakouts and reject any whose stored
+likes exceed the live figure. That is twenty HTTP requests, no Apify credit, and it
+catches the failure regardless of what causes it.
 
 **Exposure, clearly labelled as an estimate:** 72 of the all-time top 100 are Reels,
 43 of the 30-day 100, and 9 of this week's 19. If the sampled 6-in-14 Reel rate
@@ -270,9 +304,23 @@ enough to trip it.
 
 `scrape-outcome.js` was written in response and now exits non-zero on
 all-failed / no-posts / mass-failure, uncaught by the workflow, so it would fail the
-job. It reads correctly. **It has never fired in production** — both real incidents
-predate it. By this project's own standard, that makes it unproven, and it is the
-fourth-plus member of a family this repo has been bitten by before.
+job. It reads correctly. **It had never fired in production** — both real incidents
+predate it.
+
+> **Proven the same day, after this section was written.** `scrape-run.js` was run
+> against a deliberately broken configuration (the read-only anon key in place of the
+> service-role key, so every batch throws before anything can be written). All five
+> batches failed, `classifyScrape` returned `all-failed`, the banner printed **SCRAPE
+> FAILED** rather than COMPLETE, and the process **exited 1** — which is what fails the
+> workflow step. No Apify actor ran (run list unchanged, monthly usage unmoved at
+> $2.65) and no row was written.
+>
+> Two honest limits on that proof. The induced failure was an RLS-refused storage
+> write, not an Apify billing error — the exit path is the same handler, so the
+> *wiring* is proven, but the specific Apify failure shape is still inferred. And this
+> was a local run, so GitHub's own "step exits non-zero → job fails" behaviour is
+> assumed rather than observed. That assumption is safe; the wiring was the part worth
+> checking, and it holds.
 
 ### The digest's seventeen checks cannot fail the job
 
