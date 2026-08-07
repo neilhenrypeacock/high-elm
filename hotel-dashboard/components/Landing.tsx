@@ -662,8 +662,8 @@ export default function Landing({
       <section id="how-it-works" style={{ ...INNER, padding: '100px 40px 68px' }}>
         <div data-reveal style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 56px' }}>
           <div style={{ ...eyebrow(), marginBottom: 22 }}>How it works</div>
-          <h2 style={{ ...sectionTitle, marginBottom: 20 }}>From the world&rsquo;s best hotels to your dashboard, every Monday.</h2>
-          <p style={{ fontSize: 'clamp(16px,2vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', textWrap: 'pretty' }}>Your entire week of content research, done in ten minutes every Monday. No spreadsheets. No scraping. No guesswork.</p>
+          <h2 style={{ ...sectionTitle, marginBottom: 20 }}>From the world&rsquo;s best hotels to your dashboard, every week.</h2>
+          <p style={{ fontSize: 'clamp(16px,2vw,19px)', lineHeight: 1.6, color: 'var(--body-soft)', textWrap: 'pretty' }}>Your entire week of content research, done in ten minutes a week. No spreadsheets. No scraping. No guesswork.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
           {[
@@ -697,7 +697,7 @@ export default function Landing({
             <div style={{ maxWidth: 520 }}>
               <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--on-dark-soft)', marginBottom: 14 }}>Only the world&rsquo;s best</div>
               <p style={{ fontSize: 17, lineHeight: 1.65, color: 'var(--on-dark-soft)', margin: 0 }}>
-                This isn&rsquo;t a random Instagram scrape. Content Radar only tracks hotels already certified as the best in the world — the <b style={{ color: 'var(--page)', fontWeight: 600 }}>Condé Nast Gold List</b> and <b style={{ color: 'var(--page)', fontWeight: 600 }}>Forbes Five-Star</b>.
+                This isn&rsquo;t a random Instagram scrape. Content Radar tracks hotels already certified as the best in the world — the <b style={{ color: 'var(--page)', fontWeight: 600 }}>Condé Nast Gold List</b>, <b style={{ color: 'var(--page)', fontWeight: 600 }}>Forbes Five-Star</b> and <b style={{ color: 'var(--page)', fontWeight: 600 }}>The World&rsquo;s 50 Best Hotels</b>. Not one is an account we picked at random.
               </p>
               {/* "Measured fairly" used to sit here. It moved into the "Real
                   winners, measured fairly" card below, where the disclosure has
@@ -730,7 +730,7 @@ export default function Landing({
               six paragraphs of it up front is a wall. */}
           <div className="cr-whatyouget-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 16 }}>
             {[
-              { n: '1', label: 'This week', title: 'You never start from a blank page', body: 'Every Monday, a fresh feed of five-star hotel posts that genuinely broke out — proven ideas waiting before you’ve even opened Instagram. No staring at an empty calendar wondering what to make. And because it refreshes every week, it never runs dry: this is a living feed, not a library you read once.' },
+              { n: '1', label: 'This week', title: 'You never start from a blank page', body: 'Each week, a fresh feed of five-star hotel posts that genuinely broke out — proven ideas waiting before you’ve even opened Instagram. No staring at an empty calendar wondering what to make. And because it refreshes every week, it never runs dry: this is a living feed, not a library you read once.' },
               { n: '2', label: 'The mechanic', title: 'Real winners, measured fairly', body: 'A post with lots of likes isn’t automatically a good post — a big account gets lots of likes on everything. So we don’t rank by raw numbers. We work out what’s normal for each individual hotel, then surface only the posts that beat their own normal by at least two times. That means a 30-room boutique’s brilliant post can outrank a global brand’s ordinary one.' },
               { n: '3', label: 'Time back', title: 'We do the scrolling, you do the creating', body: 'Checking what everyone else is posting is real work, and it eats your week. We watch a curated universe of 400+ five-star hotels so you don’t have to — then hand you only the posts that actually performed. The signal, without the two-hour scroll.' },
               { n: '4', label: 'The benchmark', title: 'Know exactly where you stand', body: 'It’s hard to judge your own work in isolation. Our leaderboards rank the top posts and hotels over the last 30 days and over all time, so you can see who’s consistently winning — and exactly where you sit against the wider five-star field. Two honest measures sit underneath: engagement rate (how hard a post punched for its audience size) and breakout (whether it was unusual for that hotel).' },
@@ -799,6 +799,12 @@ export default function Landing({
               <span>Total value</span>
               <span style={{ fontVariantNumeric: 'tabular-nums' }}>{monthlyCost(VALUE_STACK_TOTAL_GBP)}</span>
             </div>
+            {/* These are illustrative agency/tool costs, not prices anyone is
+                charged — lib/pricing.ts says so in a comment, but the page
+                didn't, and struck-through figures read as real quotes. */}
+            <div style={{ marginTop: 14, fontSize: 12.5, lineHeight: 1.5, color: 'var(--body-mid)' }}>
+              Illustrative agency and tool costs, for comparison — not prices we charge.
+            </div>
           </div>
 
           <div data-reveal data-reveal-delay={40} style={{ textAlign: 'center', marginBottom: 18, fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--body-mid)' }}>All of it, for</div>
@@ -849,7 +855,7 @@ export default function Landing({
             { q: 'Is it just Instagram?', a: 'For now, yes — it’s where hotel content travels furthest. TikTok and YouTube are coming September 2026, and founding members lock in this Instagram rate for good.' },
             { q: 'What if my hotel is small?', a: 'It doesn’t matter. Every breakout is measured against that hotel’s own baseline, so a boutique’s win shows up right next to a global flagship’s. You’re copying ideas, not budgets.' },
             { q: 'How many hotels are you tracking?', a: '400+ today, with more hotels and more ranking lists added every week. We’re building toward 1,000+ of the world’s most prestigious and most-followed hotels — so the list only gets better the longer you’re a member.' },
-            { q: 'Where does the data come from?', a: 'Only hotels already certified as the best in the world — the Condé Nast Gold List and Forbes Five-Star, with more respected lists added weekly. Never a random scrape.' },
+            { q: 'Where does the data come from?', a: 'Hotels already certified as the best in the world — the Condé Nast Gold List, Forbes Five-Star and The World’s 50 Best Hotels, with more respected lists added as we verify them. Never a random scrape.' },
             { q: 'Can I cancel anytime?', a: `Yes. Start with a ${TRIAL_DAYS}-day free trial, and cancel whenever you like — when you cancel, the next payment simply won’t happen. No lock-in, no awkward emails.` },
           ].map((f, i, arr) => (
             <div key={f.q} data-reveal style={{ padding: '26px 0', borderTop: '1px solid var(--line-rule)', borderBottom: i === arr.length - 1 ? '1px solid var(--line-rule)' : undefined }}>
