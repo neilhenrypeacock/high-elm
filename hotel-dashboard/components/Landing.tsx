@@ -892,8 +892,8 @@ export default function Landing({
             </div>
             {[
               { head: 'Product', links: [{ t: 'How it works', h: '#how-it-works' }, { t: 'Pricing', h: '#pricing' }, { t: 'FAQ', h: '#faq' }, { t: 'Start free trial', h: TRIAL_HREF, accent: true }] },
-              { head: 'Company', links: [{ t: 'High Elm Studio', h: '#' }, { t: 'Contact', h: '#' }] },
-              { head: 'Legal', links: [{ t: 'Privacy Policy', h: '#' }, { t: 'Terms of Service', h: '#' }] },
+              { head: 'Company', links: [{ t: 'High Elm Studio', h: 'https://highelmstudio.com' }, { t: 'Contact', h: 'mailto:neil@highelmstudio.com' }] },
+              { head: 'Legal', links: [{ t: 'Privacy Policy', h: '/privacy' }, { t: 'Terms of Service', h: '/terms' }] },
             ].map((col) => (
               <div key={col.head}>
                 <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-dark)', marginBottom: 18 }}>{col.head}</div>
