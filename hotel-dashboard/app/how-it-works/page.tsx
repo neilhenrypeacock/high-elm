@@ -164,7 +164,7 @@ export default function HowItWorksPage() {
             numbers and a link straight to the post on Instagram.
           </Step>
           <Step n="2" title="The “why it worked” read">
-            Each breakout comes with a short, plain-English read on what likely drove it, plus tags for
+            Many breakouts come with a short, plain-English read on what likely drove them, plus tags for
             the format and theme — so you’re not just seeing that a post worked, but getting a view on why.
           </Step>
           <Step n="3" title="What’s working — the patterns">

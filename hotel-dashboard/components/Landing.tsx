@@ -579,8 +579,8 @@ export default function Landing({
                 Not just what won — why it won.
               </h2>
               <p style={{ fontSize: 'clamp(15px,1.6vw,17px)', lineHeight: 1.6, color: 'rgba(247,246,242,0.72)', marginTop: 20, textWrap: 'balance' }}>
-                Every breakout is read and explained, so you get the thinking you can reuse — not
-                just a post that did well.
+                The strongest breakouts are read and explained, so you get the thinking you can
+                reuse — not just a post that did well.
               </p>
             </div>
 
@@ -863,10 +863,10 @@ export default function Landing({
       {/* ===== CLOSING CTA (dark band) ===== */}
       <section style={{ background: 'var(--ink-deep)', borderTop: '1px solid var(--line-dark)' }}>
         <div style={{ ...INNER, padding: '100px 40px', textAlign: 'center' }}>
-          <h2 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(30px,5vw,54px)', lineHeight: 1.08, letterSpacing: '-0.03em', color: 'var(--surface)', marginBottom: 36, textWrap: 'balance' }}>See the 10 best-performing<br />posts before you pay a penny.</h2>
+          <h2 data-reveal style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 'clamp(30px,5vw,54px)', lineHeight: 1.08, letterSpacing: '-0.03em', color: 'var(--surface)', marginBottom: 36, textWrap: 'balance' }}>See this week&rsquo;s best-performing<br />posts before you pay a penny.</h2>
           <div data-reveal data-reveal-delay={120}>
             <Link href={TRIAL_HREF} className="cr-cta-light" style={{ display: 'inline-block', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 17, color: 'var(--ink-deep)', background: 'var(--surface)', padding: '18px 44px', borderRadius: 12, textDecoration: 'none', whiteSpace: 'nowrap', transition: 'transform .2s, background .2s' }}>start your free trial <CtaArrow /></Link>
-            <div style={{ maxWidth: 440, margin: '16px auto 0', fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 15, lineHeight: 1.5, color: 'var(--on-dark-soft)' }}>Create your free account and see the month&rsquo;s ten best-performing posts straight away. If it doesn&rsquo;t fill your calendar, cancel in two clicks — no payment, no awkward emails.</div>
+            <div style={{ maxWidth: 440, margin: '16px auto 0', fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 15, lineHeight: 1.5, color: 'var(--on-dark-soft)' }}>Start your free trial and open the full dashboard — this week&rsquo;s breakouts and every post from the last 30 days. We ask for a card, but nothing is charged for 14 days. If it doesn&rsquo;t fill your calendar, cancel in two clicks.</div>
           </div>
         </div>
       </section>
