@@ -13,7 +13,11 @@ was read and never edited. This file is the only thing added.
 
 ## 1. The verdict
 
-**Close — two things left, and one of them is now fixed.**
+**Close — and closer than when this was first written.**
+
+*Updated after PR #96 and PR #97 both merged. Between them they closed the one
+blocker that was a defect and three of the seven friction items. What follows is
+current as of the evening of 7 August.*
 
 The machinery is sound. The access gate holds on every gated route with zero
 data leakage, the money path was proven end to end with a real card on 6 August,
@@ -21,17 +25,24 @@ the first screen a new member lands on has 19 genuine breakout posts rather than
 the near-empty week that was feared, and the insight writing is genuinely good.
 This is not a product that needs rebuilding.
 
-Two things sat in the shop window. The **dead Privacy Policy and Terms of Service
-links** on the one page cold traffic actually lands on — **fixed in this session**
-(B2). And the page **contradicting itself on hotel count** within one screen, which
-is a commercial decision rather than a bug (B3).
+Two things sat in the shop window, and one is gone. The **dead Privacy Policy and
+Terms of Service links** on the one page cold traffic actually lands on are
+**fixed, merged and live** (B2, PR #97 — verified serving from production, zero
+`href="#"` left). Alongside it, PR #96 tightened the cadence claim, labelled the
+value stack as illustrative, and made the page name the same three lists in every
+place it names lists.
 
-The remaining open item is the **mobile nav CTA** (B4), which needs a real-phone
-confirmation before anyone spends time on it.
+Two items remain, and neither is a defect:
 
-**With B2 fixed, the front door is good enough to point cold traffic at, subject
-to B3 being decided either way.** That verdict is provisional on the paid half,
-which is walked tomorrow.
+- **B3 — the page contradicts itself on hotel count**, "400+" against a live
+  "204+ hotels tracked". A commercial decision, not a bug: change the copy, or
+  raise the tracked set and make the copy true.
+- **B4 — the mobile nav CTA appears clipped** at 375px. Needs ten seconds on a
+  real phone to confirm or kill before anyone spends time on it.
+
+**The front door is good enough to point cold traffic at once B3 is decided
+either way.** That verdict is provisional on the paid half, which is walked
+tomorrow — and "can they buy?" cannot be answered honestly until it is.
 
 ---
 
@@ -132,6 +143,8 @@ browser.
 
 ## 3. Friction
 
+### Still open
+
 Ordered by how much trust each costs.
 
 1. **`/start-trial` never mentions the card.** It says *"Create your account and
@@ -147,26 +160,32 @@ Ordered by how much trust each costs.
    strongest breakouts", so this isn't a false claim — but a new member's first
    impression is a coin flip on whether any given card explains itself.
 
-3. **"Every Monday" is claimed four times; the data is Tuesday's.** Newest post
-   and newest profile snapshot are both **4 August** — a Tuesday, three days
-   stale as of today. "Every week" is a smaller promise that is always kept.
-
-4. **The £1,800 value stack isn't labelled illustrative.** "What your £49
-   replaces" renders five struck-through agency/tool prices totalling £1,800/mo
-   with no indication they are estimates. The code comments say so; the page
-   doesn't. One line removes the risk.
-
-5. **"Why believe it" names only two lists** — Condé Nast Gold List and Forbes
-   Five-Star — while the chip row on the same page names four including World's
-   50 Best. The two statements should name the same lists. World's 50 Best is
-   also the best-covered list at 36 of 50 (72%) and gets no sentence of its own.
-
-6. **"TikTok and YouTube tracking, September 2026"** appears twice. September is
+3. **"TikTok and YouTube tracking, September 2026"** appears twice. September is
    four weeks away and there's no evidence the work has started. A date missed
    with a founding member watching is expensive — commit or soften.
 
-7. **"20 of 20 places left"** is honestly computed and correct. Just be aware it
+4. **"20 of 20 places left"** is honestly computed and correct. Just be aware it
    also tells an attentive reader that nobody has bought yet.
+
+### Closed by PR #96, after this audit was written
+
+`fix/smaller-copy-claims` (merged `8c4f596`, immediately before the footer fix)
+resolved three items this audit had listed as open. **All three verified live in
+production**, not just in the diff:
+
+| Was | Now | Verified |
+|---|---|---|
+| **"Every Monday"** claimed four times while the data lands Tuesday | **"every week"** / "ten minutes a week" / "Every week we scrape" | Zero occurrences of "every Monday" remain on the page |
+| **The £1,800 value stack** rendered struck-through prices with no indication they were estimates | Carries the line **"Illustrative agency and tool costs, for comparison — not prices we charge"** | Present once, under the stack |
+| **"Why believe it" named only two lists** while the chip row named four | Names **Condé Nast Gold List, Forbes Five-Star and The World's 50 Best Hotels**, plus "Not one is an account we picked at random". The FAQ answer was updated to match | Both band and FAQ confirmed; World's 50 Best appears twice |
+
+The FAQ also softened *"more respected lists added weekly"* to *"added as we
+verify them"* — a smaller promise, and the right direction.
+
+*Two "Monday" strings do survive on the page. Both are in the What's Working
+payload — "Monday is the quietest day", "median engagement per post vs Monday".
+That is a finding about when hotels post, not a promise about when data arrives,
+and it should stay.*
 
 ---
 
