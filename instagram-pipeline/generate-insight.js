@@ -308,11 +308,27 @@ async function getData() {
     if (!(s.instagram_handle in latestFollowers)) latestFollowers[s.instagram_handle] = s.followers_count;
   }
 
-  const { data: hotels } = await sb.from('hotels').select('name, country, instagram_handle, tracked');
+  const { data: hotels } = await sb.from('hotels').select('name, country, instagram_handle, tracked, hidden');
   const nameByHandle    = Object.fromEntries((hotels ?? []).map(h => [h.instagram_handle, h.name]));
   const countryByHandle = Object.fromEntries((hotels ?? []).map(h => [h.instagram_handle, h.country]));
-  // Only tracked hotels appear on the dashboard, so only they can be breakouts.
-  const trackedHandles  = new Set((hotels ?? []).filter(h => h.tracked).map(h => h.instagram_handle));
+  // Only tracked, non-hidden hotels appear on the dashboard, so only they can be
+  // breakouts. Hiding is FULL exclusion in lib/data.ts — matching it here stops
+  // us paying to annotate posts no member can reach.
+  const trackedHandles  = new Set((hotels ?? []).filter(h => h.tracked && !h.hidden).map(h => h.instagram_handle));
+
+  // Posts the admin (or verify-likes.js) has removed. Same reasoning: a hidden
+  // post is out of every member figure, so an insight for it is money spent on
+  // something nobody will read.
+  const hiddenPostIds = new Set();
+  for (let page = 0; ; page++) {
+    const { data, error } = await sb
+      .from('standout_posts').select('post_id').eq('hidden', true)
+      .range(page * PAGE, page * PAGE + PAGE - 1);
+    if (error) throw error;
+    if (!data?.length) break;
+    data.forEach(r => hiddenPostIds.add(r.post_id));
+    if (data.length < PAGE) break;
+  }
 
   // Shared hidden-likes rule (likes.js) — also drops the `3` sentinel rows the
   // old inline null/-1 check counted as real (audit 2026-07-31).
@@ -376,6 +392,7 @@ async function getData() {
 
   for (const p of valid) {
     if (!trackedHandles.has(p.instagram_handle)) continue;
+    if (hiddenPostIds.has(p.post_id)) continue;
     // Collabs are INCLUDED (Neil, 2026-08-08). They used to be skipped here,
     // which was the single biggest hole in coverage: on 8 Aug every one of the
     // 8 uncovered posts in the 7-day feed and all 55 in the 30-day feed was a
