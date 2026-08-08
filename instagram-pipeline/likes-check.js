@@ -43,11 +43,24 @@ export const OVERSTATEMENT_TOLERANCE = 0.25;
 
 /** Fail the run when more than this share of CHECKED posts are overstated.
  *
- *  Not zero. One bad post in a 25-post sample is a post for Neil to remove in
- *  /admin on Monday; it should be reported loudly and not stop the pipeline.
- *  A fifth of the feed being wrong is a systemic break — that is the 7 Aug
- *  state (roughly 6 in 28) and it should have gone red. */
+ *  Not zero. One mildly wrong post in a 25-post sample is a post for Neil to
+ *  remove in /admin on Monday; it should be reported loudly and not stop the
+ *  pipeline. A fifth of the feed being wrong is a systemic break — that is the
+ *  7 Aug state (roughly 6 in 28) and it should have gone red. */
 export const FAIL_RATIO = 0.15;
+
+/** ONE post this far above the live count fails the run on its own.
+ *
+ *  The ratio rule alone is not enough, and a real run proved it: after the first
+ *  six offenders were hidden on 8 Aug, a Jumeirah Marsa Al Arab post surfaced
+ *  storing 111,846 likes against a live 182 — 614× — and the run PASSED, because
+ *  one bad post in thirty is under the 15% line. Nobody looking at a hotel's own
+ *  post needs a percentage to know that is wrong.
+ *
+ *  Set at 3× because the honest noise floor is ~1.25 (rounding plus a post
+ *  shedding a few likes) and the observed defect runs 1.9× to 614×. It leaves the
+ *  quiet end to the ratio rule and catches anything egregious immediately. */
+export const SEVERE_RATIO = 3;
 
 /** Below this many successfully checked posts, the ratio above means nothing,
  *  so a run that could barely reach Instagram reports UNVERIFIED rather than
@@ -148,15 +161,24 @@ export function roundingSlack(likes) {
  * for the same reason — a guard is only worth having if it can go red, so the
  * decision is a pure function with a test per branch.
  *
- * @param {{checked:number, overstated:number, unverified:number}} counts
- * @returns {{ok:boolean, code:'clean'|'overstated'|'too-few-checked', reason:string}}
+ * @param {{checked:number, overstated:number, unverified:number, worstRatio?:number}} counts
+ * @returns {{ok:boolean, code:'clean'|'overstated'|'severe'|'too-few-checked', reason:string}}
  */
-export function classifyLikeRun({ checked, overstated, unverified }) {
+export function classifyLikeRun({ checked, overstated, unverified, worstRatio = 0 }) {
   if (checked < MIN_CHECKED) {
     return {
       ok: false,
       code: 'too-few-checked',
       reason: `only ${checked} of ${checked + unverified} posts could be read from Instagram — not enough to judge the feed.`,
+    };
+  }
+  // Severity before proportion: one indefensible post is a failure whatever the
+  // rest of the sample looks like.
+  if (worstRatio >= SEVERE_RATIO) {
+    return {
+      ok: false,
+      code: 'severe',
+      reason: `a displayed post stores ${worstRatio === Infinity ? 'likes against a live zero' : `${worstRatio.toFixed(1)}× the live like count`} — indefensible on its own, whatever the rest of the sample says.`,
     };
   }
   const ratio = overstated / checked;

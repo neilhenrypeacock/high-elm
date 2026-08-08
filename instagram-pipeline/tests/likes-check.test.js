@@ -9,6 +9,7 @@ import {
   OVERSTATEMENT_TOLERANCE,
   FAIL_RATIO,
   MIN_CHECKED,
+  SEVERE_RATIO,
 } from '../likes-check.js';
 
 // Same standard as scrape-outcome.test.js: the point is not that the rules are
@@ -144,20 +145,45 @@ describe('classifyLikeRun — should the run fail?', () => {
     assert.equal(r.code, 'clean');
   });
 
-  test('one bad post in 25 reports but does not stop the pipeline', () => {
-    const r = classifyLikeRun({ checked: 25, overstated: 1, unverified: 0 });
+  test('one MILDLY bad post in 25 reports but does not stop the pipeline', () => {
+    const r = classifyLikeRun({ checked: 25, overstated: 1, unverified: 0, worstRatio: 1.9 });
     assert.equal(r.ok, true);
     assert.match(r.reason, /remove them in \/admin/);
   });
 
+  test('one EGREGIOUS post fails on its own — the 8 Aug Marsa Al Arab case', () => {
+    // 111,846 stored against a live 182. One in thirty is under the ratio limit,
+    // and the first version of this rule let it pass. It must not.
+    const r = classifyLikeRun({ checked: 30, overstated: 1, unverified: 0, worstRatio: 614.5 });
+    assert.equal(r.ok, false);
+    assert.equal(r.code, 'severe');
+  });
+
+  test('severity is checked before proportion', () => {
+    const r = classifyLikeRun({ checked: 100, overstated: 1, unverified: 0, worstRatio: SEVERE_RATIO });
+    assert.equal(r.ok, false);
+    assert.equal(r.code, 'severe');
+  });
+
+  test('just under the severity bar falls back to the ratio rule', () => {
+    const r = classifyLikeRun({ checked: 30, overstated: 1, unverified: 0, worstRatio: SEVERE_RATIO - 0.01 });
+    assert.equal(r.ok, true);
+  });
+
+  test('a live-zero post (ratio Infinity) fails and reads sensibly', () => {
+    const r = classifyLikeRun({ checked: 30, overstated: 1, unverified: 0, worstRatio: Infinity });
+    assert.equal(r.ok, false);
+    assert.match(r.reason, /live zero/);
+  });
+
   test('the 7 Aug state — roughly a fifth overstated — goes red', () => {
-    const r = classifyLikeRun({ checked: 28, overstated: 6, unverified: 0 });
+    const r = classifyLikeRun({ checked: 28, overstated: 6, unverified: 0, worstRatio: 2 });
     assert.equal(r.ok, false);
     assert.equal(r.code, 'overstated');
   });
 
   test('the top-20 state — 4 of 20 — goes red', () => {
-    assert.equal(classifyLikeRun({ checked: 20, overstated: 4, unverified: 0 }).ok, false);
+    assert.equal(classifyLikeRun({ checked: 20, overstated: 4, unverified: 0, worstRatio: 2 }).ok, false);
   });
 
   test('a sample too small to judge fails rather than passing on two posts', () => {
@@ -168,7 +194,7 @@ describe('classifyLikeRun — should the run fail?', () => {
 
   test('exactly at the fail ratio passes; one more fails', () => {
     const atLimit = Math.round(20 * FAIL_RATIO);
-    assert.equal(classifyLikeRun({ checked: 20, overstated: atLimit, unverified: 0 }).ok, true);
-    assert.equal(classifyLikeRun({ checked: 20, overstated: atLimit + 1, unverified: 0 }).ok, false);
+    assert.equal(classifyLikeRun({ checked: 20, overstated: atLimit, unverified: 0, worstRatio: 2 }).ok, true);
+    assert.equal(classifyLikeRun({ checked: 20, overstated: atLimit + 1, unverified: 0, worstRatio: 2 }).ok, false);
   });
 });

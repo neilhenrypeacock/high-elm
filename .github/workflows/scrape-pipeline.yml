@@ -55,8 +55,19 @@ jobs:
         run: node scrape-run.js
       - name: Verify data is fresh after the run
         run: node check-freshness.js
-      - name: Generate "why it worked" analysis for the top 10 breakouts
-        run: node generate-insight.js
+      # Every breakout a member can see should carry a note (Neil, 2026-08-08).
+      # --backfill is the mode that SKIPS posts which already have one, so the
+      # marginal cost is only genuinely new breakouts — which lets the window be
+      # 35 days rather than 7 without paying twice for anything.
+      #
+      # Why 35 and not 7: engagement keeps accruing after a post lands, and the
+      # monthly scrape deliberately re-refreshes 35 days for exactly that reason.
+      # A post that crosses the 2x bar three weeks late never appears in any
+      # 7-day window, so under the old 7-day run it would reach the 30-day and
+      # all-time feeds with no note and never get one. This makes coverage
+      # self-healing instead of one-shot.
+      - name: Write the "why it worked" note for every breakout still missing one
+        run: node generate-insight.js --backfill --window=35 --limit=90
       # The scrape stores an image for every post it sees, but the dashboard only
       # renders a fraction of them. Left alone that put the bucket past Supabase's
       # then 1 GB cap on 2 Aug 2026, and Supabase restricted the WHOLE project API

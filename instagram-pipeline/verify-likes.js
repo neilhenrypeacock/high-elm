@@ -244,7 +244,8 @@ for (const post of sample) {
 const overstated = results.filter(r => r.code === 'overstated');
 const unverified = results.filter(r => r.code === 'unverified');
 const checked = results.filter(r => r.code === 'ok' || r.code === 'overstated').length;
-const outcome = classifyLikeRun({ checked, overstated: overstated.length, unverified: unverified.length });
+const worstRatio = overstated.reduce((w, r) => Math.max(w, r.ratio ?? 0), 0);
+const outcome = classifyLikeRun({ checked, overstated: overstated.length, unverified: unverified.length, worstRatio });
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ outcome, checked, overstated: overstated.length, unverified: unverified.length, results }, null, 2));

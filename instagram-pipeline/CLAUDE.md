@@ -1,7 +1,7 @@
 # Instagram Pipeline — Session Context
 
 ## What this repo is
-A Node.js (ESM) script that scrapes Instagram data for luxury hotels using Apify, then writes results to Supabase. It runs on a **two-tier schedule via GitHub Actions** — a cheap **weekly** incremental (Mondays 05:00 UTC, last 10 days) plus a **monthly** deep-sweep (1st of the month 05:00 UTC, last 35 days) — and a manual-only **full** baseline rebuild. All three are thin callers of one reusable workflow (`.github/workflows/scrape-pipeline.yml`); each run costs real Apify money (see `APIFY-COST.md`). Every run also calls `generate-insight.js` after the scrape to produce "why it worked" analysis for the current top 10 non-collab breakouts (needs the `ANTHROPIC_API_KEY` secret; the workflow installs ffmpeg for video-frame analysis). A daily `freshness-check.yml` workflow alarms when the newest post is older than 8 days (`check-freshness.js` fails the run so GitHub emails the owner; also emails ALERT_EMAIL via Resend once `RESEND_API_KEY` is set). The dashboard at `../hotel-dashboard/` reads the data this pipeline writes. (The `hotels` table holds 465 hotels; only the ~205 with `tracked = true` are scraped.)
+A Node.js (ESM) script that scrapes Instagram data for luxury hotels using Apify, then writes results to Supabase. It runs on a **two-tier schedule via GitHub Actions** — a cheap **weekly** incremental (Mondays 05:00 UTC, last 10 days) plus a **monthly** deep-sweep (1st of the month 05:00 UTC, last 35 days) — and a manual-only **full** baseline rebuild. All three are thin callers of one reusable workflow (`.github/workflows/scrape-pipeline.yml`); each run costs real Apify money (see `APIFY-COST.md`). Every run also calls `generate-insight.js` after the scrape to write a "why it worked" note for **every breakout in the last 35 days that hasn't got one** — collabs included, up to 90 per run (changed 2026-08-08; it was the top 10 non-collab of 7 days) (needs the `ANTHROPIC_API_KEY` secret; the workflow installs ffmpeg for video-frame analysis). A daily `freshness-check.yml` workflow alarms when the newest post is older than 8 days (`check-freshness.js` fails the run so GitHub emails the owner; also emails ALERT_EMAIL via Resend once `RESEND_API_KEY` is set). The dashboard at `../hotel-dashboard/` reads the data this pipeline writes. (The `hotels` table holds 465 hotels; only the ~205 with `tracked = true` are scraped.)
 
 ## How to run
 
@@ -65,7 +65,7 @@ Credentials are also documented in `../keys/README.md`.
 | `setup-tracked.sql` | Adds/refreshes hotels.tracked = top-200 by followers (idempotent; run 2026-07-01) |
 | `setup-coauthors.sql` | Adds `posts.coauthor_usernames text[]` for native collab detection (run in Supabase SQL editor BEFORE deploying the dashboard select — 2026-07-12) |
 | `setup-post-media.sql` | Adds `posts.child_image_urls text[]` + `posts.video_url text` for full carousel/video analysis (run in Supabase SQL editor BEFORE the next scrape + generate-insight) |
-| `generate-insight.js` | Per-post editorial analysis (what it is / why it worked / try this) + driver/theme tags → standout_posts. **Claude Sonnet 5** Vision + adaptive thinking + structured output. Runs automatically after every scrape (in the reusable `scrape-pipeline.yml`, needs `ANTHROPIC_API_KEY`; the workflow installs ffmpeg). Targets the current **top 10 non-collab breakouts**, selected with the SAME rule as the dashboard — the breakout constants are DUPLICATED from `../hotel-dashboard/lib/data.ts` (last-30 median, 2× threshold, MIN_ENGAGEMENT 100, MIN_BASELINE_ENGAGEMENT 25, tracked-only, 7-day window) — keep the two in sync. Sees the WHOLE carousel (every slide via `posts.child_image_urls`) and the WHOLE video (frames sampled across it via **ffmpeg** from `posts.video_url`); falls back to the cover image if media/ffmpeg is unavailable. `post_insight` holds the composed 3-line note the dashboard's "Editor's note" card renders. Local runs need `brew install ffmpeg`. Weekly prose generation REMOVED 2026-07-01. |
+| `generate-insight.js` | Per-post editorial analysis (what it is / why it worked / try this) + driver/theme tags → standout_posts. **Claude Sonnet 5** Vision + adaptive thinking + structured output. Runs automatically after every scrape (in the reusable `scrape-pipeline.yml`, needs `ANTHROPIC_API_KEY`; the workflow installs ffmpeg). Targets **every breakout still missing a note** in the run's window — collabs INCLUDED since 2026-08-08, capped at `MAX_STANDOUT` (90) — selected with the SAME rule as the dashboard, and skipping hotels/posts that are hidden — the breakout constants are DUPLICATED from `../hotel-dashboard/lib/data.ts` (last-30 median, 2× threshold, MIN_ENGAGEMENT 500, MIN_BASELINE_ENGAGEMENT 25, tracked-and-not-hidden) — keep the two in sync. Sees the WHOLE carousel (every slide via `posts.child_image_urls`) and the WHOLE video (frames sampled across it via **ffmpeg** from `posts.video_url`); falls back to the cover image if media/ffmpeg is unavailable. `post_insight` holds the composed 3-line note the dashboard's "Editor's note" card renders. Local runs need `brew install ffmpeg`. Weekly prose generation REMOVED 2026-07-01. |
 
 ## Apify actors used
 - `apify/instagram-profile-scraper` — follower counts, bio → `profile_snapshots`
@@ -177,9 +177,21 @@ node verify-likes.js --apply              # ALSO hides the offenders (writes)
 - **Only overstatement counts.** Stored *below* live is the normal direction (the
   post kept earning likes after the scrape) and is never flagged.
 - **Tolerances** live in `likes-check.js`: 25% overstatement before a post is
-  called indefensible, and the run fails above 15% of checked posts. Instagram
-  rounds above ~10,000 ("51K"), so a rounded live figure is compared against the
-  top of its bracket.
+  called indefensible; the run then fails on EITHER a single post at **3× or
+  more** (`SEVERE_RATIO`) or **more than 15%** of checked posts overstated
+  (`FAIL_RATIO`). The severity rule exists because the ratio rule alone was
+  proved insufficient on 8 Aug: after the first offenders were hidden, a Jumeirah
+  Marsa Al Arab post storing 111,846 likes against a live 182 — **614×** — passed,
+  because one bad post in thirty is under 15%. Instagram rounds above ~10,000
+  ("51K"), so a rounded live figure is compared against the top of its bracket.
+- **`--apply` hides every overstated post, even when the run PASSES.** The exit
+  code is the alarm; hiding is the correction. A post that overstates should not
+  be on screen whether or not the sample as a whole is within tolerance.
+- ⚠ **Hiding promotes the next post up, so it needs iterating.** An overstated
+  like count is *what makes* a post rank highly, so offenders cluster at the top
+  and each hide reveals another. On 8 Aug it took **four passes** at `--limit=30`
+  to converge (6 + 1 + 1 + 3 hidden, then a pass that hid nothing). Loop
+  `--apply` until a pass hides zero.
 - **`--apply` hides rather than corrects**, via `standout_posts.hidden`. We do not
   know the true figure, so writing one would be inventing data. Hiding excludes
   the post from every figure, is keyed on `post_id` so a co-post goes from every
