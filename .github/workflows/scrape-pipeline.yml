@@ -71,3 +71,17 @@ jobs:
       # is a cost line (5 GB), not an outage cliff — see check-storage.js.
       - name: Check the image bucket has room
         run: node check-storage.js
+      # LAST on purpose. This step can legitimately go red on good data — a hotel
+      # can only disprove a number we are about to show it — and everything above
+      # is housekeeping that must still run when it does. In particular
+      # cleanup-images.js is what holds the storage steady state, and skipping it
+      # because a like count was wrong would trade one problem for a worse one.
+      #
+      # --include-pending because the posts this run just collected sit BEHIND
+      # dashboard_settings.publish_cutoff until Neil hits Publish: the default
+      # view would check last week's feed, pass, and let the bad rows through.
+      #
+      # Costs no Apify credit and no AI — it reads Instagram's og:description,
+      # which is the same thing a hotel does when it checks its own post.
+      - name: Verify the top breakouts against the live Instagram posts
+        run: node verify-likes.js --include-pending --limit=25

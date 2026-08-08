@@ -58,6 +58,8 @@ Credentials are also documented in `../keys/README.md`.
 | `cleanup-images.js` | Prunes `standout-images` of covers no view can reach. Chained onto every scrape via `npm run weekly`/`monthly`/`full`. Dry-run unless `--apply`. See "Image storage" |
 | `compress-images.js` | One-off backfill: re-encodes pre-2026-07-30 covers to WebP in place. Already applied to prod. Dry-run unless `--apply` |
 | `backfill-themes.js` | Ad-hoc AI theme-tag backfill for standout_posts |
+| `likes-check.js` | Pure, tested rules for "is this stored like count still true?" — `parseOgCounts`, `classifyLikeCheck`, `classifyLikeRun`, and the tolerances. Split out so each branch gets a test, same as `scrape-outcome.js` |
+| `verify-likes.js` | Checks the top breakouts against the LIVE Instagram posts. Last step of `scrape-pipeline.yml`. See "Verifying like counts" below |
 | `setup-tables.sql` | SQL to create Supabase tables (already run — do not re-run) |
 | `setup-standout-posts.sql` | SQL for standout_posts table (already run) |
 | `setup-tracked.sql` | Adds/refreshes hotels.tracked = top-200 by followers (idempotent; run 2026-07-01) |
@@ -139,6 +141,61 @@ both `likes_count = -1` and `likes_count = 3` now returns zero. `comments_count`
 never carried a sentinel. No dashboard figure moved — `hasVisibleLikes` already
 excluded both values — but "null is the one stored convention" is no longer a
 statement with exceptions. The dashboard's `hasVisibleLikes` excludes hidden-like rows from every engagement calculation. If engagement figures ever look collapsed again (a hotel whose "typical post" is single-digit likes), suspect a NEW sentinel value first: check the raw dataset of the latest run before trusting the numbers.
+
+## Verifying like counts (added 2026-08-08)
+
+**The actor sometimes returns a like count that is simply wrong, and only for
+Reels.** The 7 Aug viability audit checked the top 20 all-time breakouts against
+the live posts: four stored MORE likes than Instagram shows — Jumeirah Al Naseem
+at 36,202 against a real 315. A 28-post sample localised it — Image 0/2, Sidecar
+0/12, **Video 6/14**, overstated by 5.2× to 13.0×.
+
+Three things were ruled out by reading the stored Apify datasets, so don't redo
+them: it is **not** our mapping (`scrape.js` stores `p.likesCount` verbatim and
+the dataset holds the same wrong number), it is **not** a play/view count leaking
+through (`videoViewCount` and `videoPlayCount` are present and distinct in the
+same row), and it is **not** fixed by re-scraping — the actor is *unstable*, one
+Rosewood co-post returning 333 likes on 21 Jul, 2,665 on 27 Jul, and 513 live.
+
+So the guard is a **check, not a correction**: read the number the customer would
+see if they clicked through, and refuse to show ours if it is bigger. That is
+exactly what a hotel does to its own post, in about ten seconds.
+
+```bash
+node verify-likes.js                      # published feed; exit 1 if too many are wrong
+node verify-likes.js --include-pending    # also what Publish is about to release
+node verify-likes.js --window=7 --limit=40
+node verify-likes.js --json               # machine-readable
+node verify-likes.js --apply              # ALSO hides the offenders (writes)
+```
+
+- **Runs last in `scrape-pipeline.yml`, with `--include-pending`.** Last because it
+  can legitimately go red on good data, and the housekeeping above it (especially
+  `cleanup-images.js`) must still run when it does. `--include-pending` because
+  fresh posts sit behind `dashboard_settings.publish_cutoff` until Neil hits
+  Publish — without it the step checks *last* week's feed and passes.
+- **Only overstatement counts.** Stored *below* live is the normal direction (the
+  post kept earning likes after the scrape) and is never flagged.
+- **Tolerances** live in `likes-check.js`: 25% overstatement before a post is
+  called indefensible, and the run fails above 15% of checked posts. Instagram
+  rounds above ~10,000 ("51K"), so a rounded live figure is compared against the
+  top of its bracket.
+- **`--apply` hides rather than corrects**, via `standout_posts.hidden`. We do not
+  know the true figure, so writing one would be inventing data. Hiding excludes
+  the post from every figure, is keyed on `post_id` so a co-post goes from every
+  partner's grid at once, and Neil can undo it from the /admin hidden chips.
+  ⚠ Not wired into the workflow — the pipeline reports, a human decides.
+- **Costs nothing.** No Apify credit, no AI. Reads `og:description`, which
+  Instagram serves to crawler user agents (a normal browser UA gets a login wall).
+- ⚠ The breakout constants are DUPLICATED from `../hotel-dashboard/lib/data.ts`,
+  same as `generate-insight.js`. If a threshold moves there, move it here, or this
+  verifies a different set of posts than the feed shows — which is the one way it
+  could quietly stop protecting anything.
+
+Proven both ways on 8 Aug 2026: red on the all-time top 20 (4 of 20 overstated,
+exit 1, all four the known-bad Reels, no false positives among 16 good posts
+including honest drifts like stored 100,527 against live ~129,000), and green on
+the 7-day feed (18 of 18 clean, exit 0).
 
 ## Supabase tables written
 - `profile_snapshots` — one new row per scrape per hotel (INSERT; deduped per UTC day on re-runs, 2026-07-09)
