@@ -488,19 +488,34 @@ export default function Landing({
           </div>
           {/* ⚠ SOURCING CLAIM — every name here must be one we can stand behind.
               Each is verified per-hotel in lib/accreditations.generated.ts:
-              Forbes Five-Star 319, Condé Nast Gold List 139, Michelin Keys 139
-              (82 One / 43 Two / 14 Three), World's 50 Best 50.
+              Forbes Five-Star 319, Condé Nast Gold List 139, World's 50 Best 50.
               Relais & Châteaux was in the 2026-08-06 design and was dropped
               (Neil, same day): it appears on NO hotel in that map, and listing
               it here while "More lists adding soon" below also names it made
               the page contradict itself. Don't add a list to this row until it
-              has hotels in the map. */}
+              has hotels in the map.
+
+              ⚠ MICHELIN KEYS BELONGS IN NEITHER CHIP ROW. This is its THIRD
+              removal — taken out 2026-07-31 (PR #63), reinstated by the Claude
+              Design rebuild in ed0f4d9 (2026-08-06), flagged again by the
+              claims audit and the front-door audit on 2026-08-07. The heading
+              above reads "Tracked from the lists that matter", which makes this
+              a direct claim to track the list: 139 Michelin hotels exist as
+              rows, 26 are tracked and 18 are visible to a customer — 13%. The
+              Ritz London, The Peninsula, Cliveden House and Chewton Glen are
+              all Michelin Key hotels and none of them are in the product, which
+              is exactly what the UK hoteliers we email would check first.
+              Dashboard.tsx's Sources panel has had this right since 31 July;
+              see the matching note at Dashboard.tsx:32. The per-hotel Michelin
+              PINS on the leaderboard stay — those come from a verified CSV and
+              are correct. Put the list back here only once it is actually
+              crawled at a coverage you would defend to a Michelin Key hotelier. */}
           <div style={{ marginTop: 30, textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-label)', fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--body-mid)' }}>
               Tracked from the lists that matter
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 14 }}>
-              {['Forbes Five-Star', 'Condé Nast Gold List', "World's 50 Best Hotels", 'Michelin Keys'].map((t) => (
+              {['Forbes Five-Star', 'Condé Nast Gold List', "World's 50 Best Hotels"].map((t) => (
                 <span key={t} style={listChip('light')}>{t}</span>
               ))}
             </div>
@@ -763,7 +778,11 @@ export default function Landing({
               A curated universe of the names that carry weight
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 16 }}>
-              {['Forbes Five-Star', 'Condé Nast Gold List', 'Michelin Keys'].map((t) => (
+              {/* Same three lists as the chip row above, in the same order — see
+                  the Michelin note there. Two rows on one page naming different
+                  lists is the contradiction the 2026-08-07 claims audit flagged
+                  as item 6; keep them in step. */}
+              {['Forbes Five-Star', 'Condé Nast Gold List', "World's 50 Best Hotels"].map((t) => (
                 <span key={t} style={listChip('green')}>{t}</span>
               ))}
             </div>
