@@ -239,10 +239,16 @@ export function TagChip({ type }: { type: string | null }) {
   );
 }
 
-// ─── AI insight — the parsed "what it is / why it worked / consider this" note ─
+// ─── The insight — the parsed "what it is / why it worked / consider this" note ─
 // Reads the stored post_insight blob (parseInsight splits it). Leads with the
 // punchy "why it worked" line and tucks the rest behind an inline "Read more"
 // so the card stops sprawling. Short free-form notes render as a single line.
+//
+// ⚠ There is deliberately NO "AI insight" eyebrow on this card (Neil,
+// 2026-08-08). The note is the product — how it was written is not the member's
+// concern, and labelling it invited them to discount it before reading. The
+// section heads ("Why it worked") already say what it is. Don't reinstate a
+// provenance badge here; /admin still documents the mechanism for us.
 const INSIGHT_CARD: React.CSSProperties = {
   background: 'var(--surface-alt)', border: '1px solid var(--line)', borderRadius: 10, padding: '13px 15px',
 };
@@ -253,20 +259,6 @@ const INSIGHT_CLAMP2: React.CSSProperties = {
   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
 };
 
-function InsightLabel() {
-  return (
-    <div style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      fontFamily: LABEL, fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase',
-      letterSpacing: '0.14em', color: 'var(--signal-deep)', marginBottom: 7,
-    }}>
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" />
-      </svg>
-      AI insight
-    </div>
-  );
-}
 function InsightHead({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
@@ -276,7 +268,7 @@ function InsightHead({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AiInsight({ insight }: { insight: string }) {
+function InsightNote({ insight }: { insight: string }) {
   const [open, setOpen] = useState(false);
   const parsed = parseInsight(insight);
   if (!parsed) return null;
@@ -284,7 +276,7 @@ function AiInsight({ insight }: { insight: string }) {
 
   // Short, unstructured note → a single clean line, no read-more.
   if (freeform) {
-    return <div style={INSIGHT_CARD}><InsightLabel /><p style={INSIGHT_BODY}>{freeform}</p></div>;
+    return <div style={INSIGHT_CARD}><p style={INSIGHT_BODY}>{freeform}</p></div>;
   }
 
   // Canonical order: what it is (context) · why it worked (hero) · consider this (action).
@@ -300,7 +292,6 @@ function AiInsight({ insight }: { insight: string }) {
 
   return (
     <div style={INSIGHT_CARD}>
-      <InsightLabel />
       {open ? (
         sections.map((s, i) => (
           <div key={s.key} style={{ marginTop: i === 0 ? 0 : 9 }}>
@@ -455,9 +446,9 @@ export function BreakoutCard({
             <AccreditationPins labels={accreditationsFor(p.instagram_handle)} />
           </div>
 
-          {/* AI insight — parsed "what it is / why it worked / consider this",
+          {/* The insight — parsed "what it is / why it worked / consider this",
               leading with why-it-worked, the rest behind an inline read-more */}
-          {p.post_insight && <AiInsight insight={p.post_insight} />}
+          {p.post_insight && <InsightNote insight={p.post_insight} />}
 
           {/* Likes / Comments pair */}
           <div

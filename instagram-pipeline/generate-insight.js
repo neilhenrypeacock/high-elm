@@ -13,8 +13,10 @@
  * 4. Writes to standout_posts so the dashboard's "Editor's note" card reads it.
  *
  * Runs automatically in .github/workflows/weekly-scrape.yml, after the scrape.
- * Targets the current TOP 10 NON-COLLAB breakouts, selected with the SAME rule
- * as the dashboard — see the "Breakout rule" note by the constants below.
+ * Targets EVERY breakout in the window — collabs included — up to MAX_STANDOUT,
+ * selected with the SAME rule as the dashboard. The goal is that every post a
+ * member can see carries a note (Neil, 2026-08-08); see the "Breakout rule"
+ * comment by the constants below.
  *
  * Prereqs: run setup-post-media.sql; `brew install ffmpeg` for video frames
  * (the workflow installs it; local runs need it too). Needs ANTHROPIC_API_KEY.
@@ -52,7 +54,12 @@ const VIDEO_FRAMES   = 8;                    // frames sampled across a video/re
 // single source of truth — if the baseline window, threshold or floors change
 // there, change them here too, or the weekly generator will annotate a different
 // set of posts than the feed's big cards show.
-const MAX_STANDOUT            = 10;   // top 10 non-collab breakouts get analysis each run
+// Every breakout a member can SEE should carry a note (Neil, 2026-08-08). The
+// cap is now a runaway guard, not a budget: weekly breakout counts ran 19-79 over
+// the twelve weeks to 8 Aug, so 90 covers the worst of them and still stops a
+// pathological week spending without limit. At ~4.5p a note that is ~£1-3.50 a
+// week against the ~£2/month the old cap of 10 cost.
+const MAX_STANDOUT            = 90;   // every breakout in the window, up to this ceiling
 const OUTLIER_THRESHOLD       = 2;    // post must beat its hotel's median by ≥2×
 const BASELINE_POSTS          = 30;   // baseline = median of the hotel's last 30 valid posts
 const MIN_ENGAGEMENT          = 500;  // absolute floor; below this is noise (kept in sync with hotel-dashboard/lib/data.ts)
@@ -60,8 +67,8 @@ const MIN_BASELINE_ENGAGEMENT = 25;   // hotels with a median below this are exc
 const OUTLIER_WINDOW_DAYS     = 7;    // the "this week" window for breakouts
 
 // ── Backfill mode (added 2026-08-05) ─────────────────────────────────────────
-// The weekly run annotates this week's top 10 and nothing else, so the archive
-// of older breakouts has almost no insights — which starves the dashboard's
+// The weekly run only reaches this week's window, so the archive of older
+// breakouts has almost no insights — which starves the dashboard's
 // content lever, the landing "inside a breakout" band, and the "why it worked"
 // line on every older card. Backfill widens the same breakout rule to a longer
 // window and works through whatever is still missing.
@@ -353,7 +360,7 @@ async function getData() {
   // Breakouts — MUST match ../hotel-dashboard/lib/data.ts computeStandout:
   //   • tracked hotels only (untracked never show on the dashboard)
   //   • last OUTLIER_WINDOW_DAYS days
-  //   • non-collab only (co-author byline excluded — we annotate non-collabs)
+  //   • collabs INCLUDED, same as the dashboard feed (changed 2026-08-08)
   //   • post engagement ≥ MIN_ENGAGEMENT
   //   • hotel baseline = median of its last BASELINE_POSTS valid posts, ≥ MIN_BASELINE_ENGAGEMENT
   //   • multiplier = postEngagement / baseline ≥ OUTLIER_THRESHOLD
@@ -369,7 +376,15 @@ async function getData() {
 
   for (const p of valid) {
     if (!trackedHandles.has(p.instagram_handle)) continue;
-    if ((p.coauthor_usernames?.length ?? 0) > 0) continue; // exclude true collabs
+    // Collabs are INCLUDED (Neil, 2026-08-08). They used to be skipped here,
+    // which was the single biggest hole in coverage: on 8 Aug every one of the
+    // 8 uncovered posts in the 7-day feed and all 55 in the 30-day feed was a
+    // collab, and collabs are ~47% of a typical week. The dashboard has shown
+    // them by default since 2026-07-31, so skipping them meant the feed's
+    // default view was half-unexplained. "It borrowed a partner's audience" is
+    // a legitimate and useful read — and the note can say so.
+    // (The LANDING taster still excludes collabs; that is a separate rule in
+    // lib/data.ts and is unaffected by this.)
     if (now - new Date(p.posted_at).getTime() > windowMs) continue;
     const postEngagement = p.likes_count + (p.comments_count ?? 0);
     if (postEngagement < MIN_ENGAGEMENT) continue;
@@ -400,7 +415,7 @@ async function getData() {
   standout.sort((a, b) => b.multiplier - a.multiplier);
 
   return {
-    top10: standout.slice(0, MAX_STANDOUT),
+    windowBreakouts: standout.slice(0, MAX_STANDOUT),
     allBreakouts: standout,
     categoryER:    (categoryER ? categoryER * 100 : 0).toFixed(2),
     topHotelName:  nameByHandle[topHotel?.handle] ?? topHotel?.handle,
@@ -535,10 +550,11 @@ async function main() {
   await ensureBucket();
 
   console.log('\nPulling data from Supabase…');
-  const { top10, allBreakouts, ...numbers } = await getData();
+  const { windowBreakouts, allBreakouts, ...numbers } = await getData();
 
-  // Which posts this run will analyse. Weekly = this week's top 10, unchanged.
-  let targets = top10;
+  // Which posts this run will analyse. Weekly = every breakout in the 7-day
+  // window, collabs included, capped at MAX_STANDOUT.
+  let targets = windowBreakouts;
   if (BACKFILL) {
     const windowLabel = BACKFILL_WINDOW_DAYS === Infinity ? 'all time' : `last ${BACKFILL_WINDOW_DAYS} days`;
     console.log(`Backfill · ${windowLabel} · ${allBreakouts.length} breakouts match the rule`);
@@ -570,7 +586,7 @@ async function main() {
       console.log(`  --limit=${BACKFILL_LIMIT} → analysing ${targets.length}, leaving ${pool.length - targets.length} for a later run`);
     }
   } else {
-    console.log(`Top non-collab breakouts this week: ${top10.length}`);
+    console.log(`Breakouts to annotate this week: ${windowBreakouts.length}`);
     console.log('Numbers:', JSON.stringify(numbers, null, 2));
   }
 
