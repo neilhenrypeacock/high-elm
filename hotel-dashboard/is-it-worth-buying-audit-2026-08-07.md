@@ -54,13 +54,18 @@ ten useful items a week than to a library, and a member who feels finished cance
 
 Ruthlessly short. Worst first. Everything else is in section 6.
 
-1. **Reject Reels whose stored like count exceeds the live post.** ⟵ *open*
-   This is the whole audit in one line. 20% of the displayed all-time top 20 is
-   wrong in the one direction that costs trust — stored *higher* than real — and
-   72% of that list is video. The cause is now known (see section 3): the Apify
-   actor returns a wrong and unstable `likesCount` for collab Reels, so neither a
-   mapping fix nor a re-scrape resolves it. The fix has to be a check on our side.
-   Until it exists, no outreach email should point a hotelier at the all-time view.
+1. **Reject Reels whose stored like count exceeds the live post.** ✅ *built —
+   `instagram-pipeline/verify-likes.js`, 8 Aug.* Reconstructs the displayed feed,
+   reads each post's live count from `og:description`, and fails the run when more
+   than 15% of checked posts overstate. Runs last in `scrape-pipeline.yml` with
+   `--include-pending`, costs no Apify credit and no AI. Proven both ways: red on
+   the all-time top 20 (4 of 20, exit 1, all four the known-bad Reels, no false
+   positives among 16 good posts) and green on the 7-day feed (18 of 18, exit 0).
+
+   **The 4 bad posts are still in the data.** The check stops new ones reaching
+   members from the next scrape; it does not retro-hide what is already displayed.
+   Running `verify-likes.js --apply` once would hide them — a database write, so
+   it needs Neil's say-so.
 
 2. **Remove "Michelin Keys" from the two landing-page chip rows.** ✅ *done —
    PR #99.* Both rows now name Forbes, the Gold List and World's 50 Best, and the
@@ -75,7 +80,9 @@ Ruthlessly short. Worst first. Everything else is in section 6.
    one-cycle blind spot** — it cannot catch the first failure in a sequence, only
    the second — which is a real weakness but not a launch blocker on its own.
 
-**Item 1 is now the only thing I would not launch without.**
+**All three are now addressed.** The one action still outstanding is a decision,
+not a build: whether to run `verify-likes.js --apply` to hide the four bad posts
+already in the feed.
 
 ---
 
